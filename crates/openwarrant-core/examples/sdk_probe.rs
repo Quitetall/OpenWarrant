@@ -17,6 +17,8 @@ mod records;
 #[path = "sdk_probe/source.rs"]
 mod source;
 use serde::Deserialize;
+use serde_json::json;
+use sha2::Digest;
 use std::{
     collections::BTreeSet,
     path::{Component, Path},
@@ -63,10 +65,12 @@ fn run() -> Result<(), String> {
     let mut args = std::env::args().skip(1);
     let mut scope = None;
     let mut fixtures = None;
+    let mut observations = false;
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--scope" => scope = args.next(),
             "--fixtures" => fixtures = args.next(),
+            "--observations" => observations = true,
             _ => {
                 return Err(format!(
                     "Unknown argument {arg}; use --scope 75 --fixtures conformance/sdk"
@@ -79,6 +83,9 @@ fn run() -> Result<(), String> {
         Some("75" | "76" | "77" | "78" | "81" | "83" | "84" | "85")
     ) {
         return Err("This driver implements --scope 75, 76, 77, 78, 81, 83, 84 or 85".into());
+    }
+    if observations && scope.as_deref() != Some("75") {
+        return Err("--observations requires --scope 75".into());
     }
     let root = std::path::PathBuf::from(fixtures.ok_or("--fixtures is required")?);
     if scope.as_deref() == Some("84") {
@@ -96,7 +103,11 @@ fn run() -> Result<(), String> {
     if scope.as_deref() == Some("77") {
         return source::run(&root);
     }
-    documents(&root, matches!(scope.as_deref(), Some("76" | "85")))?;
+    documents(
+        &root,
+        matches!(scope.as_deref(), Some("76" | "85")),
+        observations,
+    )?;
     if scope.as_deref() == Some("85") {
         source::run(&root)?;
         conditions::run(&root)?;
@@ -109,7 +120,7 @@ fn run() -> Result<(), String> {
     }
     Ok(())
 }
-fn documents(root: &Path, with_author: bool) -> Result<(), String> {
+fn documents(root: &Path, with_author: bool, observations: bool) -> Result<(), String> {
     let directory = root.join("document");
     let suite: Suite =
         serde_json::from_slice(&read_bounded(&directory.join("cases.json"), 1024 * 1024)?)
@@ -137,8 +148,11 @@ fn documents(root: &Path, with_author: bool) -> Result<(), String> {
             _ => return Err("Unknown fixture dialect".into()),
         };
         let bytes = read_bounded(&directory.join(path), ParseLimits::default().source_bytes)?;
-        let success = match parse_document(&bytes, dialect, ParseLimits::default()) {
-            Err(error) => case.parse_error.as_deref() == Some(error.code),
+        let (success, observed) = match parse_document(&bytes, dialect, ParseLimits::default()) {
+            Err(error) => (
+                case.parse_error.as_deref() == Some(error.code),
+                json!({"parse":"refused", "diagnostic":diagnostic(&error)}),
+            ),
             Ok(document) => {
                 let report = validate_document(&document, &ValidationOptions::default());
                 let validation_matches = match &case.validation_error {
@@ -148,19 +162,62 @@ fn documents(root: &Path, with_author: bool) -> Result<(), String> {
                     }
                     None => report.validity == Validity::Valid,
                 };
-                case.parse_error.is_none()
+                let success = case.parse_error.is_none()
                     && document.original() == bytes
                     && validation_matches
                     && (report.semantic_support == SemanticSupport::Unsupported)
                         == case.required_extension
                     && (case.unit_ids.is_empty()
-                        || document.units().iter().map(|u| &u.id).eq(&case.unit_ids))
+                        || document.units().iter().map(|u| &u.id).eq(&case.unit_ids));
+                let observed = json!({
+                    "parse":"parsed",
+                    "original_preserved":document.original() == bytes,
+                    "metadata":document.metadata(),
+                    "metadata_span":[document.metadata_span().start, document.metadata_span().end],
+                    "units":document.units().iter().map(|unit| json!({
+                        "id":unit.id, "kind":format!("{:?}",unit.kind).to_ascii_lowercase(),
+                        "span":[unit.span.start,unit.span.end], "text":document.unit(&unit.id),
+                    })).collect::<Vec<_>>(),
+                    "validation":{
+                        "validity":format!("{:?}",report.validity).to_ascii_lowercase(),
+                        "semantic_support":format!("{:?}",report.semantic_support).to_ascii_lowercase(),
+                        "context_resolution":evaluation(report.context_resolution),
+                        "readiness":evaluation(report.readiness),
+                        "diagnostics":report.diagnostics.iter().map(diagnostic).collect::<Vec<_>>(),
+                    },
+                });
+                (success, observed)
             }
         };
-        println!("{} {}", if success { "PASS" } else { "FAIL" }, case.id);
+        if observations {
+            let digest: String = sha2::Sha256::digest(&bytes)
+                .iter()
+                .map(|byte| format!("{byte:02x}"))
+                .collect();
+            println!(
+                "{}",
+                json!({
+                    "case":case.id, "file":case.file, "dialect":case.dialect,
+                    "source":{"bytes":bytes.len(),"sha256":digest},
+                    "passed":success, "observed":observed,
+                })
+            );
+        } else {
+            println!("{} {}", if success { "PASS" } else { "FAIL" }, case.id);
+        }
         if !success {
             failures.push(case.id.clone());
         }
+    }
+    if observations {
+        println!(
+            "{}",
+            json!({"summary":{
+                "cases":suite.cases.len(), "failed":failures.len(),
+                "context_resolution":"not_evaluated", "readiness":"not_evaluated",
+                "qualification_established":false,
+            }})
+        );
     }
     if !failures.is_empty() {
         return Err(format!(
@@ -169,14 +226,29 @@ fn documents(root: &Path, with_author: bool) -> Result<(), String> {
             failures.join(", ")
         ));
     }
-    println!(
-        "{} document cases passed; context/readiness not evaluated",
-        suite.cases.len()
-    );
+    if !observations {
+        println!(
+            "{} document cases passed; context/readiness not evaluated",
+            suite.cases.len()
+        );
+    }
     if with_author {
         author::run(root)?;
     }
     Ok(())
+}
+
+fn diagnostic(value: &openwarrant_core::document::Diagnostic) -> serde_json::Value {
+    json!({
+        "code":value.code, "severity":format!("{:?}",value.severity).to_ascii_lowercase(),
+        "message":value.message, "span":[value.span.start,value.span.end],
+    })
+}
+
+fn evaluation(value: openwarrant_core::document::Evaluation) -> &'static str {
+    match value {
+        openwarrant_core::document::Evaluation::NotEvaluated => "not_evaluated",
+    }
 }
 
 fn main() -> ExitCode {

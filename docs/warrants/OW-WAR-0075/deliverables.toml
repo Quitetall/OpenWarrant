@@ -16,11 +16,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
-creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
-content_digest = "sha256:81fd539fbf00884d9f4856b4fe7d8d418025fe502f238b56951c38908ab6b8ba"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "implemented or captured public probe observations; exact prior inputs retained in Git and execution metadata"
+content_digest = "sha256:aa2c8c2a657992e1c540009572e3369f81bca39a2b61cce797ac0e7ee49d608c"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"
@@ -568,11 +568,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261017-observed-reuse"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.4 (unreleased, commit edbe83c60c58, dirty, debug)"
-creation_method = "observed reuse of exact existing in-scope repository artifact; original authorship remains in Git"
-content_digest = "sha256:18539e0cb6ed8545bf5d153a23ea957d51a0b616aa8329c0350ad96f87c58b79"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "implemented or captured public probe observations; exact prior inputs retained in Git and execution metadata"
+content_digest = "sha256:780aa701382bbb5cc0a516dfb710a1d8aa391c61c1949c6c1c0564a50e314397"
 media_type = "text/x-rust"
 classification = "internal"
 retention = "repository-lifetime"
@@ -762,3 +762,601 @@ classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
 input_digests = ["sha256:db6ac5b12c23e6ba62128087169225f94cb00ee8d9cc970e61c0a0c1f29d3a19", "sha256:b2f2cdc891b172bfc8568a6f79f81722cb5006a80373a9de3480e6572c374de9", "sha256:f842153d852ee5c86fead6c6a59ab4629df76513deed4718211c1237433477e8", "sha256:720822f864152dbbb45a67944209384c00a9298483d0046105022ea0e4e535f5", "sha256:93f94d2ddf4460ea57ed66eed4efcc18b1e3dcc48c986431ad98738bf486e805", "sha256:117918fc33a7cc51121291c6e1db10748ee6d7682efc1eec58dedf16bdd06c70"]
+
+[[deliverable]]
+id = "D-034"
+title = "Actual document case observations"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observed-cases.jsonl"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "captured exact stdout from the public sdk_probe invocation retained in execution.json"
+content_digest = "sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7537579ebb6abf84f31494abe4c15cf4672fdc40de1c0f041b11ba96f99d76b6", "sha256:8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7"]
+
+[[deliverable]]
+id = "D-035"
+title = "Actual probe execution identity and inputs"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/execution.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "authored actual execution metadata from the bounded public probe run and its observed input hashes"
+content_digest = "sha256:614b1f84264994e7c7b9fdee944fe189975c15c754ac646d7a4a85a32a060490"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7537579ebb6abf84f31494abe4c15cf4672fdc40de1c0f041b11ba96f99d76b6", "sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
+
+[[deliverable]]
+id = "D-036"
+title = "Public probe observation regression control"
+kind = "file"
+target_ref = "conformance/sdk/document/check_observations.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "authored public executable checks from the approved probe boundary and retained fixture expectations"
+content_digest = "sha256:4f654bc648993326c67239ec47372e3894daa0799711f2e706d1d2e7ce8ef2e7"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:6174bb2123b0efd86b9c3cae3ad60809e5540942c5c93aa7e46b24fbe36e3ffe", "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8", "sha256:8b4787f73e2adaddf5bf4da9173a23112f396a648a1e5af2b396b0c9a3c420f7"]
+
+[[deliverable]]
+id = "D-037"
+title = "Probe observation repair report"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "authored repair notes from retained execution, checks and actual packet inspection"
+content_digest = "sha256:9cc1ddca19d994a1f491364b55a80a632fabb4998baac1c4d587c93c96507d5a"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:614b1f84264994e7c7b9fdee944fe189975c15c754ac646d7a4a85a32a060490", "sha256:af02c598873efdc08406a3a9120665d59d83fa7279d53b4e840ccd428e252707", "sha256:33f4340685065fa7716a5e8f6166c36389310efe3c2a5b22b4abeb960d7cd99f", "sha256:873df2eafa0c145e81b83fe3ddf3cff14d5cffce32d6c704e0215c127c1ffb42"]
+
+[[deliverable]]
+id = "D-038"
+title = "Actual probe case T01-minimal-rc3"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-27aa2b47a5aee7677aec68146181795d63b4f8a14e49e4a8f12def35eeb6b60c.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:ab7507e1b0f4f671d96774ef5e686f43c46706c5fec6d1f2ba42a9944d5d78df"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"]
+
+[[deliverable]]
+id = "D-039"
+title = "Actual probe case T01-legacy-explicit"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-c53e2a03b24e6316a3417621f479ef762d8dd65eee9f3b0fdca8b736b33a48cb.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:8b7e7d448cb2c69e90488862f162a70160065ddfa4c5107c033c862de42794b1"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"]
+
+[[deliverable]]
+id = "D-040"
+title = "Actual probe case T02-duplicate-key"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-2338ebc602438efe5ee3d1b5699d7c4918d82b8643867ed03e01dc94c7f376c9.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:4ee0742b631c37ec1b284dbbeae18d610af37bdde50a7cc1179dbab19b49a76d"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:ce066f0e1afa617e94c46f63e103a188b8df693b61de6f3ae26903ff82e8b21a"]
+
+[[deliverable]]
+id = "D-041"
+title = "Actual probe case T03-fenced-markers"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-dc133e7b47bc31f8c080ec7f9a8519ee2a7cfa917e57f6fb77fb7df5b60e2ec1.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:eb9301f7d19b74bce2dd3380a54db7ff83e19f29e7f4f83cffaee6f750e72729"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6"]
+
+[[deliverable]]
+id = "D-042"
+title = "Actual probe case T04-duplicate-unit"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-8bb73fec183fe635ff8c864551bbf51e92670168de11dd1a8eb82b76be59522a.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:f74eb09168bbfa1e9ce26cdd17257b527d193d3fae61b786fa9b53fe4d86fca8"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:bb80f7c7004fd0fdf4418383d0b287e21e902b460df7ea393d31a3cee9a5f4f7"]
+
+[[deliverable]]
+id = "D-043"
+title = "Actual probe case T05-crlf-unicode"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-209e5d3587c722162c5a31a844d6b35b483c8e75b8c78c6e58442ddaf6086aeb.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:6af63cbcc0865017274ff3c8e0f077c51c72130fc695c3332e78a41c932ee14a"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf"]
+
+[[deliverable]]
+id = "D-044"
+title = "Actual probe case T06-invalid-utf8"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-ae25069604f1a3cc46a8174057d72e1a7830357befdab27402e19bc70287d28f.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:faa931df418d05db1eb70eeb6c69d6683d4ecd0364e8f1424efb686b15ef93ec"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:b3d510ef04275ca8e698e5b3cbb0ece3949ef9252f0cdc839e9ee347409a2209"]
+
+[[deliverable]]
+id = "D-045"
+title = "Actual probe case T07-missing-outcome"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-5247e9a6064bd7b7b7da8b3256d14d0ef03b3cd162787c4b63afee63dac3449d.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:36d7b7294631cfe4147261ae46222f9cbd9966839c792524bc25181fbcdfb7ad"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7"]
+
+[[deliverable]]
+id = "D-046"
+title = "Actual probe case T08-unknown-optional"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-1bead1740708042ad5ad6221bf974a20e1ddddbae56d09b77078db04db0813f4.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:ecf6e6f0b91f10c168e825a4aba73a59d58622d1ce3ebaa0bc0b17f36885d9ad"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec"]
+
+[[deliverable]]
+id = "D-047"
+title = "Actual probe case T08-unknown-required"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-6f4a034db77341401ae2a927708becc1c3f92c6203773971f562dc72434cf95d.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:d13abe3bacc5a5e5a00dd055ff9a8ac7ed8a90c6f80f96ed5d06b2b135a28c3c"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7"]
+
+[[deliverable]]
+id = "D-048"
+title = "Actual probe case T09-adr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-33c53682a057ead2af67bca89c35eb922574fe09ab84c82db71852db5e93ff60.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:e51ad08aeeadcde43b85986cff7296e856b183d6538491cd00e305da08f41bfd"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"]
+
+[[deliverable]]
+id = "D-049"
+title = "Actual probe case T09-sas"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-57b1eb7b2aaf1167517ad1cfc0db96fdf7868ea231871f657e4606829a1a99fc.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:03346e07da87a694daeb64819729f542e751ec037be0f22d6401e20c9fd8b647"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d"]
+
+[[deliverable]]
+id = "D-050"
+title = "Actual probe case T10-unresolved-required"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-94fbb1a7799d3d1758402bc83953ef472d086d8ffed9ee02841720fdfd137dd4.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:8f81cd6d07975ebcb0020becbbeeeef928ccb855dd1e12bd808cda907958726b"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e"]
+
+[[deliverable]]
+id = "D-051"
+title = "Actual probe case FOOTER01-wrapped"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-a5e9ba2d54e15bf29271b88bdb7233cf214a375889c1779f2eae1f707a449547.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:6fe438c5792a97b2f34121e52a34302dfb9a1dd617463e4edff0c7408917ac12"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7"]
+
+[[deliverable]]
+id = "D-052"
+title = "Actual probe case FOOTER02-compact"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-5458e014a0eca4dcaae3d7a143e5c1885e80164db93937ecde0651da2d377b19.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:3df2c3bd2172462ff1dc79c7dbb8af66f2f4f24a3cbb100878824f3986958466"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776"]
+
+[[deliverable]]
+id = "D-053"
+title = "Actual probe case FOOTER04-malformed"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-c6f1109445b7ef1d98e2c2df1a7e3a0011d288afd171e6aa446c766945bb1594.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:53854e073cc11c19817bf3c62e931f1ad3e244ab9a10f76f1c7ff9df9576d290"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:1bcc1b910c728dcdfab68e396c06216f5294451e3c2c0b22a81225ddc73866ab"]
+
+[[deliverable]]
+id = "D-054"
+title = "Actual probe case FOOTER05-trailing"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-2e7d2c3a57d75ffac1488b5ca8c7b7558f1718d4d6b4624196f0d83b8f91913b.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:e99e0cbe245ad3726988120077b3391f6fe754f5a1b7fafb49dbd1b241c8b899"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:429c8d69216bd89088637f828a4e99b84ebffdcb51c14736baaac9d56eaa665c"]
+
+[[deliverable]]
+id = "D-055"
+title = "Actual probe case FOOTER06-title"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-141a44e0db2d24eea81a9b755304f6b95a54e96eb978522c595698cb8f9ff375.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:c3f0f0b09191960d854c450e23ea76782a0978d7fb500a90d5a5ec2fcb101175"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718"]
+
+[[deliverable]]
+id = "D-056"
+title = "Actual probe case FOOTER07-schema"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-792fdefb03a8749a2e4fcd999830b57dde3cee798025ca57aae23aa3dd6ccec2.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:e0e2ba69753c78467aaa1a2d5ef75d4f946299c10c1908bb55f53518553e3be5"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:a5027a6af8096425f2853875ce012bcd7501f10b58265515577af1975ed12e74"]
+
+[[deliverable]]
+id = "D-057"
+title = "Actual probe case T09-context-binding"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-651b9a2fc04bad1413a38496bde0f06b449ff593cc7d6844c86942d59406245b.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:7aaa748858d131bbacef5f4cf6b34b5df344a849c0fc3d12a4802233dbfb0430"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64"]
+
+[[deliverable]]
+id = "D-058"
+title = "Actual probe case T09-context-background-refusal"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-50a87ab0e7ec320e4ab0f6bcf4f0e7aed3a1f0d49ca5e060abb21d52f382bf5a.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:920ad8fa5b08a1faae16b5c5380fb8882cf9892685f6851f67bd3dedb39f5af6"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac"]
+
+[[deliverable]]
+id = "D-059"
+title = "Actual probe case T06-combined-depth-refusal"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-344f94c57812883296b7a97ad817536546eb2b29d9a9e5b9fabf345c880bc8d0.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
+creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
+content_digest = "sha256:6ac52632e480e157a9cc2e46f3161eba7734bb70a5ea545c32e53a9f8185874f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10"]
