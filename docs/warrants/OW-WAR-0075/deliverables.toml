@@ -1360,3 +1360,141 @@ classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
 input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:ff8dcdea0dc4c3b335c6884e24f48e7f6297bc44c4adca215364014c48d76c10"]
+
+[[deliverable]]
+id = "D-060"
+title = "Actual synchronized-title and CRLF parser readback"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/FOOTER08-title-crlf.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "captured actual SDK parse-before, edit, parse-after and unchanged-unit observations"
+content_digest = "sha256:84e03452f0e58ae0c0e8a99edc10701a9ffb2335e614749e1fbbb25a245cb5e8"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e9311d919b5ab57a175bd2bf8dfbbd6bbae8f242beedd27e0dd116f60ba25ca6", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4"]
+
+[[deliverable]]
+id = "D-061"
+title = "Actual untouched-unit parser readback"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/T56-revision.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "captured actual SDK parse-before, edit, parse-after and unchanged-unit observations"
+content_digest = "sha256:094efa9233706771e282ec278a5b2dc90602466fe9befe66c95870fa63f55d96"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:a3122195ef8113b2c6de69685cce9e71363af1b64e277c48bc0ae1fc7c7bca41", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4"]
+
+[[deliverable]]
+id = "D-062"
+title = "Actual conflicting-edit and prior-output refusal"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/failure.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "captured or summarized actual public SDK and core probe readback; exact source inputs and request/response hashes retained"
+content_digest = "sha256:8e55dd0802994d09694628cc12a65230be29f1f1e2fa027d533a8b69da4c2bd7"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bd1977698ad2727d8acf58f79110275c0f61f569d52fe2a25d5bd27e6f5854c9", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4", "sha256:9d0766e97d59221d9d3fb39eb2dcf30372d58b624744481bababd6911dde84cb"]
+
+[[deliverable]]
+id = "D-063"
+title = "Actual core probe author/edit and parser run"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/core-probe76.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "captured or summarized actual public SDK and core probe readback; exact source inputs and request/response hashes retained"
+content_digest = "sha256:8d0f6778147536e96ea46d1c078f00887d718d0e5249a1fd6c20d18b70b0574e"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bd1977698ad2727d8acf58f79110275c0f61f569d52fe2a25d5bd27e6f5854c9", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4", "sha256:9d0766e97d59221d9d3fb39eb2dcf30372d58b624744481bababd6911dde84cb"]
+
+[[deliverable]]
+id = "D-064"
+title = "Foot08 execution identity and request/response hashes"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/execution.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "captured or summarized actual public SDK and core probe readback; exact source inputs and request/response hashes retained"
+content_digest = "sha256:d49f7c450fcdd8e238508131fb736bf93da89333f829bb8ba7f1e5618c3785f1"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bd1977698ad2727d8acf58f79110275c0f61f569d52fe2a25d5bd27e6f5854c9", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4", "sha256:9d0766e97d59221d9d3fb39eb2dcf30372d58b624744481bababd6911dde84cb"]
+
+[[deliverable]]
+id = "D-065"
+title = "Foot08 evidence gap and additional observations"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "authored factual roundtrip/readback notes; prior reviewer conclusions retained outside fresh evidence context"
+content_digest = "sha256:0caab6dd94f5ac8bebcd92ac531920dc25849b3ccb3e2c62fd95e119a972f71b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bd1977698ad2727d8acf58f79110275c0f61f569d52fe2a25d5bd27e6f5854c9", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4", "sha256:9d0766e97d59221d9d3fb39eb2dcf30372d58b624744481bababd6911dde84cb"]
