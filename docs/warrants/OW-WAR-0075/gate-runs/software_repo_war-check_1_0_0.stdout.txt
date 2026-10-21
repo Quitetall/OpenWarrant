@@ -1254,10 +1254,10 @@ PASS generated.drift                    OW-WAR-0074: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0075: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0075: 67 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0075: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0075: software.repo.war-check@1.0.0 · the receipt names tree:211403de7b36d63a87993cc5820bcb68edab705b and 3 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (docs/warrants/OW-WAR-0075/deliverables.toml, docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observer-control.json, docs/warrants/OW-WAR-0075/implementation/review-status-20261020.md) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.not-a-pass                OW-WAR-0075: software.repo.war-check@1.0.0 · the run is not a §44.5 required pass (askability askable, execution completed, verdict fail)
                                              → docs/warrants/OW-WAR-0075/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0075
-PASS journal.append-only                OW-WAR-0075: 33 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0075: 34 event(s), 0 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0075: signed by brian over docs/authority/responses/OW-WAR-0075.response.toml
 WARN sas.pin-superseded                 OW-WAR-0075: authorized against SAS 1.0.0; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0075/authorization.toml
@@ -3215,10 +3215,8 @@ PASS authority.signed                   SAS-1.3.0: signed by brian over docs/aut
 PASS warrant-overview.drift             WARRANT_OVERVIEW.md matches a fresh compilation
 PASS adr-overview.drift                 ADR_OVERVIEW.md matches a fresh compilation
 PASS corpus-status.drift                CORPUS_STATUS.md matches a fresh compilation
-ERROR corpus-status.drift                the committed CORPUS_STATUS.json differs from a fresh compilation; it was edited by hand or its sources changed without recompiling
-                                             → docs/warrants/generated/CORPUS_STATUS.json
-ERROR corpus-status.drift                the committed CORPUS_STATUS.html differs from a fresh compilation; it was edited by hand or its sources changed without recompiling
-                                             → docs/warrants/generated/CORPUS_STATUS.html
+PASS corpus-status.drift                CORPUS_STATUS.json matches a fresh compilation
+PASS corpus-status.drift                CORPUS_STATUS.html matches a fresh compilation
 PASS corpus-timeline.drift              CORPUS_TIMELINE.json matches a fresh compilation
 PASS corpus-pending.drift               CORPUS_PENDING.json matches a fresh compilation
 PASS sas-normative.drift                NORMATIVE.md matches a fresh compilation
@@ -3481,7 +3479,7 @@ REMEDIES:
   human war sign sas repin OW-WAR-0146   (×1)
   human war sign sas repin OW-WAR-0148   (×1)
 
-2042 pass · 419 warn · 0 unknown · 2 error   (worst: ERROR)
+2044 pass · 419 warn · 0 unknown · 0 error   (worst: WARN)
 
 NOT CHECKED:
   · 145 of 145 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed
@@ -3491,4 +3489,4 @@ NOT CHECKED:
   · bound-atom resolution — `ref =` atoms cannot be fetched offline
   · Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared
 
-NOT READY
+WELL-FORMED (record only — Preflight is partial; `war check` does not establish execution readiness or run gates)
