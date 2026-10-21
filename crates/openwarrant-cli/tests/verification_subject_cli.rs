@@ -9,6 +9,119 @@ use std::{
 struct Fixture(PathBuf);
 
 #[test]
+fn compact_context_carries_complete_structured_records_when_they_fit() {
+    let fixture = Fixture::new();
+    assert!(
+        Command::new("git")
+            .current_dir(&fixture.0)
+            .args(["init", "-q", "--template=", "--initial-branch=fixture"])
+            .status()
+            .unwrap()
+            .success()
+    );
+    let config = fixture.0.join("openwarrant.toml");
+    let settings = fs::read_to_string(&config).unwrap();
+    let mut declarations = String::from("schema = \"oh.war/deliverables/v1\"\n");
+    let mut records = std::collections::BTreeMap::new();
+    for n in 0..16 {
+        let fields: serde_json::Map<String, serde_json::Value> = (0..32)
+            .map(|k| (format!("field-{k:02}"), serde_json::json!("observed")))
+            .collect();
+        let text =
+            serde_json::to_string(&serde_json::json!({"case":n,"observed":fields})).unwrap() + "\n";
+        let name = format!("event-{n:02}.json");
+        fs::write(fixture.0.join(&name), &text).unwrap();
+        declarations.push_str(&format!("[[deliverable]]\nid = \"D-{:03}\"\ntitle = \"synthetic observation {n}\"\nkind = \"file\"\ntarget_ref = \"{name}\"\nrequired = true\ncontent_addressed = false\nprovenance_required = false\nobligation_refs = [\"OBL-001\"]\n", n+1));
+        records.insert(name, text);
+    }
+    fs::write(
+        fixture.0.join("background.rs"),
+        "fn background() { /* fixture background */ }\n".repeat(2000),
+    )
+    .unwrap();
+    declarations.push_str("[[deliverable]]\nid = \"D-017\"\ntitle = \"background source\"\nkind = \"file\"\ntarget_ref = \"background.rs\"\nrequired = true\ncontent_addressed = false\nprovenance_required = false\nobligation_refs = [\"OBL-001\"]\n");
+    fs::write(
+        fixture
+            .0
+            .join("docs/warrants/IX-WAR-0003/deliverables.toml"),
+        declarations,
+    )
+    .unwrap();
+    let mut fitting_views = 0;
+    for budget in [7000, 7025, 7050, 7075, 7100] {
+        fs::write(
+            &config,
+            settings.replace(
+                "[verify]",
+                &format!("[verify]\nmax_bundle_tokens = {budget}"),
+            ),
+        )
+        .unwrap();
+        let emitted = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--bundle",
+            "--compact",
+            "--json",
+        ]);
+        assert_eq!(emitted["exit_code"], 0, "{emitted}");
+        for reference in emitted["result"]["views"].as_array().unwrap() {
+            let path = fixture.0.join(reference["path"].as_str().unwrap());
+            let raw = fs::read(&path).unwrap();
+            let view: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+            let mut complete = view.clone();
+            for entry in complete["deliverables"].as_array_mut().unwrap() {
+                if let Some(text) = records.get(entry["target_ref"].as_str().unwrap()) {
+                    entry["text"] = serde_json::json!(text);
+                    entry["truncated"] = serde_json::json!(false);
+                    entry.as_object_mut().unwrap().remove("excerpts");
+                }
+            }
+            assert_eq!(view["over_budget"], false);
+            assert!(view["estimated_tokens"].as_u64().unwrap() <= budget);
+            if serde_jcs::to_string(&complete).unwrap().len() > budget as usize * 4 {
+                continue;
+            }
+            fitting_views += 1;
+            let archive_bytes = fs::read(
+                path.parent()
+                    .unwrap()
+                    .join(view["archive"]["path"].as_str().unwrap()),
+            )
+            .unwrap();
+            assert_eq!(
+                view["archive"]["sha256"],
+                openwarrant_compiler::sha256_hex(&archive_bytes)
+            );
+            let archive: serde_json::Value = serde_json::from_slice(&archive_bytes).unwrap();
+            assert_eq!(view["atoms"], archive["atoms"]);
+            assert_eq!(view["contract_sources"], archive["contract_sources"]);
+            for (name, expected) in &records {
+                for value in [&view, &archive] {
+                    let entry = value["deliverables"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .find(|e| e["target_ref"] == *name)
+                        .unwrap();
+                    assert_eq!(
+                        entry["truncated"], false,
+                        "complete record {name} fits; {entry}"
+                    );
+                    assert_eq!(entry["text"], *expected);
+                }
+            }
+        }
+    }
+    assert!(
+        fitting_views > 0,
+        "at least one configured budget must fit the complete records"
+    );
+}
+
+#[test]
 fn changed_gate_evidence_refuses_old_reviews_before_scanning_source() {
     let (fixture, _script) = prepare_route_fixture();
     let current = fixture.run(&["status", "--json"]);
