@@ -8073,6 +8073,7 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-064 | Foot08 execution identity and request/response hashes | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/execution.json` | verified |
 | D-065 | Foot08 evidence gap and additional observations | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/README.md` | verified |
 | D-066 | Exact observed unit text dictionary with case and unit uses | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/unit-texts.json` | verified |
+| D-067 | Actual unseen-content mutation and unexpected-refusal controls | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observer-control.json` | verified |
 
 #### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 

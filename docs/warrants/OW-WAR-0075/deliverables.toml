@@ -1521,3 +1521,26 @@ classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
 input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
+
+[[deliverable]]
+id = "D-067"
+title = "Actual unseen-content mutation and unexpected-refusal controls"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observer-control.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261021-unseen-content-control"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "captured actual observer regression execution; no inferred verdict"
+content_digest = "sha256:fa001b6c81cf17f39ac7c6e390da1fe50248c39c7ffbde77f8163df0a05102ef"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:4f654bc648993326c67239ec47372e3894daa0799711f2e706d1d2e7ce8ef2e7", "sha256:7537579ebb6abf84f31494abe4c15cf4672fdc40de1c0f041b11ba96f99d76b6"]
