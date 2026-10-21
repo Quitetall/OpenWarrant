@@ -4,8 +4,8 @@
   "gate_binding_digest": "unbound:software.repo.war-check@1.0.0",
   "subject_digests": [
     "contract:sha256:f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e",
-    "deliverables:sha256:369fd0f3fe9c3c7bd52bd33c63a04938b909643b03a7e6c839128b23827aa73f",
-    "tree:9b9803d10f8f9f0712760011b98d85ac228e1f44"
+    "deliverables:sha256:fcc5048b633b6f25bb220906d640046f98c232ec6166e189fa1f8a26a9de76f3",
+    "tree:74026e6646168ce0c8d551eed4a5a0ab79611454"
   ],
   "fixture_digests": [],
   "runner": "war gate --run",
@@ -16,8 +16,8 @@
     "--generated"
   ],
   "working_directory": "/mnt/4tb/tmp/openwarrant-compact-reader-20261016",
-  "started_at": "2026-10-20T23:53:53Z",
-  "completed_at": "2026-10-20T23:54:02Z",
+  "started_at": "2026-10-21T00:21:18Z",
+  "completed_at": "2026-10-21T00:21:27Z",
   "exit_result": "pass",
   "selected_test_count": 0,
   "selected_test_manifest": [],
@@ -26,5 +26,5 @@
   "stderr_ref": "docs/warrants/OW-WAR-0075/gate-runs/software_repo_war-check_1_0_0.stderr.txt",
   "resource_usage": "wall-clock only; 3 argv item(s)",
   "verdict": "pass",
-  "receipt_digest": "sha256:201ab2883fb0d22bb5a0672094adb976c7d5882021cd446c48ff0dce14b42eb3"
+  "receipt_digest": "sha256:2204f91354d4e27b20bcf85e5e0bec2a1ecd1fb7751c613c58fe22b862455346"
 }
