@@ -20509,6 +20509,7 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-063 | Actual core probe author/edit and parser run | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/core-probe76.json` | verified |
 | D-064 | Foot08 execution identity and request/response hashes | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/execution.json` | verified |
 | D-065 | Foot08 evidence gap and additional observations | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/README.md` | verified |
+| D-066 | Exact observed unit text dictionary with case and unit uses | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/unit-texts.json` | verified |
 
 ### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 
