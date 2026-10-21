@@ -1254,10 +1254,10 @@ PASS generated.drift                    OW-WAR-0074: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0075: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0075: 67 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0075: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.not-a-pass                OW-WAR-0075: software.repo.war-check@1.0.0 · the run is not a §44.5 required pass (askability askable, execution completed, verdict fail)
+WARN evidence.stale-binding             OW-WAR-0075: software.repo.war-check@1.0.0 · the receipt names tree:f62f9cf542f885e258c98d40ff677d4e6e864212 and 2 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (crates/openwarrant-cli/src/bundle/preview.rs, crates/openwarrant-cli/tests/verification_subject_cli.rs) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0075/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0075
-PASS journal.append-only                OW-WAR-0075: 34 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0075: 35 event(s), 0 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0075: signed by brian over docs/authority/responses/OW-WAR-0075.response.toml
 WARN sas.pin-superseded                 OW-WAR-0075: authorized against SAS 1.0.0; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0075/authorization.toml
@@ -2458,7 +2458,7 @@ PASS traceability.refs                  OW-WAR-0134: 2 requirement ref(s) and 1 
 WARN evidence.not-a-pass                OW-WAR-0134: ops.conformance.plants@1.1.0 · the run is not a §44.5 required pass (askability askable, execution timeout, verdict unknown)
                                              → docs/warrants/OW-WAR-0134/gate-runs/ops_conformance_plants_1_1_0.run.toml
                                              → auto: war evidence record OW-WAR-0134
-WARN evidence.stale-binding             OW-WAR-0134: software.repo.war-check@1.0.0 · the receipt names tree:3bc16a8d097024c7275f4a21e4b5667624b1ffb3 and 778 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.claude-plugin/plugin.json, .github/actions/openwarrant-check/action.yml, .github/workflows/phase1-native.yml, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0134: software.repo.war-check@1.0.0 · the receipt names tree:3bc16a8d097024c7275f4a21e4b5667624b1ffb3 and 780 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.claude-plugin/plugin.json, .github/actions/openwarrant-check/action.yml, .github/workflows/phase1-native.yml, …) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0134/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0134
 PASS journal.append-only                OW-WAR-0134: 52 event(s), 0 backfilled, extends the committed journal
@@ -3231,7 +3231,7 @@ PASS projection.drift                   docs/records/password-reset/generated/ar
 PASS projection.drift                   docs/records/password-reset/generated/prd.md matches a fresh rendering
 PASS projection.drift                   docs/records/password-reset/generated/test-plan.md matches a fresh rendering
 PASS projection.drift                   docs/roadmap/generated/ROADMAP.md matches a fresh rendering
-PASS ticket.well-formed                 133 ticket(s), 291 item(s): every checklist well-formed, every blocker named (a ticket needs no signature, evidence or verification to be worked)
+PASS ticket.well-formed                 134 ticket(s), 292 item(s): every checklist well-formed, every blocker named (a ticket needs no signature, evidence or verification to be worked)
 
 REMEDIES:
   auto  war admin pins --refresh --alias OW-WAR-0001   (×2)
