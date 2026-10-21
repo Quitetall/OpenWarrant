@@ -844,11 +844,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "authored repair notes from retained execution, checks and actual packet inspection"
-content_digest = "sha256:9cc1ddca19d994a1f491364b55a80a632fabb4998baac1c4d587c93c96507d5a"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "documented lossless descriptor and exact indexed-text reconstruction of actual observations"
+content_digest = "sha256:e0f15684c89529cbf15818bd28f7c50015a37b727164747035a23e0a843442d2"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"
@@ -867,16 +867,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:ab7507e1b0f4f671d96774ef5e686f43c46706c5fec6d1f2ba42a9944d5d78df"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:75abee9509aadee63651c3d56c3952bfef1bf1dfd71537b284e2f954b1c28355"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-039"
@@ -890,16 +890,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:8b7e7d448cb2c69e90488862f162a70160065ddfa4c5107c033c862de42794b1"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:b51198353ae0cd943a6effd41e6ec9aedccd7e0736bdc738103d8ae2030213b9"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:f5bcafb923b6b5f31ec8f56fb06153d55106ba2cd739a3aa5f0e130bac84d3c1"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-040"
@@ -913,11 +913,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:4ee0742b631c37ec1b284dbbeae18d610af37bdde50a7cc1179dbab19b49a76d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:ef8b053a85669561bfc00c282d86c83de4e39b9d693356e0ffb619763a97cbc3"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -936,16 +936,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:eb9301f7d19b74bce2dd3380a54db7ff83e19f29e7f4f83cffaee6f750e72729"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:c1a0e21b8343fc029aeb2457c5f6932774f051130a3b3d53020cdf7259632eb1"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:601348f6202a77eedaff6fed3ee5d6b3f79a09d947f7a354be4895afe35ef0f6"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-042"
@@ -959,11 +959,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:f74eb09168bbfa1e9ce26cdd17257b527d193d3fae61b786fa9b53fe4d86fca8"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:360d492489837b3ec76ef78a7bd5f48be44ce118ca239f5978ecd6f0a501371e"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -982,16 +982,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:6af63cbcc0865017274ff3c8e0f077c51c72130fc695c3332e78a41c932ee14a"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:a5367b29b2ac5ebf357d29b78171d09960912638868759f4e94ab2e1c710b616"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:4fb7fcc646590b7e720ea4f8013313e0a746d8308f4095a8fe83822a405ccbdf"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-044"
@@ -1005,11 +1005,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:faa931df418d05db1eb70eeb6c69d6683d4ecd0364e8f1424efb686b15ef93ec"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:a3ccae4ae9e72231b4239080c7f841bd61850039f60b79b96eacacc936387275"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -1028,16 +1028,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:36d7b7294631cfe4147261ae46222f9cbd9966839c792524bc25181fbcdfb7ad"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:e6c32af4f7efce3826c1ef7f4c3d1ef15ad58bec0120a439eb1e091463e6fb32"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:f9ed4cb94baa9de9c0681ede7c832efcf8c553e6e552fe0bce27e44d808cf3c7"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-046"
@@ -1051,16 +1051,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:ecf6e6f0b91f10c168e825a4aba73a59d58622d1ce3ebaa0bc0b17f36885d9ad"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:4a6ad3e5eef6f2653201c3a0af5ea2c926c736060b9f7898e404de74baa45c54"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:33276e2e6c5820d581616aac516d481b307e7ea446fc59c74588fb89ca5aa3ec"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-047"
@@ -1074,16 +1074,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:d13abe3bacc5a5e5a00dd055ff9a8ac7ed8a90c6f80f96ed5d06b2b135a28c3c"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:577d9b2bc698729df851a42c07f0830f883e84fc79605c01f91eb7264804a384"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:5ef67d812b2bab249154bd09231e4f7ef7bc2b1ec61ec68a1ce8a80a994ee6b7"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-048"
@@ -1097,16 +1097,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:e51ad08aeeadcde43b85986cff7296e856b183d6538491cd00e305da08f41bfd"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:12bf416c3a0436ad4c197b4f5b77bc4d7b5d4fc955ab8889db34a69b3d68e734"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-049"
@@ -1120,16 +1120,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:03346e07da87a694daeb64819729f542e751ec037be0f22d6401e20c9fd8b647"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:839930c4c6ac72c1b510a841c1c22094f72ec469d26a7e35aeda0347e517664e"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:20775f86f3df4574ce4763c099cdadba4a3877d224d4aa7708b8b6fe7f714b7d"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-050"
@@ -1143,16 +1143,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:8f81cd6d07975ebcb0020becbbeeeef928ccb855dd1e12bd808cda907958726b"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:dd1491265fea37082f7c252c1600457fa8ca22f72c1d28d32fd066025a134b27"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:9f5826dd9762dea7fdd6a4691a9253facec58319d164b95717ff6bddf1acca8e"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-051"
@@ -1166,16 +1166,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:6fe438c5792a97b2f34121e52a34302dfb9a1dd617463e4edff0c7408917ac12"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:f960983f8650a6846bc83a5288ad0ba1bc67a09521b3e98eff5e29d0417e6f79"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:39eb168d89dcbd5c845725276ea3ef87a107274c30587458cad8de360d804dd7"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-052"
@@ -1189,16 +1189,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:3df2c3bd2172462ff1dc79c7dbb8af66f2f4f24a3cbb100878824f3986958466"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:f7f4b9ece7195c4e0906cbaac099fb93d7ad3b8b02a8260e38021cb5185ef389"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:321f0d56141ceb19253d76fbdb0ec15cf21c9eda0af99b2a862ccdc66c354776"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-053"
@@ -1212,11 +1212,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:53854e073cc11c19817bf3c62e931f1ad3e244ab9a10f76f1c7ff9df9576d290"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:1894207ea68f34648cac24215c200875954abbbed41dfbcc87d84c76eb8fc0a6"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -1235,11 +1235,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:e99e0cbe245ad3726988120077b3391f6fe754f5a1b7fafb49dbd1b241c8b899"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:31fa8812ec5c349c1f02fa4708054a7547b894a75b6a02d67b6b317a60027e96"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -1258,16 +1258,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:c3f0f0b09191960d854c450e23ea76782a0978d7fb500a90d5a5ec2fcb101175"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:736177e353e0540fee9b697128dd45fb1a4f88b1a1501803cfdbe1d945d711b2"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:bbaa1522b38375b986bc825bb1dbd9199a91c6b249ae4ff702c03d363c291718"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-056"
@@ -1281,11 +1281,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:e0e2ba69753c78467aaa1a2d5ef75d4f946299c10c1908bb55f53518553e3be5"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:3c86919b2132c24a42298febfe0ee7828f1aa43db7756fa9de802bb6437c6e58"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -1304,16 +1304,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:7aaa748858d131bbacef5f4cf6b34b5df344a849c0fc3d12a4802233dbfb0430"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:3438a3347bd3a0d105533f0c12304909110eef8ddc772642eeea1ac57df972e6"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:370440ca5e31294249784f85ecedb693867e77a9788a10c50e1e977b657edc64"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-058"
@@ -1327,16 +1327,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:920ad8fa5b08a1faae16b5c5380fb8882cf9892685f6851f67bd3dedb39f5af6"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:0e015c69336a5f463da0424fc76976a8ae5b70a0e0e84f36bcf62a9678630b16"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882", "sha256:e977888e95118c98a6db98426f3eb4da69794525bf20b71e4b1e9fc40acc6aac"]
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
 
 [[deliverable]]
 id = "D-059"
@@ -1350,11 +1350,11 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0075/20261020-probe-observations"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
 contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit d91f0cf5274a, dirty, debug)"
-creation_method = "lossless projection of actual case output: duplicate unit text resolves exactly through source_ref and observed byte spans"
-content_digest = "sha256:6ac52632e480e157a9cc2e46f3161eba7734bb70a5ea545c32e53a9f8185874f"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual case output; source_ref resolves duplicate input descriptor and unit text dictionary retains exact observed text"
+content_digest = "sha256:3252e2e9ba5f68dea31b76747f75466de29deb5e86b11b662f8f03f9754175f6"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
@@ -1498,3 +1498,26 @@ classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
 input_digests = ["sha256:bd1977698ad2727d8acf58f79110275c0f61f569d52fe2a25d5bd27e6f5854c9", "sha256:05f9109915b9b5504b654cc630bf161d9ea23570f5ca7d82d94659fc6f2c5dc4", "sha256:9d0766e97d59221d9d3fb39eb2dcf30372d58b624744481bababd6911dde84cb"]
+
+[[deliverable]]
+id = "D-066"
+title = "Exact observed unit text dictionary with case and unit uses"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/unit-texts.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0075/20261020-footer08-readback"
+contract_digest = "f939ac362436daac04957e54b68314d4916f62d638b34fc087cbf15013dc554e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 997804d6cad4, debug)"
+creation_method = "lossless projection of actual observations using exact input descriptors and indexed unmodified unit texts"
+content_digest = "sha256:7fa6976308c7dd2fbb19b9caf008b5c5553ed5d55039a8df5542f4384f121d4d"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e52706002dd25055a1fcc1bbdc5acfc36b35296e9534f63710ad3caf6d1c882"]
