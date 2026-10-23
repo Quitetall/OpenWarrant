@@ -1,0 +1,420 @@
+schema = "oh.war/deliverables/v1"
+
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/records.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:864da780831a698e6be24fcf3bc75876c39daff54689305c3582f875cd9b0bba"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "crates/openwarrant-core/src/document/records/workflow.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/records/workflow.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:bc7d9d2a691d0da0662747da72929e1b3dad70757bf6b86d53f3f298e82c18f0"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "crates/openwarrant-core/src/document/schedule.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/schedule.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:77fd5b3c4671cccb84e4fd7762156300cfeec14479621257a5592934fd1cdd4d"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "crates/openwarrant-core/tests/document_records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/document_records.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:a784ad6cca37302abcfea52f64c32c4409cb4227b0a168c361a98801562fe790"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "crates/openwarrant-core/tests/document_workflow_records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/document_workflow_records.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:21099603f02110ed3e6670866760e921363d49fd3092465663ba28c958931093"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "crates/openwarrant-core/tests/document_schedule.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/document_schedule.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:7758325528630bd5d95444c33952b2b6ea5012cb25a790193bd817fb593b9e97"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "crates/openwarrant-core/examples/sdk_probe/records.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/sdk_probe/records.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:17e02a883c448223356ae3e15738b4c13468b06ca85e4abb5828d0eec9957cb4"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "crates/openwarrant-core/examples/record_schemas.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/record_schemas.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:4526df92dc6713162360e055031d4c0ea9cfb502bcaded14c3f6f3beaf15434b"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/records/README.md"
+kind = "file"
+target_ref = "conformance/sdk/records/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:b3966151e40b5d66c4c4aa446c92d73636ee9275e3beb0459d6f9190a5fd709d"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/records/check_observations.py"
+kind = "file"
+target_ref = "conformance/sdk/records/check_observations.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:59d7f54954ee430639f58ed595250d6bb6b7a671b9aa0952e64c231fc9dd7a86"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records-notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records-notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:2aef85109e0831a40e049400a1f7e66bd43626d0b8545038df0fd3674d2c2bb1"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "docs/warrants/OW-WAR-0083/implementation/progress.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/progress.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:848840cbd8681094a2cb5c5374befbd568f8d9b6007b04ea3b4864fd79795e56"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:1fadd582cb02dbfeec379b1450d146804dc5df5d5eb48787ae008a7f8b64b953"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:67d4e12903015f4052d4c6921997a0eab22d51882a1454d8e7ca31ea4c34a246"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-015"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:37000c369264915080416db3c6cc3e08831b60e5659f6997d94229a7e6232577"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-016"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:316c6ae50f489f3c0d00ee49b3b9eee1338272466174b7d712f075ee50b16b59"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-017"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:9489fe4cddc402eb5d94f7cd145871f1fcafc49d3557da9c6e4f1994c9ab25ed"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-018"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:cf5cb8e417c17e02617c46cf5a024654640e9139c1c1e6daa19fde29f4c8f7ef"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-019"
+title = "docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0083/20261023-record-observations"
+contract_digest = "759743118d785e04f784fdf47e7e1f98a49e5e13f138f9e6da1278432051ae69"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and public SDK/CLI execution; original authorship retained"
+content_digest = "sha256:85c6e30fb6adf6173da4c67dfb681e49400ec483d4dc0aa423df8e922bcdffff"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

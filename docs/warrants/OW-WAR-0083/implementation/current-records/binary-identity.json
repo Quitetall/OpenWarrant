@@ -1,0 +1,7 @@
+{
+  "source_head": "ada90ce194f146fce52df154745c65d9e2c86df4",
+  "binary_sha256": "a39cdbbc9c8855a4573c5349955b03f858720809eec02287a0cdc836e1f6b0a9",
+  "version": "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)",
+  "source_worktree": "/mnt/4tb/tmp/openwarrant-ow83-evidence-20261023",
+  "changes_at_build": "?? conformance/sdk/records/README.md\n?? conformance/sdk/records/check_observations.py\n"
+}

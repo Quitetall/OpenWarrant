@@ -22443,6 +22443,30 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0083/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/records.rs | `crates/openwarrant-core/src/document/records.rs` | verified |
+| D-002 | crates/openwarrant-core/src/document/records/workflow.rs | `crates/openwarrant-core/src/document/records/workflow.rs` | verified |
+| D-003 | crates/openwarrant-core/src/document/schedule.rs | `crates/openwarrant-core/src/document/schedule.rs` | verified |
+| D-004 | crates/openwarrant-core/tests/document_records.rs | `crates/openwarrant-core/tests/document_records.rs` | verified |
+| D-005 | crates/openwarrant-core/tests/document_workflow_records.rs | `crates/openwarrant-core/tests/document_workflow_records.rs` | verified |
+| D-006 | crates/openwarrant-core/tests/document_schedule.rs | `crates/openwarrant-core/tests/document_schedule.rs` | verified |
+| D-007 | crates/openwarrant-core/examples/sdk_probe/records.rs | `crates/openwarrant-core/examples/sdk_probe/records.rs` | verified |
+| D-008 | crates/openwarrant-core/examples/record_schemas.rs | `crates/openwarrant-core/examples/record_schemas.rs` | verified |
+| D-009 | conformance/sdk/records/README.md | `conformance/sdk/records/README.md` | verified |
+| D-010 | conformance/sdk/records/check_observations.py | `conformance/sdk/records/check_observations.py` | verified |
+| D-011 | docs/warrants/OW-WAR-0083/implementation/current-records-notes.md | `docs/warrants/OW-WAR-0083/implementation/current-records-notes.md` | verified |
+| D-012 | docs/warrants/OW-WAR-0083/implementation/progress.json | `docs/warrants/OW-WAR-0083/implementation/progress.json` | verified |
+| D-013 | docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json | `docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json` | verified |
+| D-014 | docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json | `docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json` | verified |
+| D-015 | docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log | `docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log` | verified |
+| D-016 | docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log | `docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log` | verified |
+| D-017 | docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log | `docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log` | verified |
+| D-018 | docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl | `docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl` | verified |
+| D-019 | docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json | `docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json` | verified |
+
 ### OW-WAR-0084 — Preserve legacy history and explicit successor lineage
 
 [manifest](../../docs/warrants/OW-WAR-0084/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0084/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
