@@ -336,13 +336,13 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0082/20261023-budget-cache-observations"
+producing_attempt = "OW-WAR-0082/20261023-current-work-report"
 contract_digest = "6913df06e3bfb43ced68864664cc2907e14ab275fbb5ec4f41b76cafe1e172b4"
-tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; exact execution identities retained in observations"
-creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
-content_digest = "sha256:9acb830b5681ff6fa67643f43c45a59bcd46d07bbaf5e83141f8719939207cc4"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 5158db6de287, dirty, debug)"
+creation_method = "authored unverified report referencing committed source and observed execution; original history retained"
+content_digest = "sha256:cf406d24777ae795cc4ab55d5b0cd46dbbd4134bcf9afc53743865b8360e4ece"
 media_type = "application/json"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:9acb830b5681ff6fa67643f43c45a59bcd46d07bbaf5e83141f8719939207cc4"]
+input_digests = ["sha256:9acb830b5681ff6fa67643f43c45a59bcd46d07bbaf5e83141f8719939207cc4", "sha256:0a030e5abd470154d3b51b51a288d6221346a102c162028a407b1c8a05cf02b5"]
