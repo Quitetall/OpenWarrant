@@ -1,0 +1,116 @@
+{
+  "kind": "actual-projection-sdk-consumer-observation",
+  "observed_cases": 20,
+  "sdk_calls": 20,
+  "calls": [
+    {
+      "label": "source:data.bin",
+      "stdin_sha256": "1248201720a44b6bbddf0977e01d97023acfe05bbbe6d38bb0abfecf843ba827",
+      "stdout_sha256": "0bd37bde141134b9c89c3a6b1c406c651ccbfbb7037d62f0f6eea6e69435938e"
+    },
+    {
+      "label": "source:history.md",
+      "stdin_sha256": "3519d22b5dfe6dffd1c7977ec1434f2a0fb0e00fd22cc23c68981f11e49a3869",
+      "stdout_sha256": "92a30f7db3a7196f0c408fb1fc0c9103f5d0c62cef3b8020d9c3bde808ed446e"
+    },
+    {
+      "label": "source:summary.md",
+      "stdin_sha256": "407ae37f065b905e323b9337ef93927bc2f716dd0619a21f479a79ec277bed35",
+      "stdout_sha256": "dde3fa08a71a7d57d870c45e2bd1abf150a3c19c454d83268fe0cdb991940e1d"
+    },
+    {
+      "label": "source:task.md",
+      "stdin_sha256": "5491ee3c895e2478c6a62b88ff8c12c40ed414d5b5dd2ea036dec4699be4c98a",
+      "stdout_sha256": "ec937ee7fff24d850f3344b0b369abfee4cb1e44e4f78f4f11bf7091687dffbe"
+    },
+    {
+      "label": "packet:preparation",
+      "stdin_sha256": "a233e45d362e8354e876d03f2f4064d9f3263cac54f148e93c52ad41bfd55ad0",
+      "stdout_sha256": "c79178352141969e9f015d3b93979ac2777a119ec606ed98d1c1f75c41330f0a"
+    },
+    {
+      "label": "unit:history.md#context",
+      "stdin_sha256": "8e68f3ffec5badac38654fe6838ca9bd70ff5e733f9c054b922e62b553cbf5bc",
+      "stdout_sha256": "d7b516357f6010b4c1b39e93a412b71f9829c5f578b483253d6921798e897793"
+    },
+    {
+      "label": "unit:history.md#parent-1792785688656764154",
+      "stdin_sha256": "df713aef890df50cc8bc5fc39bd37921ef0275e492562977a826cd695198c6c8",
+      "stdout_sha256": "4fa884f9b5345955f896add634b710d1e8abf1bd38f18573631e96b8e6c1e910"
+    },
+    {
+      "label": "unit:task.md#constraints",
+      "stdin_sha256": "4b00b5c334d599a6afc4c1bdb772a21898065b2d08d4f85720a6803de5f0b58d",
+      "stdout_sha256": "e4cd239222e7345242ed5b3da2f7e6188a6e0b8e49be8fe705eace826498c319"
+    },
+    {
+      "label": "unit:task.md#context",
+      "stdin_sha256": "2c11dcfea36ad8bd8726949b603429e113a5824c41ba6cf9a34f826aae3c371c",
+      "stdout_sha256": "bbdb83471f3e3adef777eab4878271e265dc1586a6f8bce6123a7ffe06931e4c"
+    },
+    {
+      "label": "unit:task.md#outcome",
+      "stdin_sha256": "2ff6747c4a52e8e76042d9dd695ba1391535c84c21d322e9900511d2b68a7867",
+      "stdout_sha256": "9c20510b0fbf5075834281ddcb2953045b14d3f37732f26e11128dda04b62cd9"
+    },
+    {
+      "label": "unit:task.md#outputs",
+      "stdin_sha256": "a955dd500822fc065e8ddd351b94b0ca23499de6b30451b5d01aeba749b1d1fb",
+      "stdout_sha256": "1d3eca91723578374e64222fbba48b90b3cf633184d7c9801063974b2871106a"
+    },
+    {
+      "label": "unit:task.md#scope",
+      "stdin_sha256": "ce167774cd9d718ad85e3539b5ef5b1f93f62b44cc03911183db6a72f8eca375",
+      "stdout_sha256": "b157b83a8fc7a8b3c2e4bc430a3777316dcdea3331fec87b7ab304a64f55e9b4"
+    },
+    {
+      "label": "unit:task.md#stop",
+      "stdin_sha256": "d6cdd5eaab7ebf35bd221e081e1c1c428ff19601356575e3a48c94a5cec00454",
+      "stdout_sha256": "efafbde60885425c35795d982c3c43e18deddd6bd9620cc4aaa039d69520525d"
+    },
+    {
+      "label": "unit:summary.md#short-1792785688656764154",
+      "stdin_sha256": "c3ef31d69c5e0dbb2d04416a5445f8fb7805d3521e4ddbaebd188d7dc0c2e37b",
+      "stdout_sha256": "af2dbdbefe8e6ffa5127a1894c0a5e7a22e7f6d497c7932b893c618e439c9f3f"
+    },
+    {
+      "label": "packet:implementation",
+      "stdin_sha256": "e9021540c7743af223a6d3df44d5a90362678c2512a06e79a7b2b99861edebf3",
+      "stdout_sha256": "98cdd23bb289022095eabf81a98ee129ed2bf0b560d9c4ac28480140eef5a059"
+    },
+    {
+      "label": "packet:verification",
+      "stdin_sha256": "6d61bafa9a53ada6fc9a0f4703b02cba2ddd5ac1941eb60ec03a5a49ed315e9c",
+      "stdout_sha256": "4e1ed6bfc602d68449dbb1f30599d18e332631cfacd48d36f1848033d03966ff"
+    },
+    {
+      "label": "packet:human-review",
+      "stdin_sha256": "b51e31d10804270030fd51e98a46936e7396fae26680d7697e21e604517949c8",
+      "stdout_sha256": "9e4c1f08b2821040044063385d24454841fbc6d33a878cd178f9097d7bc09a1c"
+    },
+    {
+      "label": "packet:performer-claim",
+      "stdin_sha256": "6e74eb0457323208731b66d179a24d655e299a25ff8c8100f22ef2851b46fcf1",
+      "stdout_sha256": "dcf163e158d0a14c38b7e09c525b911491a2149664a87f760b09de7fbe3244e5"
+    },
+    {
+      "label": "summary-provenance",
+      "stdin_sha256": "ff473ba176b94450f78b285241491fa7d1a13382f5d1e7a50d9baa474894041e",
+      "stdout_sha256": "e27f1e441c42a6d49328df79942b14cdb9fb03d3f56c9cb3ca24e6f83aa39806"
+    },
+    {
+      "label": "unit:summary.md#context",
+      "stdin_sha256": "4e87fcdeffdd75a4c460ae85f31aa2d2a09563d6180aee8596165e3785905140",
+      "stdout_sha256": "9af2fbc27f1a4dbab191b6634c9e273502e37486022051f387c6d9cca4d952c9"
+    }
+  ],
+  "transcript_sha256": "a6161852824bc4e05275ff2dc1c94379c3cd8ace8d1ff510d9c4fe98029ca24d",
+  "binary_sha256": "3eb13f9522a43d44115b4027aefdefaecbcff6e2e9556526e2cee91a12add76b",
+  "wire_sha256": "121781ff3954d07b0426c2df67d5fa4e14499fe5cf4368fb5926642f49ef00b4",
+  "qualification_established": false,
+  "limitations": [
+    "External probe is test instrumentation, not a new provider release",
+    "SDK decoding does not establish producer trust or semantic qualification",
+    "No model invocation, trusted access deployment or human acceptance"
+  ]
+}

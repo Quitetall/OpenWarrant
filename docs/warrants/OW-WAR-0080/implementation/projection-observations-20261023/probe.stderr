@@ -1,0 +1,3 @@
+   Compiling lamu-openwarrant v0.1.0 (/mnt/4tb/tmp/openwarrant-ow80-provider-20261023/lamu-rs/lamu-openwarrant)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 15.60s
+     Running tests/ow_projection_observations.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/ow_projection_observations-7f7e925c8ecfeaba)

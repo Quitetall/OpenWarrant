@@ -3,16 +3,21 @@
   "warrant": "OW-WAR-0081",
   "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "f4d968a9137a0edb5a4abc3c4538288a79559696",
-  "summary": "SDK integrity plus actual LAMU portable package construction, offline semantic reconstruction and safe publication implemented and reviewed. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
-  "notes": "docs/warrants/OW-WAR-0081/implementation/notes.md",
+  "revision": "b010e3b8fc578ffbea8d5359c07faa735960ae0e",
+  "summary": "Implementation remains complete and unverified. Current Core/literal/provider checks and twelve fresh package cases distinguish integrity from reconstruction, preserve output on replacement attempts, and verify offline after source removal. Independent qualification and human acceptance remain separate.",
+  "notes": "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0081/implementation/package-observation.json",
     "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
-    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json",
+    "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json",
+    "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout",
+    "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl",
+    "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json"
   ],
   "next_steps": [
-    "Retain exact historical evidence and unverified status.",
-    "Complete full Phase 1/2 qualification through OW85/86."
+    "Retain exact original implementation and review history without treating prior verdicts as current qualification.",
+    "Assess the exact package result independently, including filesystem/caller-capability and Linux-only limits.",
+    "Complete Phase 1/2 qualification through OW85/86 and obtain secure human acceptance separately."
   ]
 }

@@ -8500,6 +8500,24 @@ does not establish the other required OS or full phase exit. Phase exit also run
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0085/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | conformance/sdk/phase1.json | `conformance/sdk/phase1.json` | verified |
+| D-002 | conformance/sdk/run_phase1.py | `conformance/sdk/run_phase1.py` | verified |
+| D-003 | conformance/sdk/test_inventory.py | `conformance/sdk/test_inventory.py` | verified |
+| D-004 | conformance/sdk/skills/check_artifacts.py | `conformance/sdk/skills/check_artifacts.py` | verified |
+| D-005 | crates/openwarrant-core/examples/sdk_probe.rs | `crates/openwarrant-core/examples/sdk_probe.rs` | verified |
+| D-006 | crates/openwarrant-core/tests/skill_artifacts.rs | `crates/openwarrant-core/tests/skill_artifacts.rs` | verified |
+| D-007 | docs/reviews/phase-1.md | `docs/reviews/phase-1.md` | verified |
+| D-008 | docs/warrants/OW-WAR-0085/implementation/current-inventory-notes.md | `docs/warrants/OW-WAR-0085/implementation/current-inventory-notes.md` | verified |
+| D-009 | docs/warrants/OW-WAR-0085/implementation/progress.json | `docs/warrants/OW-WAR-0085/implementation/progress.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0085/implementation/native-20261023/ci-run.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/ci-run.json` | verified |
+| D-011 | docs/warrants/OW-WAR-0085/implementation/native-20261023/comparison.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/comparison.json` | verified |
+| D-012 | docs/warrants/OW-WAR-0085/implementation/native-20261023/linux.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/linux.json` | verified |
+| D-013 | docs/warrants/OW-WAR-0085/implementation/native-20261023/macos.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/macos.json` | verified |
+
 #### OW-WAR-0087 — Expose document and record primitives through CLI
 
 [manifest](../../docs/warrants/OW-WAR-0087/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0087/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -18235,6 +18253,25 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0084/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/legacy.rs | `crates/openwarrant-core/src/document/legacy.rs` | verified |
+| D-002 | crates/openwarrant-core/src/document/legacy/codec.rs | `crates/openwarrant-core/src/document/legacy/codec.rs` | verified |
+| D-003 | crates/openwarrant-core/tests/document_legacy.rs | `crates/openwarrant-core/tests/document_legacy.rs` | verified |
+| D-004 | crates/openwarrant-core/examples/sdk_probe/legacy.rs | `crates/openwarrant-core/examples/sdk_probe/legacy.rs` | verified |
+| D-005 | conformance/sdk/legacy/README.md | `conformance/sdk/legacy/README.md` | verified |
+| D-006 | conformance/sdk/legacy/check_observations.py | `conformance/sdk/legacy/check_observations.py` | verified |
+| D-007 | docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md | `docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md` | verified |
+| D-008 | docs/warrants/OW-WAR-0084/implementation/progress.json | `docs/warrants/OW-WAR-0084/implementation/progress.json` | verified |
+| D-009 | docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json | `docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log | `docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log` | verified |
+| D-011 | docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log | `docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log` | verified |
+| D-012 | docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log | `docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log` | verified |
+| D-013 | docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl | `docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl` | verified |
+| D-014 | docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json | `docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json` | verified |
+
 #### OW-WAR-0123 — A child cites the exact revision of its parent, and a moved parent is a finding
 
 [manifest](../../docs/warrants/OW-WAR-0123/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0123/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -24539,6 +24576,26 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0080/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | docs/integrations/projections.md | `docs/integrations/projections.md` | verified |
+| D-002 | conformance/integration/projections/README.md | `conformance/integration/projections/README.md` | verified |
+| D-003 | conformance/integration/projections/check_observations.py | `conformance/integration/projections/check_observations.py` | verified |
+| D-004 | conformance/integration/projections/run.py | `conformance/integration/projections/run.py` | verified |
+| D-005 | docs/warrants/OW-WAR-0080/implementation/notes.md | `docs/warrants/OW-WAR-0080/implementation/notes.md` | verified |
+| D-006 | docs/warrants/OW-WAR-0080/implementation/progress.json | `docs/warrants/OW-WAR-0080/implementation/progress.json` | verified |
+| D-007 | docs/warrants/OW-WAR-0080/implementation/projection-observation.json | `docs/warrants/OW-WAR-0080/implementation/projection-observation.json` | verified |
+| D-008 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/README.md | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/README.md` | verified |
+| D-009 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/external-probe.rs.txt | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/external-probe.rs.txt` | verified |
+| D-010 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/native-projections.json | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/native-projections.json` | verified |
+| D-011 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe-identity.json` | verified |
+| D-012 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stderr` | verified |
+| D-013 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stdout` | verified |
+| D-014 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/sdk-wire.jsonl | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/sdk-wire.jsonl` | verified |
+| D-015 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/summary.json | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/summary.json` | verified |
+
 #### OW-WAR-0081 — Inspect packet integrity and prove offline provider packages
 
 [manifest](../../docs/warrants/OW-WAR-0081/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0081/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -24754,6 +24811,38 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0081/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/packet.rs | `crates/openwarrant-core/src/document/packet.rs` | verified |
+| D-002 | conformance/sdk/packet/README.md | `conformance/sdk/packet/README.md` | verified |
+| D-003 | conformance/sdk/packet/cases.json | `conformance/sdk/packet/cases.json` | verified |
+| D-004 | conformance/sdk/packet/check_observations.py | `conformance/sdk/packet/check_observations.py` | verified |
+| D-005 | conformance/sdk/packet/duplicate-field.json | `conformance/sdk/packet/duplicate-field.json` | verified |
+| D-006 | conformance/sdk/packet/invalid-kind.json | `conformance/sdk/packet/invalid-kind.json` | verified |
+| D-007 | conformance/sdk/packet/invalid-role.json | `conformance/sdk/packet/invalid-role.json` | verified |
+| D-008 | conformance/sdk/packet/noncanonical.json | `conformance/sdk/packet/noncanonical.json` | verified |
+| D-009 | conformance/sdk/packet/unknown-field.json | `conformance/sdk/packet/unknown-field.json` | verified |
+| D-010 | conformance/sdk/packet/valid.json | `conformance/sdk/packet/valid.json` | verified |
+| D-011 | conformance/sdk/packet/wrong-schema.json | `conformance/sdk/packet/wrong-schema.json` | verified |
+| D-012 | conformance/integration/package/run.py | `conformance/integration/package/run.py` | verified |
+| D-013 | docs/warrants/OW-WAR-0081/implementation/notes.md | `docs/warrants/OW-WAR-0081/implementation/notes.md` | verified |
+| D-014 | docs/warrants/OW-WAR-0081/implementation/package-observation.json | `docs/warrants/OW-WAR-0081/implementation/package-observation.json` | verified |
+| D-015 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md` | verified |
+| D-016 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stderr | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stderr` | verified |
+| D-017 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stdout | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stdout` | verified |
+| D-018 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/external-probe.rs.txt | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/external-probe.rs.txt` | verified |
+| D-019 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json` | verified |
+| D-020 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-results.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-results.json` | verified |
+| D-021 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-identity.json` | verified |
+| D-022 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-native.stdout | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-native.stdout` | verified |
+| D-023 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stderr` | verified |
+| D-024 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout` | verified |
+| D-025 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl` | verified |
+| D-026 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json` | verified |
+| D-027 | docs/warrants/OW-WAR-0081/implementation/progress.json | `docs/warrants/OW-WAR-0081/implementation/progress.json` | verified |
+
 #### OW-WAR-0082 — Prove provider context budgets and cache invalidation
 
 [manifest](../../docs/warrants/OW-WAR-0082/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0082/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -24968,6 +25057,26 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0082/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | docs/integrations/budgets.md | `docs/integrations/budgets.md` | verified |
+| D-002 | conformance/integration/budgets/README.md | `conformance/integration/budgets/README.md` | verified |
+| D-003 | conformance/integration/budgets/check_observations.py | `conformance/integration/budgets/check_observations.py` | verified |
+| D-004 | conformance/integration/budgets/run.py | `conformance/integration/budgets/run.py` | verified |
+| D-005 | docs/warrants/OW-WAR-0082/implementation/budget-observation.json | `docs/warrants/OW-WAR-0082/implementation/budget-observation.json` | verified |
+| D-006 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/README.md | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/README.md` | verified |
+| D-007 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/external-probe.rs.txt | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/external-probe.rs.txt` | verified |
+| D-008 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/native-budgets.json | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/native-budgets.json` | verified |
+| D-009 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe-identity.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stderr` | verified |
+| D-011 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stdout` | verified |
+| D-012 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/sdk-wire.jsonl | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/sdk-wire.jsonl` | verified |
+| D-013 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/summary.json | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/summary.json` | verified |
+| D-014 | docs/warrants/OW-WAR-0082/implementation/notes.md | `docs/warrants/OW-WAR-0082/implementation/notes.md` | verified |
+| D-015 | docs/warrants/OW-WAR-0082/implementation/progress.json | `docs/warrants/OW-WAR-0082/implementation/progress.json` | verified |
+
 #### OW-WAR-0086 — Integrate SDK with LAMU and a second minimal consumer
 
 [manifest](../../docs/warrants/OW-WAR-0086/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0086/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -25181,6 +25290,30 @@ requires its own observed refusal and exact evidence.
 Run `python3 conformance/integration/adapter/run.py --provider-root <LAMU-Rust-workspace> --output <new-receipt.json>` for actual provider, second consumer, record/readiness and preservation exchange. The driver is implemented; full phase qualification remains separate. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0086/atoms/60-assurance.md ends -->
+
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/adapter.rs | `crates/openwarrant-core/src/document/adapter.rs` | verified |
+| D-002 | docs/integrations/sdk.md | `docs/integrations/sdk.md` | verified |
+| D-003 | conformance/integration/adapter/run.py | `conformance/integration/adapter/run.py` | verified |
+| D-004 | conformance/integration/adapter/check_resolution.py | `conformance/integration/adapter/check_resolution.py` | verified |
+| D-005 | conformance/integration/adapter/README.md | `conformance/integration/adapter/README.md` | verified |
+| D-006 | conformance/integration/test_observation_output.py | `conformance/integration/test_observation_output.py` | verified |
+| D-007 | docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md | `docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md` | verified |
+| D-008 | docs/warrants/OW-WAR-0086/implementation/progress.json | `docs/warrants/OW-WAR-0086/implementation/progress.json` | verified |
+| D-009 | docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log` | verified |
+| D-011 | docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json` | verified |
+| D-012 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json` | verified |
+| D-013 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log` | verified |
+| D-014 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log` | verified |
+| D-015 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr` | verified |
+| D-016 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json` | verified |
+| D-017 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log` | verified |
+| D-018 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log` | verified |
+| D-019 | docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json` | verified |
 
 #### OW-WAR-0093 — Reference workflow package: local API and draft webapp
 
@@ -30681,6 +30814,30 @@ requires its own observed refusal and exact evidence.
 The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0083/atoms/60-assurance.md ends -->
+
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/records.rs | `crates/openwarrant-core/src/document/records.rs` | verified |
+| D-002 | crates/openwarrant-core/src/document/records/workflow.rs | `crates/openwarrant-core/src/document/records/workflow.rs` | verified |
+| D-003 | crates/openwarrant-core/src/document/schedule.rs | `crates/openwarrant-core/src/document/schedule.rs` | verified |
+| D-004 | crates/openwarrant-core/tests/document_records.rs | `crates/openwarrant-core/tests/document_records.rs` | verified |
+| D-005 | crates/openwarrant-core/tests/document_workflow_records.rs | `crates/openwarrant-core/tests/document_workflow_records.rs` | verified |
+| D-006 | crates/openwarrant-core/tests/document_schedule.rs | `crates/openwarrant-core/tests/document_schedule.rs` | verified |
+| D-007 | crates/openwarrant-core/examples/sdk_probe/records.rs | `crates/openwarrant-core/examples/sdk_probe/records.rs` | verified |
+| D-008 | crates/openwarrant-core/examples/record_schemas.rs | `crates/openwarrant-core/examples/record_schemas.rs` | verified |
+| D-009 | conformance/sdk/records/README.md | `conformance/sdk/records/README.md` | verified |
+| D-010 | conformance/sdk/records/check_observations.py | `conformance/sdk/records/check_observations.py` | verified |
+| D-011 | docs/warrants/OW-WAR-0083/implementation/current-records-notes.md | `docs/warrants/OW-WAR-0083/implementation/current-records-notes.md` | verified |
+| D-012 | docs/warrants/OW-WAR-0083/implementation/progress.json | `docs/warrants/OW-WAR-0083/implementation/progress.json` | verified |
+| D-013 | docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json | `docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json` | verified |
+| D-014 | docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json | `docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json` | verified |
+| D-015 | docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log | `docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log` | verified |
+| D-016 | docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log | `docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log` | verified |
+| D-017 | docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log | `docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log` | verified |
+| D-018 | docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl | `docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl` | verified |
+| D-019 | docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json | `docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json` | verified |
 
 #### OW-WAR-0107 — Independently verify workflow results and repair within limits
 

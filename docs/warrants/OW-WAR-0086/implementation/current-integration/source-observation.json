@@ -1,0 +1,50 @@
+{
+  "schema": "oh.war/provider-exchange-source-observation/v1",
+  "fixed_source_commit": "ea0a65c6a5999e97ad13a083a6c2b7ec585dde6e",
+  "observed_code_files_match_current": [
+    "conformance/integration/adapter/run.py",
+    "conformance/integration/adapter/check_resolution.py",
+    "conformance/integration/test_observation_output.py"
+  ],
+  "files": {
+    "crates/openwarrant-core/src/document/adapter.rs": "sha256:3d25d62fc37cfbfeb42e3cd6d51470ddd4d63fdecf69899ef60e643fc62da84a",
+    "docs/integrations/sdk.md": "sha256:5df49a40f5cd5aada38f95030c7bf0d1fdd6fc45b859d471271c7e0aa9f0c625",
+    "conformance/integration/adapter/run.py": "sha256:5a709877953692a79f9029693be49cf0729fc286161acd8082e4fb8100cd8614",
+    "conformance/integration/adapter/check_resolution.py": "sha256:a75f017319c0bc6d7660937ad2c533c538e872db4a5938fc55502fe9dcde7575",
+    "conformance/integration/adapter/README.md": "sha256:7b93b18e021529bc1125ef751b922995f23b4f397672f46e98fbde4d0916b07f",
+    "conformance/integration/test_observation_output.py": "sha256:436b7dd3c86ed725760b98de8ae47c0130a3d811ecc5cdba095614a750bfd570"
+  },
+  "provider_git_head": "2572894f28ce76c2c7e6c6c9ae6be51a7f400fa1",
+  "resolved_provider_sdk": {
+    "id": "git+https://github.com/Quitetall/OpenWarrant.git?rev=4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd#openwarrant-core@1.0.0",
+    "name": "openwarrant-core",
+    "source": "git+https://github.com/Quitetall/OpenWarrant.git?rev=4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd#4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
+    "manifest_path": "/home/brianklam/.cargo/git/checkouts/openwarrant-6e2765434027641a/4b626f2/crates/openwarrant-core/Cargo.toml"
+  },
+  "observed": {
+    "profiles": {
+      "source": true,
+      "conditions": true,
+      "selection": true,
+      "projections": true,
+      "package": true,
+      "budgets": true
+    },
+    "full_provider_tests": 28,
+    "fast_protocol_output_tests": 4,
+    "actual_override_before_fix": "accepted incorrectly",
+    "actual_override_after_fix": "refused without publication",
+    "second_consumer_integrity": true,
+    "record_preservation_exchange": true,
+    "repeat_identical": true,
+    "changed_inputs": [],
+    "provider_worktree_clean": true
+  },
+  "qualification_established": false,
+  "phase_exit_established": false,
+  "limits": [
+    "Cargo resolution is build provenance, not signature authentication or protection from a malicious toolchain.",
+    "The red receipt records an incorrect before-fix acceptance and must not qualify the agreed profile.",
+    "Independent phase review and secure human acceptance remain open."
+  ]
+}

@@ -1,19 +1,25 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0131",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "1f39643fe0bb30ba6303c622bd35dd1019f7b637",
-  "summary": "Fixed a reproduced simultaneous-start race: five overlapping fixture writers before, one without overlap after. All 19 selected cancellation, handoff, adapter and concurrency controls pass on Linux. Full gate, independent assessment and macOS observation are not claimed. Direct shared-checkout handoff now refuses surviving writers on other stages or sibling Warrants. All 21 selected controls pass, including controller-SIGKILL cases; unreadable writer metadata stops admission as unknown. Fixed the CI observer race that cancelled the admitted command before fixture startup; the delayed-start regression and all 22 selected controls now pass without changing product admission.",
-  "notes": "docs/warrants/OW-WAR-0131/implementation/checkout-handoff-20261011/README.md",
+  "revision": "175c6c663f71649e6d800898343d4023a53870c72d333d3a587cf775b43ecaad",
+  "summary": "Cancellation and writer-handoff implementation complete, unverified. Native Linux x86_64 and macOS arm64 each pass all 22 physical plant controls and seven performer units from matching source tree 0d38278d; separate local Linux run also passes. No real-model quality, independent assurance or human acceptance claimed.",
+  "notes": "docs/warrants/OW-WAR-0131/implementation/native-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0131/implementation/writer-admission-20261011/observation.json",
     "docs/warrants/OW-WAR-0131/implementation/checkout-handoff-20261011/observation.json",
-    "docs/warrants/OW-WAR-0131/implementation/observer-start-20261012/observation.json"
+    "docs/warrants/OW-WAR-0131/implementation/observer-start-20261012/observation.json",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/ci-run.json",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/comparison.json",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/linux-build.log",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/linux-plant.log",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/local-observation.json",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/macos-build.log",
+    "docs/warrants/OW-WAR-0131/implementation/native-20261023/macos-plant.log"
   ],
   "next_steps": [
-    "Run the full repository gate on the exact committed candidate.",
-    "Independent reviewer assesses current evidence and delivery history; human acceptance remains separate.",
-    "Establish macOS cancellation and writer behavior before claiming that platform."
+    "Pass the full protected gate and preserve legacy delivery history.",
+    "Obtain admissible registered evidence, independent assessment and actual human acceptance before legacy resolution."
   ]
 }

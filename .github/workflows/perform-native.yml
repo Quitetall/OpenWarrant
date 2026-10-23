@@ -1,0 +1,74 @@
+name: Native performer controls
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/perform-native.yml'
+      - 'conformance/native/**'
+      - 'conformance/lib.sh'
+      - 'conformance/plants.d/60-perform-cancel.sh'
+      - 'conformance/fixtures/performer/**'
+      - 'tools/performer/**'
+      - 'crates/openwarrant-cli/src/perform.rs'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: perform-native-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  controls:
+    name: Performer ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+      - name: Install shell tools for the existing battery
+        if: runner.os == 'macOS'
+        run: |
+          python3 - <<'PY'
+          import os, subprocess
+          subprocess.run(['brew', 'install', 'bash', 'coreutils', 'gnu-sed'],
+                         check=True, timeout=900,
+                         env={**os.environ, 'HOMEBREW_NO_AUTO_UPDATE': '1', 'NONINTERACTIVE': '1'})
+          PY
+          echo "$(brew --prefix bash)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix gnu-sed)/libexec/gnubin" >> "$GITHUB_PATH"
+      - name: Build the native CLI and run OS admission units
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'perform-build.log'
+          with output.open('x') as log:
+              for argv in [['rustc', '-Vv'], ['cargo', 'build', '--locked', '-p', 'openwarrant-cli', '--bin', 'war'],
+                           ['cargo', 'test', '--locked', '-p', 'openwarrant-cli', '--lib', 'perform::tests::']]:
+                  log.write(repr(argv) + '\n'); log.flush()
+                  subprocess.run(argv, check=True, timeout=600, stdout=log, stderr=subprocess.STDOUT)
+          PY
+      - name: Run the actual cancellation and handoff plant
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, subprocess
+          output = pathlib.Path(os.environ['RUNNER_TEMP']) / 'perform-native.log'
+          with output.open('x') as log:
+              subprocess.run(['bash', 'conformance/native/perform.sh'], check=True, timeout=600,
+                             stdout=log, stderr=subprocess.STDOUT)
+          PY
+      - name: Retain observations including failures
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: native-perform-${{ runner.os }}
+          path: ${{ runner.temp }}/perform-*.log
+          if-no-files-found: error

@@ -14,6 +14,45 @@ STAGES = ("source", "conditions", "selection", "projections", "package", "budget
 
 
 class ObservationOutput(unittest.TestCase):
+    def test_adapter_refuses_resolved_sdk_override_despite_matching_manifest_pin(self):
+        # Cargo is an external protocol facade here. This proves early refusal
+        # and no publication, not real provider compatibility or qualification.
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            provider = root / "provider"
+            crate = provider / "lamu-openwarrant"
+            crate.mkdir(parents=True)
+            pin = "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd"
+            (crate / "Cargo.toml").write_text(
+                '[package]\nname="lamu-openwarrant"\nversion="0.1.0"\n'
+                '[dependencies.openwarrant-core]\n'
+                f'git="https://github.com/Quitetall/OpenWarrant.git"\nrev="{pin}"\n')
+            tools = root / "tools"
+            tools.mkdir()
+            metadata = {
+                "packages": [
+                    {"id": "provider", "name": "lamu-openwarrant", "manifest_path": str(crate / "Cargo.toml")},
+                    {"id": "override", "name": "openwarrant-core", "source": None,
+                     "manifest_path": str(root / "replacement/Cargo.toml")},
+                ],
+                "resolve": {"nodes": [{"id": "provider", "deps": [
+                    {"name": "openwarrant_core", "pkg": "override"}]}]},
+            }
+            cargo = tools / "cargo"
+            cargo.write_text("#!/usr/bin/env python3\nimport json, sys\n"
+                             "if 'metadata' not in sys.argv: raise SystemExit('unexpected provider execution')\n"
+                             f"print({json.dumps(json.dumps(metadata))})\n")
+            cargo.chmod(0o755)
+            output = root / "observation.json"
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "conformance/integration/adapter/run.py"),
+                 "--provider-root", str(provider), "--output", str(output)],
+                cwd=root, env={**os.environ, "PATH": str(tools) + os.pathsep + os.environ.get("PATH", "")},
+                capture_output=True, timeout=15)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(b"Provider SDK resolution differs from shared contract", result.stderr)
+            self.assertFalse(output.exists())
+
     def test_dangling_destination_link_refuses_before_provider_work(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

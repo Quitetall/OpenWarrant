@@ -1,0 +1,48 @@
+[
+  {
+    "name": "core",
+    "argv": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "openwarrant-core",
+      "--test",
+      "document_packet"
+    ],
+    "exit_code": 0,
+    "seconds": 11.332864037001855
+  },
+  {
+    "name": "probe-native",
+    "argv": [
+      "cargo",
+      "run",
+      "--locked",
+      "-p",
+      "openwarrant-core",
+      "--example",
+      "sdk_probe",
+      "--",
+      "--scope",
+      "81",
+      "--fixtures",
+      "/mnt/4tb/tmp/openwarrant-ow81-evidence-20261023/conformance/sdk"
+    ],
+    "exit_code": 0,
+    "seconds": 0.8652369439951144
+  },
+  {
+    "name": "provider",
+    "argv": [
+      "python3",
+      "/mnt/4tb/tmp/openwarrant-ow81-evidence-20261023/conformance/integration/package/run.py",
+      "--provider-root",
+      "/mnt/4tb/tmp/openwarrant-ow81-provider-20261023/lamu-rs",
+      "--output",
+      "/mnt/4tb/artifacts/OpenWarrant/keep/ow81-evidence-20261023/real-package.json"
+    ],
+    "exit_code": 0,
+    "seconds": 2.3672634420072427
+  }
+]

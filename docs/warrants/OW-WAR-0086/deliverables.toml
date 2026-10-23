@@ -1,0 +1,420 @@
+schema = "oh.war/deliverables/v1"
+
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/adapter.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/adapter.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:3d25d62fc37cfbfeb42e3cd6d51470ddd4d63fdecf69899ef60e643fc62da84a"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "docs/integrations/sdk.md"
+kind = "file"
+target_ref = "docs/integrations/sdk.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:5df49a40f5cd5aada38f95030c7bf0d1fdd6fc45b859d471271c7e0aa9f0c625"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/integration/adapter/run.py"
+kind = "file"
+target_ref = "conformance/integration/adapter/run.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:5a709877953692a79f9029693be49cf0729fc286161acd8082e4fb8100cd8614"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/integration/adapter/check_resolution.py"
+kind = "file"
+target_ref = "conformance/integration/adapter/check_resolution.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:a75f017319c0bc6d7660937ad2c533c538e872db4a5938fc55502fe9dcde7575"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/integration/adapter/README.md"
+kind = "file"
+target_ref = "conformance/integration/adapter/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:7b93b18e021529bc1125ef751b922995f23b4f397672f46e98fbde4d0916b07f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/integration/test_observation_output.py"
+kind = "file"
+target_ref = "conformance/integration/test_observation_output.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:436b7dd3c86ed725760b98de8ae47c0130a3d811ecc5cdba095614a750bfd570"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:f49451da7968e64200a73e86728552fd5e25cef59049a35d5fcbd7e7d909f760"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "docs/warrants/OW-WAR-0086/implementation/progress.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/progress.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:f134dea22ebde44cabdd0b7baa7f000251844454c0123ef4ec2b802d047d4306"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:0f6e165fd60d15e48bac4349161b5cde9c9403da025b9525d6ce8a8da87d846c"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:345b2c9c6a5454c83c70fa47450280f5cf9860eeedd480a2e0d8c12571775aff"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:a131da85d4fccaef0dc7df1608a5e2c17ced0bbd5a4bc4874fbb734464844aae"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:bced2c9a7d01b1fb9e856ba4a5065be90e56b3bdd1b720631e1381d267ac8d9f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:d59778815e5a90c325d2e6b0ff78f9b2c31e1e0d9956b58793f9b0abfd962ecc"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:64b428da5d7d71b223b29be05d18ee5e45b114e7658fbb8a06b3290f47d2f968"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-015"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:6f8689e402c83e1d3a54bcfba6b6a384ad687039d5f0ca92db70a54d3b5e927f"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-016"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:de1d95a4c17971fa4ef32895d3fe530169bef3c8774e4c4e6a43123a092c940b"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-017"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:a203d72e9e99c6dddbbad5bdd87f6182d2ebb86d108acb519ed5f096c4063c6b"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-018"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:f821b7a5d54ad84bdbc568f63f7cd8ab484c0d63b93d2e1adb40942d7477d6f5"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-019"
+title = "docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0086/20261023-native-exchange"
+contract_digest = "d2a7746854b5197abbeb84930812833a78647e815d98d96f4e89e8aed961d4e7"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse, real external provider execution and retained before/after refusal control; original authorship retained"
+content_digest = "sha256:2f54c0fe995fb097165dc32d37f21cb07e064c902cf40dcaa1af176586a894b0"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

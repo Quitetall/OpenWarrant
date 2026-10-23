@@ -1,0 +1,310 @@
+schema = "oh.war/deliverables/v1"
+
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/legacy.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/legacy.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:c9c0b96cfa48bbb7a7db799350bb6804357db7d3890bb5fcbf77987f9e3041f1"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-002"
+title = "crates/openwarrant-core/src/document/legacy/codec.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/legacy/codec.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:2abfa138e14580fc5c252e33a3705212262c2b315bfa8f38db5987f5939f375a"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-003"
+title = "crates/openwarrant-core/tests/document_legacy.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/tests/document_legacy.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:50c4ac565f3632f8608fc510baa3c827488d5ea402f6f50931c0a80ef3fa9057"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-004"
+title = "crates/openwarrant-core/examples/sdk_probe/legacy.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/examples/sdk_probe/legacy.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:49f2aeb6a540f7ae88fb77ea1b805b6d8d1c9dea848d206cc8a1c2f195a7d256"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/legacy/README.md"
+kind = "file"
+target_ref = "conformance/sdk/legacy/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:76d6113b9c731038c44846ce6fd2396567408bf986ce5ed56eede75ff820ae62"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/legacy/check_observations.py"
+kind = "file"
+target_ref = "conformance/sdk/legacy/check_observations.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:9fab0fc6c0eacb15693846ec68b187407bb48e68236b4c116ccbbf3241b461c1"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-007"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:195f9279ece7e59fb8058ee83a941a73bfad2b76819b7307b836473bcf5876b0"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-008"
+title = "docs/warrants/OW-WAR-0084/implementation/progress.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/progress.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:ca10c555f15c5822f7c7526fd6d8697dac376d39a90d77df1b2a192653df720b"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-009"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:bd1bff7a7d40a11c551c063e0e86083c231e9e218441cff7ca5180f83df93252"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-010"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:82deb97970a1a7f2273b31b7e2c31fb9666770ce7280d0760f855ad20a0efbc3"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-011"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:7b8fa8ca5113663b46ca43f54e12c34d23274f3bfa87ccc488c361183b8735b4"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-012"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:0bb5f59b75234c521617ab0e329de2d7bf0dcc85bd5342319515f1a1b203cd95"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-013"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:1af90f33f0f16871f4496f97ec6dd20b8053d0af73ad6a79a11f72400d3a2767"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+
+[[deliverable]]
+id = "D-014"
+title = "docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0084/20261023-preservation-observations"
+contract_digest = "253369a9936df4e33ee67ec11409a5326cb7349717a65a99e66e058b598ec81d"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "observed source reuse and exact historical Git/public SDK execution; prior authorship retained"
+content_digest = "sha256:4ef99ada91b07a8d5fbc75ce4f054037d911fc5be7b35f2c449581e5851b3b2a"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"

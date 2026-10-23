@@ -1,0 +1,48 @@
+{
+  "schema": "oh.war/records-source-observation/v1",
+  "source_head": "ada90ce194f146fce52df154745c65d9e2c86df4",
+  "inputs": {
+    "crates/openwarrant-core/src/document/records.rs": "sha256:864da780831a698e6be24fcf3bc75876c39daff54689305c3582f875cd9b0bba",
+    "crates/openwarrant-core/src/document/records/workflow.rs": "sha256:bc7d9d2a691d0da0662747da72929e1b3dad70757bf6b86d53f3f298e82c18f0",
+    "crates/openwarrant-core/src/document/schedule.rs": "sha256:77fd5b3c4671cccb84e4fd7762156300cfeec14479621257a5592934fd1cdd4d",
+    "crates/openwarrant-core/tests/document_records.rs": "sha256:a784ad6cca37302abcfea52f64c32c4409cb4227b0a168c361a98801562fe790",
+    "crates/openwarrant-core/tests/document_workflow_records.rs": "sha256:21099603f02110ed3e6670866760e921363d49fd3092465663ba28c958931093",
+    "crates/openwarrant-core/tests/document_schedule.rs": "sha256:7758325528630bd5d95444c33952b2b6ea5012cb25a790193bd817fb593b9e97",
+    "crates/openwarrant-core/examples/sdk_probe/records.rs": "sha256:17e02a883c448223356ae3e15738b4c13468b06ca85e4abb5828d0eec9957cb4",
+    "crates/openwarrant-core/examples/record_schemas.rs": "sha256:4526df92dc6713162360e055031d4c0ea9cfb502bcaded14c3f6f3beaf15434b",
+    "crates/openwarrant-cli/src/sdk.rs": "sha256:5a383412234ef5183dff7d29f5fef6318c9704c2bd32dca0835ff9d2277db07e",
+    "crates/openwarrant-cli/src/sdk/wire.rs": "sha256:53ebf5ca5ad860fdd5211d2e560f668873f95efa668d8d62bc0137886e4c51de",
+    "crates/openwarrant-cli/tests/sdk_cli.rs": "sha256:9b134ff2c6693b15785b70ef28a4a202e2acfc5b0142b0ddeb81479e4334993d",
+    "conformance/sdk/cli/cases.json": "sha256:4ae0f1d8d78500c2592644e39b1a56b5ef18efe05018ae66142f6cd5683dfcd3",
+    "conformance/sdk/records/check_observations.py": "sha256:59d7f54954ee430639f58ed595250d6bb6b7a671b9aa0952e64c231fc9dd7a86",
+    "conformance/sdk/records/agent-authorization-without-policy.json": "sha256:94aceff6b9f96a73917215209c2a12a0fc7348df193e3180405ce83d41a98271",
+    "conformance/sdk/records/agent-human-spoof.json": "sha256:a4878592f61527cbab4d82613c84bf80dc3e92bc00be2f3eefc898f56b6798ce",
+    "conformance/sdk/records/cases.json": "sha256:5c5b0572cb79a4b05ef972b700a0b0ad88d56edf9b05f43fc2a94c0c5f0c670e",
+    "conformance/sdk/records/complete-unverified-view.json": "sha256:255ebf4d37f32b51d7bb346b72c3770803b7f8ac266df2207a24ad4f119b2168",
+    "conformance/sdk/records/conflated-state.json": "sha256:5ecb890dc3770dd80c725637eac49e46e5a85e4a16498e65ed790c088c9e6c3c",
+    "conformance/sdk/records/contract.json": "sha256:6738c7f200d4def8f42cbf3d948bb8d151764a1ceaf318fb33bdd001f0d64959",
+    "conformance/sdk/records/observation-untrusted.json": "sha256:47055b911af26881413b0ae53f6e7380156a79e72774a6847738bd703b2edae4",
+    "conformance/sdk/records/schemas.json": "sha256:18eda343fbdc9185ae12e01f38aa441f0b61898c2f6fb0033fbdf02a61699678",
+    "conformance/sdk/records/unavailable-pass.json": "sha256:34787201095fe0b2b5779d693dedc7338ded37349b56ca75f20b811c04febe29",
+    "conformance/sdk/records/unknown-core-field.json": "sha256:f05c4820fffb9d6462a086a0c7b1cfa24dfd237e32b65983475684db01e27718",
+    "conformance/sdk/records/unknown-observation.json": "sha256:3584c7d105c41ea2b32986057ac27acdbdb36fba2089eba52be58f43902fbe9c",
+    "conformance/sdk/records/unsigned-completion.json": "sha256:8538632c2dee21fe93e4cc95c1e6ad2b6008134cef138b109b1d876929991d8b",
+    "conformance/sdk/records/wrong-result.json": "sha256:649aa2bfd5e98bdf8f8d1178b91b3d91d91fb07f82a6675bef511b70ba5ca7b1"
+  },
+  "results": {
+    "record_tests": 13,
+    "workflow_tests": 8,
+    "schedule_tests": 6,
+    "cli_tests": 12,
+    "codec_cases": 10,
+    "observed_cli_calls": 37
+  },
+  "qualification_established": false,
+  "independent_verdict_obtained": false,
+  "limits": [
+    "Supplied test facts do not establish actual signer identity, independent execution or human acceptance.",
+    "No full gate rerun is claimed by these focused tests.",
+    "Initial observer runs failed due to shared Python object mutation and an incorrect diagnostic expectation; both are retained in the artifact store.",
+    "The planned sdk_probe/record_schemas.rs path is actually examples/record_schemas.rs in this source inventory."
+  ]
+}

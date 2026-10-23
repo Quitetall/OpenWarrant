@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Observe actual Cargo dependency resolution and reject a replacement SDK before provider work; retain real success and refusal observations (i-3e4b) — done by agent://codex, 2026-10-23: Reproduced the full real provider pipeline accepting a Cargo path override while reporting its original declared SDK pin. Fixed the public integration driver to check actual Cargo resolution before provider work and retain successful metadata. Real override refusal now publishes no observation; original clean provider profile and all 28 provider tests pass. Four output/protocol controls pass. Claimed unverified implementation only; no independent verdict or shared-contract change.
