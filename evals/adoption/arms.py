@@ -339,6 +339,68 @@ def tracker_jira(repo: Path, backlog: dict, env: dict) -> dict:
     return jira_arm.tracker(backlog, env["STUDY_JIRA_LABEL"], env)
 
 
+# ---------------------------------------------------------------- answers to open questions
+
+
+def _answer_text(item: dict) -> str:
+    return f"Answer to the open question: {item['question']['answer'].strip()}"
+
+
+def deliver_answer(arm: str, repo: Path, backlog: dict, item: dict, env: dict) -> None:
+    """The owner's reply to an item's open question, through the arm's own update channel."""
+    text = _answer_text(item)
+    iid = item["id"]
+    if arm == "plain":
+        p = repo / "CLAUDE.md"
+        lines = p.read_text().splitlines()
+        head = next(n for n, l in enumerate(lines) if l.startswith(f"### {iid} — "))
+        nxt = next((n for n in range(head + 1, len(lines)) if lines[n].startswith("### ")), len(lines))
+        lines[nxt:nxt] = [text, ""]
+        p.write_text("\n".join(lines) + "\n")
+    elif arm == "plans":
+        p = repo / "PLAN.md"
+        lines = p.read_text().splitlines()
+        head = next(n for n, l in enumerate(lines) if re.match(rf"^- \[[ xX]\] \*\*{iid} — ", l))
+        nxt = next((n for n in range(head + 1, len(lines)) if lines[n].startswith("- [") or lines[n].startswith("## ")),
+                   len(lines))
+        lines[nxt:nxt] = [f"  {text}", ""]
+        lines.append(f"- (owner) {iid}: {text}")
+        p.write_text("\n".join(lines) + "\n")
+    elif arm == "speckit":
+        p = repo / "specs" / "001-backlog" / "spec.md"
+        s = p.read_text()
+        entry = f"- Q: ({iid}) {item['question']['asked'].strip()} → A: {item['question']['answer'].strip()}"
+        if "## Clarifications" not in s:
+            s = s.replace("## User Scenarios & Testing", "## Clarifications\n\n### Session 2026-10-22\n\n"
+                          + entry + "\n\n## User Scenarios & Testing", 1)
+        else:
+            s = s.replace("### Session 2026-10-22\n\n", "### Session 2026-10-22\n\n" + entry + "\n", 1)
+        p.write_text(s)
+    elif arm == "beads":
+        rows = json.loads(_run([env["STUDY_BD"], "list", "--json", "--all"], repo, env).stdout or "[]")
+        bid = next(r["id"] for r in rows if _label(iid) in (r.get("labels") or []))
+        _run([env["STUDY_BD"], "comments", "add", bid, text], repo, env)
+    elif arm == "openwarrant":
+        rows = _war(["view", "tickets"], repo, env)["tickets"]
+        tid = next(t["id"] for t in rows if _label(iid) in (t.get("labels") or []))
+        _war(["note", tid, text], repo, env)
+    elif arm == "jira":
+        import jira_arm
+        j = jira_arm.Jira(env)
+        key = next(i["key"] for i in j.search(f'project = "{j.project}" AND labels = "{env["STUDY_JIRA_LABEL"]}"', "labels")
+                   if _label(iid) in (i["fields"].get("labels") or []))
+        j.call("POST", f"/rest/api/3/issue/{key}/comment", {"body": jira_arm.adf(text)})
+
+
+def deliver_answers(arm: str, repo: Path, backlog: dict, env: dict) -> list[str]:
+    done = []
+    for item in backlog["item"]:
+        if item.get("question"):
+            deliver_answer(arm, repo, backlog, item, env)
+            done.append(item["id"])
+    return done
+
+
 SEEDERS = {"plain": seed_plain, "plans": seed_plans, "speckit": seed_speckit,
            "beads": seed_beads, "openwarrant": seed_openwarrant, "jira": seed_jira}
 TRACKERS = {"plain": tracker_plain, "plans": tracker_plans, "speckit": tracker_speckit,

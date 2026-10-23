@@ -46,6 +46,33 @@ timeout_secs = 300
 `{hidden}` expands to an absolute path outside the repository holding a copy of
 `hidden/<ID>/`; `{repo}` to the repository root. A check passes on exit 0.
 
+## Open questions (v2)
+
+An item may carry one open question whose answer arrives later, through each arm's own
+update channel, the way an owner's reply would:
+
+```toml
+[item.question]
+asked = "Should `--depth` count the root as level 0 or level 1?"
+answer = "Level 1: `Assets` alone is depth 1."
+```
+
+The item's text in every arm ends with `Open question: <asked> The answer will be added to
+this item; follow it.` The harness then delivers `answer` (directed: right after seeding, as a
+separate commit or record; relay: after session 1) as:
+
+| arm | where the answer lands |
+|---|---|
+| plain | an `Answer:` line under the item in `CLAUDE.md` |
+| plans | a line under the item in `PLAN.md` and a handoff-log entry |
+| speckit | `spec.md`'s `## Clarifications` (`- Q: … → A: …`), as `/speckit-clarify` writes |
+| beads | a comment on the issue (`bd comments add`) |
+| openwarrant | a note on the ticket (`war note`) |
+| jira | a comment on the issue |
+
+The answer must contradict the natural default, so that an agent that never reads the update
+fails the item's hidden tests, and the hidden tests must check it.
+
 ## Invariants the study relies on (checked by `run.py validate`)
 
 1. On the seed alone, every item's check fails.
@@ -55,3 +82,6 @@ timeout_secs = 300
    exercises only what the item's text states (description, acceptance or notes).
    A check never depends on a detail the item does not give.
 4. Items are sized so one session can finish one: a few files, under ~300 lines changed.
+5. (v2) For an item with a question, its check fails on the reference solution built with
+   the natural default instead of the answer (`reference/<ID>.default.patch`), and passes
+   with `reference/<ID>.patch`.
