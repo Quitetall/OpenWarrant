@@ -21948,6 +21948,38 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0081/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/packet.rs | `crates/openwarrant-core/src/document/packet.rs` | verified |
+| D-002 | conformance/sdk/packet/README.md | `conformance/sdk/packet/README.md` | verified |
+| D-003 | conformance/sdk/packet/cases.json | `conformance/sdk/packet/cases.json` | verified |
+| D-004 | conformance/sdk/packet/check_observations.py | `conformance/sdk/packet/check_observations.py` | verified |
+| D-005 | conformance/sdk/packet/duplicate-field.json | `conformance/sdk/packet/duplicate-field.json` | verified |
+| D-006 | conformance/sdk/packet/invalid-kind.json | `conformance/sdk/packet/invalid-kind.json` | verified |
+| D-007 | conformance/sdk/packet/invalid-role.json | `conformance/sdk/packet/invalid-role.json` | verified |
+| D-008 | conformance/sdk/packet/noncanonical.json | `conformance/sdk/packet/noncanonical.json` | verified |
+| D-009 | conformance/sdk/packet/unknown-field.json | `conformance/sdk/packet/unknown-field.json` | verified |
+| D-010 | conformance/sdk/packet/valid.json | `conformance/sdk/packet/valid.json` | verified |
+| D-011 | conformance/sdk/packet/wrong-schema.json | `conformance/sdk/packet/wrong-schema.json` | verified |
+| D-012 | conformance/integration/package/run.py | `conformance/integration/package/run.py` | verified |
+| D-013 | docs/warrants/OW-WAR-0081/implementation/notes.md | `docs/warrants/OW-WAR-0081/implementation/notes.md` | verified |
+| D-014 | docs/warrants/OW-WAR-0081/implementation/package-observation.json | `docs/warrants/OW-WAR-0081/implementation/package-observation.json` | verified |
+| D-015 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md` | verified |
+| D-016 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stderr | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stderr` | verified |
+| D-017 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stdout | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stdout` | verified |
+| D-018 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/external-probe.rs.txt | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/external-probe.rs.txt` | verified |
+| D-019 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json` | verified |
+| D-020 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-results.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-results.json` | verified |
+| D-021 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-identity.json` | verified |
+| D-022 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-native.stdout | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-native.stdout` | verified |
+| D-023 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stderr` | verified |
+| D-024 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout` | verified |
+| D-025 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl` | verified |
+| D-026 | docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json | `docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json` | verified |
+| D-027 | docs/warrants/OW-WAR-0081/implementation/progress.json | `docs/warrants/OW-WAR-0081/implementation/progress.json` | verified |
+
 ### OW-WAR-0082 — Prove provider context budgets and cache invalidation
 
 [manifest](../../docs/warrants/OW-WAR-0082/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0082/authorization.toml) · profile `delivery` · rung `draft` · currency `current`

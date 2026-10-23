@@ -1,0 +1,270 @@
+// SPDX-License-Identifier: Apache-2.0
+// Original private external test caller; no provider implementation changes.
+use lamu_openwarrant::{
+    SourceRequest, begin_capture,
+    package::{build_package, publish_package, read_package, verify_package},
+    projections::{ProjectionLimits, parse_request},
+};
+use openwarrant_core::document::{
+    Dialect,
+    packet::{DigestDomain, PackageLimits, check_package, structured_digest},
+    source::{Holder, HolderKind, SourceLimits, SourceMetadata},
+};
+use serde_json::{Value, json};
+use sha2::{Digest, Sha256};
+use std::{
+    collections::BTreeMap,
+    fs::{self, File},
+    os::unix::net::UnixListener,
+    time::{SystemTime, UNIX_EPOCH},
+};
+type Files = BTreeMap<String, Vec<u8>>;
+fn emit(case: &str, value: Value) {
+    println!(
+        "OWOBS:{}",
+        json!({"case":case,"observation":value,"qualification_established":false})
+    );
+}
+fn package(root: &std::path::Path, nonce: &str) -> Files {
+    let source = String::from_utf8(include_bytes!("fixtures/task.md").to_vec())
+        .unwrap()
+        .replace("Make signup easier", &format!("Portable {nonce} é日"))
+        .replace(
+            "example:minimal-signup",
+            &format!("example:package-{nonce}"),
+        )
+        .replace('\n', "\r\n");
+    fs::write(root.join("task.md"), source).unwrap();
+    let snapshot = begin_capture(
+        &File::open(root).unwrap(),
+        &[SourceRequest {
+            path: "task.md".into(),
+            dialect: Some(Dialect::Rc3),
+            holder: Holder {
+                kind: HolderKind::Local,
+                locator: "explicit-package-observation".into(),
+                commit: None,
+            },
+            metadata: SourceMetadata::unestablished("untrusted", "internal"),
+        }],
+        SourceLimits::default(),
+    )
+    .unwrap()
+    .finish()
+    .unwrap();
+    let digest = &snapshot.descriptors()[0].source_digest;
+    let basis = json!({"schema":"oh.war/compile-request/1.0.0-rc.2","mode":"task",
+        "compiler":"ow81-observed-provider","sources":snapshot.descriptors(),
+        "task":{"source_digest":digest,"role":"implementation"},"selection_inputs":{},
+        "policy_facts":[],"records":[],"options":{"include_optional":false,
+        "entry_token_budget":8192,"token_method":"utf8-bytes-div4-ceil","limits":{},
+        "access":{"allowed_source_digests":[digest],"basis_refs":[]}}});
+    let request = parse_request(
+        &serde_json::to_vec(&basis).unwrap(),
+        ProjectionLimits::default(),
+    )
+    .unwrap();
+    build_package(
+        &snapshot,
+        &request,
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap()
+}
+fn reseal(files: &mut Files) {
+    let mut manifest: Value = serde_json::from_slice(&files["manifest.json"]).unwrap();
+    manifest["files"] = Value::Array(files.iter().filter(|(p,_)|p.as_str()!="manifest.json")
+        .map(|(path,bytes)|json!({"path":path,"bytes":bytes.len(),"sha256":format!("sha256:{:x}",Sha256::digest(bytes))})).collect());
+    manifest.as_object_mut().unwrap().remove("root_digest");
+    manifest["root_digest"] = structured_digest(DigestDomain::Package, &manifest, 64 * 1024 * 1024)
+        .unwrap()
+        .into();
+    files.insert(
+        "manifest.json".into(),
+        serde_jcs::to_vec(&manifest).unwrap(),
+    );
+}
+#[test]
+fn fresh_portable_package_observations() {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos()
+        .to_string();
+    let inputs = tempfile::tempdir().unwrap();
+    let files = package(inputs.path(), &nonce);
+    assert_eq!(files, package(inputs.path(), &nonce));
+    let checked = check_package(files.clone(), PackageLimits::default()).unwrap();
+    assert!(!checked.semantic_coverage_established());
+    let verified = verify_package(
+        files.clone(),
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap();
+    assert!(verified.semantic_coverage_established());
+    assert_eq!(verified.readiness().value, "blocked");
+    emit(
+        "valid",
+        json!({"files":files,"provider_selection_coverage":true,"readiness":verified.readiness(),"repeat_identical":true}),
+    );
+    let mut incomplete = files.clone();
+    let mut packet: Value = serde_json::from_slice(&incomplete["packet.json"]).unwrap();
+    let before = packet["binding_context"].as_array().unwrap().len();
+    packet["binding_context"]
+        .as_array_mut()
+        .unwrap()
+        .retain(|b| b["ref"]["unit"] != "context");
+    assert_eq!(
+        packet["binding_context"].as_array().unwrap().len(),
+        before - 1
+    );
+    packet["brief"]["context"] = json!([]);
+    incomplete.insert("packet.json".into(), serde_jcs::to_vec(&packet).unwrap());
+    reseal(&mut incomplete);
+    let integrity = check_package(incomplete.clone(), PackageLimits::default()).unwrap();
+    assert!(!integrity.semantic_coverage_established());
+    let error = verify_package(
+        incomplete.clone(),
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .err()
+    .unwrap();
+    assert_eq!(error.code, "semantic-mismatch");
+    emit(
+        "resealed-incomplete",
+        json!({"files":incomplete,"sdk_integrity":true,"sdk_semantic_coverage":false,"provider_error":error.code}),
+    );
+    for path in ["ENTRY.md", "packet.json"] {
+        let mut bad = files.clone();
+        bad.get_mut(path).unwrap().push(b'x');
+        let error = verify_package(
+            bad.clone(),
+            ProjectionLimits::default(),
+            PackageLimits::default(),
+        )
+        .err()
+        .unwrap();
+        emit(
+            &format!("tamper-{path}"),
+            json!({"files":bad,"error_code":error.code,"error":error.message}),
+        );
+    }
+    let output = tempfile::tempdir().unwrap();
+    let root = File::open(output.path()).unwrap();
+    publish_package(
+        &root,
+        "saved",
+        files.clone(),
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap();
+    let second = package(inputs.path(), &format!("{nonce}-changed"));
+    assert_ne!(second, files);
+    let error = publish_package(
+        &root,
+        "saved",
+        second,
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap_err();
+    let retained = read_package(
+        &File::open(output.path().join("saved")).unwrap(),
+        PackageLimits::default(),
+    )
+    .unwrap();
+    assert_eq!(retained, files);
+    assert_eq!(fs::read_dir(output.path()).unwrap().count(), 1);
+    emit(
+        "publication-collision",
+        json!({"error_code":error.code,"original_preserved":true,"no_extra_paths":true}),
+    );
+    let escape = publish_package(
+        &root,
+        "../escape",
+        files.clone(),
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap_err();
+    emit("publication-traversal", json!({"error_code":escape.code}));
+    std::os::unix::fs::symlink(output.path().join("saved"), output.path().join("link")).unwrap();
+    let linked = publish_package(
+        &root,
+        "link",
+        files.clone(),
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap_err();
+    emit("publication-symlink", json!({"error_code":linked.code}));
+    for name in ["linked-entry", "extra-path", "special-entry"] {
+        publish_package(
+            &root,
+            name,
+            files.clone(),
+            ProjectionLimits::default(),
+            PackageLimits::default(),
+        )
+        .unwrap();
+        let path = output.path().join(name);
+        let mut listener = None;
+        match name {
+            "linked-entry" => {
+                fs::remove_file(path.join("ENTRY.md")).unwrap();
+                std::os::unix::fs::symlink(
+                    output.path().join("saved/ENTRY.md"),
+                    path.join("ENTRY.md"),
+                )
+                .unwrap();
+            }
+            "extra-path" => fs::write(path.join("extra"), b"unexpected").unwrap(),
+            "special-entry" => {
+                fs::remove_file(path.join("ENTRY.md")).unwrap();
+                listener = Some(UnixListener::bind(path.join("ENTRY.md")).unwrap());
+            }
+            _ => unreachable!(),
+        }
+        let error =
+            read_package(&File::open(&path).unwrap(), PackageLimits::default()).unwrap_err();
+        emit(name, json!({"error_code":error.code,"error":error.message}));
+        drop(listener);
+    }
+    let entry_limit = verify_package(
+        files.clone(),
+        ProjectionLimits::default(),
+        PackageLimits {
+            entry_bytes: 1,
+            ..PackageLimits::default()
+        },
+    )
+    .err()
+    .unwrap();
+    assert_eq!(entry_limit.code, "resource-limit");
+    emit("entry-limit", json!({"error_code":entry_limit.code}));
+    drop(inputs);
+    let offline = verify_package(
+        files.clone(),
+        ProjectionLimits::default(),
+        PackageLimits::default(),
+    )
+    .unwrap();
+    assert!(offline.semantic_coverage_established());
+    assert_eq!(offline.readiness().value, "blocked");
+    emit(
+        "offline-after-source-removal",
+        json!({"provider_selection_coverage":true,"readiness":offline.readiness()}),
+    );
+    assert_eq!(
+        read_package(
+            &File::open(output.path().join("saved")).unwrap(),
+            PackageLimits::default()
+        )
+        .unwrap(),
+        files
+    );
+}

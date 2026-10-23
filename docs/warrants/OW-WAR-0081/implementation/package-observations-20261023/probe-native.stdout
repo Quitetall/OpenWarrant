@@ -1,0 +1,8 @@
+PASS valid
+PASS wrong-schema
+PASS duplicate-field
+PASS unknown-field
+PASS invalid-role
+PASS invalid-kind
+PASS noncanonical
+7 packet wire cases passed; byte integrity and semantic coverage not evaluated

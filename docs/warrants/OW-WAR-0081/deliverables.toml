@@ -1,0 +1,624 @@
+schema = "oh.war/deliverables/v1"
+
+# Actual observed reuse and execution records; no independent verdict.
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/packet.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/packet.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:3fe5b6108f2ea07b56f171736f1fe45e489cbe103e8b8ce6e70c92d5392283b8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:3fe5b6108f2ea07b56f171736f1fe45e489cbe103e8b8ce6e70c92d5392283b8"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/packet/README.md"
+kind = "file"
+target_ref = "conformance/sdk/packet/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:989b02829de357fa9b279f30b948ac444577e56951b617629216286dab31ca3b"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:989b02829de357fa9b279f30b948ac444577e56951b617629216286dab31ca3b"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/packet/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/cases.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:8ec629656f192043e13b0967959f4bee7692755686a24bb4c72f25597c3f53ca"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8ec629656f192043e13b0967959f4bee7692755686a24bb4c72f25597c3f53ca"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/packet/check_observations.py"
+kind = "file"
+target_ref = "conformance/sdk/packet/check_observations.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:bdd52589a63d03e682ecad74306ac6142c6180ccfe5cfb1e6395e6403f825971"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:bdd52589a63d03e682ecad74306ac6142c6180ccfe5cfb1e6395e6403f825971"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/packet/duplicate-field.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/duplicate-field.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:5dad074ed20ef67b7344944c7156f1ebf46385a4ae6e1dc90ac77a05c2365f8c"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:5dad074ed20ef67b7344944c7156f1ebf46385a4ae6e1dc90ac77a05c2365f8c"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/packet/invalid-kind.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/invalid-kind.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:5978fc8db286cb0803f6bed595f174e7376ca4e35d17414db167a8bdcc18e2e2"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:5978fc8db286cb0803f6bed595f174e7376ca4e35d17414db167a8bdcc18e2e2"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/packet/invalid-role.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/invalid-role.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:edd0d2371fab717877d6602ce4e0ad8f4cbe284bdf296b70c51a009a8b7af318"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:edd0d2371fab717877d6602ce4e0ad8f4cbe284bdf296b70c51a009a8b7af318"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/packet/noncanonical.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/noncanonical.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:0326538f23976d653bb47afbcbf476c6fb83d0f905e558e518f627b9332b26cf"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0326538f23976d653bb47afbcbf476c6fb83d0f905e558e518f627b9332b26cf"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/packet/unknown-field.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/unknown-field.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:82ccf985c31af6ab9ad33e4d89fa35c0eebf002fb4b16a4c9247156a8e9f00a6"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:82ccf985c31af6ab9ad33e4d89fa35c0eebf002fb4b16a4c9247156a8e9f00a6"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/packet/valid.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/valid.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:a4b84db6dd27c46ade4a900c45b0466312b78087fbd29fdcab93dbe850ce9401"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:a4b84db6dd27c46ade4a900c45b0466312b78087fbd29fdcab93dbe850ce9401"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/packet/wrong-schema.json"
+kind = "file"
+target_ref = "conformance/sdk/packet/wrong-schema.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:674515e82c2a89ac5d46ff6a7b77cd166c51537895910f771f3205411ffea0f5"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:674515e82c2a89ac5d46ff6a7b77cd166c51537895910f771f3205411ffea0f5"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/integration/package/run.py"
+kind = "file"
+target_ref = "conformance/integration/package/run.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:8095a2f787e5605603bfcdba8fb07fad900753831ca76ca5b4623edabc88155e"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8095a2f787e5605603bfcdba8fb07fad900753831ca76ca5b4623edabc88155e"]
+
+[[deliverable]]
+id = "D-013"
+title = "docs/warrants/OW-WAR-0081/implementation/notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:0ddc8e0356ea749d8b1f1452f9a85513da4b2799e0410e233bb7576dda37f1ae"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0ddc8e0356ea749d8b1f1452f9a85513da4b2799e0410e233bb7576dda37f1ae"]
+
+[[deliverable]]
+id = "D-014"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:22a6d2b4fbb9a4c20588e841875424e8a907d717e2377c7b93c2715dba952605"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:22a6d2b4fbb9a4c20588e841875424e8a907d717e2377c7b93c2715dba952605"]
+
+[[deliverable]]
+id = "D-015"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:2e60f2fa574c1c516e017008f1a4ab239c22b3c9f6e3ac6b0c2478defa66797e"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:2e60f2fa574c1c516e017008f1a4ab239c22b3c9f6e3ac6b0c2478defa66797e"]
+
+[[deliverable]]
+id = "D-016"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:607bd8f414d47b40b0f187a2575ae4778549bdbb388beeb55475c8e5d7b47cb1"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:607bd8f414d47b40b0f187a2575ae4778549bdbb388beeb55475c8e5d7b47cb1"]
+
+[[deliverable]]
+id = "D-017"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/core.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:3295b3482e61112a7ac3aac90613ca86dc27ec0e1f83c0d0999bd06effaefab6"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:3295b3482e61112a7ac3aac90613ca86dc27ec0e1f83c0d0999bd06effaefab6"]
+
+[[deliverable]]
+id = "D-018"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/external-probe.rs.txt"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/external-probe.rs.txt"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:9e03f10b8f20ebc654dba73af5aafeeed94107c6f3264cb1b16e702f4e720607"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:9e03f10b8f20ebc654dba73af5aafeeed94107c6f3264cb1b16e702f4e720607"]
+
+[[deliverable]]
+id = "D-019"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-package.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:0e10ecf4fff768eb5bd3330f377f3f8a17d4ce770139a21e26fdd4eb043e9c19"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e10ecf4fff768eb5bd3330f377f3f8a17d4ce770139a21e26fdd4eb043e9c19"]
+
+[[deliverable]]
+id = "D-020"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-results.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/native-results.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:99bcd7788d01f718feb887a8ac6f3c5fc57ef35cf3799a3d86376837333babe9"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:99bcd7788d01f718feb887a8ac6f3c5fc57ef35cf3799a3d86376837333babe9"]
+
+[[deliverable]]
+id = "D-021"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-identity.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-identity.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:faadac184ce7d66ebe8a266be6538ee9894426054359d3fa5de5ed524440bd4f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:faadac184ce7d66ebe8a266be6538ee9894426054359d3fa5de5ed524440bd4f"]
+
+[[deliverable]]
+id = "D-022"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-native.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe-native.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:712be0149da6d3cf4bd7670132b632d09d68d04d33fb3d1c97f3980a843121a1"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:712be0149da6d3cf4bd7670132b632d09d68d04d33fb3d1c97f3980a843121a1"]
+
+[[deliverable]]
+id = "D-023"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:f0b156f9b9501e3b1e54ac868067d480ca6a6941dab99f3696026fbee043f421"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f0b156f9b9501e3b1e54ac868067d480ca6a6941dab99f3696026fbee043f421"]
+
+[[deliverable]]
+id = "D-024"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/probe.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:749a4401f962dc1bd9941fc15a7c39894b911dc70142dc25c62dd934073194c0"
+media_type = "text/plain"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:749a4401f962dc1bd9941fc15a7c39894b911dc70142dc25c62dd934073194c0"]
+
+[[deliverable]]
+id = "D-025"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/sdk-wire.jsonl"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:aa06363fcb04103c535a816a430f40d7d0760808f1b4e6464780f9f2b7fcac53"
+media_type = "application/x-ndjson"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:aa06363fcb04103c535a816a430f40d7d0760808f1b4e6464780f9f2b7fcac53"]
+
+[[deliverable]]
+id = "D-026"
+title = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/package-observations-20261023/summary.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:7cffcd3dc2ded1ea6f131c332203c767f304af1a6163230928e9cc5fb86352f1"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7cffcd3dc2ded1ea6f131c332203c767f304af1a6163230928e9cc5fb86352f1"]
+
+[[deliverable]]
+id = "D-027"
+title = "docs/warrants/OW-WAR-0081/implementation/progress.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0081/implementation/progress.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0081/20261023-package-boundary-observations"
+contract_digest = "7886b0902c0bd5a25696ff2807ae41739de49723c8e9f247562aa062649c2d4e"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib capture/hash; execution identities retained in observations"
+creation_method = "observed source reuse or capture of real public SDK/provider execution; original authorship and inputs remain retained"
+content_digest = "sha256:f9b4529e7a32afcfe6adbcc314caeae29d3f824a97799d324ba2e065b8fc6edd"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f9b4529e7a32afcfe6adbcc314caeae29d3f824a97799d324ba2e065b8fc6edd"]
