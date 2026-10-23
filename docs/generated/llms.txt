@@ -1420,6 +1420,10 @@
 > -
 - doc:docs/sas/drafts/README.md · document · - · OpenWarrant SAS editions · docs/sas/drafts/README.md:1
 
+## docs/tickets/t-03f9c/manifest.toml
+> Observe native performer cancellation and writer fencing on Linux and macOS
+- t-03f9c · ticket · open · Observe native performer cancellation and writer fencing on Linux and macOS · docs/tickets/t-03f9c/manifest.toml:1
+
 ## docs/tickets/t-041d4/manifest.toml
 > Retain native package friction observations without timing human work
 - t-041d4 · ticket · done · Retain native package friction observations without timing human work · docs/tickets/t-041d4/manifest.toml:1
