@@ -453,16 +453,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0076/20261023-observed-reuse-and-execution"
+producing_attempt = "OW-WAR-0076/20261023-structural-observation-note"
 contract_digest = "8251dba500ad2a6a543c4303406f1a530293671bb07edf2720507df7e9e0da55"
-tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ec64dd36c9f4, dirty, debug)"
-creation_method = "observed reuse of exact existing source or capture of actual public SDK execution; original source authorship remains in retained Git history"
-content_digest = "sha256:40d07110d594f987428bfe09f1eea82f3fb35c3b006171b868946b779c3e0f97"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit 01444b5c9107, debug)"
+creation_method = "authored account of actual bounded SDK observations and clean-source structural gate execution; current receipt standing assessed separately"
+content_digest = "sha256:81a991d6379d2ca39f68861d17639652d3828b0651a36f0dfccdb234a3097a5c"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:40d07110d594f987428bfe09f1eea82f3fb35c3b006171b868946b779c3e0f97"]
+input_digests = ["sha256:d9032b8c5fc4f266d7c75af2c2d24bf9defc6ff73d0358e72f93f0c619db2820"]
 
 [[deliverable]]
 id = "D-021"

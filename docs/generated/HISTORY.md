@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-21.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-23.
 
 ## Lineage
 
@@ -44,6 +44,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
 | 2026-10-20 | 3 | attestation.recorded 1, authorization.recorded 1, sync.receipt_attached 1 |
 | 2026-10-21 | 9 | sync.receipt_attached 5, verification.recorded 4 |
+| 2026-10-23 | 1 | sync.receipt_attached 1 |
 
 ## Roadmap revisions
 

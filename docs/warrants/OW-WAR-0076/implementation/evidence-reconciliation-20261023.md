@@ -24,9 +24,18 @@ Current observed checks:
   checkout. Caller/implementation source equality and actual runtime source
   state remain explicit in the run records.
 
-These checks cover bounded behavior and negative controls, not the entire current
-workspace release gate. Older full-gate reports remain older reports. The companion deliverable manifest is being prepared from observed file bytes;
-its actual CLI recording result is retained separately. Current structural gate
-capture, complete review context inspection, independent local-model verification
-and secure human acceptance remain separate outstanding steps. Do not mark any of them passed
-from this performer note.
+The companion manifest records 43 observed deliveries, each through the CLI
+with its actual input-byte digest. Original authorship remains in Git history.
+
+A new structural gate actually ran and passed on clean source
+`01444b5c9107fa7650ec5578b7e3308d264e8110`. The declared child CLI had SHA-256
+`e60780de7709a9e9851cb39f8dd49aa0fd775ed42b4e0b8ce94b39f2554b9ed7`
+before and after execution. The tool emitted `gate-run.receipt` and
+`gate-run.pass`, with no `evidence.replayed`. The previous receipt and streams
+were retained byte for byte. Current source-bound standing is determined from
+`../gate-runs/`, rather than inferred from this account of that earlier run.
+
+These checks cover bounded behavior and structural records. Older full-workspace
+gate reports remain older reports. Complete review-context inspection,
+independent local-model verification, secure human acceptance and qualification
+remain separate outstanding steps. This performer note awards no disposition.
