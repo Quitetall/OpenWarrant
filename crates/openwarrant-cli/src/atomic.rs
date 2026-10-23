@@ -157,7 +157,26 @@ pub(crate) fn write_if(
     bytes: impl AsRef<[u8]>,
     expected: &Prestate,
 ) -> Result<(), Refused> {
-    let bytes = bytes.as_ref();
+    write_with(path, expected, |file| file.write_all(bytes.as_ref()))
+}
+
+/// Stream a captured result through the same guarded write protocol as records.
+/// The old target stays whole if reading the capture fails.
+pub(crate) fn write_from_if(
+    path: &Utf8Path,
+    reader: &mut impl std::io::Read,
+    expected: &Prestate,
+) -> Result<(), Refused> {
+    write_with(path, expected, |file| {
+        std::io::copy(reader, file).map(|_| ())
+    })
+}
+
+fn write_with(
+    path: &Utf8Path,
+    expected: &Prestate,
+    write: impl FnOnce(&mut std::fs::File) -> std::io::Result<()>,
+) -> Result<(), Refused> {
     if is_symlink(path) {
         return Err(Refused::symlink(path));
     }
@@ -177,7 +196,7 @@ pub(crate) fn write_if(
         .create_new(true)
         .open(&temp)
         .map_err(|e| Refused::io(&temp, "could not create", &e))?;
-    let written = f.write_all(bytes).and_then(|()| f.sync_all());
+    let written = write(&mut f).and_then(|()| f.sync_all());
     drop(f);
     if let Err(e) = written {
         let _ = std::fs::remove_file(&temp);
@@ -373,6 +392,37 @@ mod tests {
         assert!(stray(&root).is_empty());
         let left: Vec<_> = std::fs::read_dir(&root).unwrap().flatten().collect();
         assert_eq!(left.len(), 1, "no temp file left behind");
+    }
+
+    #[test]
+    fn an_unreadable_capture_preserves_the_previous_whole_record() {
+        struct FailsAfterPrefix(bool);
+        impl std::io::Read for FailsAfterPrefix {
+            fn read(&mut self, bytes: &mut [u8]) -> std::io::Result<usize> {
+                if self.0 {
+                    return Err(std::io::Error::other("capture read failed"));
+                }
+                self.0 = true;
+                bytes[..7].copy_from_slice(b"partial");
+                Ok(7)
+            }
+        }
+        let (_t, root) = scratch();
+        let path = root.join("capture.txt");
+        std::fs::write(&path, b"previous whole output").unwrap();
+        let error = write_from_if(
+            &path,
+            &mut FailsAfterPrefix(false),
+            &Prestate::of(b"previous whole output"),
+        )
+        .expect_err("a failed reader cannot publish");
+        assert_eq!(error.rule, "storage.io");
+        assert_eq!(std::fs::read(&path).unwrap(), b"previous whole output");
+        assert_eq!(
+            std::fs::read_dir(&root).unwrap().count(),
+            1,
+            "failed temp removed"
+        );
     }
 
     #[test]

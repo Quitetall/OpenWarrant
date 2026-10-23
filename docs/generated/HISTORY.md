@@ -30158,7 +30158,7 @@ truncates nothing.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | One atomic write path: temp, fsync, rename, prestate, no symlinks | `crates/openwarrant-cli/src/atomic.rs` | verified |
+| D-001 | One atomic write path: temp, fsync, rename, prestate, no symlinks | `crates/openwarrant-cli/src/atomic.rs` | drift |
 | D-002 | Authorization and judgments written atomically | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-003 | Resolution written atomically, against its prestate | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-004 | Verification records written atomically | `crates/openwarrant-cli/src/verify.rs` | drift |

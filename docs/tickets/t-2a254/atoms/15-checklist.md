@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Prove prior streams stay readable through the child run and publish the actual replacement output safely (i-f608) — done by agent://codex, 2026-10-23: Original real-child regression failed before repair, then passes. Captures publish after child exit through guarded streaming writes; failed-child, moved-prestate, symlink and unreadable-capture controls pass. Actual gate API replay against disposable W75 source passed; equivalent receipt reuse recorded separately. Combined checks:532 CLI library and358 integration pass,4 existing ignored; strict schema-enabled Clippy,fmt,licenses and generated checks pass. Full remote CI remains separate.
