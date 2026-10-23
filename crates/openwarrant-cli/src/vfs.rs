@@ -51,6 +51,7 @@ pub struct Tree {
     /// Members known by digest only: listed and found, never readable.
     pub withheld: BTreeSet<String>,
     dirs: BTreeSet<String>,
+    content_digests: BTreeMap<String, String>,
     /// Signature verdicts by the digest of every byte they depend on.
     pub ssh: BTreeMap<String, SshVerdict>,
     /// `git` outcomes by their arguments (the repository root left out).
@@ -91,6 +92,13 @@ impl Tree {
             dirs,
             ..Self::default()
         }
+    }
+
+    /// Existing validated Member digest observations, not permission to read a
+    /// withheld path. Full content remains available only through `files`.
+    pub(crate) fn with_content_digests(mut self, digests: BTreeMap<String, String>) -> Self {
+        self.content_digests = digests;
+        self
     }
 
     /// What the run consulted.
@@ -296,6 +304,55 @@ fn not_found() -> io::Error {
     )
 }
 
+/// A fingerprint observation. Recording needs only the fingerprint until a
+/// consumer actually asks for content; hosted runs use the supplied observation.
+pub(crate) fn fingerprint(p: &Path) -> io::Result<String> {
+    if let Some(t) = tree() {
+        let relative = t.rel(p).ok_or_else(not_found)?;
+        if let Some(bytes) = t.files.get(&relative) {
+            return Ok(format!(
+                "sha256:{}",
+                openwarrant_compiler::sha256_hex(bytes)
+            ));
+        }
+        if t.withheld.contains(&relative)
+            && let Some(digest) = t.content_digests.get(&relative)
+        {
+            return Ok(digest.clone());
+        }
+        // Preserve the ordinary refusal/consultation when no usable fact exists.
+        return read(p).map(|bytes| format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes)));
+    }
+    let bytes = std::fs::read(p)?;
+    note_seen(p);
+    Ok(format!(
+        "sha256:{}",
+        openwarrant_compiler::sha256_hex(&bytes)
+    ))
+}
+
+/// Content already present in this immutable hosted basis, by its fingerprint.
+/// This does not make any withheld path readable. A content-only computation
+/// can use these bytes without claiming to have read the withheld member.
+pub(crate) fn known_content(path: &Path, digest: &str) -> Option<Vec<u8>> {
+    let t = tree()?;
+    let relative = t.rel(path)?;
+    if let Some(bytes) = t.files.get(&relative) {
+        return Some(bytes.clone());
+    }
+    // Exported bases supply an index. Verify the actual available bytes too,
+    // since programmatic Tree users may have changed a file before hosting it.
+    for (path, claimed) in &t.content_digests {
+        if claimed == digest
+            && let Some(bytes) = t.files.get(path)
+            && format!("sha256:{}", openwarrant_compiler::sha256_hex(bytes)) == digest
+        {
+            return Some(bytes.clone());
+        }
+    }
+    None
+}
+
 /// `std::fs::read`.
 pub fn read<P: AsRef<Path>>(p: P) -> io::Result<Vec<u8>> {
     let p = p.as_ref();
@@ -349,6 +406,43 @@ fn read_regular_disk(root: &Path, path: &Path) -> io::Result<Vec<u8>> {
         .map_err(io::Error::other)
 }
 
+/// Retained records keep their original root anchor, including refusal of a
+/// symlink at the root itself. Record these reads for portable compilation.
+pub(crate) fn read_anchored(root: &Path, relative: &Path) -> io::Result<Vec<u8>> {
+    read_anchored_limited(root, relative, usize::MAX - 1)
+}
+
+/// The bounded form retains the source reader's limit before native allocation
+/// and checks hosted member length before cloning its bytes.
+pub(crate) fn read_anchored_limited(
+    root: &Path,
+    relative: &Path,
+    limit: usize,
+) -> io::Result<Vec<u8>> {
+    let parts: Vec<_> = relative.components().collect();
+    if parts.is_empty()
+        || parts
+            .iter()
+            .any(|p| !matches!(p, std::path::Component::Normal(_)))
+    {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "relative record path required",
+        ));
+    }
+    let path = root.join(relative);
+    if is_hosted() {
+        if metadata(&path)?.len() > limit as u64 {
+            return Err(io::Error::other("Source exceeds byte limit"));
+        }
+        return read(path);
+    }
+    let bytes =
+        crate::progress_viewer::source::read(root, relative, limit).map_err(io::Error::other)?;
+    note(&path);
+    Ok(bytes)
+}
+
 /// The UTF-8 form, retaining the same observation behavior as `read_to_string`.
 pub fn read_regular_to_string(root: &Path, path: &Path) -> io::Result<String> {
     if is_hosted() {
@@ -366,6 +460,7 @@ pub fn read_regular_to_string(root: &Path, path: &Path) -> io::Result<String> {
 pub struct FileType {
     dir: bool,
     file: bool,
+    symlink: bool,
 }
 impl FileType {
     #[must_use]
@@ -375,6 +470,10 @@ impl FileType {
     #[must_use]
     pub fn is_file(&self) -> bool {
         self.file
+    }
+    #[must_use]
+    pub fn is_symlink(&self) -> bool {
+        self.symlink
     }
 }
 
@@ -417,6 +516,7 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
                 kind: FileType {
                     dir: false,
                     file: true,
+                    symlink: false,
                 },
                 len: b.len() as u64,
             });
@@ -426,6 +526,7 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
                 kind: FileType {
                     dir: false,
                     file: true,
+                    symlink: false,
                 },
                 len: 0,
             });
@@ -435,6 +536,7 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
                 kind: FileType {
                     dir: true,
                     file: false,
+                    symlink: false,
                 },
                 len: 0,
             });
@@ -449,9 +551,40 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
         kind: FileType {
             dir: m.is_dir(),
             file: m.is_file(),
+            symlink: m.file_type().is_symlink(),
         },
         len: m.len(),
     })
+}
+
+/// Non-following metadata on disk; hosted members cannot encode symlinks.
+pub(crate) fn symlink_metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
+    let p = p.as_ref();
+    if is_hosted() {
+        return metadata(p);
+    }
+    let m = std::fs::symlink_metadata(p)?;
+    if m.is_file() {
+        note_seen(p);
+    }
+    Ok(Metadata {
+        kind: FileType {
+            dir: m.is_dir(),
+            file: m.is_file(),
+            symlink: m.file_type().is_symlink(),
+        },
+        len: m.len(),
+    })
+}
+
+/// Test a directory without following its final component on disk. Hosted
+/// bases contain only regular files and derived directories, never symlinks.
+pub(crate) fn regular_directory<P: AsRef<Path>>(p: P) -> io::Result<bool> {
+    let p = p.as_ref();
+    if is_hosted() {
+        return metadata(p).map(|m| m.is_dir());
+    }
+    std::fs::symlink_metadata(p).map(|m| m.is_dir() && !m.file_type().is_symlink())
 }
 
 /// `Path::is_file`.
@@ -538,7 +671,11 @@ pub fn read_dir<P: AsRef<Path>>(p: P) -> io::Result<std::vec::IntoIter<io::Resul
             .map(|(n, dir)| {
                 Ok(DirEntry {
                     path: p.join(n),
-                    kind: FileType { dir, file: !dir },
+                    kind: FileType {
+                        dir,
+                        file: !dir,
+                        symlink: false,
+                    },
                 })
             })
             .collect::<Vec<_>>()
@@ -553,6 +690,7 @@ pub fn read_dir<P: AsRef<Path>>(p: P) -> io::Result<std::vec::IntoIter<io::Resul
             let kind = FileType {
                 dir: ft.is_dir(),
                 file: ft.is_file(),
+                symlink: ft.is_symlink(),
             };
             if kind.file {
                 note_seen(&path);
@@ -649,9 +787,55 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)]
+    fn anchored_reads_refuse_root_and_member_links() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = temp.path().join("records");
+        let linked_root = temp.path().join("linked-records");
+        std::fs::create_dir(&root).unwrap();
+        std::fs::write(root.join("observation.toml"), b"original").unwrap();
+        std::os::unix::fs::symlink(&root, &linked_root).unwrap();
+        std::os::unix::fs::symlink("observation.toml", root.join("linked.toml")).unwrap();
+        assert_eq!(
+            read_anchored(&root, Path::new("observation.toml")).unwrap(),
+            b"original"
+        );
+        assert!(read_anchored(&linked_root, Path::new("observation.toml")).is_err());
+        assert!(read_anchored(&root, Path::new("linked.toml")).is_err());
+        assert!(read_anchored_limited(&root, Path::new("observation.toml"), 7).is_err());
+        assert!(read_anchored(&root, Path::new("../records/observation.toml")).is_err());
+    }
+
+    #[test]
+    #[cfg(unix)]
+    fn regular_directory_refuses_a_native_symlink() {
+        let temp = tempfile::tempdir().unwrap();
+        let directory = temp.path().join("history");
+        let link = temp.path().join("linked-history");
+        std::fs::create_dir(&directory).unwrap();
+        std::os::unix::fs::symlink(&directory, &link).unwrap();
+        assert!(symlink_metadata(&link).unwrap().file_type().is_symlink());
+        assert!(!symlink_metadata(&link).unwrap().is_dir());
+        assert!(symlink_metadata(&directory).unwrap().is_dir());
+        assert!(regular_directory(&directory).unwrap());
+        assert!(!regular_directory(&link).unwrap());
+        assert_eq!(
+            regular_directory(temp.path().join("absent"))
+                .unwrap_err()
+                .kind(),
+            io::ErrorKind::NotFound
+        );
+    }
+
+    #[test]
     fn hosted_reads_answer_from_the_basis_only() {
         hosted(tree(), || {
             assert_eq!(read("/basis/a/b.txt").unwrap(), b"hi");
+            assert!(read_anchored_limited(Path::new("/basis"), Path::new("a/b.txt"), 1).is_err());
+            assert_eq!(
+                read_anchored_limited(Path::new("/basis"), Path::new("a/b.txt"), 2).unwrap(),
+                b"hi"
+            );
             assert_eq!(read("/basis/a/./c/../b.txt").unwrap(), b"hi");
             assert!(read("/basis/a/../../etc/passwd").is_err());
             assert!(read("/etc/hostname").is_err());

@@ -466,20 +466,33 @@ fn sections_diff(current: &[u8], candidate: &[u8], path: &Utf8Path, report: &mut
 
 /// Run one read-only Git command in the repository root, returning stdout.
 fn git(repo: &Repository, args: &[&str]) -> Result<Vec<u8>, String> {
-    let out = std::process::Command::new("git")
-        .current_dir(&repo.root)
-        .args(["--no-pager", "--no-replace-objects"])
-        .args(args)
-        .env("GIT_NO_LAZY_FETCH", "1")
-        .stdin(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .output()
-        .map_err(|e| format!("Git is unavailable ({e})"))?;
-    if out.status.success() {
-        Ok(out.stdout)
-    } else {
-        Err(format!("`git {}` failed", args.join(" ")))
+    let mut observed_args = vec!["--no-pager", "--no-replace-objects"];
+    observed_args.extend_from_slice(args);
+    if let Some(observed) = crate::vfs::hosted_git(&observed_args) {
+        return observed.unwrap_or_else(|| {
+            Err(format!(
+                "Git observation unavailable for {}",
+                args.join(" ")
+            ))
+        });
     }
+    let result = (|| {
+        let out = std::process::Command::new("git")
+            .current_dir(&repo.root)
+            .args(&observed_args)
+            .env("GIT_NO_LAZY_FETCH", "1")
+            .stdin(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .output()
+            .map_err(|e| format!("Git is unavailable ({e})"))?;
+        if out.status.success() {
+            Ok(out.stdout)
+        } else {
+            Err(format!("`git {}` failed", args.join(" ")))
+        }
+    })();
+    crate::vfs::record_git(&observed_args, &result);
+    result
 }
 
 /// A recorded revision's bytes, found by the digest its record pins
@@ -506,6 +519,35 @@ pub(crate) fn historical_revision_bytes(
     revision: &SasRevision,
 ) -> Result<Vec<u8>, String> {
     let source = revision.source.as_str();
+    // The record often entered history with its exact source bytes. This is
+    // only a search hint: a matching commit is never authority, and wrong or
+    // absent hints still reach the complete retained-history scan below.
+    let record = repo.relative(&repo.sas_revision_path(&revision.version));
+    if std::path::Path::new(&record)
+        .components()
+        .all(|part| matches!(part, std::path::Component::Normal(_)))
+        && let Ok(log) = git(
+            repo,
+            &[
+                "log",
+                "-1",
+                "--format=%H",
+                "-S",
+                &revision.sha256,
+                "HEAD",
+                "--",
+                &record,
+            ],
+        )
+    {
+        let log = String::from_utf8_lossy(&log);
+        if let Some(commit) = log.lines().map(str::trim).find(|c| !c.is_empty())
+            && let Ok(bytes) = git(repo, &["cat-file", "blob", &format!("{commit}:./{source}")])
+            && sha256_hex(&bytes) == revision.sha256
+        {
+            return Ok(bytes);
+        }
+    }
     let log = git(
         repo,
         &["log", "--full-history", "--format=%H", "HEAD", "--", source],
@@ -646,4 +688,166 @@ pub fn pin_of(revisions: &[SasRevision]) -> Option<&SasRevision> {
         .filter(|r| r.state == SasRevisionState::Accepted)
         .max_by(|a, b| a.version.cmp(&b.version))
         .or_else(|| revisions.iter().max_by(|a, b| a.version.cmp(&b.version)))
+}
+
+#[cfg(test)]
+mod hosted_tests {
+    #[test]
+    fn a_record_commit_is_only_a_hint_and_never_replaces_the_content_digest() {
+        for mode in ["hint", "mismatch", "no-hint", "missing"] {
+            let root = camino::Utf8PathBuf::from(format!(
+                "/sas-hint-{}",
+                openwarrant_core::WarUuid::mint()
+            ));
+            let body = b"# Exact synthetic SAS source\n".to_vec();
+            let revision = openwarrant_core::SasRevision::proposed(
+                "fixture.1",
+                "docs/sas/spec.md",
+                super::sha256_hex(&body),
+                None,
+                Default::default(),
+                false,
+            );
+            let hint = "a".repeat(40);
+            let fallback = "b".repeat(40);
+            let mut git = std::collections::BTreeMap::new();
+            let mut insert = |args: Vec<String>, value: Vec<u8>| {
+                git.insert(args, Ok(value));
+            };
+            let key = |args: &[&str]| {
+                [
+                    vec!["--no-pager".into(), "--no-replace-objects".into()],
+                    args.iter().map(|s| s.to_string()).collect(),
+                ]
+                .concat()
+            };
+            insert(
+                key(&[
+                    "log",
+                    "-1",
+                    "--format=%H",
+                    "-S",
+                    &revision.sha256,
+                    "HEAD",
+                    "--",
+                    "docs/sas/revisions/fixture.1.toml",
+                ]),
+                if mode == "no-hint" {
+                    vec![]
+                } else {
+                    format!("{hint}\n").into_bytes()
+                },
+            );
+            insert(
+                key(&["cat-file", "blob", &format!("{hint}:./{}", revision.source)]),
+                if mode == "hint" {
+                    body.clone()
+                } else {
+                    b"wrong hint bytes".to_vec()
+                },
+            );
+            if mode != "hint" {
+                insert(
+                    key(&[
+                        "log",
+                        "--full-history",
+                        "--format=%H",
+                        "HEAD",
+                        "--",
+                        &revision.source,
+                    ]),
+                    format!("{fallback}\n").into_bytes(),
+                );
+                insert(
+                    key(&[
+                        "cat-file",
+                        "blob",
+                        &format!("{fallback}:./{}", revision.source),
+                    ]),
+                    if mode == "missing" {
+                        b"also wrong".to_vec()
+                    } else {
+                        body.clone()
+                    },
+                );
+                insert(
+                    key(&["rev-parse", "--is-shallow-repository"]),
+                    b"false\n".to_vec(),
+                );
+            }
+            let tree = std::rc::Rc::new(
+                crate::vfs::Tree::new(
+                    root.clone(),
+                    [(
+                        "openwarrant.toml".into(),
+                        include_bytes!(
+                            "../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                        )
+                        .to_vec(),
+                    )]
+                    .into_iter()
+                    .collect(),
+                    Default::default(),
+                )
+                .with_observations(Default::default(), git),
+            );
+            crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+                let repo = super::Repository::open(root).unwrap();
+                let result = super::historical_revision_bytes(&repo, &revision);
+                if mode == "missing" {
+                    assert!(result.is_err());
+                } else {
+                    assert_eq!(result.unwrap(), body);
+                }
+            });
+            assert!(tree.consulted().git_missing.is_empty());
+        }
+    }
+
+    #[test]
+    fn historical_git_reads_use_only_the_supplied_observation() {
+        let root =
+            camino::Utf8PathBuf::from(format!("/hosted-sas-{}", openwarrant_core::WarUuid::mint()));
+        let args = [
+            "--no-pager",
+            "--no-replace-objects",
+            "cat-file",
+            "blob",
+            "HEAD:./docs/sas.md",
+        ];
+        let tree = std::rc::Rc::new(
+            crate::vfs::Tree::new(
+                root.clone(),
+                [(
+                    "openwarrant.toml".into(),
+                    include_bytes!(
+                        "../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                    )
+                    .to_vec(),
+                )]
+                .into_iter()
+                .collect(),
+                Default::default(),
+            )
+            .with_observations(
+                Default::default(),
+                [(
+                    args.iter().map(|s| s.to_string()).collect(),
+                    Ok(b"exact retained source".to_vec()),
+                )]
+                .into_iter()
+                .collect(),
+            ),
+        );
+        crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+            let repo = super::Repository::open(root).unwrap();
+            assert_eq!(
+                super::git(&repo, &["cat-file", "blob", "HEAD:./docs/sas.md"]).unwrap(),
+                b"exact retained source"
+            );
+            assert!(super::git(&repo, &["cat-file", "blob", "missing:./docs/sas.md"]).is_err());
+        });
+        assert_eq!(tree.consulted().git_supplied.len(), 1);
+        assert_eq!(tree.consulted().git_missing.len(), 1);
+    }
 }

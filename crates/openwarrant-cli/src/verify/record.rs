@@ -254,18 +254,18 @@ pub(crate) fn prior_matches(
     let mut retained = Vec::new();
     let base = dir.join("verifications");
     for (directory, history) in [(&base, false), (&base.join("history"), true)] {
-        let metadata = match std::fs::symlink_metadata(directory) {
-            Ok(metadata) => metadata,
+        let regular = match crate::vfs::regular_directory(directory) {
+            Ok(regular) => regular,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
             Err(e) => return Err(unavailable("verify.history-unavailable", &e.to_string())),
         };
-        if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        if !regular {
             return Err(unavailable(
                 "verify.history-unavailable",
                 "review history is not a regular directory",
             ));
         }
-        let entries = std::fs::read_dir(directory)
+        let entries = crate::vfs::read_dir(directory)
             .map_err(|e| unavailable("verify.history-unavailable", &e.to_string()))?;
         for entry in entries {
             let entry =
@@ -306,6 +306,57 @@ pub(crate) fn prior_matches(
 mod tests {
     use super::*;
     use openwarrant_core::verification_record::VerificationRecordError;
+
+    #[test]
+    fn prior_observations_are_read_from_the_hosted_basis() {
+        let text = r#"
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "synthetic original evidence; no execution claim"
+performer = "fixture-worker"
+[verifier]
+actor = "fixture-reviewer"
+kind = "agent"
+[verifier.independence]
+performer_transcript_blind = false
+performer_rationale_blind = false
+separate_writable_workspace = false
+cannot_modify_subject_artifacts = false
+cannot_modify_gate_definition = false
+cannot_modify_gate_fixtures = false
+separate_context_compilation = false
+distinct_model_required = false
+distinct_human_required = false
+"#;
+        let root = camino::Utf8PathBuf::from(format!(
+            "/liminal-prior-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let config =
+            include_bytes!("../../../../conformance/fixtures/inbox/repository/openwarrant.toml");
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [
+                ("openwarrant.toml".to_owned(), config.to_vec()),
+                (
+                    "docs/warrants/IX-WAR-0003/verifications/OBL-001.toml".to_owned(),
+                    text.as_bytes().to_vec(),
+                ),
+            ]
+            .into_iter()
+            .collect(),
+            Default::default(),
+        ));
+        let observed = decode(text).unwrap().verification;
+        let shown = serde_json::json!([observed]);
+        crate::vfs::hosted(tree, || {
+            let repo = crate::repo::Repository::open(root.clone()).unwrap();
+            assert!(
+                prior_matches(&repo, &root.join("docs/warrants/IX-WAR-0003"), &shown).unwrap(),
+                "retained observations in the basis must not depend on a physical directory"
+            );
+        });
+    }
 
     #[test]
     fn shared_decode_reuses_only_identical_wire_bytes() {

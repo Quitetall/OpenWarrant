@@ -160,8 +160,9 @@ fn cached_schemas(file: &Utf8Path) -> Vec<(String, u32)> {
         (u64, Option<std::time::SystemTime>, Vec<(String, u32)>),
     >;
     static CACHE: std::sync::OnceLock<std::sync::Mutex<Seen>> = std::sync::OnceLock::new();
-    // A hosted run (`war host`) has no modification times to key on.
-    if crate::vfs::is_hosted() {
+    // Every exported/hosted compilation must record its own content witnesses.
+    // A path/mtime cache from a previous compilation cannot stand in for one.
+    if content_schema_scope() || crate::vfs::is_hosted() {
         return schemas_in(file);
     }
     let Ok(meta) = std::fs::metadata(file) else {
@@ -186,14 +187,78 @@ fn cached_schemas(file: &Utf8Path) -> Vec<(String, u32)> {
 /// file that could name a newer major than this `war` reads (none for any
 /// other). A file that does not parse declares nothing here; its own reader
 /// reports it.
+type SchemaFacts = Vec<(String, u32)>;
+#[derive(Default)]
+struct ContentSchemas {
+    facts: std::collections::BTreeMap<(String, String), SchemaFacts>,
+    weight: usize,
+}
+thread_local! {
+    static CONTENT_SCHEMAS: std::cell::RefCell<Option<ContentSchemas>> = const { std::cell::RefCell::new(None) };
+}
+
+/// A fresh compilation's content observations; no fact crosses compilations.
+pub(crate) fn with_content_schema_cache<T>(work: impl FnOnce() -> T) -> T {
+    struct Restore(Option<ContentSchemas>);
+    impl Drop for Restore {
+        fn drop(&mut self) {
+            CONTENT_SCHEMAS.with(|cache| *cache.borrow_mut() = self.0.take());
+        }
+    }
+    let _restore =
+        Restore(CONTENT_SCHEMAS.with(|cache| cache.replace(Some(ContentSchemas::default()))));
+    work()
+}
+
+fn content_schema_scope() -> bool {
+    CONTENT_SCHEMAS.with(|cache| cache.borrow().is_some())
+}
+
 fn schemas_in(file: &Utf8Path) -> Vec<(String, u32)> {
     let ext = file.extension().unwrap_or_default();
     if !matches!(ext, "toml" | "json" | "jsonl" | "yaml" | "yml" | "md") {
         return vec![];
     }
+    if content_schema_scope() {
+        let Ok(fingerprint) = crate::vfs::fingerprint(file.as_std_path()) else {
+            return vec![];
+        };
+        let key = (ext.to_owned(), fingerprint.clone());
+        if let Some(facts) = CONTENT_SCHEMAS.with(|cache| {
+            cache
+                .borrow()
+                .as_ref()
+                .and_then(|cache| cache.facts.get(&key).cloned())
+        }) {
+            return facts;
+        }
+        let bytes = crate::vfs::known_content(file.as_std_path(), &fingerprint)
+            .map(Ok)
+            .unwrap_or_else(|| crate::vfs::read(file));
+        let Ok(bytes) = bytes else { return vec![] };
+        let facts = schemas_from_bytes(bytes, ext);
+        let weight = key.0.len()
+            + key.1.len()
+            + 96
+            + facts.iter().map(|(name, _)| name.len() + 40).sum::<usize>();
+        CONTENT_SCHEMAS.with(|cache| {
+            if let Some(cache) = cache.borrow_mut().as_mut()
+                && cache.facts.len() < 50_000
+                && cache.weight.saturating_add(weight) <= 16 * 1024 * 1024
+            {
+                cache.weight += weight;
+                cache.facts.insert(key, facts.clone());
+            }
+        });
+        return facts;
+    }
     let Ok(bytes) = crate::vfs::read(file) else {
         return vec![];
     };
+    schemas_from_bytes(bytes, ext)
+}
+
+fn schemas_from_bytes(bytes: Vec<u8>, ext: &str) -> Vec<(String, u32)> {
     // Only a newer major is ever reported, and parsing every record under a
     // Warrant to learn its schema was most of what loading one cost. A file
     // that cannot name a newer major declares nothing worth parsing for.
@@ -340,6 +405,129 @@ fn known_toml_header(text: &str) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn schema_only_duplicates_record_one_complete_body() {
+        let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!(
+                "war-schema-content-{}",
+                openwarrant_core::WarUuid::mint()
+            ));
+        std::fs::create_dir(&root).unwrap();
+        let text = r#"{"schema":"oh.war/verification/v4"}"#;
+        let first = root.join("first.json");
+        let second = root.join("second.json");
+        std::fs::write(&first, text).unwrap();
+        std::fs::write(&second, text).unwrap();
+        let recorder = std::rc::Rc::new(std::cell::RefCell::new(crate::vfs::Recorder {
+            root: root.clone(),
+            ..Default::default()
+        }));
+        let found = with_content_schema_cache(|| {
+            crate::vfs::recording(std::rc::Rc::clone(&recorder), || {
+                (schemas_in(&first), schemas_in(&second))
+            })
+        });
+        assert_eq!(found.0, vec![("verification".to_owned(), 4)]);
+        assert_eq!(found.0, found.1);
+        let seen = recorder.borrow();
+        assert_eq!(
+            seen.files.len(),
+            1,
+            "equivalent schema facts need one complete content observation"
+        );
+        assert!(seen.seen.contains("second.json"));
+        drop(seen);
+        std::fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn hosted_schema_facts_do_not_make_withheld_bytes_readable() {
+        let bytes = br#"{"schema":"oh.war/verification/v4"}"#.to_vec();
+        let digest = format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes));
+        let root = Utf8PathBuf::from("/schema-basis");
+        let tree = std::rc::Rc::new(
+            crate::vfs::Tree::new(
+                root.clone(),
+                [("available.json".into(), bytes)].into_iter().collect(),
+                ["withheld.json".into()].into_iter().collect(),
+            )
+            .with_content_digests(
+                [
+                    ("available.json".into(), digest.clone()),
+                    ("withheld.json".into(), digest),
+                ]
+                .into_iter()
+                .collect(),
+            ),
+        );
+        with_content_schema_cache(|| {
+            crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+                // Ask for the withheld path first: ordering cannot supply a fact.
+                assert_eq!(
+                    schemas_in(&root.join("withheld.json")),
+                    vec![("verification".into(), 4)]
+                );
+                assert!(tree.consulted().withheld_read.is_empty());
+                assert!(crate::vfs::read(root.join("withheld.json")).is_err());
+                assert!(tree.consulted().withheld_read.contains("withheld.json"));
+            })
+        });
+    }
+
+    #[test]
+    fn schema_facts_require_a_content_witness_in_each_compilation() {
+        let bytes = br#"{"schema":"oh.war/verification/v4"}"#.to_vec();
+        let digest = format!("sha256:{}", openwarrant_compiler::sha256_hex(&bytes));
+        let root = Utf8PathBuf::from("/schema-isolation");
+        let available = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [("available.json".into(), bytes)].into_iter().collect(),
+            Default::default(),
+        ));
+        with_content_schema_cache(|| {
+            crate::vfs::hosted(available, || {
+                assert_eq!(
+                    schemas_in(&root.join("available.json")),
+                    vec![("verification".into(), 4)]
+                );
+            })
+        });
+        let missing = std::rc::Rc::new(
+            crate::vfs::Tree::new(
+                root.clone(),
+                Default::default(),
+                ["withheld.json".into()].into_iter().collect(),
+            )
+            .with_content_digests([("withheld.json".into(), digest)].into_iter().collect()),
+        );
+        with_content_schema_cache(|| {
+            crate::vfs::hosted(std::rc::Rc::clone(&missing), || {
+                assert!(schemas_in(&root.join("withheld.json")).is_empty());
+                assert!(missing.consulted().withheld_read.contains("withheld.json"));
+            })
+        });
+    }
+
+    #[test]
+    fn changed_bytes_cannot_reuse_a_schema_fact() {
+        let root = Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!(
+                "war-schema-changed-{}",
+                openwarrant_core::WarUuid::mint()
+            ));
+        std::fs::create_dir(&root).unwrap();
+        let file = root.join("record.json");
+        with_content_schema_cache(|| {
+            std::fs::write(&file, br#"{"schema":"oh.war/verification/v4"}"#).unwrap();
+            assert_eq!(schemas_in(&file), vec![("verification".into(), 4)]);
+            std::fs::write(&file, br#"{"schema":"oh.war/verification/v5"}"#).unwrap();
+            assert_eq!(schemas_in(&file), vec![("verification".into(), 5)]);
+        });
+        std::fs::remove_dir_all(root).unwrap();
+    }
 
     #[test]
     fn performance_cache_preserves_toml_schema_escapes() {
