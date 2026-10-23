@@ -103,6 +103,38 @@ fn unknown_fields_and_wrong_schema_refuse() {
 }
 
 #[test]
+fn source_lock_matches_the_existing_f5_vector_and_refuses_changed_bytes() {
+    let task: Value =
+        serde_json::from_str(include_str!("../../../conformance/sdk/source/task.json")).unwrap();
+    let opaque: Value =
+        serde_json::from_str(include_str!("../../../conformance/sdk/source/abc.json")).unwrap();
+    let hex = |raw: &[u8]| raw.iter().map(|b| format!("{b:02x}")).collect::<String>();
+    let mut request = json!({
+        "schema":"oh.war/sdk-request/v1", "operation":"source-lock",
+        "descriptors":[task, opaque],
+        "files":[
+            {"path":task["source_digest"],"hex":hex(include_bytes!("../../../conformance/sdk/source/task.md"))},
+            {"path":opaque["source_digest"],"hex":"616263"}
+        ]
+    });
+    let expected = include_str!("../../../conformance/sdk/source/combined.lock.json");
+    let (ok, first) = invoke(&request);
+    assert!(ok, "{first}");
+    assert_eq!(first["result"]["canonical"], expected);
+    assert_eq!(first["result"]["source_count"], 2);
+    assert_eq!(first["result"]["semantic_coverage_established"], false);
+    request["descriptors"].as_array_mut().unwrap().reverse();
+    let (ok, reversed) = invoke(&request);
+    assert!(ok, "{reversed}");
+    assert_eq!(reversed["result"]["canonical"], expected);
+    request["files"][1]["hex"] = json!("646566");
+    let (ok, refused) = invoke(&request);
+    assert!(!ok);
+    assert!(refused["result"].is_null());
+    assert_eq!(refused["diagnostics"][0]["code"], "digest-mismatch");
+}
+
+#[test]
 fn file_backed_operations_and_named_refusals() {
     let manifest: Value =
         serde_json::from_str(include_str!("../../../conformance/sdk/cli/cases.json")).unwrap();
@@ -139,7 +171,7 @@ fn file_backed_operations_and_named_refusals() {
     assert_eq!(operations, refusals, "Every operation has a named refusal");
     assert_eq!(
         operations.len(),
-        33,
+        34,
         "Every operation has a real successful case"
     );
 }

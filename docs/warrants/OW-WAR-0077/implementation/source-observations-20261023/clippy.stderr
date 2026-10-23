@@ -1,0 +1,4 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-cli)
+    Checking openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-core)
+    Checking openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-compiler)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 26.34s

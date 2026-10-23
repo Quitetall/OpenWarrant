@@ -1,0 +1,10 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-cli)
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 44.30s
+     Running tests/all.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/all-12c469e7255afc4d)
+
+thread 'sdk_cli::source_lock_matches_the_existing_f5_vector_and_refuses_changed_bytes' (1782032) panicked at crates/openwarrant-cli/tests/sdk_cli.rs:122:5:
+{"schema":"oh.war/report/v1","command":"sdk","diagnostics":[{"severity":"error","rule":"sdk.request","code":"sdk.request","file":null,"message":"unknown variant `source-lock`, expected one of `raw-digest`, `source-codec`, `reference-codec`, `packet-encode`, `schedule`, `difficulty`, `handoff`, `replay`, `resume`, `availability`, `batch-acceptance`, `adapter-prepare`, `adapter-check`, `parse`, `validate`, `unit`, `author`, `edit`, `digest`, `condition`, `source-describe`, `sources-check`, `packet-decode`, `packet-check`, `package-check`, `agent-act`, `records`, `readiness`, `assurance`, `workflow-decode`, `legacy-import`, `legacy-capture`, `successor`","span":null}],"notes":[],"counts":{"pass":0,"warn":0,"unknown":0,"error":1,"worst":"error"},"verdict":"not_ready","verdict_line":"SDK operation refused","exit_code":1,"result":null}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

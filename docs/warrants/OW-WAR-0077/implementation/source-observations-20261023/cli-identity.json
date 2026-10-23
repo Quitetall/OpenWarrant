@@ -1,0 +1,12 @@
+{
+  "source_head": "045f9ec2cb8c6fcb0e077f1c6474f5c078163afe",
+  "source_status": " M conformance/sdk/source/README.md\n M crates/openwarrant-cli/src/sdk.rs\n M crates/openwarrant-cli/tests/sdk_cli.rs\n?? conformance/sdk/source/check_observations.py\n",
+  "source_state": "working candidate built by recorded lock-green public integration test; not a clean HEAD build",
+  "binary_sha256": "1fe86d56e08914221f721ea323c0825c479ab547efebf47cf0ddf6e3f2562682",
+  "reported_version": "war 1.0.0-alpha.5 (unreleased, commit 045f9ec2cb8c, dirty, debug)",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/sdk.rs": "5a383412234ef5183dff7d29f5fef6318c9704c2bd32dca0835ff9d2277db07e",
+    "crates/openwarrant-core/src/document/source.rs": "9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8",
+    "conformance/sdk/source/check_observations.py": "1b1f627fc4acd8fcf08b3aeb78c8bc9cad990c06693c0c85d266cb8247823d9d"
+  }
+}
