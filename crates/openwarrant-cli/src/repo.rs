@@ -243,14 +243,32 @@ impl Repository {
     }
 
     fn source_paths_uncached(&self) -> Result<Vec<String>, RepoError> {
-        let mut command = std::process::Command::new("git");
-        command.current_dir(&self.root).args([
+        const ARGS: [&str; 5] = [
             "ls-files",
             "--cached",
             "--others",
             "--exclude-standard",
             "-z",
-        ]);
+        ];
+        if let Some(observed) = crate::vfs::hosted_git(&ARGS) {
+            let bytes = observed
+                .unwrap_or_else(|| Err("Git source inventory has no supplied observation".into()))
+                .map_err(|message| RepoError::ObservationUnavailable {
+                    rule: "verify.subject-unavailable",
+                    message,
+                })?;
+            let mut paths: Vec<_> = std::str::from_utf8(&bytes)
+                .map_err(|_| RepoError::Message("non-UTF-8 source path inventory".into()))?
+                .split('\0')
+                .filter(|p| !p.is_empty())
+                .map(str::to_owned)
+                .collect();
+            paths.sort();
+            paths.dedup();
+            return Ok(paths);
+        }
+        let mut command = std::process::Command::new("git");
+        command.current_dir(&self.root).args(ARGS);
         for variable in [
             "GIT_DIR",
             "GIT_WORK_TREE",
@@ -268,6 +286,7 @@ impl Repository {
             source,
         })?;
         let mut paths = if output.status.success() {
+            crate::vfs::record_git(&ARGS, &Ok(output.stdout.clone()));
             std::str::from_utf8(&output.stdout)
                 .map_err(|_| RepoError::Message("non-UTF-8 source path inventory".to_owned()))?
                 .split('\0')
@@ -275,27 +294,28 @@ impl Repository {
                 .map(str::to_owned)
                 .collect::<Vec<_>>()
         } else {
+            const STDERR_LIMIT: usize = 2048;
+            let stderr =
+                String::from_utf8_lossy(&output.stderr[..output.stderr.len().min(STDERR_LIMIT)]);
+            let truncated = if output.stderr.len() > STDERR_LIMIT {
+                " [stderr truncated at 2048 bytes]"
+            } else {
+                ""
+            };
+            let message = format!(
+                "Git source inventory cannot be read ({}): {}{}",
+                output.status,
+                stderr.trim(),
+                truncated
+            );
+            crate::vfs::record_git(&ARGS, &Err(message.clone()));
             if self.root.ancestors().any(|p| p.join(".git").exists()) {
                 // Preserve the failed observation, not a malformed-Warrant
                 // verdict. A generic message hid the cause of intermittent
                 // inventory failures; bound stderr before exposing it.
-                const STDERR_LIMIT: usize = 2048;
-                let stderr = String::from_utf8_lossy(
-                    &output.stderr[..output.stderr.len().min(STDERR_LIMIT)],
-                );
-                let truncated = if output.stderr.len() > STDERR_LIMIT {
-                    " [stderr truncated at 2048 bytes]"
-                } else {
-                    ""
-                };
                 return Err(RepoError::ObservationUnavailable {
                     rule: "verify.subject-unavailable",
-                    message: format!(
-                        "Git source inventory cannot be read ({}): {}{}",
-                        output.status,
-                        stderr.trim(),
-                        truncated
-                    ),
+                    message,
                 });
             }
             // Document-only/prototype repositories need no Git. Enumerate
@@ -1870,6 +1890,71 @@ fn decoded_verification(
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn hosted_inventory_uses_the_supplied_git_observation_and_refuses_missing_facts() {
+        let args = [
+            "ls-files",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "-z",
+        ];
+        for mode in ["success", "failed", "missing"] {
+            let root = camino::Utf8PathBuf::from(format!(
+                "/inventory-{}",
+                openwarrant_core::WarUuid::mint()
+            ));
+            let mut git = std::collections::BTreeMap::new();
+            if mode != "missing" {
+                git.insert(
+                    args.iter().map(|s| s.to_string()).collect(),
+                    if mode == "success" {
+                        Ok(b"two.rs\0one.rs\0one.rs\0".to_vec())
+                    } else {
+                        Err("fixture inventory denied".into())
+                    },
+                );
+            }
+            let tree = std::rc::Rc::new(
+                crate::vfs::Tree::new(
+                    root.clone(),
+                    [(
+                        "openwarrant.toml".into(),
+                        include_bytes!(
+                            "../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                        )
+                        .to_vec(),
+                    )]
+                    .into_iter()
+                    .collect(),
+                    Default::default(),
+                )
+                .with_observations(Default::default(), git),
+            );
+            crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+                let repo = super::Repository::open(root).unwrap();
+                let result = repo.source_paths();
+                if mode == "success" {
+                    assert_eq!(result.unwrap(), vec!["one.rs", "two.rs"]);
+                } else {
+                    assert!(matches!(
+                        result,
+                        Err(super::RepoError::ObservationUnavailable {
+                            rule: "verify.subject-unavailable",
+                            ..
+                        })
+                    ));
+                }
+            });
+            let key = args.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+            if mode == "missing" {
+                assert!(tree.consulted().git_missing.contains(&key));
+            } else {
+                assert!(tree.consulted().git_supplied.contains(&key));
+            }
+        }
+    }
+
     use super::*;
 
     /// A scratch repository with this corpus's `openwarrant.toml` (t-280c).

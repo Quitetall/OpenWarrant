@@ -409,6 +409,16 @@ fn read_regular_disk(root: &Path, path: &Path) -> io::Result<Vec<u8>> {
 /// Retained records keep their original root anchor, including refusal of a
 /// symlink at the root itself. Record these reads for portable compilation.
 pub(crate) fn read_anchored(root: &Path, relative: &Path) -> io::Result<Vec<u8>> {
+    read_anchored_limited(root, relative, usize::MAX - 1)
+}
+
+/// The bounded form retains the source reader's limit before native allocation
+/// and checks hosted member length before cloning its bytes.
+pub(crate) fn read_anchored_limited(
+    root: &Path,
+    relative: &Path,
+    limit: usize,
+) -> io::Result<Vec<u8>> {
     let parts: Vec<_> = relative.components().collect();
     if parts.is_empty()
         || parts
@@ -422,10 +432,13 @@ pub(crate) fn read_anchored(root: &Path, relative: &Path) -> io::Result<Vec<u8>>
     }
     let path = root.join(relative);
     if is_hosted() {
+        if metadata(&path)?.len() > limit as u64 {
+            return Err(io::Error::other("Source exceeds byte limit"));
+        }
         return read(path);
     }
-    let bytes = crate::progress_viewer::source::read(root, relative, usize::MAX - 1)
-        .map_err(io::Error::other)?;
+    let bytes =
+        crate::progress_viewer::source::read(root, relative, limit).map_err(io::Error::other)?;
     note(&path);
     Ok(bytes)
 }
@@ -447,6 +460,7 @@ pub fn read_regular_to_string(root: &Path, path: &Path) -> io::Result<String> {
 pub struct FileType {
     dir: bool,
     file: bool,
+    symlink: bool,
 }
 impl FileType {
     #[must_use]
@@ -456,6 +470,10 @@ impl FileType {
     #[must_use]
     pub fn is_file(&self) -> bool {
         self.file
+    }
+    #[must_use]
+    pub fn is_symlink(&self) -> bool {
+        self.symlink
     }
 }
 
@@ -498,6 +516,7 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
                 kind: FileType {
                     dir: false,
                     file: true,
+                    symlink: false,
                 },
                 len: b.len() as u64,
             });
@@ -507,6 +526,7 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
                 kind: FileType {
                     dir: false,
                     file: true,
+                    symlink: false,
                 },
                 len: 0,
             });
@@ -516,6 +536,7 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
                 kind: FileType {
                     dir: true,
                     file: false,
+                    symlink: false,
                 },
                 len: 0,
             });
@@ -530,6 +551,27 @@ pub fn metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
         kind: FileType {
             dir: m.is_dir(),
             file: m.is_file(),
+            symlink: m.file_type().is_symlink(),
+        },
+        len: m.len(),
+    })
+}
+
+/// Non-following metadata on disk; hosted members cannot encode symlinks.
+pub(crate) fn symlink_metadata<P: AsRef<Path>>(p: P) -> io::Result<Metadata> {
+    let p = p.as_ref();
+    if is_hosted() {
+        return metadata(p);
+    }
+    let m = std::fs::symlink_metadata(p)?;
+    if m.is_file() {
+        note_seen(p);
+    }
+    Ok(Metadata {
+        kind: FileType {
+            dir: m.is_dir(),
+            file: m.is_file(),
+            symlink: m.file_type().is_symlink(),
         },
         len: m.len(),
     })
@@ -629,7 +671,11 @@ pub fn read_dir<P: AsRef<Path>>(p: P) -> io::Result<std::vec::IntoIter<io::Resul
             .map(|(n, dir)| {
                 Ok(DirEntry {
                     path: p.join(n),
-                    kind: FileType { dir, file: !dir },
+                    kind: FileType {
+                        dir,
+                        file: !dir,
+                        symlink: false,
+                    },
                 })
             })
             .collect::<Vec<_>>()
@@ -644,6 +690,7 @@ pub fn read_dir<P: AsRef<Path>>(p: P) -> io::Result<std::vec::IntoIter<io::Resul
             let kind = FileType {
                 dir: ft.is_dir(),
                 file: ft.is_file(),
+                symlink: ft.is_symlink(),
             };
             if kind.file {
                 note_seen(&path);
@@ -755,6 +802,7 @@ mod tests {
         );
         assert!(read_anchored(&linked_root, Path::new("observation.toml")).is_err());
         assert!(read_anchored(&root, Path::new("linked.toml")).is_err());
+        assert!(read_anchored_limited(&root, Path::new("observation.toml"), 7).is_err());
         assert!(read_anchored(&root, Path::new("../records/observation.toml")).is_err());
     }
 
@@ -766,6 +814,9 @@ mod tests {
         let link = temp.path().join("linked-history");
         std::fs::create_dir(&directory).unwrap();
         std::os::unix::fs::symlink(&directory, &link).unwrap();
+        assert!(symlink_metadata(&link).unwrap().file_type().is_symlink());
+        assert!(!symlink_metadata(&link).unwrap().is_dir());
+        assert!(symlink_metadata(&directory).unwrap().is_dir());
         assert!(regular_directory(&directory).unwrap());
         assert!(!regular_directory(&link).unwrap());
         assert_eq!(
@@ -780,6 +831,11 @@ mod tests {
     fn hosted_reads_answer_from_the_basis_only() {
         hosted(tree(), || {
             assert_eq!(read("/basis/a/b.txt").unwrap(), b"hi");
+            assert!(read_anchored_limited(Path::new("/basis"), Path::new("a/b.txt"), 1).is_err());
+            assert_eq!(
+                read_anchored_limited(Path::new("/basis"), Path::new("a/b.txt"), 2).unwrap(),
+                b"hi"
+            );
             assert_eq!(read("/basis/a/./c/../b.txt").unwrap(), b"hi");
             assert!(read("/basis/a/../../etc/passwd").is_err());
             assert!(read("/etc/hostname").is_err());

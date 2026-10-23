@@ -155,7 +155,7 @@ fn read_value(path: &Utf8Path) -> Result<(Vec<u8>, Value), RepoError> {
     let relative = path.strip_prefix("/").map_err(|_| {
         RepoError::Message("verify.preview-path: an absolute file path is required".into())
     })?;
-    let bytes = crate::progress_viewer::source::read(
+    let bytes = crate::vfs::read_anchored_limited(
         std::path::Path::new("/"),
         relative.as_std_path(),
         64 * 1024 * 1024,
@@ -568,4 +568,29 @@ pub(crate) fn emit(
         report,
         json!({"schema": "oh.war/review-previews/v1", "dispatch_eligible": false, "previews": index}),
     ))
+}
+
+#[cfg(test)]
+mod hosted_tests {
+    #[test]
+    fn retained_views_are_read_from_the_basis_without_granting_withheld_reads() {
+        let root = camino::Utf8PathBuf::from(format!(
+            "/hosted-view-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let bytes = br#"{"literal":"retained view"}"#.to_vec();
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [("view.json".into(), bytes.clone())].into_iter().collect(),
+            ["withheld.json".into()].into_iter().collect(),
+        ));
+        crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+            let (raw, value) = super::read_value(&root.join("view.json")).unwrap();
+            assert_eq!(raw, bytes);
+            assert_eq!(value, serde_json::json!({"literal":"retained view"}));
+            assert!(super::read_value(&root.join("withheld.json")).is_err());
+            assert!(super::read_value(&root.join("../outside.json")).is_err());
+        });
+        assert!(tree.consulted().withheld_read.contains("withheld.json"));
+    }
 }
