@@ -25291,6 +25291,30 @@ Run `python3 conformance/integration/adapter/run.py --provider-root <LAMU-Rust-w
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0086/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/adapter.rs | `crates/openwarrant-core/src/document/adapter.rs` | verified |
+| D-002 | docs/integrations/sdk.md | `docs/integrations/sdk.md` | verified |
+| D-003 | conformance/integration/adapter/run.py | `conformance/integration/adapter/run.py` | verified |
+| D-004 | conformance/integration/adapter/check_resolution.py | `conformance/integration/adapter/check_resolution.py` | verified |
+| D-005 | conformance/integration/adapter/README.md | `conformance/integration/adapter/README.md` | verified |
+| D-006 | conformance/integration/test_observation_output.py | `conformance/integration/test_observation_output.py` | verified |
+| D-007 | docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md | `docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md` | verified |
+| D-008 | docs/warrants/OW-WAR-0086/implementation/progress.json | `docs/warrants/OW-WAR-0086/implementation/progress.json` | verified |
+| D-009 | docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log` | verified |
+| D-011 | docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json` | verified |
+| D-012 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json` | verified |
+| D-013 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log` | verified |
+| D-014 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log` | verified |
+| D-015 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr` | verified |
+| D-016 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json` | verified |
+| D-017 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log` | verified |
+| D-018 | docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log | `docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log` | verified |
+| D-019 | docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json | `docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json` | verified |
+
 #### OW-WAR-0093 — Reference workflow package: local API and draft webapp
 
 [manifest](../../docs/warrants/OW-WAR-0093/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0093/authorization.toml) · profile `delivery` · rung `draft` · currency `current`

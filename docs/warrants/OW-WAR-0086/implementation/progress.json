@@ -1,11 +1,11 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0086",
-  "work_state": "blocked",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "2692fbda1d376b6aa5a8eaffd2fe95f89869a04d",
-  "summary": "Fresh real LAMU/current SDK exchange and complete matching-source native Phase 1 inventories passed. Original provider dependency and inputs remain unchanged. Final Phase 1/2 qualification and independent review remain open; unverified.",
-  "notes": "docs/warrants/OW-WAR-0086/implementation/notes.md",
+  "revision": "2f54c0fe995fb097165dc32d37f21cb07e064c902cf40dcaa1af176586a894b0",
+  "summary": "Real provider/SDK integration implementation complete, unverified. Six provider profiles, all 28 external tests, second consumer and record/preservation exchange pass. Fixed a reproduced Cargo override provenance gap; the real override now refuses without publication. Independent phase qualification and human acceptance remain open.",
+  "notes": "docs/warrants/OW-WAR-0086/implementation/current-integration-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0086/implementation/adapter-observation.json",
     "docs/warrants/OW-WAR-0086/implementation/windows-isolation.json",
@@ -14,10 +14,21 @@
     "docs/warrants/OW-WAR-0085/implementation/native-20260918/comparison.json",
     "docs/warrants/OW-WAR-0089/implementation/native-20260918/comparison.json",
     "docs/releases/qualification-20261011/lamu-current-2692/observation.json",
-    "docs/releases/qualification-20261011/native-2692/observation.json"
+    "docs/releases/qualification-20261011/native-2692/observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/RED-unexpected-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/full-provider-tests.log",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/integration-observation.json",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-result.json",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green-tests.log",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.log",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-green.stderr",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-result.json",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red-tests.log",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/resolution-red.log",
+    "docs/warrants/OW-WAR-0086/implementation/current-integration/source-observation.json"
   ],
   "next_steps": [
-    "Complete final Phase 1 and Phase 2 review against exact retained subjects.",
-    "Retain actual provider/version limits; do not substitute native packaging for integration qualification."
+    "Pass the protected gate on the consolidated candidate.",
+    "Complete independent Phase 1/2 review and required secure human acceptance without treating implementation completion as phase exit."
   ]
 }

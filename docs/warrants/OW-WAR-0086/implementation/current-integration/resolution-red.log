@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-ow86-evidence-20261023/conformance/integration/adapter/check_resolution.py", line 55, in <module>
+    main()
+    ~~~~^^
+  File "/mnt/4tb/tmp/openwarrant-ow86-evidence-20261023/conformance/integration/adapter/check_resolution.py", line 48, in main
+    assert result.returncode != 0, "Driver accepted a different resolved SDK under the original declared pin"
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Driver accepted a different resolved SDK under the original declared pin

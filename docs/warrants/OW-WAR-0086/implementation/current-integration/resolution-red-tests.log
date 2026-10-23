@@ -1,0 +1,14 @@
+F...
+======================================================================
+FAIL: test_adapter_refuses_resolved_sdk_override_despite_matching_manifest_pin (test_observation_output.ObservationOutput.test_adapter_refuses_resolved_sdk_override_despite_matching_manifest_pin)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-ow86-evidence-20261023/conformance/integration/test_observation_output.py", line 53, in test_adapter_refuses_resolved_sdk_override_despite_matching_manifest_pin
+    self.assertIn(b"Provider SDK resolution differs from shared contract", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'Provider SDK resolution differs from shared contract' not found in b"Integration refused: source: Integration refused: [Errno 2] No such file or directory: '/mnt/4tb/tmp/openwarrant-ow86-run-20261023/tmp9c1w1ti8/provider/lamu-openwarrant/tests/fixtures/task.md'\n\n"
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.824s
+
+FAILED (failures=1)
