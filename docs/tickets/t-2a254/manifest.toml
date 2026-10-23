@@ -1,0 +1,22 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-2a254` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-2a254"
+uuid = "01a15bfe-2658-7693-a049-218fa0a5ea05"
+title = "Preserve prior gate streams while a new gate is running"
+summary = "Prevent gate reruns from invalidating the evidence read by their own child checks"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-21T01:05:45Z"
+created_by = "agent://codex"
+type = "bug"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
