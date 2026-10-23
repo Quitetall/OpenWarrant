@@ -12,14 +12,20 @@ stops. Each claim names the plant or test that exercises it.
 | OS | Supported | Why |
 |---|---|---|
 | Linux | yes | The performer leads its own process group; the deadline and a cancellation kill the whole group. |
-| macOS | yes, with the same code | The same unix group kill. The cancellation plant runs on Linux; until it also runs on a macOS runner, macOS is claimed by construction, not by observation. |
-| Anything else (Windows included) | **refused** | No group kill here, so a performer's children would outlive its deadline. `war perform` refuses with `perform.unsupported-os` before it compiles or spawns anything, rather than running under a weaker bound than it reports (§55.2). Compile the Dispatch with `war dispatch` and hand it over yourself. |
+| macOS | yes, observed on arm64 | The same Unix group kill. Native run `40030825974` passed all 22 cancellation/handoff plant controls and seven performer units on macOS and Linux, from the same source tree. |
+| Targets without Unix group kill (Windows included) | **refused** | No group kill here, so a performer's children would outlive its deadline. `war perform` refuses with `perform.unsupported-os` before it compiles or spawns anything, rather than running under a weaker bound than it reports (§55.2). Compile the Dispatch with `war dispatch` and hand it over yourself. |
+
+Linux and macOS are the tested targets. Other Unix targets have no qualification
+observation here.
 
 Exercised by: the unit test
 `a_platform_without_the_group_kill_is_refused_before_anything_runs` in
 `crates/openwarrant-cli/src/perform.rs` (a fake host with no group kill: the
 refusal fires and no spawn is attempted), and `conformance/plants.d/60-perform-cancel.sh`,
-whose runs on Linux show the supported branch is the one compiled.
+whose native Linux and macOS runs show the supported branch is the one compiled.
+The [native observations](warrants/OW-WAR-0131/implementation/native-20261023/comparison.json)
+bind tree `0d38278d974b1afe92b8ac5e008beb489b736eca`. These are bounded
+implementation observations, not independent qualification or release acceptance.
 
 ## Cancellation
 

@@ -3,15 +3,22 @@
   "warrant": "OW-WAR-0083",
   "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "f7c500abd45539d52768d7a4573532fd3c6d8d0c587778cb224af564b32a87f8",
-  "summary": "Phase 1 dependency scheduling and supplied-record readiness/assurance SDK complete, unverified. 21 record/workflow tests, 10 codec fixtures and full 14-step gate passed; 308/308 planted controls. Revision identifies source inventory, not Git commit.",
-  "notes": "docs/warrants/OW-WAR-0083/implementation/notes.md",
+  "revision": "85c6e30fb6adf6173da4c67dfb681e49400ec483d4dc0aa423df8e922bcdffff",
+  "summary": "Supplied-record and scheduling implementation complete, unverified. Current observations: 27 library tests, 12 CLI tests, 10 codec cases and 37 retained CLI evaluations pass. No current independent verdict or human acceptance claimed.",
+  "notes": "docs/warrants/OW-WAR-0083/implementation/current-records-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0083/implementation/scheduling-observation.json",
     "docs/warrants/OW-WAR-0083/implementation/scheduling-tests.log",
     "docs/warrants/OW-WAR-0083/implementation/records-observation.json",
     "docs/warrants/OW-WAR-0083/implementation/records-tests.log",
-    "docs/warrants/OW-WAR-0083/implementation/records-gate.log"
+    "docs/warrants/OW-WAR-0083/implementation/records-gate.log",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/source-observation.json",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/cli-observation.json",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/sdk-wire.jsonl",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/core-tests.log",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/cli-tests.log",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/codec-probe.log",
+    "docs/warrants/OW-WAR-0083/implementation/current-records/binary-identity.json"
   ],
   "next_steps": [
     "Implement OW-WAR-0084 legacy history and successor records.",

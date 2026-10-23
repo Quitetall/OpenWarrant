@@ -1,0 +1,12 @@
+
+running 7 tests
+test structured_digest_bounds_actual_canonical_bytes_and_depth ... ok
+test bounded_packet_decode_accepts_example_and_refuses_schema_and_duplicate_fields ... ok
+test incomplete_basis_refuses_even_with_valid_hashes ... ok
+test packet_integrity_checks_exact_source_ranges_and_entry_accounting ... ok
+test typed_packet_integrity_enforces_json_budget ... ok
+test package_integrity_refuses_tampering_extra_files_and_noncanonical_manifest ... ok
+test self_consistent_incomplete_package_is_integrity_only_and_missing_routing_blob_refuses ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+

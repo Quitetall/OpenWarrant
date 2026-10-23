@@ -1,0 +1,37 @@
+Native host: Darwin arm64
+Source: 62fcd3d261d53b3e84cd019c93747441fc5d3799
+Source tree: 0d38278d974b1afe92b8ac5e008beb489b736eca
+Bash: 5.3.20(1)-release
+setsid: /Users/runner/work/OpenWarrant/OpenWarrant/conformance/native/bin/setsid
+war 1.0.0-alpha.5 (unreleased, commit 62fcd3d261d5, debug)
+df84c315d46abf9a0f6b5c4eff5ffe54bc1a05591ef665a7efe8d7ea866320f3  /Users/runner/work/OpenWarrant/OpenWarrant/target/debug/war
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+ok    SIGINT cancels performer+child     rejected by perform.cancelled (exit 2); performer 1->1, child 1->1, alive: none; no submission, Dispatch kept, record gone
+ok    SIGTERM cancels performer+child    rejected by perform.cancelled (exit 2); performer 1->1, child 2->2, alive: none; no submission, Dispatch kept, record gone
+ok    the check sees an orphan           negative control: setsid writer reported orphan (performer 2->9, child 1->8, alive: 15110 15112)
+ok    no switch disables the handler     perform.rs reads no environment; the handler is unconditional
+ok    a second writer is refused         rejected by perform.writer-alive (pid 15257); no marker, no new Dispatch
+ok    a mismatched writer is unknown     rejected by perform.writer-unknown (start time); nothing started, record kept
+ok    a gone writer is handed off        perform.writer-stopped; the record was removed and the performer started
+/Users/runner/work/OpenWarrant/OpenWarrant/conformance/plants.d/60-perform-cancel.sh: line 152: 15562 Killed: 9                  WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+ok    orphan blocks another stage        named live writer refused after controller SIGKILL; no replacement marker
+/Users/runner/work/OpenWarrant/OpenWarrant/conformance/plants.d/60-perform-cancel.sh: line 152: 15737 Killed: 9                  WRITES_UNTIL_KILLED_MARKER="$2" "$PC_WAR" --root "$PC_ROOT" perform "$PC_W" "$1" --prototype > "$3" 2>&1
+ok    orphan blocks another warrant      named live writer refused after controller SIGKILL; no replacement marker
+ok    Darwin is admitted                 no perform.unsupported-os on this OS; the refusal is unit-tested
+ok    the adapter passes the answer      byte for byte; argv carries the pinned tool list
+ok    adapter refuses: other             rejected by dispatch-mismatch (exit 3); stdout empty
+ok    adapter refuses: resolve           rejected by self-completion (exit 3); stdout empty
+ok    adapter refuses: notjson           rejected by not-json (exit 3); stdout empty
+ok    adapter refuses: fail              rejected by claude-failed (exit 3); stdout empty
+ok    war perform ingests the adapter    perform.answered, submission.recorded
+ok    war perform, adapter: other        rejected by perform.failed (dispatch-mismatch); no submission
+ok    war perform, adapter: resolve      rejected by perform.failed (self-completion); no submission
+ok    war perform, adapter: notjson      rejected by perform.failed (not-json); no submission
+ok    war perform, adapter: fail         rejected by perform.failed (claude-failed); no submission
+1 fixture writer(s); seven named refusals: True
+ok    simultaneous starts have one writer one writer and Dispatch; seven named refusals before compilation
+
+22 passed, 0 failed

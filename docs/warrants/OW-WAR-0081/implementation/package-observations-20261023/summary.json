@@ -1,0 +1,95 @@
+{
+  "kind": "actual-package-sdk-observations",
+  "literal_cases": [
+    "duplicate-field",
+    "invalid-kind",
+    "invalid-role",
+    "noncanonical",
+    "unknown-field",
+    "valid",
+    "wrong-schema"
+  ],
+  "external_cases": 12,
+  "sdk_calls": 12,
+  "calls": [
+    {
+      "label": "valid",
+      "stdin_sha256": "c6208d82baa6d5e67e8f4a4a41f61caa3d111e149353a69577acf83ec8e0f3d7",
+      "stdout_sha256": "7768ce9ab81e2affa48491b125c1bfb4e4716c8ade54fcf6ccd9e5a7814bb070"
+    },
+    {
+      "label": "valid:encode",
+      "stdin_sha256": "cd9fd6efa35b59dd74782facdb0a7f312b9614b09172568c575a7c41bef6d1c9",
+      "stdout_sha256": "827f25b5980f2ca5f0eba487d4df18705e08f6ae216d5f472f8cbf84cb62587c"
+    },
+    {
+      "label": "wrong-schema",
+      "stdin_sha256": "a29abd81026f88cb20357dfca618e00b8611cd0f86855b87bdb7770473a4d4b9",
+      "stdout_sha256": "5697a708213630152bb141b082543c0353f96f548451c955bd4f26b79dcbe00a"
+    },
+    {
+      "label": "duplicate-field",
+      "stdin_sha256": "e0d15e0b44433c29e6f56e4564a1f300c99e13e5b90d4dea84c51c2708168e24",
+      "stdout_sha256": "f6879ae618ad02669cba2ddd0259d89d4984a71ab1f3771d82763af0aa062e74"
+    },
+    {
+      "label": "unknown-field",
+      "stdin_sha256": "683204e0c3261abd8543c30b12720a85e3b542f384cb88bca94384cf5227022c",
+      "stdout_sha256": "26dc637c24c667d712b297404b88eb24478a21093e5769c34f4f0c04c364fdea"
+    },
+    {
+      "label": "invalid-role",
+      "stdin_sha256": "591db0267973c86fc716d6ea1d06cccc3756f9d7768cfd04a1ceecf44a66969a",
+      "stdout_sha256": "7f6793d3e7b9d936d532cdef492e207627c6ee82ffc1ce07544f31b6ab9df305"
+    },
+    {
+      "label": "invalid-kind",
+      "stdin_sha256": "42bf89e75dbcfc5e1836a7efb209b5e04dda3dc05d22de8d164c9d47ee9a088f",
+      "stdout_sha256": "1bc30a03979750c32279299bb2671a9ce759eee0da20d0fe08fcb18c7d57b8dc"
+    },
+    {
+      "label": "noncanonical",
+      "stdin_sha256": "ba2d3db525ddc98a9ba3ab2fd0a7455418e9dbc854e9e5fd1e71d070dd079fa2",
+      "stdout_sha256": "e9ae1d9eaf397dc946b36bd0ca3bac6ec946fa01bfc1732806e712628aca5dfb"
+    },
+    {
+      "label": "valid",
+      "stdin_sha256": "eeae969103ea7015337233a5c0b0ca71d787ce0b302e1285ce50759083a3a109",
+      "stdout_sha256": "461218084911dd1e1226cb3649520411165903b7bdc711a90da9024b32d1f564"
+    },
+    {
+      "label": "resealed-incomplete",
+      "stdin_sha256": "94fbef4ceacf25d62f3d029e41a232155cccf845dd3da6dcc7f371b3b452445d",
+      "stdout_sha256": "fffc74826ff5ddb108a32b36276c37f57fa74f1b06f8ed725c7a83f6350f8e48"
+    },
+    {
+      "label": "tamper-ENTRY.md",
+      "stdin_sha256": "9d22c6d24e786fd17bf01953c20a9cb5e6dd8f2f37657f1cf2a3bd229a34a98d",
+      "stdout_sha256": "034b58e2a204f041486e69d1c3c38d1d1977f85f438d0c68f4f1a4fbc2927ce7"
+    },
+    {
+      "label": "tamper-packet.json",
+      "stdin_sha256": "e4d4c2e0063c34e5901f56fc92e977f9c6bda749327c04931a24adb6d056d2e7",
+      "stdout_sha256": "034b58e2a204f041486e69d1c3c38d1d1977f85f438d0c68f4f1a4fbc2927ce7"
+    }
+  ],
+  "fixture_sha256": {
+    "cases.json": "8ec629656f192043e13b0967959f4bee7692755686a24bb4c72f25597c3f53ca",
+    "valid.json": "a4b84db6dd27c46ade4a900c45b0466312b78087fbd29fdcab93dbe850ce9401",
+    "wrong-schema.json": "674515e82c2a89ac5d46ff6a7b77cd166c51537895910f771f3205411ffea0f5",
+    "duplicate-field.json": "5dad074ed20ef67b7344944c7156f1ebf46385a4ae6e1dc90ac77a05c2365f8c",
+    "unknown-field.json": "82ccf985c31af6ab9ad33e4d89fa35c0eebf002fb4b16a4c9247156a8e9f00a6",
+    "invalid-role.json": "edd0d2371fab717877d6602ce4e0ad8f4cbe284bdf296b70c51a009a8b7af318",
+    "invalid-kind.json": "5978fc8db286cb0803f6bed595f174e7376ca4e35d17414db167a8bdcc18e2e2",
+    "noncanonical.json": "0326538f23976d653bb47afbcbf476c6fb83d0f905e558e518f627b9332b26cf"
+  },
+  "binary_sha256": "3eb13f9522a43d44115b4027aefdefaecbcff6e2e9556526e2cee91a12add76b",
+  "transcript_sha256": "749a4401f962dc1bd9941fc15a7c39894b911dc70142dc25c62dd934073194c0",
+  "wire_sha256": "aa06363fcb04103c535a816a430f40d7d0760808f1b4e6464780f9f2b7fcac53",
+  "qualification_established": false,
+  "limitations": [
+    "SDK integrity is not context completeness or human assurance",
+    "External probe is additional test instrumentation, not a provider release",
+    "Linux filesystem observation only; parent capability is caller-controlled"
+  ]
+}

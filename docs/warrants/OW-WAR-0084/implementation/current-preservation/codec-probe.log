@@ -1,0 +1,14 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow84-evidence-20261023/crates/openwarrant-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.62s
+     Running `target/debug/examples/sdk_probe --scope 84 --fixtures conformance/sdk`
+T49-legacy-signed PASS (preserved inventory; no authority inferred)
+T53-new-roundtrip PASS (preserved inventory; no authority inferred)
+T53-rc2-roundtrip PASS (preserved inventory; no authority inferred)
+T51-same-path-successor PASS (preserved inventory; no authority inferred)
+T51-self-successor-refused PASS (legacy.lineage)
+T50-unsupported PASS (legacy.dialect)
+T50-escaping PASS (legacy.path)
+T50-future PASS (legacy.version)
+T50-corrupt PASS (legacy.integrity)
+T50-missing PASS (legacy.inventory)
+10 file-backed preservation/lineage cases passed; external historical closure and signature authenticity not established

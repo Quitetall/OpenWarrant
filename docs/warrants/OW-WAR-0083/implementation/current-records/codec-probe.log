@@ -1,0 +1,15 @@
+    Blocking waiting for file lock on build directory
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow83-evidence-20261023/crates/openwarrant-core)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 44.18s
+     Running `target/debug/examples/sdk_probe --scope 83 --fixtures conformance/sdk`
+observation-untrusted PASS (structure admitted; trust not established)
+unavailable-pass PASS (record.payload)
+unknown-observation PASS (structure admitted; trust not established)
+unknown-core-field PASS (record.syntax)
+wrong-result PASS (record.subject)
+unsigned-completion PASS (structure admitted; trust not established)
+agent-human-spoof PASS (agent-act.invalid)
+agent-authorization-without-policy PASS (agent-act.invalid)
+complete-unverified-view PASS (structure admitted; trust not established)
+conflated-state PASS (workflow.syntax)
+10 file-backed codec cases passed; semantic readiness/assurance tests are document_records and document_workflow_records; no qualification issued

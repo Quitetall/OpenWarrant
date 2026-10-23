@@ -44,6 +44,32 @@ def inputs(ow, provider):
     return dict(sorted(result.items()))
 
 
+def provider_sdk_resolution(root, pin):
+    manifest = (root / "lamu-openwarrant/Cargo.toml").resolve(strict=True)
+    process = run(["cargo", "+1.97.1", "metadata", "--locked", "--format-version", "1",
+                   "--manifest-path", str(manifest)], root)
+    if process["exit_code"]:
+        raise RuntimeError("Provider SDK resolution unavailable: " + process["stderr"])
+    metadata = json.loads(process["stdout"])
+    providers = [p for p in metadata["packages"]
+                 if Path(p["manifest_path"]).resolve() == manifest and p["name"] == "lamu-openwarrant"]
+    if len(providers) != 1:
+        raise ValueError("Provider SDK resolution missing or ambiguous")
+    nodes = [n for n in metadata["resolve"]["nodes"] if n["id"] == providers[0]["id"]]
+    dependencies = [d for n in nodes for d in n["deps"] if d["name"] == "openwarrant_core"]
+    resolved = [p for p in metadata["packages"]
+                if any(d["pkg"] == p["id"] for d in dependencies)]
+    if len(nodes) != 1 or len(dependencies) != 1 or len(resolved) != 1:
+        raise ValueError("Provider SDK resolution missing or ambiguous")
+    sdk = resolved[0]
+    expected = f"git+https://github.com/Quitetall/OpenWarrant.git?rev={pin}#{pin}"
+    if sdk["name"] != "openwarrant-core" or sdk.get("source") != expected:
+        raise ValueError("Provider SDK resolution differs from shared contract")
+    return {"declared_revision": pin,
+            "resolved": {key: sdk[key] for key in ["id", "name", "source", "manifest_path"]},
+            "cargo_metadata": process}
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--provider-root", required=True, type=Path)
@@ -59,6 +85,7 @@ def main():
         raise ValueError("Provider SDK pin differs from shared contract")
     head = run(["git", "rev-parse", "HEAD"], root)["stdout"].strip()
     before = inputs(ow, root)
+    resolution = provider_sdk_resolution(root, pin)
     observations = {}
     with tempfile.TemporaryDirectory(prefix="ow86-integration-") as tmp:
         for stage in ["source", "conditions", "selection", "projections", "package", "budgets"]:
@@ -107,6 +134,7 @@ def main():
               and duplicate["exit_code"] != 0 and "duplicate" in duplicate["stderr"])
     receipt = {"format": "openwarrant-adapter-integration-observation/1", "passed": passed,
                "provider_git_head": head, "sdk_revision": pin,
+               "provider_sdk_resolution": resolution,
                "consumer_git_head":run(["git","rev-parse","HEAD"],ow)["stdout"].strip(),
                "inputs_sha256":before,"changed_inputs":changed,
                "toolchain":run(["rustc","+1.97.1","-Vv"],ow)["stdout"],
@@ -119,7 +147,7 @@ def main():
                "duplicate_refusal": duplicate, "record_legacy_exchange": exchanged,
                "consumer_build": build,"consumer_binary_sha256":hashlib.sha256(war.read_bytes()).hexdigest(),
                "limitations": ["No human assurance", "Task readiness evaluation remains blocked",
-                               "Native macOS Phase 1 evidence remains pending",
+                               "This driver does not establish native macOS Phase 1 evidence",
                                "This does not declare Phase 2 exit"]}
     publish_observation(args.output, receipt)
     print(json.dumps({"passed": passed, "receipt": str(args.output)}))

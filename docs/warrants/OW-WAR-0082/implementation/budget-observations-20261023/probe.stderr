@@ -1,0 +1,3 @@
+   Compiling lamu-openwarrant v0.1.0 (/mnt/4tb/tmp/openwarrant-ow82-provider-20261023/lamu-rs/lamu-openwarrant)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running tests/ow_budget_observations.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/ow_budget_observations-456205d9e24138f2)

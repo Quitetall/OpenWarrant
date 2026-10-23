@@ -1,0 +1,10 @@
+{
+  "provider_head": "2572894f28ce76c2c7e6c6c9ae6be51a7f400fa1",
+  "status_with_probe": "?? lamu-rs/lamu-openwarrant/tests/ow_package_observations.rs\n",
+  "tracked_diff": "",
+  "probe_source_sha256": "9e03f10b8f20ebc654dba73af5aafeeed94107c6f3264cb1b16e702f4e720607",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6",
+  "manifest_sha256": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
+  "lock_sha256": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+  "qualification_established": false
+}

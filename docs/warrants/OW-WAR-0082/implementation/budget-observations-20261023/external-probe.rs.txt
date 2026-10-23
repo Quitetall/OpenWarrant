@@ -1,0 +1,298 @@
+// SPDX-License-Identifier: Apache-2.0
+// Original private external API caller; no provider implementation changes.
+use lamu_openwarrant::{
+    Snapshot, SourceRequest, begin_capture,
+    budget::{ProjectionCache, account_entry, basis_key},
+    projections::{ProjectionLimits, parse_request},
+};
+use openwarrant_core::document::{
+    Dialect,
+    packet::{PacketLimits, encode_packet},
+    source::{Holder, HolderKind, SourceLimits, SourceMetadata},
+};
+use serde_json::{Value, json};
+use std::{
+    fs::{self, File},
+    sync::Arc,
+    time::{SystemTime, UNIX_EPOCH},
+};
+fn emit(case: &str, value: Value) {
+    println!(
+        "OWOBS:{}",
+        json!({"case":case,"observation":value,"qualification_established":false})
+    );
+}
+fn operational(limits: ProjectionLimits) -> [usize; 11] {
+    let l = limits.selection;
+    let c = l.conditions;
+    [
+        limits.json_bytes,
+        limits.entry_bytes,
+        l.units,
+        l.edges,
+        l.reasons,
+        l.output_bytes,
+        l.working_bytes,
+        l.visits,
+        c.items,
+        c.string_bytes,
+        c.steps,
+    ]
+}
+fn capture(root: &std::path::Path) -> Snapshot {
+    let requests = ["task.md", "rule.md"].map(|path| SourceRequest {
+        path: path.into(),
+        dialect: Some(Dialect::Rc3),
+        holder: Holder {
+            kind: HolderKind::Local,
+            locator: "explicit-budget-observation".into(),
+            commit: None,
+        },
+        metadata: SourceMetadata::unestablished("untrusted", "internal"),
+    });
+    begin_capture(
+        &File::open(root).unwrap(),
+        &requests,
+        SourceLimits::default(),
+    )
+    .unwrap()
+    .finish()
+    .unwrap()
+}
+fn basis(snapshot: &Snapshot) -> Value {
+    let task = snapshot
+        .descriptors()
+        .iter()
+        .find(|s| s.path == "task.md")
+        .unwrap();
+    json!({"schema":"oh.war/compile-request/1.0.0-rc.2","mode":"task","compiler":"ow82-observed-provider","sources":snapshot.descriptors(),"task":{"source_digest":task.source_digest,"role":"implementation","stage":"implementation"},"selection_inputs":{},"policy_facts":[],"records":[],"options":{"include_optional":false,"entry_token_budget":8192,"token_method":"utf8-bytes-div4-ceil","limits":{},"access":{"allowed_source_digests":snapshot.descriptors().iter().map(|s|&s.source_digest).collect::<Vec<_>>(),"basis_refs":[]}}})
+}
+fn request(value: &Value) -> lamu_openwarrant::projections::Request {
+    parse_request(
+        &serde_json::to_vec(value).unwrap(),
+        ProjectionLimits::default(),
+    )
+    .unwrap()
+}
+#[test]
+fn fresh_budget_cache_observations() {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos()
+        .to_string();
+    let dir = tempfile::tempdir().unwrap();
+    let task=include_str!("fixtures/task.md").replace("Make signup easier",&format!("Budget {nonce} é日")).replace("revision = 1","revision = 1\ncontext=[{id='conditional',target='rule.md#rule',required=true,when={stage=['verification']}}]");
+    let rule = format!(
+        "<!-- ow:unit context binding -->\n# Rules\nA captured source.\n<!-- ow:unit rule binding -->\n## Rule\nRULE_{nonce} é日.\n<!-- ow:metadata -->\n```toml\nschema='oh.war/document/1.0.0-rc.3'\nkind='context'\nid='example:rule-{nonce}'\nrevision=1\ntitle='Rules'\nstate='draft'\n```\n<!-- /ow:metadata -->\n"
+    );
+    fs::write(dir.path().join("task.md"), &task).unwrap();
+    fs::write(dir.path().join("rule.md"), &rule).unwrap();
+    let snapshot = capture(dir.path());
+    let value = basis(&snapshot);
+    let req = request(&value);
+    let limits = ProjectionLimits::default();
+    let mut cache = ProjectionCache::new(1 << 20).unwrap();
+    let (old, hit) = cache.project(&snapshot, &req, limits).unwrap();
+    assert!(!hit);
+    let (same, hit) = cache.project(&snapshot, &req, limits).unwrap();
+    assert!(hit && Arc::ptr_eq(&old, &same));
+    assert!(!String::from_utf8_lossy(&old.entry).contains(&format!("RULE_{nonce}")));
+    let packet_wire = String::from_utf8(
+        encode_packet(old.packet.as_ref().unwrap(), PacketLimits::default()).unwrap(),
+    )
+    .unwrap();
+    emit(
+        "baseline",
+        json!({"request":value,"basis_key":basis_key(&req,limits.json_bytes).unwrap(),"operational_limits":operational(limits),"entry":old.entry,"packet_wire":packet_wire,"hit":false,"repeat_hit":hit,"same_arc":true,"sources":snapshot.descriptors(),"blobs":snapshot.blobs()}),
+    );
+    let original = old.entry.clone();
+    for (bytes, tokens) in [(0, 0), (1, 1), (3, 1), (4, 1), (5, 2), (1001, 251)] {
+        let data = vec![b'x'; bytes];
+        let cost = account_entry(&data, tokens).unwrap();
+        assert_eq!(cost.estimated_tokens, tokens);
+        let below = if tokens > 0 {
+            Some(account_entry(&data, tokens - 1).unwrap_err().code)
+        } else {
+            None
+        };
+        emit(
+            &format!("account-{bytes}"),
+            json!({"bytes":cost.bytes,"estimated_tokens":cost.estimated_tokens,"budget":tokens,"below_error":below}),
+        );
+    }
+    let unicode = account_entry("é日".as_bytes(), 2).unwrap();
+    assert_eq!(unicode.bytes, 5);
+    assert_eq!(unicode.estimated_tokens, 2);
+    emit(
+        "unicode-account",
+        json!({"bytes":unicode.bytes,"estimated_tokens":unicode.estimated_tokens}),
+    );
+    let exact = account_entry(&old.entry, 8192).unwrap();
+    let mut exact_value = value.clone();
+    exact_value["options"]["entry_token_budget"] = json!(exact.estimated_tokens);
+    let (at, hit) = cache
+        .project(&snapshot, &request(&exact_value), limits)
+        .unwrap();
+    assert!(!hit);
+    assert_eq!(at.entry, old.entry);
+    let mut below = exact_value.clone();
+    below["options"]["entry_token_budget"] = json!(exact.estimated_tokens - 1);
+    let error = cache
+        .project(&snapshot, &request(&below), limits)
+        .unwrap_err();
+    assert_eq!(error.code, "budget-exceeded");
+    assert!(
+        cache
+            .project(&snapshot, &request(&exact_value), limits)
+            .unwrap()
+            .1
+    );
+    emit(
+        "inclusive-final-entry",
+        json!({"entry_bytes":exact.bytes,"estimated_tokens":exact.estimated_tokens,"exact_request":exact_value,"below_request":below,"error_code":error.code,"previous_retained":true}),
+    );
+    for name in [
+        "json", "entry", "units", "edges", "reasons", "output", "working", "visits", "items",
+        "strings", "steps",
+    ] {
+        cache.project(&snapshot, &req, limits).unwrap();
+        let mut changed = limits;
+        match name {
+            "json" => changed.json_bytes -= 1,
+            "entry" => changed.entry_bytes -= 1,
+            "units" => changed.selection.units -= 1,
+            "edges" => changed.selection.edges -= 1,
+            "reasons" => changed.selection.reasons -= 1,
+            "output" => changed.selection.output_bytes -= 1,
+            "working" => changed.selection.working_bytes -= 1,
+            "visits" => changed.selection.visits -= 1,
+            "items" => changed.selection.conditions.items -= 1,
+            "strings" => changed.selection.conditions.string_bytes -= 1,
+            "steps" => changed.selection.conditions.steps -= 1,
+            _ => unreachable!(),
+        }
+        let (_, hit) = cache.project(&snapshot, &req, changed).unwrap();
+        assert!(!hit);
+        assert!(cache.project(&snapshot, &req, changed).unwrap().1);
+        emit(
+            &format!("limit-{name}"),
+            json!({"operational_limits":operational(changed),"hit":hit,"repeat_hit":true}),
+        );
+    }
+    for field in [
+        "policy_facts",
+        "records",
+        "compiler",
+        "role",
+        "access-basis",
+        "optional",
+    ] {
+        cache.project(&snapshot, &req, limits).unwrap();
+        let mut changed = value.clone();
+        match field {
+            "policy_facts" => changed["policy_facts"] = json!(["example:changed-policy"]),
+            "records" => changed["records"] = json!([{"unverified_changed_claim":true}]),
+            "compiler" => changed["compiler"] = json!("changed-compiler"),
+            "role" => changed["task"]["role"] = json!("preparation"),
+            "access-basis" => {
+                changed["options"]["access"]["basis_refs"] = json!(["example:access"])
+            }
+            "optional" => changed["options"]["include_optional"] = json!(true),
+            _ => unreachable!(),
+        }
+        let changed_req = request(&changed);
+        assert_ne!(
+            basis_key(&req, limits.json_bytes).unwrap(),
+            basis_key(&changed_req, limits.json_bytes).unwrap()
+        );
+        let (_, hit) = cache.project(&snapshot, &changed_req, limits).unwrap();
+        assert!(!hit);
+        assert!(cache.project(&snapshot, &changed_req, limits).unwrap().1);
+        emit(
+            &format!("basis-{field}"),
+            json!({"request":changed,"basis_key":basis_key(&changed_req,limits.json_bytes).unwrap(),"hit":hit,"repeat_hit":true}),
+        );
+    }
+    let mut active = value.clone();
+    active["selection_inputs"] =
+        json!({"stage":"verification","origins":{"stage":"caller:observation"}});
+    let (new, hit) = cache.project(&snapshot, &request(&active), limits).unwrap();
+    assert!(!hit);
+    assert!(String::from_utf8_lossy(&new.entry).contains(&format!("RULE_{nonce}")));
+    assert_eq!(old.entry, original);
+    emit(
+        "reactivated-rule",
+        json!({"request":active,"basis_key":basis_key(&request(&active),limits.json_bytes).unwrap(),"entry":new.entry,"hit":hit,"old_entry":old.entry}),
+    );
+    fs::write(
+        dir.path().join("rule.md"),
+        rule.replace("RULE_", "REVISED_RULE_"),
+    )
+    .unwrap();
+    let revised = capture(dir.path());
+    let mut revised_value = active.clone();
+    revised_value["sources"] = json!(revised.descriptors());
+    revised_value["options"]["access"]["allowed_source_digests"] = json!(
+        revised
+            .descriptors()
+            .iter()
+            .map(|s| &s.source_digest)
+            .collect::<Vec<_>>()
+    );
+    let (revision, hit) = cache
+        .project(&revised, &request(&revised_value), limits)
+        .unwrap();
+    assert!(!hit);
+    assert!(String::from_utf8_lossy(&revision.entry).contains(&format!("REVISED_RULE_{nonce}")));
+    let stale = cache
+        .project(&revised, &request(&active), limits)
+        .unwrap_err();
+    assert_eq!(stale.code, "source-changed");
+    emit(
+        "source-revision",
+        json!({"request":revised_value,"basis_key":basis_key(&request(&revised_value),limits.json_bytes).unwrap(),"entry":revision.entry,"hit":hit,"stale_error":stale.code}),
+    );
+    let mut bounded = ProjectionCache::new(32768).unwrap();
+    let (small, _) = bounded.project(&snapshot, &req, limits).unwrap();
+    assert!(bounded.project(&snapshot, &req, limits).unwrap().1);
+    fs::write(
+        dir.path().join("task.md"),
+        task.replace(
+            "No permission",
+            &format!("{}No permission", "x".repeat(30000)),
+        ),
+    )
+    .unwrap();
+    let large = capture(dir.path());
+    let large_value = basis(&large);
+    let large_req = request(&large_value);
+    let (oversized, hit) = bounded.project(&large, &large_req, limits).unwrap();
+    assert!(!hit);
+    assert!(!bounded.project(&large, &large_req, limits).unwrap().1);
+    let (still, hit) = bounded.project(&snapshot, &req, limits).unwrap();
+    assert!(hit && Arc::ptr_eq(&small, &still));
+    emit(
+        "oversized-replacement",
+        json!({"request":large_value,"entry":oversized.entry,"capacity":32768,"entry_bytes":oversized.entry.len(),"hit":false,"repeat_hit":false,"previous_retained":true,"same_old_arc":true}),
+    );
+    let mut tiny = ProjectionCache::new(1).unwrap();
+    assert!(!tiny.project(&snapshot, &req, limits).unwrap().1);
+    assert!(!tiny.project(&snapshot, &req, limits).unwrap().1);
+    assert_eq!(
+        ProjectionCache::new(0).err().unwrap().code,
+        "resource-limit"
+    );
+    emit(
+        "capacity",
+        json!({"one_byte_returns_uncached":true,"zero_capacity_error":"resource-limit"}),
+    );
+    bounded.clear();
+    assert!(!bounded.project(&snapshot, &req, limits).unwrap().1);
+    assert_eq!(small.entry, original);
+    assert_eq!(old.entry, original);
+    emit(
+        "clear-preserves-callers",
+        json!({"hit_after_clear":false,"caller_entries_unchanged":true}),
+    );
+}

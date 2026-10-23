@@ -1,0 +1,33 @@
+{
+  "metadata_argv": [
+    "cargo",
+    "+1.97.1",
+    "metadata",
+    "--locked",
+    "--format-version",
+    "1",
+    "--manifest-path",
+    "/mnt/4tb/tmp/openwarrant-ow86-provider-20261023/lamu-rs/lamu-openwarrant/Cargo.toml"
+  ],
+  "metadata_exit": 0,
+  "driver_argv": [
+    "/usr/bin/python3",
+    "/mnt/4tb/tmp/openwarrant-ow86-evidence-20261023/conformance/integration/adapter/run.py",
+    "--provider-root",
+    "/mnt/4tb/tmp/openwarrant-ow86-provider-20261023/lamu-rs",
+    "--output",
+    "/mnt/4tb/artifacts/OpenWarrant/keep/ow86-evidence-20261023/resolution-red/unexpected-observation.json"
+  ],
+  "driver_exit": 0,
+  "declared_sdk": {
+    "git": "https://github.com/Quitetall/OpenWarrant.git",
+    "rev": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd"
+  },
+  "actual_sdk": {
+    "id": "path+file:///mnt/4tb/tmp/openwarrant-ow86-evidence-20261023/crates/openwarrant-core#1.0.0",
+    "source": null,
+    "manifest_path": "/mnt/4tb/tmp/openwarrant-ow86-evidence-20261023/crates/openwarrant-core/Cargo.toml"
+  },
+  "observation_published": true,
+  "qualification_established": false
+}

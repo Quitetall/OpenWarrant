@@ -1,0 +1,76 @@
+{
+  "schema": "oh.war/native-performer-comparison/v1",
+  "run": 40030825974,
+  "local": {
+    "schema": "oh.war/native-performer-observation/v1",
+    "head": "fc008ef53dc0d835d5caa2d3cbfbbbcc82cb90c4",
+    "tree": "0d38278d974b1afe92b8ac5e008beb489b736eca",
+    "host": "Linux",
+    "architecture": "x86_64",
+    "checks": [
+      {
+        "name": "build",
+        "argv": [
+          "cargo",
+          "build",
+          "--locked",
+          "-p",
+          "openwarrant-cli",
+          "--bin",
+          "war"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 35.380557157986914
+      },
+      {
+        "name": "units",
+        "argv": [
+          "cargo",
+          "test",
+          "--locked",
+          "-p",
+          "openwarrant-cli",
+          "--lib",
+          "perform::tests::"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 20.95484071499959
+      },
+      {
+        "name": "plant",
+        "argv": [
+          "bash",
+          "conformance/native/perform.sh"
+        ],
+        "exit_code": 0,
+        "elapsed_seconds": 16.692513895002776
+      }
+    ],
+    "source_clean_after": true,
+    "passed": true,
+    "qualification_established": false,
+    "macos_observed": false
+  },
+  "hosted": {
+    "native-linux": {
+      "tree": "0d38278d974b1afe92b8ac5e008beb489b736eca",
+      "source": "62fcd3d261d53b3e84cd019c93747441fc5d3799",
+      "host": "Linux x86_64",
+      "plant_controls": 22,
+      "performer_units": 7,
+      "plant_sha256": "521ddd9f4da8127bca20f73ee3a212157f7b8200275202666aed9cb392a96738",
+      "build_sha256": "6459e22c365c4cc6873ce2c536fd999006ba1965d939f5a722c06a29d4025d68"
+    },
+    "native-macos": {
+      "tree": "0d38278d974b1afe92b8ac5e008beb489b736eca",
+      "source": "62fcd3d261d53b3e84cd019c93747441fc5d3799",
+      "host": "Darwin arm64",
+      "plant_controls": 22,
+      "performer_units": 7,
+      "plant_sha256": "5ef47968e72194b0cf06c84517b01ecf450a67c30ca0029f7c3944ba4dc8d1fa",
+      "build_sha256": "ca4251c5188afc3fd082fcc65a2a2d7283de797a90791cfeaf7359a2447dece5"
+    }
+  },
+  "same_tree": true,
+  "qualification_established": false
+}

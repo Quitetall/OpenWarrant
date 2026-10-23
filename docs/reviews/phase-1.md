@@ -4,7 +4,25 @@ OW-WAR-0085 provides a complete assignment inventory for S01–S08, SDK-01–SDK
 
 Run `python3 conformance/sdk/run_phase1.py --output <new-receipt.json>` from this checkout. The runner builds the CLI and uses Cargo’s reported executable, including custom target directories. It captures source/build inputs before execution, compares them afterward, and records toolchain and executable identity. Source drift or binary drift prevents a current-host pass. A successful receipt is bounded to its recorded files and checks; it is not a Phase 1 exit or assurance mark.
 
-The latest recorded native run 38674510635 passed all eleven checks and the
+## Current bounded observation: 2026-10-23
+
+Native run [40023564482](https://github.com/Quitetall/OpenWarrant/actions/runs/40023564482)
+passed all eleven checks and the special-backup refusal on Linux x86_64 and
+macOS arm64 at W84 head `0635fc594a104ec1506500eafd0d55e208b9666c`.
+Both receipts match all 13,433 source files and case assignments. A separate
+local Linux execution also passed with that exact inventory. Source and binary
+stability checks pass in all three observations.
+
+The [current comparison](../warrants/OW-WAR-0085/implementation/native-20261023/comparison.json)
+and adjacent native receipts retain the actual inputs, commands and results.
+This establishes the bounded SDK, CLI and fixed skill artifact implementation
+checks. It does not establish a full protected gate for the later consolidated
+candidate, independent phase review, model skill activation, human effort,
+phase acceptance or release qualification.
+
+## Earlier observations
+
+Recorded native run 38674510635 passed all eleven checks and the
 explicit FIFO refusal on Linux x86_64 and macOS arm64. Both receipts match
 all 12,363 files in immutable tree `8f68a09c`, tested merge `6c2a59bd` / PR
 head `bef7e690`. Full PR gate and final candidate check passed, and that exact

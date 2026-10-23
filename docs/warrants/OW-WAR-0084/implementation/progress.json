@@ -3,14 +3,20 @@
   "warrant": "OW-WAR-0084",
   "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "6a963da5fb1cc64b0590a16b9e9557b1a477fb090ddef9cd2eac8b55e537717d",
-  "summary": "Phase 1 preservation and successor SDK complete, unverified. Eight public tests, ten file-backed cases and full 14-step gate passed; 308/308 controls. Original bytes and history retained; no authority transferred. Revision identifies source inventory.",
-  "notes": "docs/warrants/OW-WAR-0084/implementation/notes.md",
+  "revision": "4ef99ada91b07a8d5fbc75ce4f054037d911fc5be7b35f2c449581e5851b3b2a",
+  "summary": "Preservation and successor implementation complete, unverified. Current observations: eight public tests, ten codec cases and 24 CLI calls pass; 25 original inventory files match exact historical Git bytes. No signature authenticity or independent qualification claimed.",
+  "notes": "docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0084/implementation/observation.json",
     "docs/warrants/OW-WAR-0084/implementation/tests.log",
     "docs/warrants/OW-WAR-0084/implementation/probe.log",
-    "docs/warrants/OW-WAR-0084/implementation/gate.log"
+    "docs/warrants/OW-WAR-0084/implementation/gate.log",
+    "docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json",
+    "docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log",
+    "docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log",
+    "docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log",
+    "docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl",
+    "docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json"
   ],
   "next_steps": [
     "Run OW-WAR-0085 Phase 1 SDK, CLI and skill acceptance inventory.",

@@ -1,0 +1,25 @@
+PASS T49-legacy-signed
+PASS T49-legacy-signed:roundtrip
+PASS T53-new-roundtrip
+PASS T53-new-roundtrip:roundtrip
+PASS T53-rc2-roundtrip
+PASS T53-rc2-roundtrip:roundtrip
+PASS T51-same-path-successor
+PASS T51-self-successor-refused
+PASS T50-unsupported
+PASS T50-escaping
+PASS T50-future
+PASS T50-corrupt
+PASS T50-missing
+PASS historical-git-capture
+PASS historical-signature-byte-tamper
+PASS historical-signature-file-missing
+PASS fresh-capture-0
+PASS fresh-capture-1
+PASS fresh-successor
+PASS fresh-self-successor
+PASS fresh-unchanged-authority-path
+PASS fresh-duplicate-successor-path
+PASS fresh-missing-successor-path
+PASS fresh-traversal
+24 observed calls; 25 exact Git files; no qualification issued

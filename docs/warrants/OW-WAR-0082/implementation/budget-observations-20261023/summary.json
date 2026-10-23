@@ -1,0 +1,66 @@
+{
+  "kind": "actual-budget-cache-sdk-consumer",
+  "observed_cases": 31,
+  "sdk_calls": 10,
+  "calls": [
+    {
+      "label": "baseline",
+      "stdin_sha256": "e48f2d2e79d8f16a2f98a399ab351039174e81edce32e76248e5a2f92c969055",
+      "stdout_sha256": "69bcfca35cb6d7567be1b14922bcc97bd3c49926aa9ba6bf1be6b0b50c05fb70"
+    },
+    {
+      "label": "reactivated-rule",
+      "stdin_sha256": "32ec7617f7ba45ac59ac55e0862dbfe6d4cb5184a73d8435f9e4b45c54ce37aa",
+      "stdout_sha256": "f2da43174a919e71c02498f6feebc63cbe6610a70fa7a5b21f929aaa6937ba1c"
+    },
+    {
+      "label": "source-revision",
+      "stdin_sha256": "779356c5a83db63a5533d55ad483e6f6e04b8acbf8a71c33ef54c8d84bb37f25",
+      "stdout_sha256": "d22093c581a4556c5d83b34d6f14c09616e3878c28ff161b0b2f9cc92c65df1b"
+    },
+    {
+      "label": "basis-policy_facts",
+      "stdin_sha256": "4b772b9ed70d063feaf4d2f6edd9435ab840dbc49eabf0d162800fab48411ca5",
+      "stdout_sha256": "f76de37a23e41200b4ffc6abed821c7ed4800e11558440c890b7ad934d2028e2"
+    },
+    {
+      "label": "basis-records",
+      "stdin_sha256": "4b0cdcc0491fe1d2992212489e7f2f51372a697925553fafd0c13359de35f76c",
+      "stdout_sha256": "187eaf7ff80e99a486d7588a7e9d48aa7cafa1e4481ea17c861924d76761e6ba"
+    },
+    {
+      "label": "basis-compiler",
+      "stdin_sha256": "9434ebe461d12669f8ede48460ca8373a969207bb98a46d89b6d414e66f586eb",
+      "stdout_sha256": "f1194b3125f40a10856a6e4580bd1c22a31bcf81121b1825fbb96afd5ffaacb6"
+    },
+    {
+      "label": "basis-role",
+      "stdin_sha256": "43f2040a6cb985763829caa335f124e671cf9810d280b4583a3061eccacaec01",
+      "stdout_sha256": "b3b6ea6f8a9eca012aaeeae4182b82062f19f8df2f40404a35091f1079491cb9"
+    },
+    {
+      "label": "basis-access-basis",
+      "stdin_sha256": "9e7e02f238a62040b9fceeead8c4dbbc036706d3ca695a00bc7787a44888d3e7",
+      "stdout_sha256": "0f3d4b5b133cc4c29aabea79bee2ff6b2325dc9ffc40abd5f628131fb94c3061"
+    },
+    {
+      "label": "basis-optional",
+      "stdin_sha256": "bb492f13865a05b1d2cb8b2d53bb3ac2c21fe8af3e662e0c725d108a34634aa5",
+      "stdout_sha256": "e43ca38057ce01fb7628ef4ca2ed29032add46f147ad777c825b23da7398dcfe"
+    },
+    {
+      "label": "baseline-packet",
+      "stdin_sha256": "4fbb7317e30d8ffd9bb02fc5d767b06d370824972b8a878234b98c1b027181e4",
+      "stdout_sha256": "8fd4a316783f44e5647ee0ba1fc493da8d26fbb2697a3c8941a8bd243d818298"
+    }
+  ],
+  "transcript_sha256": "0683c1fafafd06ca60d9166f0d2fbd43e54f78b01ff186928037c0792439f766",
+  "wire_sha256": "e5c5ec242e8a896437f8a9dbb00c4e69373e05a5f52aaae3cacecce9e2760d75",
+  "binary_sha256": "3eb13f9522a43d44115b4027aefdefaecbcff6e2e9556526e2cee91a12add76b",
+  "qualification_established": false,
+  "limitations": [
+    "Accounting is UTF8 bytes/4 estimate, not tokenizer or spend",
+    "Cache bound covers declared retained payload, not allocator overhead or caller-held Arc memory",
+    "External test instrumentation and SDK decoding do not establish trusted execution or human acceptance"
+  ]
+}
