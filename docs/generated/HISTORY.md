@@ -21713,6 +21713,26 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0080/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | docs/integrations/projections.md | `docs/integrations/projections.md` | verified |
+| D-002 | conformance/integration/projections/README.md | `conformance/integration/projections/README.md` | verified |
+| D-003 | conformance/integration/projections/check_observations.py | `conformance/integration/projections/check_observations.py` | verified |
+| D-004 | conformance/integration/projections/run.py | `conformance/integration/projections/run.py` | verified |
+| D-005 | docs/warrants/OW-WAR-0080/implementation/notes.md | `docs/warrants/OW-WAR-0080/implementation/notes.md` | verified |
+| D-006 | docs/warrants/OW-WAR-0080/implementation/progress.json | `docs/warrants/OW-WAR-0080/implementation/progress.json` | verified |
+| D-007 | docs/warrants/OW-WAR-0080/implementation/projection-observation.json | `docs/warrants/OW-WAR-0080/implementation/projection-observation.json` | verified |
+| D-008 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/README.md | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/README.md` | verified |
+| D-009 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/external-probe.rs.txt | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/external-probe.rs.txt` | verified |
+| D-010 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/native-projections.json | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/native-projections.json` | verified |
+| D-011 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe-identity.json` | verified |
+| D-012 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stderr` | verified |
+| D-013 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stdout` | verified |
+| D-014 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/sdk-wire.jsonl | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/sdk-wire.jsonl` | verified |
+| D-015 | docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/summary.json | `docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/summary.json` | verified |
+
 ### OW-WAR-0081 — Inspect packet integrity and prove offline provider packages
 
 [manifest](../../docs/warrants/OW-WAR-0081/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0081/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
