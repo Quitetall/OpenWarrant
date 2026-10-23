@@ -2577,6 +2577,79 @@
       "success": false,
       "error": "legacy.dialect",
       "expect": {}
+    },
+    {
+      "id": "source-lock",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "source-lock",
+        "descriptors": [
+          {
+            "path": "fixtures/abc.bin",
+            "source_digest": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            "byte_length": 3,
+            "holder": {
+              "kind": "example",
+              "locator": "example:fixture"
+            },
+            "metadata": {
+              "trust": "untrusted",
+              "classification": "internal",
+              "taints": [],
+              "authority": "unestablished",
+              "basis_refs": []
+            }
+          }
+        ],
+        "files": [
+          {
+            "path": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            "hex": "616263"
+          }
+        ]
+      },
+      "success": true,
+      "expect": {
+        "/result/canonical": "[{\"byte_length\":3,\"holder\":{\"kind\":\"example\",\"locator\":\"example:fixture\"},\"metadata\":{\"authority\":\"unestablished\",\"basis_refs\":[],\"classification\":\"internal\",\"taints\":[],\"trust\":\"untrusted\"},\"path\":\"fixtures/abc.bin\",\"source_digest\":\"sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad\"}]",
+        "/result/source_count": 1,
+        "/result/semantic_coverage_established": false
+      }
+    },
+    {
+      "id": "source-lock-drift",
+      "request": {
+        "schema": "oh.war/sdk-request/v1",
+        "operation": "source-lock",
+        "descriptors": [
+          {
+            "path": "fixtures/abc.bin",
+            "source_digest": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            "byte_length": 3,
+            "holder": {
+              "kind": "example",
+              "locator": "example:fixture"
+            },
+            "metadata": {
+              "trust": "untrusted",
+              "classification": "internal",
+              "taints": [],
+              "authority": "unestablished",
+              "basis_refs": []
+            }
+          }
+        ],
+        "files": [
+          {
+            "path": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+            "hex": "646566"
+          }
+        ]
+      },
+      "success": false,
+      "expect": {
+        "/result": null
+      },
+      "error": "digest-mismatch"
     }
   ]
 }

@@ -12,7 +12,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 - **Current by construction.** A Warrant is current unless an authorized Warrant declares `supersedes` → it, or its resolution is annulled. Currency is derived from those relations, never written.
 - **Fully expanded.** Every current Warrant's atoms appear below verbatim, in role order. Nothing is paraphrased.
 - **Replaced subjects are one line.** 1 replaced subject(s) appear under *Replaced* as lineage and nothing else; their text is in the history, when this repository keeps one.
-- **Records as of 2026-10-20** — the latest recorded event. 144 current Warrant(s).
+- **Records as of 2026-10-23** — the latest recorded event. 144 current Warrant(s).
 
 ## In force
 
@@ -23758,6 +23758,81 @@ requires its own observed refusal and exact evidence.
 The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0077/atoms/60-assurance.md ends -->
+
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/source.rs | `crates/openwarrant-core/src/document/source.rs` | verified |
+| D-002 | conformance/sdk/source/.gitattributes | `conformance/sdk/source/.gitattributes` | verified |
+| D-003 | conformance/sdk/source/README.md | `conformance/sdk/source/README.md` | verified |
+| D-004 | conformance/sdk/source/abc.bin | `conformance/sdk/source/abc.bin` | verified |
+| D-005 | conformance/sdk/source/abc.json | `conformance/sdk/source/abc.json` | verified |
+| D-006 | conformance/sdk/source/abc.lock.json | `conformance/sdk/source/abc.lock.json` | verified |
+| D-007 | conformance/sdk/source/architecture.json | `conformance/sdk/source/architecture.json` | verified |
+| D-008 | conformance/sdk/source/architecture.md | `conformance/sdk/source/architecture.md` | verified |
+| D-009 | conformance/sdk/source/cases.json | `conformance/sdk/source/cases.json` | verified |
+| D-010 | conformance/sdk/source/changed.md | `conformance/sdk/source/changed.md` | verified |
+| D-011 | conformance/sdk/source/check_observations.py | `conformance/sdk/source/check_observations.py` | verified |
+| D-012 | conformance/sdk/source/combined.lock.json | `conformance/sdk/source/combined.lock.json` | verified |
+| D-013 | conformance/sdk/source/conflicting.json | `conformance/sdk/source/conflicting.json` | verified |
+| D-014 | conformance/sdk/source/crlf-outcome.txt | `conformance/sdk/source/crlf-outcome.txt` | verified |
+| D-015 | conformance/sdk/source/crlf.json | `conformance/sdk/source/crlf.json` | verified |
+| D-016 | conformance/sdk/source/crlf.lock.json | `conformance/sdk/source/crlf.lock.json` | verified |
+| D-017 | conformance/sdk/source/crlf.md | `conformance/sdk/source/crlf.md` | verified |
+| D-018 | conformance/sdk/source/decision.txt | `conformance/sdk/source/decision.txt` | verified |
+| D-019 | conformance/sdk/source/false-authority.json | `conformance/sdk/source/false-authority.json` | verified |
+| D-020 | conformance/sdk/source/mixed.lock.json | `conformance/sdk/source/mixed.lock.json` | verified |
+| D-021 | conformance/sdk/source/outcome.txt | `conformance/sdk/source/outcome.txt` | verified |
+| D-022 | conformance/sdk/source/renamed.json | `conformance/sdk/source/renamed.json` | verified |
+| D-023 | conformance/sdk/source/renamed.lock.json | `conformance/sdk/source/renamed.lock.json` | verified |
+| D-024 | conformance/sdk/source/renamed.md | `conformance/sdk/source/renamed.md` | verified |
+| D-025 | conformance/sdk/source/task.json | `conformance/sdk/source/task.json` | verified |
+| D-026 | conformance/sdk/source/task.lock.json | `conformance/sdk/source/task.lock.json` | verified |
+| D-027 | conformance/sdk/source/task.md | `conformance/sdk/source/task.md` | verified |
+| D-028 | conformance/sdk/source/unsafe-path.json | `conformance/sdk/source/unsafe-path.json` | verified |
+| D-029 | conformance/sdk/source/wrong-identity.json | `conformance/sdk/source/wrong-identity.json` | verified |
+| D-030 | conformance/sdk/source/wrong-length.json | `conformance/sdk/source/wrong-length.json` | verified |
+| D-031 | conformance/integration/source/README.md | `conformance/integration/source/README.md` | verified |
+| D-032 | conformance/integration/source/run.py | `conformance/integration/source/run.py` | verified |
+| D-033 | docs/warrants/OW-WAR-0077/implementation/notes.md | `docs/warrants/OW-WAR-0077/implementation/notes.md` | verified |
+| D-034 | docs/warrants/OW-WAR-0077/implementation/progress.json | `docs/warrants/OW-WAR-0077/implementation/progress.json` | verified |
+| D-035 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/README.md | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/README.md` | verified |
+| D-036 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stderr` | verified |
+| D-037 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stdout` | verified |
+| D-038 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/cli-identity.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/cli-identity.json` | verified |
+| D-039 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stderr` | verified |
+| D-040 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stdout` | verified |
+| D-041 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/controls.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/controls.json` | verified |
+| D-042 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/final-cli-recheck-results.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/final-cli-recheck-results.json` | verified |
+| D-043 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stderr` | verified |
+| D-044 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stdout` | verified |
+| D-045 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green-result.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green-result.json` | verified |
+| D-046 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stderr` | verified |
+| D-047 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stdout` | verified |
+| D-048 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red-result.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red-result.json` | verified |
+| D-049 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stderr` | verified |
+| D-050 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stdout` | verified |
+| D-051 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/native-provider-results.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/native-provider-results.json` | verified |
+| D-052 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-identity.json` | verified |
+| D-053 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stderr` | verified |
+| D-054 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stdout` | verified |
+| D-055 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/provider-observation.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/provider-observation.json` | verified |
+| D-056 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stderr` | verified |
+| D-057 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stdout` | verified |
+| D-058 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json` | verified |
+| D-059 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json` | verified |
+| D-060 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl` | verified |
+| D-061 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md` | verified |
+| D-062 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json` | verified |
+| D-063 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json` | verified |
+| D-064 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json` | verified |
+| D-065 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr` | verified |
+| D-066 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json` | verified |
+| D-067 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr` | verified |
+| D-068 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout` | verified |
+| D-069 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json` | verified |
+| D-070 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl` | verified |
 
 #### OW-WAR-0078 — Validate condition syntax and prove provider evaluation integration
 

@@ -1,0 +1,48 @@
+[
+  {
+    "stage": "all-integration-recheck",
+    "argv": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "openwarrant-cli",
+      "--test",
+      "all",
+      "--features",
+      "schema"
+    ],
+    "exit_code": 0,
+    "seconds": 122.86114937499951
+  },
+  {
+    "stage": "clippy",
+    "argv": [
+      "cargo",
+      "clippy",
+      "--locked",
+      "-p",
+      "openwarrant-cli",
+      "--all-targets",
+      "--features",
+      "schema",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "exit_code": 0,
+    "seconds": 26.41571836300136
+  },
+  {
+    "stage": "fmt",
+    "argv": [
+      "cargo",
+      "fmt",
+      "--all",
+      "--",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.465818497003056
+  }
+]

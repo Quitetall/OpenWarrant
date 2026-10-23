@@ -1,0 +1,10 @@
+
+running 5 tests
+test aggregate_budget_stops_before_next_filesystem_lookup ... ok
+test capture_original_bytes_and_refuse_changed_source_without_replacing_prior_snapshot ... ok
+test filesystem_boundary_refuses_escape_symlinks_special_files_and_limits ... ok
+test mixed_sources_have_deterministic_locks_and_distinct_integrity_refusals ... ok
+test resolve_units_from_actual_capture_preserves_old_basis_after_heading_rename ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.47s
+

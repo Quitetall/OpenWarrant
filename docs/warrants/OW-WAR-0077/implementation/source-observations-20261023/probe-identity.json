@@ -1,0 +1,9 @@
+{
+  "source_head": "045f9ec2cb8c6fcb0e077f1c6474f5c078163afe",
+  "sha256": "a500437c8a98e97f5507198777b47b5c4c11c663abe70c7d91b4bb858a286a5e",
+  "source_files": {
+    "crates/openwarrant-core/src/document/source.rs": "9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8",
+    "conformance/sdk/source/cases.json": "cfcb93b588d15823ea5ae4662eb4acfe9560687736ec2efd267437d7b33fd4b9",
+    "crates/openwarrant-core/examples/sdk_probe/source.rs": "534a00ddf6c3689f0c2cbf737e5763cc60b2ea8eeea7a79a13eb9a7e9b209942"
+  }
+}

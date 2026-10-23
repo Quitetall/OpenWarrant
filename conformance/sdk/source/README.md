@@ -4,6 +4,13 @@ Run `cargo run -p openwarrant-core --example sdk_probe -- --scope 77 --fixtures 
 The driver reads explicit fixture files and calls the public SDK. It is not a
 source-capture provider and does not follow document pointers or inspect live paths.
 
+The CLI exposes canonical F5 locks through `war sdk --request request.json`.
+Use operation `source-lock`, with explicit `descriptors` and digest-keyed
+`files` (`path` is the source digest; `hex` is the original byte sequence).
+The result contains the exact canonical lock string and source count. Changed
+bytes or conflicting descriptors refuse without a partial lock. This operation
+checks supplied data; it neither acquires files nor establishes semantic coverage.
+
 These fixtures cover source descriptors, original-byte digests, exact unit ranges,
 canonical path-ordered locks, changed content, conflicting identity claims, unsafe
 path syntax, opaque inputs, CRLF and UTF-8. Literal expected locks use the F3/F5

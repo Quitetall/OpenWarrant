@@ -1,0 +1,84 @@
+{
+  "cases": [
+    {
+      "case": "SDK77-opaque",
+      "path": "case-8805671b1039cb6293c24f5871c2306e24da2af0c795b5126e75e0ad92be2849.json"
+    },
+    {
+      "case": "SDK77-unit-span",
+      "path": "case-4888eecff5075193967b892877d966c4eb82f4a20a827708ca9b33cee5de753a.json"
+    },
+    {
+      "case": "SDK77-digest-drift",
+      "path": "case-ad95b0ee70b54527efae7c1386a8fa6e7ed7661fc6ff0bb8b5279f8b5f737c5f.json"
+    },
+    {
+      "case": "SDK77-forged-identity",
+      "path": "case-333164d145c90c2420f2fd861d733043e360e3880b14f7e6ecbe618915288567.json"
+    },
+    {
+      "case": "SDK77-unsafe-path",
+      "path": "case-6b96ffdb42b6743423631f21e43f38a101022bac1c957a7fe7e1627c5605db48.json"
+    },
+    {
+      "case": "SDK77-wrong-length",
+      "path": "case-83845b168e32442414e350082a78518d5a5d314dd1637d8dbe3d272e6f603c6c.json"
+    },
+    {
+      "case": "SDK77-duplicate-path",
+      "path": "case-d31e596835c8e537f1562c08013d5025a17078e1615273ac7f5757f766c570ec.json"
+    },
+    {
+      "case": "SDK77-conflicting-identity",
+      "path": "case-fde2af4946bead0981a9bfdbbd4dd6ef64445d979057cee3c078be193177edac.json"
+    },
+    {
+      "case": "SDK77-order-a",
+      "path": "case-5df2c691dff2c4bf3948f9fddfef357406cabec4b865d26ad48bb92a3e40c057.json"
+    },
+    {
+      "case": "SDK77-order-b",
+      "path": "case-431f42833cc8b48bc576fa3dadd37333ce102d263efe95132a44492b50fb904b.json"
+    },
+    {
+      "case": "SDK77-range-drift",
+      "path": "case-5ba6b9b2e6dfcdf792c9aa769e8d040ef06843255c1fd8cb8c0a10a7f4dd4a79.json"
+    },
+    {
+      "case": "SDK77-missing-source",
+      "path": "case-138f796dd5dc0ac27ce373eeab96f2302d27bd8a27f832dd8e34fdd01237f6d3.json"
+    },
+    {
+      "case": "SDK77-missing-unit",
+      "path": "case-9928cfb6337dcb72b2a19cbfab863dfea817f3dc99e0a99e64163a16924f4d7a.json"
+    },
+    {
+      "case": "SDK77-opaque-unit",
+      "path": "case-371a0c57088ddbb126f99099e7617b2fddd8c49cd5d473c5725ac27539daabb9.json"
+    },
+    {
+      "case": "SDK77-false-authority",
+      "path": "case-76606ee82b9f8f31f2a45a1e1dd635d32b6332266b11fad9be0cf97049237012.json"
+    },
+    {
+      "case": "SDK77-renamed-heading",
+      "path": "case-009358fd782c4da473d125a643bc31afab60a57e6863ad9d3f4772d829bb23ee.json"
+    },
+    {
+      "case": "SDK77-old-reference",
+      "path": "case-14e8888ea4b2a365d999d76907e61755394f58686d86e5275bca85ad76f62c2b.json"
+    },
+    {
+      "case": "SDK77-crlf-unicode",
+      "path": "case-06550d53bcae6302f9f4218111eeeeb3636b4bed2bc42e85df3a05a1547c5c10.json"
+    },
+    {
+      "case": "SDK77-mixed-sources",
+      "path": "case-4d80f0c3dab4e5faff91fc81e463e69108358ed00883a4fb1eef016f45719828.json"
+    }
+  ],
+  "sdk_calls": 65,
+  "binary_sha256": "ddf33424ab40b93d45c2ea1f98b081e642f4d9c61a601367bc2764a79b824c10",
+  "wire_sha256": "6b9bea57c7a8112be2ef387d1b369f17a8a26ad39f59cc007462d9b3f910258a",
+  "qualification_established": false
+}
