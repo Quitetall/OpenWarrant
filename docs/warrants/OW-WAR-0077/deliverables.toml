@@ -1,0 +1,1385 @@
+schema = "oh.war/deliverables/v1"
+
+# Observed reuse of existing files and retained execution records.
+# Original source authorship and actual execution inputs remain in Git and
+# the observations; this declaration is not independent verification.
+
+[[deliverable]]
+id = "D-001"
+title = "crates/openwarrant-core/src/document/source.rs"
+kind = "file"
+target_ref = "crates/openwarrant-core/src/document/source.rs"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8"
+media_type = "text/x-rust"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8"]
+
+[[deliverable]]
+id = "D-002"
+title = "conformance/sdk/source/.gitattributes"
+kind = "file"
+target_ref = "conformance/sdk/source/.gitattributes"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:daf64dc9a49d094b2a59e68509c104c807ee65668fb7ed3544e6000f839232ba"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:daf64dc9a49d094b2a59e68509c104c807ee65668fb7ed3544e6000f839232ba"]
+
+[[deliverable]]
+id = "D-003"
+title = "conformance/sdk/source/README.md"
+kind = "file"
+target_ref = "conformance/sdk/source/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:455ebd3bd61ff1e7401e403830abb5ea73efadf1b4d5dc7e4ffddb220dd440e9"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:455ebd3bd61ff1e7401e403830abb5ea73efadf1b4d5dc7e4ffddb220dd440e9"]
+
+[[deliverable]]
+id = "D-004"
+title = "conformance/sdk/source/abc.bin"
+kind = "file"
+target_ref = "conformance/sdk/source/abc.bin"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"]
+
+[[deliverable]]
+id = "D-005"
+title = "conformance/sdk/source/abc.json"
+kind = "file"
+target_ref = "conformance/sdk/source/abc.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:7f0c359c8bfb47dbfb42d45595a81943fa02bce4991a9800def9df5fa89a5e28"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7f0c359c8bfb47dbfb42d45595a81943fa02bce4991a9800def9df5fa89a5e28"]
+
+[[deliverable]]
+id = "D-006"
+title = "conformance/sdk/source/abc.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/abc.lock.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:b120efa8c968c22d90690d10e4209e65084a84af2c5703f9a3e5b42af4a403df"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:b120efa8c968c22d90690d10e4209e65084a84af2c5703f9a3e5b42af4a403df"]
+
+[[deliverable]]
+id = "D-007"
+title = "conformance/sdk/source/architecture.json"
+kind = "file"
+target_ref = "conformance/sdk/source/architecture.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:91042df8be33889eb4a030900beed46b150f5852ac531c904de18c926829a9ad"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:91042df8be33889eb4a030900beed46b150f5852ac531c904de18c926829a9ad"]
+
+[[deliverable]]
+id = "D-008"
+title = "conformance/sdk/source/architecture.md"
+kind = "file"
+target_ref = "conformance/sdk/source/architecture.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:df6856e5fa47d36f3e4b15e1452957051747edbe94a96d65533068b6567527fa"]
+
+[[deliverable]]
+id = "D-009"
+title = "conformance/sdk/source/cases.json"
+kind = "file"
+target_ref = "conformance/sdk/source/cases.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:cfcb93b588d15823ea5ae4662eb4acfe9560687736ec2efd267437d7b33fd4b9"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:cfcb93b588d15823ea5ae4662eb4acfe9560687736ec2efd267437d7b33fd4b9"]
+
+[[deliverable]]
+id = "D-010"
+title = "conformance/sdk/source/changed.md"
+kind = "file"
+target_ref = "conformance/sdk/source/changed.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:62ab883ca213985b4cf59dbd8db906e9dc047ef9aef8f76cf2e2e421eac2cf70"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:62ab883ca213985b4cf59dbd8db906e9dc047ef9aef8f76cf2e2e421eac2cf70"]
+
+[[deliverable]]
+id = "D-011"
+title = "conformance/sdk/source/check_observations.py"
+kind = "file"
+target_ref = "conformance/sdk/source/check_observations.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:7da4e127e570c9db61e873ccf20bdadbc503fe0f93b8d099dac02114b433f9d5"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7da4e127e570c9db61e873ccf20bdadbc503fe0f93b8d099dac02114b433f9d5"]
+
+[[deliverable]]
+id = "D-012"
+title = "conformance/sdk/source/combined.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/combined.lock.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:110157d9545245c8fa978d7a136ee21286ec5d290b5a43a152f5625c72d877cf"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:110157d9545245c8fa978d7a136ee21286ec5d290b5a43a152f5625c72d877cf"]
+
+[[deliverable]]
+id = "D-013"
+title = "conformance/sdk/source/conflicting.json"
+kind = "file"
+target_ref = "conformance/sdk/source/conflicting.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:cfcceb9154d5b6d50341c9a50d7bb32ee1b1635a55c4dc101a27f31362bdf20d"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:cfcceb9154d5b6d50341c9a50d7bb32ee1b1635a55c4dc101a27f31362bdf20d"]
+
+[[deliverable]]
+id = "D-014"
+title = "conformance/sdk/source/crlf-outcome.txt"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf-outcome.txt"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:1263482b83a529b4fe30c5ee4133c061126dff45f2b0cc57d626d3f48bbc798d"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:1263482b83a529b4fe30c5ee4133c061126dff45f2b0cc57d626d3f48bbc798d"]
+
+[[deliverable]]
+id = "D-015"
+title = "conformance/sdk/source/crlf.json"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:692e2449f7e7406757c237eacb24056c59c66598942a9366b71d3d70842c36a5"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:692e2449f7e7406757c237eacb24056c59c66598942a9366b71d3d70842c36a5"]
+
+[[deliverable]]
+id = "D-016"
+title = "conformance/sdk/source/crlf.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf.lock.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:064293f4c8299a7429e280b02f93a4a3b3378b58b9ff01b8bd060624d3337afc"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:064293f4c8299a7429e280b02f93a4a3b3378b58b9ff01b8bd060624d3337afc"]
+
+[[deliverable]]
+id = "D-017"
+title = "conformance/sdk/source/crlf.md"
+kind = "file"
+target_ref = "conformance/sdk/source/crlf.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:0432a7936b897824f060aaaa63a4ccc94d6dffa1c88f9909d38c7c0d1f29c347"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0432a7936b897824f060aaaa63a4ccc94d6dffa1c88f9909d38c7c0d1f29c347"]
+
+[[deliverable]]
+id = "D-018"
+title = "conformance/sdk/source/decision.txt"
+kind = "file"
+target_ref = "conformance/sdk/source/decision.txt"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:518ff9efb15b855f40e35dd722b99f1854740688784fae64f96d2c3c191fc99a"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:518ff9efb15b855f40e35dd722b99f1854740688784fae64f96d2c3c191fc99a"]
+
+[[deliverable]]
+id = "D-019"
+title = "conformance/sdk/source/false-authority.json"
+kind = "file"
+target_ref = "conformance/sdk/source/false-authority.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e0e65a8cdaffc1cc05a4781476e63ac7c2fd3debb0fbd505874dab5b14c7dddc"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e0e65a8cdaffc1cc05a4781476e63ac7c2fd3debb0fbd505874dab5b14c7dddc"]
+
+[[deliverable]]
+id = "D-020"
+title = "conformance/sdk/source/mixed.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/mixed.lock.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:5152e1ff43c059fd09bc569196caf7bf046c4647ad14f28d3dc40a46c7880f08"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:5152e1ff43c059fd09bc569196caf7bf046c4647ad14f28d3dc40a46c7880f08"]
+
+[[deliverable]]
+id = "D-021"
+title = "conformance/sdk/source/outcome.txt"
+kind = "file"
+target_ref = "conformance/sdk/source/outcome.txt"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:1d23cc5075768a28824ccd3bb6c641ae4ed38e136d89026f9ed7f42871fd40ae"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:1d23cc5075768a28824ccd3bb6c641ae4ed38e136d89026f9ed7f42871fd40ae"]
+
+[[deliverable]]
+id = "D-022"
+title = "conformance/sdk/source/renamed.json"
+kind = "file"
+target_ref = "conformance/sdk/source/renamed.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:3e08e6c0cfcfa191c9e8930ecb3a682e389aeb4ca65a393286bef3f4ef98ed14"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:3e08e6c0cfcfa191c9e8930ecb3a682e389aeb4ca65a393286bef3f4ef98ed14"]
+
+[[deliverable]]
+id = "D-023"
+title = "conformance/sdk/source/renamed.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/renamed.lock.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:f3dbe747f89ba040ff2bcf2fb183307be4d8954f5004c204d8a95a4ece43612c"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f3dbe747f89ba040ff2bcf2fb183307be4d8954f5004c204d8a95a4ece43612c"]
+
+[[deliverable]]
+id = "D-024"
+title = "conformance/sdk/source/renamed.md"
+kind = "file"
+target_ref = "conformance/sdk/source/renamed.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:f58d0739716ac45c357af28aaf6babec8903f2a7a5461729d2554b5b2b584549"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f58d0739716ac45c357af28aaf6babec8903f2a7a5461729d2554b5b2b584549"]
+
+[[deliverable]]
+id = "D-025"
+title = "conformance/sdk/source/task.json"
+kind = "file"
+target_ref = "conformance/sdk/source/task.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:0e8ea4c25466a6e2580b8d3e5a96f387367decb94452054aac1d3cd1f6138a0a"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:0e8ea4c25466a6e2580b8d3e5a96f387367decb94452054aac1d3cd1f6138a0a"]
+
+[[deliverable]]
+id = "D-026"
+title = "conformance/sdk/source/task.lock.json"
+kind = "file"
+target_ref = "conformance/sdk/source/task.lock.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:f75f460451b08ed612666748363eb08b31bed4299617b44491ae7b01c961fad8"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:f75f460451b08ed612666748363eb08b31bed4299617b44491ae7b01c961fad8"]
+
+[[deliverable]]
+id = "D-027"
+title = "conformance/sdk/source/task.md"
+kind = "file"
+target_ref = "conformance/sdk/source/task.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:16126178787a0ae75a6503ae225da07b428ae1c60d72498bdf0aa66284711fc8"]
+
+[[deliverable]]
+id = "D-028"
+title = "conformance/sdk/source/unsafe-path.json"
+kind = "file"
+target_ref = "conformance/sdk/source/unsafe-path.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:925afa63beded43dedf204526f3f24f97a176d682806b6f72e718ade16339d05"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:925afa63beded43dedf204526f3f24f97a176d682806b6f72e718ade16339d05"]
+
+[[deliverable]]
+id = "D-029"
+title = "conformance/sdk/source/wrong-identity.json"
+kind = "file"
+target_ref = "conformance/sdk/source/wrong-identity.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e328834f72ec746930d06de39dffa0a70ed610eb4e7ef9b48cfb36a5f3618bad"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e328834f72ec746930d06de39dffa0a70ed610eb4e7ef9b48cfb36a5f3618bad"]
+
+[[deliverable]]
+id = "D-030"
+title = "conformance/sdk/source/wrong-length.json"
+kind = "file"
+target_ref = "conformance/sdk/source/wrong-length.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:9dcce03bcb66c68b031a775408e4c22e0fdec38756c033c46717b5288614edc7"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:9dcce03bcb66c68b031a775408e4c22e0fdec38756c033c46717b5288614edc7"]
+
+[[deliverable]]
+id = "D-031"
+title = "conformance/integration/source/README.md"
+kind = "file"
+target_ref = "conformance/integration/source/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:65d25d3a3095a9e54764be54d5a5674a1a62675c9e009dd8fd4b3d5bd0ce880a"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:65d25d3a3095a9e54764be54d5a5674a1a62675c9e009dd8fd4b3d5bd0ce880a"]
+
+[[deliverable]]
+id = "D-032"
+title = "conformance/integration/source/run.py"
+kind = "file"
+target_ref = "conformance/integration/source/run.py"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830"
+media_type = "text/x-python"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830"]
+
+[[deliverable]]
+id = "D-033"
+title = "docs/warrants/OW-WAR-0077/implementation/notes.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/notes.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:6e188a28df6a0c0cbc4360dc314fe3a92f61b77facc2dc60756122cff772d679"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:6e188a28df6a0c0cbc4360dc314fe3a92f61b77facc2dc60756122cff772d679"]
+
+[[deliverable]]
+id = "D-034"
+title = "docs/warrants/OW-WAR-0077/implementation/progress.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/progress.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:4a491b082cb2785071af6aa68455d4acc53de411e357349428d10d959df3fea4"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:4a491b082cb2785071af6aa68455d4acc53de411e357349428d10d959df3fea4"]
+
+[[deliverable]]
+id = "D-035"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/README.md"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/README.md"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:25581a3fb92ed2484d030061dc0bd3d4917f80741183b1e7675fa280f239cc1f"
+media_type = "text/markdown"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:25581a3fb92ed2484d030061dc0bd3d4917f80741183b1e7675fa280f239cc1f"]
+
+[[deliverable]]
+id = "D-036"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:81fa4b5cff7117788666872beb1f7aec9c8a1c05898ca627b054ca8e8117fc2d"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:81fa4b5cff7117788666872beb1f7aec9c8a1c05898ca627b054ca8e8117fc2d"]
+
+[[deliverable]]
+id = "D-037"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e17a4350ab69c8968b5f1b0460cbdae57cb7cd3d5898fee2d890ff208b3ef41e"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e17a4350ab69c8968b5f1b0460cbdae57cb7cd3d5898fee2d890ff208b3ef41e"]
+
+[[deliverable]]
+id = "D-038"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/cli-identity.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/cli-identity.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:12e1d7ee7546298ffe3a4db90dfd4ee9bf559f091c76d1271335a32ccc145aae"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:12e1d7ee7546298ffe3a4db90dfd4ee9bf559f091c76d1271335a32ccc145aae"]
+
+[[deliverable]]
+id = "D-039"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:8ac3086ebb84a1c6fa9a4ee74e8e88caa7563631643378cb97a23815ce6c5aff"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8ac3086ebb84a1c6fa9a4ee74e8e88caa7563631643378cb97a23815ce6c5aff"]
+
+[[deliverable]]
+id = "D-040"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]
+
+[[deliverable]]
+id = "D-041"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/controls.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/controls.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:fce0429e874cbdbb846c75d17ab82576ee58d4c063b50fc3ec081d8f775bef6f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:fce0429e874cbdbb846c75d17ab82576ee58d4c063b50fc3ec081d8f775bef6f"]
+
+[[deliverable]]
+id = "D-042"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/final-cli-recheck-results.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/final-cli-recheck-results.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:12c5fa9611ebb0b4920f02cbdf46526ed53b00786ebef1786cf38f508ee74be1"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:12c5fa9611ebb0b4920f02cbdf46526ed53b00786ebef1786cf38f508ee74be1"]
+
+[[deliverable]]
+id = "D-043"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]
+
+[[deliverable]]
+id = "D-044"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]
+
+[[deliverable]]
+id = "D-045"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green-result.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green-result.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:49f7e44865fbf4e210089ad4606bef2b33081332c08b3822b428496f1983d307"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:49f7e44865fbf4e210089ad4606bef2b33081332c08b3822b428496f1983d307"]
+
+[[deliverable]]
+id = "D-046"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:eb40075df2dd48918543c17399a26aaef159863e134e33909c4db177a5112189"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:eb40075df2dd48918543c17399a26aaef159863e134e33909c4db177a5112189"]
+
+[[deliverable]]
+id = "D-047"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:08c300bd5c6d1186efb423ce0cfb9d3d053ceb5dc2aeb0ca5cb208e30a7fb690"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:08c300bd5c6d1186efb423ce0cfb9d3d053ceb5dc2aeb0ca5cb208e30a7fb690"]
+
+[[deliverable]]
+id = "D-048"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red-result.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red-result.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:a3cb259681c0f49b3b28732a8593758445188ebfac4ce2014f24a13c8361249f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:a3cb259681c0f49b3b28732a8593758445188ebfac4ce2014f24a13c8361249f"]
+
+[[deliverable]]
+id = "D-049"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:517e83a77dff2a3921e1c12cf41c638271ff9ba79dd2d9488bfb09e005fa154a"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:517e83a77dff2a3921e1c12cf41c638271ff9ba79dd2d9488bfb09e005fa154a"]
+
+[[deliverable]]
+id = "D-050"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:b06896528de3d6b39c1286a805fc311b0bda859e9162898c64dbd933541d891b"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:b06896528de3d6b39c1286a805fc311b0bda859e9162898c64dbd933541d891b"]
+
+[[deliverable]]
+id = "D-051"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/native-provider-results.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/native-provider-results.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:58a6d151b7d4ba2736907ae032138f068c210118be45ac14fe3c4a771e74b374"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:58a6d151b7d4ba2736907ae032138f068c210118be45ac14fe3c4a771e74b374"]
+
+[[deliverable]]
+id = "D-052"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-identity.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-identity.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:99c7e9c883ac46132d4d6b43b711bf5c5ee7b7b689426f1f3419e1a400a3245f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:99c7e9c883ac46132d4d6b43b711bf5c5ee7b7b689426f1f3419e1a400a3245f"]
+
+[[deliverable]]
+id = "D-053"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"]
+
+[[deliverable]]
+id = "D-054"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:4a444c49d61dec60117dd1eba0966f71421fbff55590b78127031737d74e66a5"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:4a444c49d61dec60117dd1eba0966f71421fbff55590b78127031737d74e66a5"]
+
+[[deliverable]]
+id = "D-055"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/provider-observation.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/provider-observation.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:8788688652573bf3bc2ddb57e8b26868ccfbed4ea6b82e5e2b3461e3feab0100"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:8788688652573bf3bc2ddb57e8b26868ccfbed4ea6b82e5e2b3461e3feab0100"]
+
+[[deliverable]]
+id = "D-056"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stderr"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stderr"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:7581b80c7a9fa1d947cd8232d50d55865a6903d670a94f50a2088e6e9ad18d62"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:7581b80c7a9fa1d947cd8232d50d55865a6903d670a94f50a2088e6e9ad18d62"]
+
+[[deliverable]]
+id = "D-057"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stdout"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stdout"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:398a91911a31826078b0609f654e7e195497603c7597cc97e08b7d5909e84d9e"
+media_type = "application/octet-stream"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:398a91911a31826078b0609f654e7e195497603c7597cc97e08b7d5909e84d9e"]
+
+[[deliverable]]
+id = "D-058"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:12043477874a8ab1c1d5644a68ca03b392680d8459e2845f4f26915d67355126"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:12043477874a8ab1c1d5644a68ca03b392680d8459e2845f4f26915d67355126"]
+
+[[deliverable]]
+id = "D-059"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:18361f66d6698466f0f1ce76ed521553778e1cda4c30ae9a69ae3a4b88bd476f"
+media_type = "application/json"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:18361f66d6698466f0f1ce76ed521553778e1cda4c30ae9a69ae3a4b88bd476f"]
+
+[[deliverable]]
+id = "D-060"
+title = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl"
+kind = "file"
+target_ref = "docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl"
+required = true
+content_addressed = true
+provenance_required = true
+obligation_refs = ["OBL-001", "OBL-002"]
+
+[deliverable.provenance]
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
+tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
+creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
+content_digest = "sha256:c1d63d8313fcd0b2d2b2fe30689c90efc9473a39afef2a610ae886d03db98efc"
+media_type = "application/x-ndjson"
+classification = "internal"
+retention = "repository-lifetime"
+source_holder = "git"
+input_digests = ["sha256:c1d63d8313fcd0b2d2b2fe30689c90efc9473a39afef2a610ae886d03db98efc"]
