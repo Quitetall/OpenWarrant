@@ -1,14 +1,15 @@
 # Adoption study
 
 Does OpenWarrant make better agent context than a plain `CLAUDE.md`, plan
-files, Spec Kit or Beads? `PROTOCOL.md` is the design and the measures, fixed
+files, Spec Kit, Beads or Jira? `PROTOCOL.md` is the design and the measures, fixed
 before any run; `BACKLOG-FORMAT.md` is the format of the study's backlogs.
 
 | file | |
 |---|---|
 | `PROTOCOL.md` | arms, repositories, scenarios, measures, analysis, threats, cost |
 | `run.py` | the harness: prepare, validate, seed, parity, plan, execute, report |
-| `arms.py` | the five arms: the same backlog in each tool's own form, and a reader per tool |
+| `arms.py` | the six arms: the same backlog in each tool's own form, and a reader per tool |
+| `jira_arm.py` | the Jira arm over the REST API: seed, read, clean up, by a label per cell |
 | `fixture_agent.py` | scripted agents for zero-cost dry runs (`reference`, `noop`, `claim`) |
 | `repos/tally/`, `repos/knightlm/` | backlog, source, hidden tests, reference solutions, `validate.sh` |
 | `repos/_selftest/` | a two-item repository for testing the harness itself |
