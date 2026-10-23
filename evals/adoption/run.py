@@ -939,7 +939,7 @@ def cmd_validate(args) -> None:
 def cmd_parity(args) -> None:
     """Every item's title, acceptance criteria and notes reach every arm's files."""
     backlog = load_backlog(args.repo)
-    base = STUDY / "parity" / args.repo
+    base = RUNS / "_parity" / args.repo
     shutil.rmtree(base, ignore_errors=True)
     report = {}
     for arm in arms.ARMS:

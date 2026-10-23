@@ -1,0 +1,411 @@
+diff --git a/README.md b/README.md
+index 9ee2860..40f45f7 100644
+--- a/README.md
++++ b/README.md
+@@ -23,6 +23,7 @@ python3 -m tally <command> <journal file> [options]
+ | `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
+ | `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
+ | `budget ... --monthly` | one table per calendar month, each headed `FIRST..LAST`; a month's remaining carries into the next month's budget |
++| `networth --until DATE [--from DATE] [--convert COMMODITY] [--forecast]` | Assets plus Liabilities at the end of each month, as `DATE  AMOUNT` |
+ | `import CSV --rules FILE` | a bank CSV export as journal transactions (rules: see `tally/importer.py`) |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+@@ -32,7 +33,8 @@ and both ends of a range are inclusive.
+ 
+ Exit status is 0 on success, 1 when `check` finds problems, and 2 for a usage
+ error, an unreadable file, or a report asked of a journal that has problems.
+-`balance --convert` exits with 3 when a commodity has no price.
++`balance --convert` and `networth --convert` exit with 3 when a commodity has
++no price.
+ Errors go to stderr as `tally: error: <message>`.
+ 
+ Amounts may carry a commodity (`42.50 EUR`). `balance` shows one row per
+diff --git a/docs/FORMAT.md b/docs/FORMAT.md
+index 331897c..3b36685 100644
+--- a/docs/FORMAT.md
++++ b/docs/FORMAT.md
+@@ -98,6 +98,25 @@ the sum of real postings in the period to the account or its descendants.
+ With `--monthly`, each calendar month in the period gets its own table, and
+ what is left of a month's budget (or overspent) carries into the next month.
+ 
++## Net worth
++
++`networth --until DATE` sums every posting to `Assets`, `Liabilities` and
++their descendants dated on or before each row's date, per commodity. Rows
++fall on the last day of each month from the `--from` month (by default the
++month of the first transaction) through the `--until` month; the last row
++is the `--until` date itself. Each line is the date, two spaces and the
++amount in the 14-character column `balance` uses:
++
++```text
++2026-01-31       2457.50
++2026-02-28       2410.00
++2026-03-15       2600.00
++```
++
++`--convert COMMODITY` converts each row exactly as `balance --convert`
++does, with the row's date in place of `--at`. `--forecast` also counts
++occurrences of periodic transactions dated after the last real transaction.
++
+ ## Problems
+ 
+ `tally check` reports every problem it finds as `FILE:LINE: message`, where
+diff --git a/tally/cli.py b/tally/cli.py
+index 3219919..fc1d791 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -4,7 +4,7 @@ Exit status:
+     0  success
+     1  ``check`` found problems in the journal
+     2  usage error, unreadable file, or a journal with problems
+-    3  ``balance --convert`` found no price for a commodity
++    3  ``balance --convert`` or ``networth --convert`` found no price for a commodity
+ """
+ 
+ from __future__ import annotations
+@@ -31,6 +31,7 @@ from tally.reports.budget import (
+     render_monthly_budget,
+ )
+ from tally.reports.export import compute_export, render_export
++from tally.reports.networth import compute_networth, first_date, render_networth, row_dates
+ from tally.reports.register import compute_register, render_register
+ from tally.writer import render_transactions
+ 
+@@ -48,11 +49,23 @@ def select(args: argparse.Namespace, journal: Journal) -> Journal:
+     return restrict(journal, dates)
+ 
+ 
++def select_range_is_empty(args: argparse.Namespace) -> bool:
++    return date_range_from_args(args).is_empty()
++
++
+ def load_selected(args: argparse.Namespace) -> Journal:
+     """Load the journal named on the command line, applying --from/--until."""
+     return select(args, load_journal(args.journal))
+ 
+ 
++def target_commodity(text: str) -> str:
++    """A --convert target, or a usage error naming the bad code."""
++    try:
++        return parse_commodity(text)
++    except AmountError as exc:
++        raise UsageError(str(exc)) from None
++
++
+ def cmd_balance(args: argparse.Namespace) -> int:
+     if args.at is not None and args.convert is None:
+         raise UsageError("--at requires --convert")
+@@ -60,10 +73,7 @@ def cmd_balance(args: argparse.Namespace) -> int:
+         raise UsageError("--depth must be at least 1")
+     convert = None
+     if args.convert is not None:
+-        try:
+-            target = parse_commodity(args.convert)
+-        except AmountError as exc:
+-            raise UsageError(str(exc)) from None
++        target = target_commodity(args.convert)
+     full = load_journal(args.journal)
+     journal = select(args, full)
+     if args.convert is not None:
+@@ -75,6 +85,17 @@ def cmd_balance(args: argparse.Namespace) -> int:
+     return EXIT_OK
+ 
+ 
++def cmd_networth(args: argparse.Namespace) -> int:
++    if select_range_is_empty(args):
++        raise UsageError("--from must not be after --until")
++    target = target_commodity(args.convert) if args.convert is not None else None
++    journal = load_journal(args.journal)
++    dates = row_dates(first_date(journal, args.date_from, args.date_until), args.date_until)
++    rows = compute_networth(journal, dates, target=target, forecast=args.forecast)
++    print(render_networth(rows))
++    return EXIT_OK
++
++
+ def cmd_register(args: argparse.Namespace) -> int:
+     journal = load_selected(args)
+     rows = compute_register(journal, account=args.account)
+@@ -173,6 +194,28 @@ def _add_balance(sub: argparse._SubParsersAction) -> None:
+     p.set_defaults(func=cmd_balance)
+ 
+ 
++def _add_networth(sub: argparse._SubParsersAction) -> None:
++    p = sub.add_parser("networth", help="Assets plus Liabilities at the end of each month")
++    p.add_argument("journal", help="journal file")
++    p.add_argument(
++        "--from", dest="date_from", type=date_argument, metavar="DATE",
++        help="first month to report (default: the month of the first transaction)",
++    )
++    p.add_argument(
++        "--until", dest="date_until", type=date_argument, required=True, metavar="DATE",
++        help="last date to report; the final row is this date",
++    )
++    p.add_argument(
++        "--convert", metavar="COMMODITY",
++        help="convert each row into COMMODITY at the prices of the row's date",
++    )
++    p.add_argument(
++        "--forecast", action="store_true",
++        help="count periodic transactions after the last real transaction",
++    )
++    p.set_defaults(func=cmd_networth)
++
++
+ def _add_register(sub: argparse._SubParsersAction) -> None:
+     p = sub.add_parser("register", help="postings in date order with a running total")
+     p.add_argument("journal", help="journal file")
+@@ -257,6 +300,7 @@ COMMANDS: list[Callable[[argparse._SubParsersAction], None]] = [
+     _add_export,
+     _add_forecast,
+     _add_budget,
++    _add_networth,
+     _add_import,
+     _add_check,
+ ]
+diff --git a/tally/dates.py b/tally/dates.py
+index d62443e..c366070 100644
+--- a/tally/dates.py
++++ b/tally/dates.py
+@@ -2,6 +2,7 @@
+ 
+ from __future__ import annotations
+ 
++import calendar
+ import datetime as dt
+ import re
+ 
+@@ -20,3 +21,19 @@ def parse_date(text: str) -> dt.date:
+         return dt.date.fromisoformat(text)
+     except ValueError:
+         raise DateError(f"invalid date '{text}'") from None
++
++
++def month_end(date: dt.date) -> dt.date:
++    """The last day of ``date``'s month."""
++    return date.replace(day=calendar.monthrange(date.year, date.month)[1])
++
++
++def month_spans(first: dt.date, last: dt.date) -> list[tuple[dt.date, dt.date]]:
++    """The calendar months overlapping ``first..last``, each clipped to it."""
++    spans = []
++    start = first
++    while start <= last:
++        end = min(month_end(start), last)
++        spans.append((start, end))
++        start = end + dt.timedelta(days=1)
++    return spans
+diff --git a/tally/periodic.py b/tally/periodic.py
+index 45f2682..b25e358 100644
+--- a/tally/periodic.py
++++ b/tally/periodic.py
+@@ -68,3 +68,11 @@ def expand(rules, until: dt.date) -> list:
+     ]
+     dated.sort(key=lambda item: (item[0], item[1]))
+     return [instantiate(rule, date) for date, _, rule in dated]
++
++
++def expand_after(rules, after: dt.date | None, until: dt.date) -> list:
++    """Occurrences dated after ``after`` (all of them when it is None) through ``until``.
++
++    Used to project the journal forward from its last real transaction.
++    """
++    return [txn for txn in expand(rules, until) if after is None or txn.date > after]
+diff --git a/tally/reports/budget.py b/tally/reports/budget.py
+index 574645f..9324214 100644
+--- a/tally/reports/budget.py
++++ b/tally/reports/budget.py
+@@ -21,8 +21,9 @@ from decimal import Decimal
+ 
+ from tally.accounts import account_matches
+ from tally.amounts import ZERO, format_quantity
++from tally.dates import month_spans
+ from tally.model import Journal
+-from tally.periodic import add_months, occurrences
++from tally.periodic import occurrences
+ 
+ ACCOUNT_COLUMN = 30
+ AMOUNT_COLUMN = 14
+@@ -64,25 +65,13 @@ def compute_budget(journal: Journal, start: dt.date, end: dt.date) -> list[Budge
+     ]
+ 
+ 
+-def month_ranges(start: dt.date, end: dt.date) -> list[tuple[dt.date, dt.date]]:
+-    """Calendar months overlapping ``start..end``, each clipped to it."""
+-    ranges = []
+-    first = start
+-    while first <= end:
+-        next_month = add_months(first.replace(day=1), 1)
+-        last = min(end, next_month - dt.timedelta(days=1))
+-        ranges.append((first, last))
+-        first = next_month
+-    return ranges
+-
+-
+ def compute_monthly_budget(
+     journal: Journal, start: dt.date, end: dt.date
+ ) -> list[tuple[dt.date, dt.date, list[BudgetRow]]]:
+     """One budget table per month, with each month's Remaining carried forward."""
+     blocks = []
+     carried: dict[tuple[str, str], Decimal] = {}
+-    for first, last in month_ranges(start, end):
++    for first, last in month_spans(start, end):
+         rows = []
+         for row in compute_budget(journal, first, last):
+             key = (row.account, row.commodity)
+diff --git a/tally/reports/networth.py b/tally/reports/networth.py
+new file mode 100644
+index 0000000..518b2b0
+--- /dev/null
++++ b/tally/reports/networth.py
+@@ -0,0 +1,95 @@
++"""The net worth report: what Assets and Liabilities add up to, month by month.
++
++Net worth on a date is the sum of every posting to ``Assets``,
++``Liabilities`` and their descendants dated on or before it, kept per
++commodity. The report prints it at the end of each month of a range, the
++last row falling on the range's final date.
++
++With a target commodity, each row is converted the way ``balance --convert``
++converts: every posting at the latest direct price on or before the row's
++date, rounded per posting. With ``forecast``, occurrences of periodic
++transactions after the last real transaction count as if they had happened.
++"""
++
++from __future__ import annotations
++
++import datetime as dt
++from collections import defaultdict
++from dataclasses import dataclass
++from decimal import Decimal
++
++from tally.accounts import account_matches
++from tally.amounts import ZERO
++from tally.convert import Converter
++from tally.dates import month_spans
++from tally.model import Journal
++from tally.periodic import expand_after
++from tally.reports.columns import quantity_cell
++
++NET_WORTH_ACCOUNTS = ("Assets", "Liabilities")
++
++
++@dataclass(frozen=True)
++class NetWorthRow:
++    date: dt.date
++    amount: Decimal
++    commodity: str = ""
++
++
++def row_dates(first: dt.date, until: dt.date) -> list[dt.date]:
++    """The last day of each month from ``first``'s through ``until``'s; the last is ``until``."""
++    return [end for _, end in month_spans(first.replace(day=1), until)]
++
++
++def first_date(journal: Journal, date_from: dt.date | None, until: dt.date) -> dt.date:
++    """``--from`` if given, else the earliest real transaction (never after ``until``)."""
++    if date_from is not None:
++        return date_from
++    earliest = min((t.date for t in journal.transactions), default=until)
++    return min(earliest, until)
++
++
++def _counts(account: str) -> bool:
++    return any(account_matches(account, root) for root in NET_WORTH_ACCOUNTS)
++
++
++def compute_networth(
++    journal: Journal,
++    dates: list[dt.date],
++    target: str | None = None,
++    forecast: bool = False,
++) -> list[NetWorthRow]:
++    """Net worth per commodity on each date, default commodity first.
++
++    Raises :class:`~tally.convert.ConversionError` for the first row with a
++    posting that has no usable price.
++    """
++    transactions = journal.sorted_transactions()
++    if forecast and dates:
++        last_real = max((t.date for t in journal.transactions), default=None)
++        transactions += expand_after(journal.periodic, last_real, dates[-1])
++    rows: list[NetWorthRow] = []
++    for date in dates:
++        convert = Converter(journal, target, date) if target is not None else None
++        sums: dict[str, Decimal] = defaultdict(lambda: ZERO)
++        for txn in transactions:
++            if txn.date > date:
++                continue
++            for posting in txn.postings:
++                if not _counts(posting.account):
++                    continue
++                if convert is None:
++                    amount, commodity = posting.amount, posting.commodity
++                else:
++                    amount, commodity = convert(posting)
++                sums[commodity] += amount
++        if not sums:
++            sums[""] = ZERO
++        rows.extend(NetWorthRow(date, sums[c], c) for c in sorted(sums))
++    return rows
++
++
++def render_networth(rows: list[NetWorthRow]) -> str:
++    return "\n".join(
++        f"{row.date.isoformat()}  {quantity_cell(row.amount, row.commodity)}" for row in rows
++    )
+diff --git a/tests/test_networth.py b/tests/test_networth.py
+new file mode 100644
+index 0000000..ef9b591
+--- /dev/null
++++ b/tests/test_networth.py
+@@ -0,0 +1,50 @@
++import datetime as dt
++from decimal import Decimal
++
++from conftest import run_tally
++from tally.parser import parse_text
++from tally.reports.networth import compute_networth, row_dates
++
++JOURNAL = """\
++P 2026-01-31 EUR 1.10 USD
++P 2026-02-28 EUR 1.20 USD
++
++2026-01-05 Salary
++    Assets:Checking  1000.00 USD
++    Income:Salary
++
++2026-01-20 Card
++    Liabilities:Card  -50 EUR
++    Expenses:Food
++
++~ monthly from 2026-01-25 Allowance
++    Assets:Wallet  100 EUR
++    Income:Allowance
++"""
++
++
++def test_row_dates_end_on_until():
++    assert row_dates(dt.date(2026, 1, 15), dt.date(2026, 3, 10)) == [
++        dt.date(2026, 1, 31), dt.date(2026, 2, 28), dt.date(2026, 3, 10),
++    ]
++    assert row_dates(dt.date(2026, 2, 1), dt.date(2026, 2, 28)) == [dt.date(2026, 2, 28)]
++
++
++def test_compute_networth_per_commodity():
++    journal, problems = parse_text(JOURNAL, "j.ledger")
++    assert problems == []
++    rows = compute_networth(journal, [dt.date(2026, 1, 31)])
++    assert [(r.commodity, r.amount) for r in rows] == [("EUR", Decimal("-50")), ("USD", Decimal("1000.00"))]
++
++
++def test_networth_convert_and_forecast(journal):
++    result = run_tally(
++        "networth", journal(JOURNAL), "--until", "2026-02-28", "--convert", "USD", "--forecast"
++    )
++    assert result.returncode == 0, result.stderr
++    # Jan 31: 1000 - 55.00 + 110.00 (allowance on Jan 25, after the last real transaction)
++    # Feb 28: 1000 - 60.00 + 240.00
++    assert result.stdout.splitlines() == [
++        "2026-01-31     1055.00 USD",
++        "2026-02-28     1180.00 USD",
++    ]

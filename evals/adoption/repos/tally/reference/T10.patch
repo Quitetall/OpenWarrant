@@ -1,0 +1,462 @@
+diff --git a/README.md b/README.md
+index 40f45f7..132825b 100644
+--- a/README.md
++++ b/README.md
+@@ -15,6 +15,7 @@ python3 -m tally <command> <journal file> [options]
+ | `balance [ACCOUNT] [--from DATE] [--until DATE]` | net amount per account, sorted by name, then a total |
+ | `balance ... --convert COMMODITY [--at DATE]` | every amount converted into COMMODITY at the latest prices on or before DATE |
+ | `balance ... --depth N` | accounts rolled up into their ancestors of at most N segments |
++| `balance ... --cost` | postings with an `@` cost counted as their cost (before `--convert`); `register` and `networth` take `--cost` too |
+ | `register [ACCOUNT] [--from DATE] [--until DATE]` | each posting in date order with a running total |
+ | `accounts` | every account name the journal uses |
+ | `print [--from DATE] [--until DATE]` | the transactions in date order, elided amounts filled in |
+@@ -23,7 +24,7 @@ python3 -m tally <command> <journal file> [options]
+ | `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
+ | `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
+ | `budget ... --monthly` | one table per calendar month, each headed `FIRST..LAST`; a month's remaining carries into the next month's budget |
+-| `networth --until DATE [--from DATE] [--convert COMMODITY] [--forecast]` | Assets plus Liabilities at the end of each month, as `DATE  AMOUNT` |
++| `networth --until DATE [--from DATE] [--convert COMMODITY] [--forecast] [--cost]` | Assets plus Liabilities at the end of each month, as `DATE  AMOUNT` |
+ | `import CSV --rules FILE` | a bank CSV export as journal transactions (rules: see `tally/importer.py`) |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+diff --git a/docs/FORMAT.md b/docs/FORMAT.md
+index 3b36685..7642a50 100644
+--- a/docs/FORMAT.md
++++ b/docs/FORMAT.md
+@@ -51,6 +51,30 @@ default commodity, which is displayed without a suffix. Each transaction must
+ balance in every commodity separately. A posting may omit its amount only when
+ all the other postings use the same commodity; it takes that commodity.
+ 
++## Costs
++
++A posting's amount may be followed by `@` and a cost, separated by
++whitespace on both sides. The cost is the total paid for the posting's
++whole quantity, in another commodity:
++
++```text
++2026-02-01 Buy shares
++    Assets:Broker      10 AAPL @ 1500.00 USD
++    Assets:Checking
++```
++
++For balancing, a posting with a cost weighs its cost, with the sign of its
++quantity (`-4 AAPL @ 700 USD` weighs -700 USD); every other posting weighs
++its amount. A transaction must balance in every commodity of the weights,
++and an elided amount receives the balancing weight. The cost must be a
++positive number in a commodity other than the quantity's.
++
++`print` and `forecast` write the cost after the amount
++(`10.00 AAPL @ 1500.00 USD`). Reports show quantities, except that
++`balance --cost`, `register --cost` and `networth --cost` count each posting with a cost as its
++weight, before any `--convert`. Costs are not prices: `prices` and
++`--convert` use only `P` directives.
++
+ ## Prices
+ 
+ A price directive starts in column one:
+diff --git a/tally/cli.py b/tally/cli.py
+index fc1d791..ef8f324 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -15,7 +15,7 @@ from typing import Callable
+ 
+ from tally import __version__
+ from tally.amounts import AmountError, parse_commodity
+-from tally.convert import ConversionError, Converter, latest_date
++from tally.convert import ConversionError, Converter, latest_date, valuation
+ from tally.errors import JournalError, UsageError
+ from tally.filters import add_date_range_options, date_argument, date_range_from_args, restrict
+ from tally.importer import CsvImportError, import_csv, parse_rules
+@@ -71,7 +71,7 @@ def cmd_balance(args: argparse.Namespace) -> int:
+         raise UsageError("--at requires --convert")
+     if args.depth is not None and args.depth < 1:
+         raise UsageError("--depth must be at least 1")
+-    convert = None
++    converter = None
+     if args.convert is not None:
+         target = target_commodity(args.convert)
+     full = load_journal(args.journal)
+@@ -79,7 +79,8 @@ def cmd_balance(args: argparse.Namespace) -> int:
+     if args.convert is not None:
+         at = args.at or latest_date(full)
+         if at is not None:
+-            convert = Converter(journal, target, at)
++            converter = Converter(journal, target, at)
++    convert = valuation(args.cost, converter)
+     rows = compute_balances(journal, account=args.account, convert=convert, depth=args.depth)
+     print(render_balance(rows))
+     return EXIT_OK
+@@ -91,14 +92,16 @@ def cmd_networth(args: argparse.Namespace) -> int:
+     target = target_commodity(args.convert) if args.convert is not None else None
+     journal = load_journal(args.journal)
+     dates = row_dates(first_date(journal, args.date_from, args.date_until), args.date_until)
+-    rows = compute_networth(journal, dates, target=target, forecast=args.forecast)
++    rows = compute_networth(
++        journal, dates, target=target, forecast=args.forecast, at_cost=args.cost
++    )
+     print(render_networth(rows))
+     return EXIT_OK
+ 
+ 
+ def cmd_register(args: argparse.Namespace) -> int:
+     journal = load_selected(args)
+-    rows = compute_register(journal, account=args.account)
++    rows = compute_register(journal, account=args.account, at_cost=args.cost)
+     if rows:
+         print(render_register(rows))
+     return EXIT_OK
+@@ -191,6 +194,10 @@ def _add_balance(sub: argparse._SubParsersAction) -> None:
+         "--depth", type=int, metavar="N",
+         help="roll accounts up into their ancestors with at most N segments",
+     )
++    p.add_argument(
++        "--cost", action="store_true",
++        help="count postings with an @ cost as their cost instead of their quantity",
++    )
+     p.set_defaults(func=cmd_balance)
+ 
+ 
+@@ -213,6 +220,10 @@ def _add_networth(sub: argparse._SubParsersAction) -> None:
+         "--forecast", action="store_true",
+         help="count periodic transactions after the last real transaction",
+     )
++    p.add_argument(
++        "--cost", action="store_true",
++        help="count postings with an @ cost as their cost instead of their quantity",
++    )
+     p.set_defaults(func=cmd_networth)
+ 
+ 
+@@ -221,6 +232,10 @@ def _add_register(sub: argparse._SubParsersAction) -> None:
+     p.add_argument("journal", help="journal file")
+     p.add_argument("account", nargs="?", help="limit to this account and its descendants")
+     add_date_range_options(p)
++    p.add_argument(
++        "--cost", action="store_true",
++        help="count postings with an @ cost as their cost instead of their quantity",
++    )
+     p.set_defaults(func=cmd_register)
+ 
+ 
+diff --git a/tally/convert.py b/tally/convert.py
+index 2e15c26..2351f5d 100644
+--- a/tally/convert.py
++++ b/tally/convert.py
+@@ -4,6 +4,7 @@ from __future__ import annotations
+ 
+ import datetime as dt
+ from decimal import Decimal
++from typing import Callable
+ 
+ from tally.amounts import round_amount
+ from tally.model import Journal, Posting, Price
+@@ -45,18 +46,40 @@ class Converter:
+         self.at = at
+ 
+     def __call__(self, posting: Posting) -> tuple[Decimal, str]:
+-        if posting.commodity in ("", self.target):
+-            return posting.amount, posting.commodity
+-        rate = self.book.rate(posting.commodity, self.target, self.at)
++        return self.convert(posting.amount, posting.commodity)
++
++    def convert(self, amount: Decimal, commodity: str) -> tuple[Decimal, str]:
++        if commodity in ("", self.target):
++            return amount, commodity
++        rate = self.book.rate(commodity, self.target, self.at)
+         if rate is None:
+             raise ConversionError(
+-                f"no price for {posting.commodity} in {self.target} "
++                f"no price for {commodity} in {self.target} "
+                 f"on or before {self.at.isoformat()}"
+             )
+-        return round_amount(posting.amount * rate), self.target
++        return round_amount(amount * rate), self.target
+ 
+ 
+ def latest_date(journal: Journal) -> dt.date | None:
+     """The latest date of any transaction or price directive."""
+     dates = [t.date for t in journal.transactions] + [p.date for p in journal.prices]
+     return max(dates, default=None)
++
++
++def valuation(
++    at_cost: bool, converter: Converter | None
++) -> Callable[[Posting], tuple[Decimal, str]] | None:
++    """How a report values each posting: its weight with ``--cost``, then converted.
++
++    Returns None when the posting's own amount is used as it is.
++    """
++    if not at_cost and converter is None:
++        return None
++
++    def value(posting: Posting) -> tuple[Decimal, str]:
++        amount, commodity = posting.weight() if at_cost else (posting.amount, posting.commodity)
++        if converter is None:
++            return amount, commodity
++        return converter.convert(amount, commodity)
++
++    return value
+diff --git a/tally/model.py b/tally/model.py
+index 2c550ec..dce7f5c 100644
+--- a/tally/model.py
++++ b/tally/model.py
+@@ -15,6 +15,9 @@ class Posting:
+ 
+     ``amount`` is None while the posting's amount is elided in the source;
+     it is filled in when the transaction is finalized.
++
++    ``cost`` is the ``@ COST`` written after the amount, if any: the total
++    paid for the posting's whole quantity, in ``cost_commodity``.
+     """
+ 
+     account: str
+@@ -22,6 +25,18 @@ class Posting:
+     line: int
+     commodity: str = ""
+     inferred: bool = False
++    cost: Decimal | None = None
++    cost_commodity: str = ""
++
++    def weight(self) -> tuple[Decimal, str]:
++        """What the posting counts as when balancing: (amount, commodity).
++
++        A posting with a cost weighs its total cost, with the sign of its
++        quantity; any other posting weighs its own amount.
++        """
++        if self.cost is None:
++            return self.amount, self.commodity
++        return (self.cost if self.amount >= 0 else -self.cost), self.cost_commodity
+ 
+ 
+ @dataclass
+@@ -41,15 +56,13 @@ class Transaction:
+         return [p for p in self.postings if p.amount is None]
+ 
+     def commodities(self) -> list[str]:
+-        """Commodities of the explicit postings, sorted."""
+-        return sorted({p.commodity for p in self.explicit_postings()})
++        """Commodities of the explicit postings' weights, sorted."""
++        return sorted({p.weight()[1] for p in self.explicit_postings()})
+ 
+     def residuals(self) -> dict[str, Decimal]:
+-        """Sum of the explicit amounts per commodity; all zero when balanced."""
+-        return {
+-            c: total(p.amount for p in self.explicit_postings() if p.commodity == c)
+-            for c in self.commodities()
+-        }
++        """Sum of the explicit postings' weights per commodity; all zero when balanced."""
++        weights = [p.weight() for p in self.explicit_postings()]
++        return {c: total(a for a, wc in weights if wc == c) for c in self.commodities()}
+ 
+ 
+ @dataclass
+diff --git a/tally/parser.py b/tally/parser.py
+index 5f0bb82..914c9a3 100644
+--- a/tally/parser.py
++++ b/tally/parser.py
+@@ -12,6 +12,10 @@ Syntax overview (see docs/FORMAT.md for the full description)::
+         Expenses:Food        42.50   ; inline comment
+         Assets:Checking
+ 
++    2026-02-01 Buy shares
++        Assets:Broker        10 AAPL @ 1500.00 USD
++        Assets:Checking
++
+     P 2026-01-15 EUR 1.0850 USD
+ 
+     ~ monthly from 2026-01-01 Rent
+@@ -170,12 +174,30 @@ class Parser:
+         amount_text = parts[1].strip() if len(parts) > 1 else ""
+         if not amount_text:
+             return Posting(account=account, amount=None, line=lineno)
++        fields = amount_text.split()
++        cost_fields = None
++        if "@" in fields:
++            at = fields.index("@")
++            amount_text, cost_fields = " ".join(fields[:at]), fields[at + 1:]
+         try:
+             amount, commodity = parse_quantity(amount_text)
+         except AmountError as exc:
+             self._problem(lineno, str(exc))
+             return None
+-        return Posting(account=account, amount=amount, line=lineno, commodity=commodity)
++        posting = Posting(account=account, amount=amount, line=lineno, commodity=commodity)
++        if cost_fields is not None:
++            cost_text = " ".join(cost_fields)
++            try:
++                posting.cost, posting.cost_commodity = parse_quantity(cost_text)
++            except AmountError:
++                posting.cost = None
++            if posting.cost is None or posting.cost <= 0:
++                self._problem(lineno, f"invalid cost '{cost_text}'")
++                return None
++            if posting.cost_commodity == commodity:
++                self._problem(lineno, "cost must be in a different commodity")
++                return None
++        return posting
+ 
+     def _close_entry(self) -> None:
+         if self._current is not None and not self._broken:
+diff --git a/tally/reports/networth.py b/tally/reports/networth.py
+index 518b2b0..72cf357 100644
+--- a/tally/reports/networth.py
++++ b/tally/reports/networth.py
+@@ -9,6 +9,8 @@ With a target commodity, each row is converted the way ``balance --convert``
+ converts: every posting at the latest direct price on or before the row's
+ date, rounded per posting. With ``forecast``, occurrences of periodic
+ transactions after the last real transaction count as if they had happened.
++With ``at_cost``, postings with an ``@`` cost count as their cost (before
++any conversion).
+ """
+ 
+ from __future__ import annotations
+@@ -20,7 +22,7 @@ from decimal import Decimal
+ 
+ from tally.accounts import account_matches
+ from tally.amounts import ZERO
+-from tally.convert import Converter
++from tally.convert import Converter, valuation
+ from tally.dates import month_spans
+ from tally.model import Journal
+ from tally.periodic import expand_after
+@@ -58,6 +60,7 @@ def compute_networth(
+     dates: list[dt.date],
+     target: str | None = None,
+     forecast: bool = False,
++    at_cost: bool = False,
+ ) -> list[NetWorthRow]:
+     """Net worth per commodity on each date, default commodity first.
+ 
+@@ -70,7 +73,8 @@ def compute_networth(
+         transactions += expand_after(journal.periodic, last_real, dates[-1])
+     rows: list[NetWorthRow] = []
+     for date in dates:
+-        convert = Converter(journal, target, date) if target is not None else None
++        converter = Converter(journal, target, date) if target is not None else None
++        convert = valuation(at_cost, converter)
+         sums: dict[str, Decimal] = defaultdict(lambda: ZERO)
+         for txn in transactions:
+             if txn.date > date:
+diff --git a/tally/reports/register.py b/tally/reports/register.py
+index 8d17ac5..5f6ee86 100644
+--- a/tally/reports/register.py
++++ b/tally/reports/register.py
+@@ -22,12 +22,15 @@ class RegisterRow:
+     commodity: str = ""
+ 
+ 
+-def compute_register(journal: Journal, account: str | None = None) -> list[RegisterRow]:
++def compute_register(
++    journal: Journal, account: str | None = None, at_cost: bool = False
++) -> list[RegisterRow]:
+     """One row per posting, in date order, with the running total so far.
+ 
+     With ``account``, only postings to that account and its descendants are
+     listed, and the running total covers only those postings. The running
+     total is kept per commodity: each row shows the total in its own commodity.
++    With ``at_cost``, a posting with an ``@`` cost is listed as its weight.
+     """
+     rows: list[RegisterRow] = []
+     running: dict[str, Decimal] = {}
+@@ -35,13 +38,11 @@ def compute_register(journal: Journal, account: str | None = None) -> list[Regis
+         for posting in txn.postings:
+             if account is not None and not account_matches(posting.account, account):
+                 continue
+-            so_far = running.get(posting.commodity, ZERO) + posting.amount
+-            running[posting.commodity] = so_far
++            amount, commodity = posting.weight() if at_cost else (posting.amount, posting.commodity)
++            so_far = running.get(commodity, ZERO) + amount
++            running[commodity] = so_far
+             rows.append(
+-                RegisterRow(
+-                    txn.date, txn.payee, posting.account, posting.amount, so_far,
+-                    posting.commodity,
+-                )
++                RegisterRow(txn.date, txn.payee, posting.account, amount, so_far, commodity)
+             )
+     return rows
+ 
+diff --git a/tally/writer.py b/tally/writer.py
+index 0069646..a0218b7 100644
+--- a/tally/writer.py
++++ b/tally/writer.py
+@@ -12,8 +12,16 @@ from tally.model import Posting, Transaction
+ POSTING_INDENT = "    "
+ 
+ 
++def render_amount(posting: Posting) -> str:
++    """``10.00 AAPL``, or ``10.00 AAPL @ 1500.00 USD`` when the posting has a cost."""
++    text = format_quantity(posting.amount, posting.commodity)
++    if posting.cost is not None:
++        text += f" @ {format_quantity(posting.cost, posting.cost_commodity)}"
++    return text
++
++
+ def render_posting(posting: Posting) -> str:
+-    return f"{POSTING_INDENT}{posting.account}  {format_quantity(posting.amount, posting.commodity)}"
++    return f"{POSTING_INDENT}{posting.account}  {render_amount(posting)}"
+ 
+ 
+ def render_transaction(txn: Transaction) -> str:
+diff --git a/tests/test_costs.py b/tests/test_costs.py
+new file mode 100644
+index 0000000..d838137
+--- /dev/null
++++ b/tests/test_costs.py
+@@ -0,0 +1,56 @@
++from decimal import Decimal
++
++from conftest import run_tally
++from tally.parser import parse_text
++
++JOURNAL = """\
++2026-02-01 Buy shares
++    Assets:Broker  10 AAPL @ 1500.00 USD
++    Assets:Checking
++
++2026-02-15 Sell some
++    Assets:Broker  -4 AAPL @ 700 USD
++    Assets:Checking  700 USD
++"""
++
++
++def test_cost_is_the_total_for_the_quantity():
++    journal, problems = parse_text(JOURNAL, "j.ledger")
++    assert problems == []
++    buy, sell = journal.transactions
++    assert buy.postings[0].weight() == (Decimal("1500.00"), "USD")
++    assert buy.postings[1].amount == Decimal("-1500.00")
++    assert sell.postings[0].weight() == (Decimal("-700"), "USD")
++
++
++def test_cost_problems():
++    _, problems = parse_text(
++        "2026-01-01 X\n    Assets:A  1 AAPL @ 0 USD\n    Assets:B\n\n"
++        "2026-01-02 Y\n    Assets:A  1 AAPL @ 5 AAPL\n    Assets:B\n",
++        "j.ledger",
++    )
++    assert [p.message for p in problems] == [
++        "invalid cost '0 USD'",
++        "cost must be in a different commodity",
++    ]
++
++
++def test_print_and_balance_cost(journal):
++    path = journal(JOURNAL)
++    printed = run_tally("print", path)
++    assert printed.stdout.splitlines()[1] == "    Assets:Broker  10.00 AAPL @ 1500.00 USD"
++    result = run_tally("balance", path, "--cost")
++    assert result.returncode == 0, result.stderr
++    assert result.stdout.splitlines()[:2] == [
++        "    800.00 USD  Assets:Broker",
++        "   -800.00 USD  Assets:Checking",
++    ]
++
++
++def test_register_cost(journal):
++    result = run_tally("register", journal(JOURNAL), "Assets:Broker", "--cost")
++    assert result.returncode == 0, result.stderr
++    assert [line.split()[-4:] for line in result.stdout.splitlines()] == [
++        ["1500.00", "USD", "1500.00", "USD"],
++        ["-700.00", "USD", "800.00", "USD"],
++    ]
