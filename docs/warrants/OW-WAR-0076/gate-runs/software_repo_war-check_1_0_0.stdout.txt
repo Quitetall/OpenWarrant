@@ -1269,10 +1269,10 @@ PASS generated.drift                    OW-WAR-0075: 2 generated view(s) match a
 PASS manifest.valid                     OW-WAR-0076: manifest and composition are well-formed
 PASS deliverable.digests                OW-WAR-0076: 43 content-addressed deliverable(s) match their bytes
 PASS traceability.refs                  OW-WAR-0076: 1 requirement ref(s) and 0 roadmap ref(s) parse
-WARN evidence.stale-binding             OW-WAR-0076: software.repo.war-check@1.0.0 · the receipt names tree:554e5d60671970aaad30ffd0ea848732724baca1 and 994 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.claude-plugin/plugin.json, .github/actions/openwarrant-check/action.yml, .github/workflows/ci.yml, …) — a run over an earlier source is a record, not evidence about this one
+WARN evidence.stale-binding             OW-WAR-0076: software.repo.war-check@1.0.0 · the receipt names tree:f445f4159190c3c899da9062b5fb383feb3b3580 and 2 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (docs/warrants/OW-WAR-0076/deliverables.toml, docs/warrants/OW-WAR-0076/implementation/evidence-reconciliation-20261023.md) — a run over an earlier source is a record, not evidence about this one
                                              → docs/warrants/OW-WAR-0076/gate-runs/software_repo_war-check_1_0_0.run.toml
                                              → auto: war evidence record OW-WAR-0076
-PASS journal.append-only                OW-WAR-0076: 26 event(s), 0 backfilled, extends the committed journal
+PASS journal.append-only                OW-WAR-0076: 27 event(s), 0 backfilled, extends the committed journal
 PASS authority.signed                   OW-WAR-0076: signed by brian over docs/authority/responses/OW-WAR-0076.response.toml
 WARN sas.pin-superseded                 OW-WAR-0076: authorized against SAS 1.0.0; the latest recorded revision is 1.3.0 — the contract keeps its Basis until an amendment carrying `sas_revision: "1.3.0"` re-pins it and a human re-authorizes (OW-ADR-0016)
                                              → docs/warrants/OW-WAR-0076/authorization.toml
