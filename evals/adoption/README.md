@@ -25,5 +25,10 @@ ADOPTION_AUTH=token secrets run -- python3 run.py execute pilot.json \
 python3 run.py report pilot-1
 ```
 
+Auth: `ADOPTION_AUTH=token` passes `CLAUDE_CODE_OAUTH_TOKEN` (the subscription);
+`ADOPTION_AUTH=api` passes `ANTHROPIC_API_KEY`, plus `ADOPTION_WORKSPACE_ID` as the
+`anthropic-workspace-id` header when the key is not scoped to a workspace. An
+API error stops the run instead of being scored against an arm.
+
 Agents run in a bubblewrap sandbox; see "Isolation and safety" in the protocol.
 Raw transcripts go to `/mnt/4tb/artifacts/OpenWarrant/keep/adoption/<run-id>/`.

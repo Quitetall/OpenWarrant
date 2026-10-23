@@ -38,10 +38,13 @@ Rules for fairness:
   where a tool installs its own agent instructions (Beads, OpenWarrant) they are
   used verbatim. Where a tool installs none (plan files, Spec Kit), the study
   adds the shortest pointer a user would write; its text is in `arms.py`.
-- `war init` alone writes `AGENTS.md`, which Claude Code does not read. The
-  OpenWarrant arm therefore also runs the documented `war admin agents-md
-  --block --file CLAUDE.md`. That a fresh `war init` gives Claude Code no
-  pointer is itself a finding and is reported as one.
+- `war init` alone writes a 9 KB `AGENTS.md`. Claude Code 2.1.301 loads
+  `AGENTS.md` only when a project has no `CLAUDE.md` of its own (its default,
+  `claude-md-or-agents-md`). Every arm here has a `CLAUDE.md` with the project
+  facts, so no arm's `AGENTS.md` loads, and the OpenWarrant arm runs the
+  documented `war admin agents-md --block --file CLAUDE.md`: its agent sees the
+  five-line block, which points at `war view prime` and `war context`. That is
+  what an adopter with an existing `CLAUDE.md` gets.
 - The seeder, not the model, writes each backlog into each tool, so no arm
   benefits from a better-drafted backlog.
 
@@ -116,7 +119,11 @@ Fixed now, before any result.
 
 - **Orientation cost:** context size (input plus cached tokens) of the first
   assistant turn that edits a non-tracker file, and total tokens processed
-  before it.
+  before it. An edit is an Edit, Write or NotebookEdit call, or a Bash command
+  that writes a source path (`sed -i`, a redirect, `tee`, `git apply`, a script
+  that opens a file for writing); `run.py bash_writes_code` is the rule.
+  (Amended before the pilot: the smoke session edited only through Bash, which
+  the first version of the rule missed.)
 - **False completions:** items the arm's own tracker records as done whose
   hidden tests fail (not defined for `plain`, which records nothing).
 - **Unrecorded completions:** items that pass but the tracker does not record.

@@ -26,6 +26,7 @@ import argparse
 import concurrent.futures
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -262,6 +263,9 @@ class Sandbox:
         mode = auth_mode()
         if net and config is not None and mode in AUTH_ENV:
             env[AUTH_ENV[mode]] = os.environ[AUTH_ENV[mode]]
+            # A key not scoped to a workspace needs the workspace named on every request.
+            if mode == "api" and os.environ.get("ADOPTION_WORKSPACE_ID"):
+                env["ANTHROPIC_CUSTOM_HEADERS"] = f"anthropic-workspace-id: {os.environ['ADOPTION_WORKSPACE_ID']}"
         env.update(extra_env or {})
         a.append("--clearenv")
         for k, v in env.items():
@@ -375,6 +379,24 @@ def agent_argv(agent: str, prompt: str, model: str, max_turns: int) -> list[str]
 TRACKER_PATHS = ("CLAUDE.md", "PLAN.md", "specs/", ".specify/", ".beads/", "docs/tickets/",
                  "openwarrant.toml", "AGENTS.md")
 
+_REDIRECT = re.compile(r"(?<![0-9&>])>{1,2}\s*(?!&|/dev/null)[\w./~-]")
+_WRITERS = re.compile(r"\bsed\s+-i|\btee\b|\bgit\s+apply\b|\bpatch\b|write_text\(|\.write\(|open\([^)]*['\"][wa]['\"]")
+_SOURCE = re.compile(r"\.(py|rs|toml|ts|js|go|c|h|json|md)\b|\b(src|tests?|crates|tally|docs)/")
+
+
+def bash_writes_code(cmd: str) -> bool:
+    """A Bash call that writes a file other than the arm's own tracker files (heuristic).
+
+    Agents often edit through `sed -i`, heredoc scripts or redirects instead of Edit/Write.
+    A command counts when it has a writing form and names a source path that is not only
+    a tracker file."""
+    if not (_REDIRECT.search(cmd) or _WRITERS.search(cmd)):
+        return False
+    stripped = cmd
+    for t in TRACKER_PATHS:
+        stripped = stripped.replace(t, "")
+    return bool(_SOURCE.search(stripped))
+
 
 def parse_stream(path: Path) -> dict:
     """Metrics from a `claude -p --output-format stream-json` transcript."""
@@ -416,6 +438,8 @@ def parse_stream(path: Path) -> dict:
                     edits_code = True
             if name == "Bash":
                 cmd = str(inp.get("command", ""))
+                if bash_writes_code(cmd):
+                    edits_code = True
                 if any(cmd.lstrip().startswith(w) or f" {w} " in cmd for w in ("war", "bd")) \
                         or "PLAN.md" in cmd or "tasks.md" in cmd:
                     bash_tracker_calls += 1
@@ -431,6 +455,8 @@ def parse_stream(path: Path) -> dict:
         "tokens_processed_before_first_code_edit": processed_before_edit if first_edit_ctx is not None else None,
         "peak_context": max(msgs) if msgs else 0,
     }
+    if result and result.get("is_error") and str(result.get("result", "")).startswith("API Error"):
+        out["api_error"] = str(result.get("result"))[:400]
     if result:
         u = result.get("usage", {})
         out.update({
@@ -455,6 +481,9 @@ def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, mode
         p = sb.run(agent_argv(agent, prompt, model, max_turns), cwd, net=(agent == "claude"),
                    timeout=SESSION_TIMEOUT, config=config, extra_env=extra_env, stdout=out, stderr=err)
     metrics = parse_stream(sdir / "stream.jsonl")
+    if metrics.get("api_error"):
+        # The model never ran: this is the harness's problem, not the arm's. Stop, score nothing.
+        raise SystemExit(f"stopped: the API refused the session ({sdir}): {metrics['api_error']}")
     metrics.update({"exit": p.returncode, "wall_secs": round(time.time() - t0, 1), "max_turns": max_turns})
     shutil.rmtree(config, ignore_errors=True)  # holds nothing the study keeps; never the credentials
     (sdir / "metrics.json").write_text(json.dumps(metrics, indent=1))
@@ -631,6 +660,10 @@ def plan_cells(pilot: bool, reps: int, k: int) -> list[dict]:
                 cells.append({"scenario": "relay", "repo": repo, "arm": arm, "rep": rep})
                 if not pilot:
                     cells.append({"scenario": "parallel", "repo": repo, "arm": arm, "rep": rep, "k": k})
+    # Replicate-major, arms interleaved: a budget stop leaves every arm with the same cells.
+    scen = {name: n for n, name in enumerate(SCENARIOS)}
+    arm_n = {a: n for n, a in enumerate(arm_list)}
+    cells.sort(key=lambda c: (c["rep"], scen[c["scenario"]], c["repo"], c.get("item", ""), arm_n[c["arm"]]))
     return cells
 
 
