@@ -22194,6 +22194,26 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0082/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | docs/integrations/budgets.md | `docs/integrations/budgets.md` | verified |
+| D-002 | conformance/integration/budgets/README.md | `conformance/integration/budgets/README.md` | verified |
+| D-003 | conformance/integration/budgets/check_observations.py | `conformance/integration/budgets/check_observations.py` | verified |
+| D-004 | conformance/integration/budgets/run.py | `conformance/integration/budgets/run.py` | verified |
+| D-005 | docs/warrants/OW-WAR-0082/implementation/budget-observation.json | `docs/warrants/OW-WAR-0082/implementation/budget-observation.json` | verified |
+| D-006 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/README.md | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/README.md` | verified |
+| D-007 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/external-probe.rs.txt | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/external-probe.rs.txt` | verified |
+| D-008 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/native-budgets.json | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/native-budgets.json` | verified |
+| D-009 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe-identity.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stderr` | verified |
+| D-011 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/probe.stdout` | verified |
+| D-012 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/sdk-wire.jsonl | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/sdk-wire.jsonl` | verified |
+| D-013 | docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/summary.json | `docs/warrants/OW-WAR-0082/implementation/budget-observations-20261023/summary.json` | verified |
+| D-014 | docs/warrants/OW-WAR-0082/implementation/notes.md | `docs/warrants/OW-WAR-0082/implementation/notes.md` | verified |
+| D-015 | docs/warrants/OW-WAR-0082/implementation/progress.json | `docs/warrants/OW-WAR-0082/implementation/progress.json` | verified |
+
 ### OW-WAR-0083 — Evaluate supplied work and assurance records
 
 [manifest](../../docs/warrants/OW-WAR-0083/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0083/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
