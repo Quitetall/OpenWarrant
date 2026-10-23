@@ -1,0 +1,14 @@
+F.
+======================================================================
+FAIL: test_complete_new_observation_and_late_collision (test_observation_output.ObservationOutput.test_complete_new_observation_and_late_collision)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 89, in test_complete_new_observation_and_late_collision
+    self.assertNotEqual(result.returncode, 0)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.376s
+
+FAILED (failures=1)

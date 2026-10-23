@@ -1636,6 +1636,10 @@
 > Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations
 - t-5872 · ticket · done · Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations · docs/tickets/t-5872/manifest.toml:1
 
+## docs/tickets/t-589a0/manifest.toml
+> Refuse early and late output collisions without replacing retained evidence
+- t-589a0 · ticket · done · Preserve integration observations when output destinations already exist · docs/tickets/t-589a0/manifest.toml:1
+
 ## docs/tickets/t-59006/manifest.toml
 > M7: from a prompt to typed records
 - t-59006 · ticket · done · M7: from a prompt to typed records · docs/tickets/t-59006/manifest.toml:1

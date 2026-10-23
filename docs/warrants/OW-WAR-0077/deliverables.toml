@@ -729,16 +729,16 @@ obligation_refs = ["OBL-001", "OBL-002"]
 
 [deliverable.provenance]
 producer = "agent://codex"
-producing_attempt = "OW-WAR-0077/20261023-observed-reuse-and-execution"
+producing_attempt = "t-589a0/i-63f7"
 contract_digest = "7e65ba3fcc6b98a5405c5eec4b3b13fba37ebd252d73d874b8c9fbe1a128a39f"
-tool_or_runtime_identity = "3.14.8 (main, Oct 13 2026, 10:33:10) [GCC 16.2.1 20260810]; stdlib hashlib declaration of retained bytes at 7b533eecd; execution binary identities are in the retained observations"
-creation_method = "observed reuse of exact existing source or retained execution record; original authorship and original execution inputs remain in retained Git history and observations"
-content_digest = "sha256:09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit c7e46541f7bb, debug)"
+creation_method = "authored output-retention update; prior source and execution records remain in Git"
+content_digest = "sha256:27d45e73507afc9d96a8303d3803998f52443b2d070d335b60aca492e9297446"
 media_type = "text/x-python"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
-input_digests = ["sha256:09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830"]
+input_digests = ["sha256:09cfa554cadb051f68918cacf820b0a0a419a04e5cefd036266369a9b9331830", "sha256:10c0ee18f5ce8eeeccb4defaf5524a244fa9b6b56e11005fa3ea8ed8cf71ccc7"]
 
 [[deliverable]]
 id = "D-033"

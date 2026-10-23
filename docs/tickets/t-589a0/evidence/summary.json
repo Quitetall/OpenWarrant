@@ -1,0 +1,58 @@
+{
+  "kind": "actual-integration-output-retention-checks",
+  "ticket": "t-589a0/i-63f7",
+  "public_cli_tests": 3,
+  "inventory_tests": 4,
+  "real_stages": [
+    {
+      "stage": "source",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "5becaf4a3b8a3235a39a527b550535e422f26ee639343c3de72ad2fc9830b58e",
+      "seconds": 12.286423785000807
+    },
+    {
+      "stage": "conditions",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "f2c9e447ba66be389a85968fde124d470e881c33bdf5ded4d286a8b7d5c8448a",
+      "seconds": 0.36426661199948285
+    },
+    {
+      "stage": "selection",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "fa8fbdc1ff687a8a2d926c5b9bee0cc265f33cb02616e463da4b330f5431acc2",
+      "seconds": 0.5142955960036488
+    },
+    {
+      "stage": "projections",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "e4d4622f9baeba2df45df8608eb517b11c3abba3127c2b4dcc5692328398f033",
+      "seconds": 0.4642582610104
+    },
+    {
+      "stage": "package",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "4ffeeedf3c52e96b9fd7b323919f438dfc133044981016c4554812f641db3601",
+      "seconds": 0.5145211379858665
+    },
+    {
+      "stage": "budgets",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "b1cbe1a598edffae887231c235b5dc228d0ec5a2503100fbe8b98fd7d29b6f19",
+      "seconds": 0.4644586220092606
+    },
+    {
+      "stage": "adapter",
+      "exit_code": 0,
+      "passed": true,
+      "sha256": "1e43ef47d1af2fa2b14f79df3920249b234b3d20a3c025062c38a0c3b9f2d859",
+      "seconds": 44.951486902995384
+    }
+  ],
+  "qualification_established": false
+}
