@@ -58,7 +58,7 @@ OW_REPO = Path(os.environ.get("ADOPTION_OW_REPO", "/mnt/4tb/OpenWarrant"))
 PLUGIN_FILES = (".claude-plugin", ".claude/skills", ".claude/hooks", ".mcp.json")
 DEFAULT_MODEL = "claude-sonnet-5-5"
 SESSION_TURNS = 80          # a session's turn cap
-INTERRUPT_TURNS = 12        # relay session 2 is cut here: the next session must resume it
+INTERRUPT_TURNS = 5         # relay session 2 is cut here, mid-item: the next session must resume it
 SESSION_TIMEOUT = 45 * 60   # wall clock per session
 SESSION_BUDGET_USD = 8.0    # --max-budget-usd per session (API-equivalent)
 
@@ -434,13 +434,15 @@ def parse_stream(path: Path) -> dict:
             continue
         m = ev.get("message", {})
         mid = m.get("id")
-        if mid in seen:
-            continue
+        # Claude Code streams each content block of one message as its own event under the same
+        # message id: count the message's tokens once, but read every block.
+        first_of_message = mid not in seen
         seen.add(mid)
         u = m.get("usage", {})
         ctx = (u.get("input_tokens", 0) + u.get("cache_read_input_tokens", 0)
                + u.get("cache_creation_input_tokens", 0))
-        msgs.append(ctx)
+        if first_of_message:
+            msgs.append(ctx)
         edits_code = False
         for block in m.get("content", []):
             if block.get("type") != "tool_use":
@@ -460,11 +462,12 @@ def parse_stream(path: Path) -> dict:
                         or "PLAN.md" in cmd or "tasks.md" in cmd:
                     bash_tracker_calls += 1
         if first_edit_ctx is None:
-            processed_before_edit += ctx + u.get("output_tokens", 0)
+            if first_of_message:
+                processed_before_edit += ctx + u.get("output_tokens", 0)
             if edits_code:
                 first_edit_ctx = ctx
     out = {
-        "assistant_messages": len(msgs),
+        "assistant_messages": len(msgs),  # distinct message ids
         "tools": tools_used,
         "tracker_bash_calls": bash_tracker_calls,
         "context_at_first_code_edit": first_edit_ctx,

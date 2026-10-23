@@ -105,7 +105,7 @@ the repository.
 2. **Relay** (a chain of fresh sessions over the whole backlog). Prompt, every
    session: `Continue this repository's planned work: take the next item that is
    ready, finish it, and stop when that one item is done.` Session 2 is cut at
-   12 turns on purpose, so session 3 must resume someone else's half-finished
+   5 turns on purpose, so session 3 must resume someone else's half-finished
    item from what the repository records. The chain stops when every item passes,
    when two sessions in a row change nothing (no file, no tracker record, no new
    pass), or after items + 2 sessions.
@@ -115,7 +115,7 @@ the repository.
    harness merges the branches in finish order. Measures duplicated work, merge
    conflicts and how much lands.
 
-Every session: model `claude-sonnet-5-5`, at most 80 turns (12 for relay session
+Every session: model `claude-sonnet-5-5`, at most 80 turns (5 for relay session
 2), 45 minutes, and USD 8 (API-equivalent, `--max-budget-usd`). After every
 session the harness commits the tree (so arms that do not commit are not
 penalised), runs every item's hidden tests, and reads the arm's tracker.
@@ -143,7 +143,7 @@ Fixed now, before any result.
 - **False completions:** items the arm's own tracker records as done whose
   hidden tests fail (not defined for `plain`, which records nothing).
 - **Unrecorded completions:** items that pass but the tracker does not record.
-- **Resumption:** in relays where session 2 hit its 12-turn cut, whether
+- **Resumption:** in relays where session 2 hit its 5-turn cut, whether
   session 3 brings a new item to passing.
 - **Regressions:** earlier items that stop passing.
 - **Parallel:** items passing after the merge, items solved by more than one
