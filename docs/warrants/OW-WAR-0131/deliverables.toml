@@ -154,13 +154,13 @@ provenance_required = true
 obligation_refs = ["OBL-001", "OBL-002", "OBL-003", "OBL-004"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "OW-WAR-0131/attempt-1"
+producer = "agent://codex"
+producing_attempt = "OW-WAR-0131/20261023-native-coverage"
 contract_digest = "8a6982a5e929d4f14aefb84e644b6986cb4d02c2ef30a7ad678de195bcfe8ace"
 input_digests = []
-tool_or_runtime_identity = "war 1.0.0-alpha.3 (unreleased, commit 1ad0f298ddb2, debug)"
-creation_method = "authored"
-content_digest = "sha256:7e3e660c4d3cb044c20e7e96c6cd131c9b0864a17b5ba65fea0f09ba3c9bff8e"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
+creation_method = "updated existing supported-OS documentation from actual native observations and approved group-kill scope; original source and history retained"
+content_digest = "sha256:6f4c87527a371fcfc8738d5cb6edaec1c0e353c44c1e9bb269469913af873de0"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository"

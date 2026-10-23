@@ -1,0 +1,50 @@
+{
+  "schema": "oh.war/native-performer-observation/v1",
+  "head": "fc008ef53dc0d835d5caa2d3cbfbbbcc82cb90c4",
+  "tree": "0d38278d974b1afe92b8ac5e008beb489b736eca",
+  "host": "Linux",
+  "architecture": "x86_64",
+  "checks": [
+    {
+      "name": "build",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--bin",
+        "war"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 35.380557157986914
+    },
+    {
+      "name": "units",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--lib",
+        "perform::tests::"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 20.95484071499959
+    },
+    {
+      "name": "plant",
+      "argv": [
+        "bash",
+        "conformance/native/perform.sh"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 16.692513895002776
+    }
+  ],
+  "source_clean_after": true,
+  "passed": true,
+  "qualification_established": false,
+  "macos_observed": false
+}

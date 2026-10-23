@@ -1422,7 +1422,7 @@
 
 ## docs/tickets/t-03f9c/manifest.toml
 > Observe native performer cancellation and writer fencing on Linux and macOS
-- t-03f9c · ticket · open · Observe native performer cancellation and writer fencing on Linux and macOS · docs/tickets/t-03f9c/manifest.toml:1
+- t-03f9c · ticket · done · Observe native performer cancellation and writer fencing on Linux and macOS · docs/tickets/t-03f9c/manifest.toml:1
 
 ## docs/tickets/t-041d4/manifest.toml
 > Retain native package friction observations without timing human work
