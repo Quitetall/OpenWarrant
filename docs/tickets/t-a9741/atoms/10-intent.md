@@ -1,0 +1,8 @@
+# Record schema-only duplicate content without repeating bodies
+
+Frozen W75 host export is312108923 bytes against268435456 bound;9100members contain280197294 decoded bytes but223995685 unique bytes. Explore scoped content-only schema memoization using existing Member.digest observations. Preserve ordinary withheld-body refusal, future-schema findings, exact model parity, every required body, and all bounds. No new protocol or digest domain. Full old source remains immutable. Nonempty-history hosted IO must be tested separately before declaring parity complete.
+
+## Notes
+
+- **2026-10-23 13:21 UTC, claude:** Hosted prior-review regression reproduced: native directory enumeration and retained packet reads bypassed VFS. Corrected both paths; native anchored reads still refuse root/member links and traversal. 539 CLI library tests PASS before final root-link test addition; latest 3 VFS tests, hosted-history regression, strict schema/all-target Clippy and 65 verification integration controls PASS. Full frozen W75 host round-trip running; linked worktree claim layout remains a known separate parity issue. No completion or assurance claim.
+- **2026-10-23 13:22 UTC, agent://codex:** Correction: the preceding note was written by this Codex performer; CLI defaulted its actor label to claude. Latest full W75 round-trip is terminal, not running: request254503011bytes under unchanged268435456 limit, but host exits2 with host.member-withheld on .git and W75 computed dispositions remain unknown. 18 frozen host cases PASS. Focused hosted-history defect is fixed; full parity and ticket completion remain unproven.

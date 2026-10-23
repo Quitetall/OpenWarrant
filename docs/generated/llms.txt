@@ -1816,6 +1816,10 @@
 > M12: a small surface
 - t-a92bb · ticket · done · M12: a small surface · docs/tickets/t-a92bb/manifest.toml:1
 
+## docs/tickets/t-a9741/manifest.toml
+> Preserve complete hosted model facts within unchanged input limits
+- t-a9741 · ticket · open · Record schema-only duplicate content without repeating bodies · docs/tickets/t-a9741/manifest.toml:1
+
 ## docs/tickets/t-aade8/manifest.toml
 > Diagnose intermittent draft checkpoint startup timeout in integration suite
 - t-aade8 · ticket · in_progress · Diagnose intermittent draft checkpoint startup timeout in integration suite · docs/tickets/t-aade8/manifest.toml:1
