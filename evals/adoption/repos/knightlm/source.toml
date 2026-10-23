@@ -1,0 +1,4 @@
+schema = "ow-adoption/source/v1"
+kind = "git"
+path = "/home/brianklam/Projects/KnightLM/code"
+commit = "36979e9b0772f06da4f324322cd94117dc542e0e"   # "Initial commit: KnightLM scaffold"

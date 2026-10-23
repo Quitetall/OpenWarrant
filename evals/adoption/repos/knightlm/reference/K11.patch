@@ -1,0 +1,303 @@
+diff --git a/README.md b/README.md
+index 40a2f35..98ea215 100644
+--- a/README.md
++++ b/README.md
+@@ -58,6 +58,7 @@ cargo run --locked -- render fixtures/start.json --black-bottom --blue-theme
+ cargo run --locked -- evaluate-fixtures fixtures/start.json
+ cargo run --locked -- simulate fixtures/start.json e2e4 e7e5 --budget 8
+ cargo run --locked -- perft fixtures/start.json 3 --divide
++cargo run --locked -- perft-suite fixtures/perft-suite.epd --max-depth 2
+ cargo run --locked -- compile fixtures/start.json --legal-choices --san
+ cargo run --locked -- import-pgn game.pgn --game 1
+ cargo run --locked -- export-pgn fixtures/repetition.json
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 9e8058c..152a0f1 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -58,6 +58,13 @@ enum Command {
+         #[arg(long)]
+         divide: bool,
+     },
++    /// Check a suite of positions against published perft node counts.
++    PerftSuite {
++        file: PathBuf,
++        /// Deepest entry to check; deeper entries are skipped (at most 6).
++        #[arg(long, default_value_t = MAX_PERFT_DEPTH)]
++        max_depth: u32,
++    },
+     /// Import one PGN game (main line only) as a normalized GameRecord.
+     ImportPgn {
+         file: PathBuf,
+@@ -117,9 +124,6 @@ enum Command {
+     VerifyModel { profile: PathBuf },
+ }
+ 
+-/// Perft is a bounded diagnostic, not a search: deeper counts are refused.
+-const MAX_PERFT_DEPTH: u32 = 6;
+-
+ fn read<T: serde::de::DeserializeOwned>(path: &PathBuf) -> Result<T> {
+     Ok(serde_json::from_reader(BufReader::new(
+         File::open(path).with_context(|| path.display().to_string())?,
+@@ -313,6 +317,18 @@ fn main() -> Result<()> {
+             }
+             emit(&report, false)?;
+         }
++        Command::PerftSuite { file, max_depth } => {
++            let text =
++                std::fs::read_to_string(&file).with_context(|| file.display().to_string())?;
++            let report = knightlm_core::suite::run_suite(&text, max_depth)?;
++            emit(&report, false)?;
++            ensure!(
++                report.failed == 0,
++                "perft suite failed: {} of {}",
++                report.failed,
++                report.checked
++            );
++        }
+         Command::ImportPgn { file, game } => {
+             let (text, name) = read_pgn(&file)?;
+             emit(&knightlm_core::pgn::import(&text, &name, game)?, false)?;
+diff --git a/crates/core/src/lib.rs b/crates/core/src/lib.rs
+index 5e5c2f1..c69cc3a 100644
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -7,6 +7,7 @@ pub mod extract;
+ pub mod pgn;
+ pub mod san;
+ pub mod state;
++pub mod suite;
+ pub mod tree;
+ pub mod vision;
+ 
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index 293ca4a..3876de8 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -5,6 +5,9 @@ use std::collections::BTreeMap;
+ 
+ use crate::SCHEMA_VERSION;
+ 
++/// Perft is a bounded diagnostic, not a search: deeper counts are refused.
++pub const MAX_PERFT_DEPTH: u32 = 6;
++
+ pub const START_FEN: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+ 
+ #[derive(Debug, Clone, Serialize, Deserialize)]
+diff --git a/crates/core/src/suite.rs b/crates/core/src/suite.rs
+new file mode 100644
+index 0000000..52b3164
+--- /dev/null
++++ b/crates/core/src/suite.rs
+@@ -0,0 +1,129 @@
++//! Perft suites: EPD-style lines of positions with published node counts,
++//! checked with the same move counter as `perft` (no draw adjudication).
++use anyhow::{Context, Result, bail, ensure};
++use serde::Serialize;
++
++use crate::SCHEMA_VERSION;
++use crate::state::{GameRecord, GameState, MAX_PERFT_DEPTH};
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct SuiteResult {
++    /// 1-based line number in the suite file.
++    pub line: usize,
++    pub fen: String,
++    pub depth: u32,
++    pub expected: u64,
++    pub nodes: u64,
++    pub pass: bool,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct SuiteReport {
++    pub positions: usize,
++    pub checked: usize,
++    pub passed: usize,
++    pub failed: usize,
++    pub skipped: usize,
++    pub results: Vec<SuiteResult>,
++}
++
++/// Check every `;D<depth> <count>` entry of a suite up to `max_depth`;
++/// deeper entries are skipped. Any malformed line refuses the whole suite.
++pub fn run_suite(text: &str, max_depth: u32) -> Result<SuiteReport> {
++    ensure!(
++        (1..=MAX_PERFT_DEPTH).contains(&max_depth),
++        "--max-depth must be between 1 and {MAX_PERFT_DEPTH}"
++    );
++    let mut lines = Vec::new();
++    for (i, raw) in text.lines().enumerate() {
++        let line = raw.trim();
++        if line.is_empty() || line.starts_with('#') {
++            continue;
++        }
++        lines.push((
++            i + 1,
++            parse_line(line).map_err(|e| anyhow::anyhow!("line {}: {e:#}", i + 1))?,
++        ));
++    }
++    ensure!(!lines.is_empty(), "no positions in perft suite");
++    let mut report = SuiteReport {
++        positions: lines.len(),
++        checked: 0,
++        passed: 0,
++        failed: 0,
++        skipped: 0,
++        results: Vec::new(),
++    };
++    for (line, (state, entries)) in lines {
++        for (depth, expected) in entries {
++            if depth > max_depth {
++                report.skipped += 1;
++                continue;
++            }
++            let nodes = state.perft(depth);
++            report.checked += 1;
++            if nodes == expected {
++                report.passed += 1;
++            } else {
++                report.failed += 1;
++            }
++            report.results.push(SuiteResult {
++                line,
++                fen: state.fen(),
++                depth,
++                expected,
++                nodes,
++                pass: nodes == expected,
++            });
++        }
++    }
++    Ok(report)
++}
++
++type Entries = Vec<(u32, u64)>;
++
++/// `<four or six FEN fields> ;D1 <count> ;D2 <count> ...`
++fn parse_line(line: &str) -> Result<(GameState, Entries)> {
++    let mut parts = line.split(';');
++    let position: Vec<_> = parts
++        .next()
++        .unwrap_or_default()
++        .split_whitespace()
++        .collect();
++    let fen = match position.len() {
++        4 => format!("{} 0 1", position.join(" ")),
++        6 => position.join(" "),
++        n => bail!("position needs four or six FEN fields, found {n}"),
++    };
++    let state = GameState::replay(&GameRecord {
++        schema_version: SCHEMA_VERSION,
++        game_id: "perft-suite".into(),
++        source: "perft suite line".into(),
++        initial_fen: fen,
++        history_complete: false,
++        moves: vec![],
++    })
++    .context("invalid position")?;
++    let mut entries: Entries = Vec::new();
++    for entry in parts {
++        let fields: Vec<_> = entry.split_whitespace().collect();
++        let [label, count] = fields[..] else {
++            bail!("malformed entry {:?}", entry.trim());
++        };
++        let depth = label
++            .strip_prefix('D')
++            .and_then(|d| d.parse::<u32>().ok())
++            .filter(|&d| d >= 1)
++            .with_context(|| format!("malformed depth {label:?}"))?;
++        let count = count
++            .parse::<u64>()
++            .with_context(|| format!("malformed node count {count:?}"))?;
++        ensure!(
++            entries.iter().all(|&(d, _)| d != depth),
++            "depth {depth} listed twice"
++        );
++        entries.push((depth, count));
++    }
++    ensure!(!entries.is_empty(), "no ;D entries");
++    Ok((state, entries))
++}
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index 97ff6ae..64be09f 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -663,3 +663,38 @@ fn extract_starts_from_a_stated_position_and_never_claims_history() {
+         assert!(err.to_string().starts_with("ply range out of bounds"));
+     }
+ }
++
++#[test]
++fn perft_suite_checks_published_counts_and_refuses_malformed_lines() {
++    let text = std::fs::read_to_string(concat!(
++        env!("CARGO_MANIFEST_DIR"),
++        "/../../fixtures/perft-suite.epd"
++    ))
++    .unwrap();
++    let report = knightlm_core::suite::run_suite(&text, 2).unwrap();
++    assert_eq!(
++        (
++            report.positions,
++            report.checked,
++            report.passed,
++            report.skipped
++        ),
++        (4, 8, 8, 2)
++    );
++    assert_eq!(report.results[0].fen, START_FEN);
++    assert_eq!(report.results[0].line, 2);
++    let wrong = knightlm_core::suite::run_suite("8/8/8/8/8/8/8/K6k w - - ;D1 4\n", 6).unwrap();
++    assert_eq!((wrong.failed, wrong.results[0].nodes), (1, 3));
++    for bad in [
++        "8/8/8/8/8/8/8/K6k w - - ;D1\n",
++        "8/8/8/8/8/8/8/K6k w - -\n",
++        "8/8/8/8/8/8/8/K6k w - - ;D0 1\n",
++        "8/8/8/8/8/8/8/K6k w - - ;D1 3 ;D1 3\n",
++        "8/8/8/8/8/8/8/K6k w - ;D1 3\n",
++        "# only a comment\n",
++    ] {
++        assert!(knightlm_core::suite::run_suite(bad, 6).is_err(), "{bad}");
++    }
++    assert!(knightlm_core::suite::run_suite(&text, 0).is_err());
++    assert!(knightlm_core::suite::run_suite(&text, MAX_PERFT_DEPTH + 1).is_err());
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index 1d3dd08..8d29067 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -46,6 +46,11 @@ one square colour. `terminal_reason: null` therefore means no
+ terminal condition was established by supported checks. Claimable draws do not
+ automatically terminate play. Checkmate takes precedence over the 75-move rule.
+ 
++`perft` and `perft-suite` count legal move paths by the rules of movement only,
++to at most six plies; adjudicated terminal positions still have their moves
++counted. `perft-suite` checks EPD-style `;D<depth> <count>` entries, skips
++entries deeper than `--max-depth`, and refuses a malformed line outright.
++
+ `BoardObservation` contains image identity and visible piece placement only.
+ Image prediction is compared against the authoritative ledger. Disagreement is
+ an explicit error that lists every mismatched square; a malformed placement is
+diff --git a/fixtures/perft-suite.epd b/fixtures/perft-suite.epd
+new file mode 100644
+index 0000000..2679349
+--- /dev/null
++++ b/fixtures/perft-suite.epd
+@@ -0,0 +1,5 @@
++# Chess Programming Wiki perft results (start position, Kiwipete, positions 3 and 5).
++rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - ;D1 20 ;D2 400 ;D3 8902
++r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ;D1 48 ;D2 2039
++8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1 ;D1 14 ;D2 191 ;D3 2812
++rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8 ;D1 44 ;D2 1486
+diff --git a/scripts/check_cli.py b/scripts/check_cli.py
+index 6008602..e475d93 100644
+--- a/scripts/check_cli.py
++++ b/scripts/check_cli.py
+@@ -36,6 +36,8 @@ def main():
+     assert (tree["games"], tree["skipped_setup"]) == (3, 1)
+     assert [(n["san"], n["count"]) for n in tree["moves"]] == [("e4", 2), ("d4", 1)]
+     run("opening-tree", "fixtures/openings.pgn", "--plies", "13", succeeds=False)
++    suite = json.loads(run("perft-suite", "fixtures/perft-suite.epd", "--max-depth", "2"))
++    assert (suite["checked"], suite["failed"], suite["skipped"]) == (8, 0, 2)
+     audit = json.loads(run("audit-pgn", "fixtures/audit.pgn"))
+     assert audit["summary"] == {"games": 3, "errors": 0, "inconsistent": 0,
+                                 "claimable_draws": 0, "total_length": 6}

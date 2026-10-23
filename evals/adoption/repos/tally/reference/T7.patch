@@ -1,0 +1,140 @@
+diff --git a/README.md b/README.md
+index b03fd80..22f792a 100644
+--- a/README.md
++++ b/README.md
+@@ -19,6 +19,7 @@ python3 -m tally <command> <journal file> [options]
+ | `accounts` | every account name the journal uses |
+ | `print [--from DATE] [--until DATE]` | the transactions in date order, elided amounts filled in |
+ | `prices [COMMODITY]` | the `P` price directives in date order, as `DATE COMMODITY RATE QUOTE` |
++| `export [ACCOUNT] [--from DATE] [--until DATE]` | every posting as `;`-separated text (`date;payee;account;amount;commodity`, decimal comma) |
+ | `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
+ | `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
+ | `import CSV --rules FILE` | a bank CSV export as journal transactions (rules: see `tally/importer.py`) |
+diff --git a/tally/cli.py b/tally/cli.py
+index b8d8689..ed28df0 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -25,6 +25,7 @@ from tally.periodic import expand
+ from tally.reports.accounts import compute_accounts, render_accounts
+ from tally.reports.balance import compute_balances, render_balance
+ from tally.reports.budget import compute_budget, render_budget
++from tally.reports.export import compute_export, render_export
+ from tally.reports.register import compute_register, render_register
+ from tally.writer import render_transactions
+ 
+@@ -92,6 +93,12 @@ def cmd_print(args: argparse.Namespace) -> int:
+     return EXIT_OK
+ 
+ 
++def cmd_export(args: argparse.Namespace) -> int:
++    journal = load_selected(args)
++    sys.stdout.write(render_export(compute_export(journal, account=args.account)))
++    return EXIT_OK
++
++
+ def cmd_forecast(args: argparse.Namespace) -> int:
+     journal = load_journal(args.journal)
+     transactions = expand(journal.periodic, args.until)
+@@ -178,6 +185,14 @@ def _add_print(sub: argparse._SubParsersAction) -> None:
+     p.set_defaults(func=cmd_print)
+ 
+ 
++def _add_export(sub: argparse._SubParsersAction) -> None:
++    p = sub.add_parser("export", help="every posting as ;-separated text for a spreadsheet")
++    p.add_argument("journal", help="journal file")
++    p.add_argument("account", nargs="?", help="limit to this account and its descendants")
++    add_date_range_options(p)
++    p.set_defaults(func=cmd_export)
++
++
+ def _add_forecast(sub: argparse._SubParsersAction) -> None:
+     p = sub.add_parser("forecast", help="expand periodic transactions up to a date")
+     p.add_argument("journal", help="journal file")
+@@ -226,6 +241,7 @@ COMMANDS: list[Callable[[argparse._SubParsersAction], None]] = [
+     _add_accounts,
+     _add_print,
+     _add_prices,
++    _add_export,
+     _add_forecast,
+     _add_budget,
+     _add_import,
+diff --git a/tally/reports/export.py b/tally/reports/export.py
+new file mode 100644
+index 0000000..11ed22c
+--- /dev/null
++++ b/tally/reports/export.py
+@@ -0,0 +1,40 @@
++"""The export report: every posting as one row of delimited text.
++
++The file is meant for a spreadsheet: a header row, then one row per posting
++of each real transaction in ``print`` order, elided amounts filled in.
++Fields are separated by ``;`` and amounts use a decimal comma (``-42,50``).
++A field is quoted only when it contains the separator or a double quote.
++"""
++
++from __future__ import annotations
++
++import csv
++import io
++
++from tally.accounts import account_matches
++from tally.amounts import format_amount
++from tally.model import Journal
++
++SEPARATOR = ";"
++DECIMAL_MARK = ","
++HEADER = ("date", "payee", "account", "amount", "commodity")
++
++
++def compute_export(journal: Journal, account: str | None = None) -> list[tuple[str, ...]]:
++    """One tuple of field texts per posting, in ``print`` order."""
++    rows: list[tuple[str, ...]] = []
++    for txn in journal.sorted_transactions():
++        for posting in txn.postings:
++            if account is not None and not account_matches(posting.account, account):
++                continue
++            amount = format_amount(posting.amount).replace(".", DECIMAL_MARK)
++            rows.append((txn.date.isoformat(), txn.payee, posting.account, amount, posting.commodity))
++    return rows
++
++
++def render_export(rows: list[tuple[str, ...]]) -> str:
++    out = io.StringIO()
++    writer = csv.writer(out, delimiter=SEPARATOR, lineterminator="\n", quoting=csv.QUOTE_MINIMAL)
++    writer.writerow(HEADER)
++    writer.writerows(rows)
++    return out.getvalue()
+diff --git a/tests/test_export.py b/tests/test_export.py
+new file mode 100644
+index 0000000..6e0c2c6
+--- /dev/null
++++ b/tests/test_export.py
+@@ -0,0 +1,28 @@
++from conftest import run_tally
++
++JOURNAL = """\
++2026-01-05 Corner Grocery
++    Expenses:Food  42.50
++    Assets:Checking
++
++2026-01-06 Smith, Jones
++    Expenses:Travel  10 EUR
++    Assets:Wallet
++"""
++
++
++def test_export(journal):
++    result = run_tally("export", journal(JOURNAL))
++    assert result.returncode == 0, result.stderr
++    assert result.stdout == (
++        "date;payee;account;amount;commodity\n"
++        "2026-01-05;Corner Grocery;Expenses:Food;42,50;\n"
++        "2026-01-05;Corner Grocery;Assets:Checking;-42,50;\n"
++        "2026-01-06;Smith, Jones;Expenses:Travel;10,00;EUR\n"
++        "2026-01-06;Smith, Jones;Assets:Wallet;-10,00;EUR\n"
++    )
++
++
++def test_export_account_filter(journal):
++    result = run_tally("export", journal(JOURNAL), "Assets:Wallet")
++    assert result.stdout.splitlines()[1:] == ["2026-01-06;Smith, Jones;Assets:Wallet;-10,00;EUR"]

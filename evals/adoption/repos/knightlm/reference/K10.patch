@@ -1,0 +1,154 @@
+diff --git a/README.md b/README.md
+index 8274914..40a2f35 100644
+--- a/README.md
++++ b/README.md
+@@ -64,6 +64,7 @@ cargo run --locked -- export-pgn fixtures/repetition.json
+ cargo run --locked -- encode fixtures/start.json --relative
+ cargo run --locked -- opening-tree fixtures/openings.pgn --plies 2
+ cargo run --locked -- audit-pgn fixtures/audit.pgn
++cargo run --locked -- extract fixtures/repetition.json --from-ply 2 --pgn
+ cargo run --locked -- validate-evals fixtures/evaluations.jsonl
+ cargo run --locked -- audit-splits fixtures/splits.json
+ cargo run --locked -- validate-corpora fixtures/corpora.json
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 3109671..9e8058c 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -67,6 +67,19 @@ enum Command {
+     },
+     /// Write a normalized game as PGN with SAN movetext.
+     ExportPgn { game: PathBuf },
++    /// Extract a ply range of a game as a record that starts from a stated position.
++    Extract {
++        game: PathBuf,
++        /// Plies before the extract starts (0 is the initial position).
++        #[arg(long)]
++        from_ply: usize,
++        /// Ply after which the extract ends (default: the last move).
++        #[arg(long)]
++        to_ply: Option<usize>,
++        /// Print the extract as PGN (as export-pgn does) instead of JSON.
++        #[arg(long)]
++        pgn: bool,
++    },
+     /// Audit every game of a PGN file against what its final position establishes.
+     AuditPgn {
+         file: PathBuf,
+@@ -310,6 +323,20 @@ fn main() -> Result<()> {
+                 knightlm_core::pgn::export(&read::<GameRecord>(&game)?)?
+             )
+         }
++        Command::Extract {
++            game,
++            from_ply,
++            to_ply,
++            pgn,
++        } => {
++            let record =
++                knightlm_core::extract::extract(&read::<GameRecord>(&game)?, from_ply, to_ply)?;
++            if pgn {
++                print!("{}", knightlm_core::pgn::export(&record)?);
++            } else {
++                emit(&record, false)?;
++            }
++        }
+         Command::AuditPgn {
+             file,
+             only_failures,
+diff --git a/crates/core/src/extract.rs b/crates/core/src/extract.rs
+new file mode 100644
+index 0000000..c67d087
+--- /dev/null
++++ b/crates/core/src/extract.rs
+@@ -0,0 +1,31 @@
++//! Extract a ply range of a game as a record of its own.
++use anyhow::{Result, ensure};
++
++use crate::state::{GameRecord, GameState};
++
++/// The moves `from..to` (plies counted from the record's first move) as a new
++/// record that starts from the position after `from` plies. That start is a
++/// stated position, never a proven history, even when `from` is 0: like a PGN
++/// game with a `FEN` tag, the extract never claims complete history.
++pub fn extract(record: &GameRecord, from: usize, to: Option<usize>) -> Result<GameRecord> {
++    // Replaying the whole record first refuses an invalid one.
++    GameState::replay(record)?;
++    let to = to.unwrap_or(record.moves.len());
++    ensure!(
++        from <= to && to <= record.moves.len(),
++        "ply range out of bounds: {from}..{to} of {} plies",
++        record.moves.len()
++    );
++    let start = GameState::replay(&GameRecord {
++        moves: record.moves[..from].to_vec(),
++        ..record.clone()
++    })?;
++    Ok(GameRecord {
++        schema_version: record.schema_version,
++        game_id: format!("{}@{from}-{to}", record.game_id),
++        source: format!("extract:{}", record.source),
++        initial_fen: start.fen(),
++        history_complete: false,
++        moves: record.moves[from..to].to_vec(),
++    })
++}
+diff --git a/crates/core/src/lib.rs b/crates/core/src/lib.rs
+index f7c5aa3..5e5c2f1 100644
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -3,6 +3,7 @@ pub mod audit;
+ pub mod data;
+ pub mod encode;
+ pub mod experiment;
++pub mod extract;
+ pub mod pgn;
+ pub mod san;
+ pub mod state;
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index b124336..97ff6ae 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -638,3 +638,28 @@ fn pgn_audit_checks_markers_counts_full_moves_and_reports_bad_games() {
+     assert!(clean.only_failures().games.is_empty());
+     assert!(knightlm_core::audit::audit("1. e4 e5\n", "x.pgn").is_err());
+ }
++
++#[test]
++fn extract_starts_from_a_stated_position_and_never_claims_history() {
++    let mut s = start();
++    for m in ["e2e4", "e7e5", "g1f3", "b8c6", "f1b5"] {
++        s.play(m).unwrap();
++    }
++    let record = s.record().clone();
++    let middle = knightlm_core::extract::extract(&record, 2, Some(4)).unwrap();
++    assert_eq!(middle.game_id, "fixture@2-4");
++    assert_eq!(middle.moves, ["g1f3", "b8c6"]);
++    assert!(!middle.history_complete);
++    assert_eq!(
++        GameState::replay(&middle).unwrap().fen(),
++        "r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3"
++    );
++    let whole = knightlm_core::extract::extract(&record, 0, None).unwrap();
++    assert_eq!(whole.initial_fen, START_FEN);
++    assert_eq!(whole.moves, record.moves);
++    assert!(!whole.history_complete);
++    for (from, to) in [(3, Some(2)), (0, Some(6)), (6, None)] {
++        let err = knightlm_core::extract::extract(&record, from, to).unwrap_err();
++        assert!(err.to_string().starts_with("ply range out of bounds"));
++    }
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index 8d568ce..1d3dd08 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -29,6 +29,10 @@ by the experiment arm. Partial-history packets can be compiled for inspection;
+ complete-state experiment preparation refuses them. Context overflow is an
+ error, not silent truncation. Packet size varies with relevant history.
+ 
++`extract` cuts a ply range out of a game as a new record that starts from the
++position before the range. That position is stated, not proven: the extract
++never claims complete history, even from ply 0.
++
+ `encode` flattens the current position for model inputs: 64 squares in FEN
+ reading order (index 0 is a8, index 63 is h1), castling rights, only legally
+ usable en passant, the counters and the repetition count. `--relative` mirrors

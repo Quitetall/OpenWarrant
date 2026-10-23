@@ -1,0 +1,176 @@
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 1dd6d80..00f5d9d 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -29,6 +29,9 @@ enum Command {
+         game: PathBuf,
+         #[arg(long)]
+         legal_choices: bool,
++        /// Also list the legal moves in SAN (requires --legal-choices).
++        #[arg(long, requires = "legal_choices")]
++        san: bool,
+         #[arg(long)]
+         features: bool,
+         #[arg(long)]
+@@ -105,11 +108,13 @@ fn main() -> Result<()> {
+         Command::Compile {
+             game: path,
+             legal_choices,
++            san,
+             features,
+             compact,
+         } => emit(
+             &game(&path)?.compile(PacketOptions {
+                 legal_choices,
++                legal_san: san,
+                 derived_features: features,
+             }),
+             compact,
+diff --git a/crates/core/src/experiment.rs b/crates/core/src/experiment.rs
+index b34bff1..cd76665 100644
+--- a/crates/core/src/experiment.rs
++++ b/crates/core/src/experiment.rs
+@@ -142,6 +142,7 @@ pub fn prepare(
+     if config.arm != Arm::History {
+         let packet = state.compile(PacketOptions {
+             legal_choices: matches!(config.arm, Arm::LegalChoices | Arm::Combined),
++            legal_san: false,
+             derived_features: matches!(config.arm, Arm::DerivedFeatures | Arm::Combined),
+         });
+         prompt.push_str("\nCURRENT_STATE\n");
+diff --git a/crates/core/src/lib.rs b/crates/core/src/lib.rs
+index 0e9b1ac..50fe89d 100644
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -1,6 +1,7 @@
+ //! Deterministic state and research contracts. No neural inference or engine access.
+ pub mod data;
+ pub mod experiment;
++pub mod san;
+ pub mod state;
+ pub mod vision;
+ 
+diff --git a/crates/core/src/san.rs b/crates/core/src/san.rs
+new file mode 100644
+index 0000000..c9520e1
+--- /dev/null
++++ b/crates/core/src/san.rs
+@@ -0,0 +1,12 @@
++//! Standard Algebraic Notation rendering for legal moves of a position.
++use anyhow::{Context, Result, ensure};
++use cozy_chess::Board;
++
++/// Render a legal standard-UCI move (castling as `e1g1`) as SAN: piece letter,
++/// minimal file/rank disambiguation among legal moves, `x` for captures,
++/// `=Q` promotions, `O-O`/`O-O-O`, then `+` for check or `#` for mate.
++pub fn uci_to_san(board: &Board, uci: &str) -> Result<String> {
++    let mv = cozy_chess::util::parse_uci_move(board, uci).context("malformed UCI move")?;
++    ensure!(board.is_legal(mv), "illegal move: {uci}");
++    Ok(cozy_chess::util::display_san_move(board, mv).to_string())
++}
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index acc8a60..dce24bf 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -57,6 +57,8 @@ pub struct DerivedFeatures {
+ #[derive(Debug, Clone, Copy, Default)]
+ pub struct PacketOptions {
+     pub legal_choices: bool,
++    /// Adds `legal_moves_san`, aligned index-for-index with `legal_moves`.
++    pub legal_san: bool,
+     pub derived_features: bool,
+ }
+ 
+@@ -73,6 +75,8 @@ pub struct ContextPacket {
+     pub facts: RuleFacts,
+     #[serde(skip_serializing_if = "Option::is_none")]
+     pub legal_moves: Option<Vec<String>>,
++    #[serde(default, skip_serializing_if = "Option::is_none")]
++    pub legal_moves_san: Option<Vec<String>>,
+     #[serde(skip_serializing_if = "Option::is_none")]
+     pub features: Option<DerivedFeatures>,
+ }
+@@ -193,6 +197,19 @@ impl GameState {
+         moves
+     }
+ 
++    /// SAN of `legal_moves()`, in the same order.
++    pub fn legal_moves_san(&self) -> Vec<String> {
++        self.legal_moves()
++            .iter()
++            .map(|uci| crate::san::uci_to_san(&self.board, uci).expect("generated move is legal"))
++            .collect()
++    }
++
++    /// SAN of a legal standard-UCI move in the current position.
++    pub fn san(&self, uci: &str) -> Result<String> {
++        crate::san::uci_to_san(&self.board, uci)
++    }
++
+     pub fn is_legal(&self, uci: &str) -> bool {
+         self.facts().terminal_reason.is_none()
+             && cozy_chess::util::parse_uci_move(&self.board, uci)
+@@ -312,6 +329,8 @@ impl GameState {
+             repetition_ledger: self.repetitions.clone(),
+             facts: self.facts(),
+             legal_moves: options.legal_choices.then(|| self.legal_moves()),
++            legal_moves_san: (options.legal_choices && options.legal_san)
++                .then(|| self.legal_moves_san()),
+             features: options.derived_features.then(|| self.features()),
+         }
+     }
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index 0abd90b..90aef34 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -419,3 +419,26 @@ fn same_coloured_bishops_are_dead_and_other_minors_stay_unknown() {
+         assert_eq!(s.facts().terminal_reason, None, "{fen}");
+     }
+ }
++
++#[test]
++fn san_disambiguates_among_legal_moves_and_marks_check_and_mate() {
++    let s = setup("4k3/8/8/8/8/Q7/8/Q1Q1K3 w - - 0 1", true);
++    assert_eq!(s.san("a1b2").unwrap(), "Qa1b2");
++    let s = setup("k3r3/8/8/1N6/8/8/4N3/4K3 w - - 0 1", true);
++    assert_eq!(s.san("b5c3").unwrap(), "Nc3"); // e2 is pinned
++    let castle = setup("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", true);
++    assert_eq!(castle.san("e1g1").unwrap(), "O-O");
++    assert_eq!(castle.san("e1c1").unwrap(), "O-O-O");
++    let mut fool = start();
++    for m in ["f2f3", "e7e5", "g2g4"] {
++        fool.play(m).unwrap();
++    }
++    assert_eq!(fool.san("d8h4").unwrap(), "Qh4#");
++    assert!(fool.san("d8d1").is_err());
++    let packet = start().compile(PacketOptions {
++        legal_choices: true,
++        legal_san: true,
++        ..Default::default()
++    });
++    assert_eq!(packet.legal_moves_san.unwrap()[..3], ["a3", "a4", "Na3"]);
++}
+diff --git a/ports/python/knightlm_contract.py b/ports/python/knightlm_contract.py
+index 5938446..5c52d3c 100644
+--- a/ports/python/knightlm_contract.py
++++ b/ports/python/knightlm_contract.py
+@@ -4,7 +4,7 @@ import json
+ from pathlib import Path
+ 
+ REQUIRED = {"schema_version", "ruleset", "fen", "history_complete", "repetition_ledger", "facts"}
+-OPTIONAL = {"legal_moves", "features"}
++OPTIONAL = {"legal_moves", "legal_moves_san", "features"}
+ FACTS = {"in_check", "checkmate", "stalemate", "repetition_count", "threefold_claim_now",
+          "fifty_move_claim_now", "fivefold_automatic", "seventy_five_move_automatic",
+          "dead_position", "terminal_reason"}
+@@ -50,6 +50,10 @@ def load_packet(path):
+     if "legal_moves" in packet and (not isinstance(packet["legal_moves"], list) or
+                                     not all(isinstance(m, str) for m in packet["legal_moves"])):
+         raise ValueError("invalid legal moves")
++    if "legal_moves_san" in packet and (not isinstance(packet["legal_moves_san"], list) or
++                                        not all(isinstance(m, str) for m in packet["legal_moves_san"]) or
++                                        len(packet["legal_moves_san"]) != len(packet.get("legal_moves", []))):
++        raise ValueError("invalid SAN legal moves")
+     if "features" in packet:
+         features = packet["features"]
+         if not isinstance(features, dict) or features.keys() != {"material_counts", "pinned_to_move", "attacks"}:

@@ -1,0 +1,159 @@
+diff --git a/README.md b/README.md
+index 65dd195..da80879 100644
+--- a/README.md
++++ b/README.md
+@@ -60,6 +60,7 @@ cargo run --locked -- simulate fixtures/start.json e2e4 e7e5 --budget 8
+ cargo run --locked -- perft fixtures/start.json 3 --divide
+ cargo run --locked -- compile fixtures/start.json --legal-choices --san
+ cargo run --locked -- import-pgn game.pgn --game 1
++cargo run --locked -- export-pgn fixtures/repetition.json
+ cargo run --locked -- validate-evals fixtures/evaluations.jsonl
+ cargo run --locked -- audit-splits fixtures/splits.json
+ cargo run --locked -- validate-corpora fixtures/corpora.json
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 792aee4..a93f34f 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -65,6 +65,8 @@ enum Command {
+         #[arg(long, default_value_t = 1)]
+         game: usize,
+     },
++    /// Write a normalized game as PGN with SAN movetext.
++    ExportPgn { game: PathBuf },
+     /// Apply a bounded sequence of single-ply hypothetical moves.
+     Simulate {
+         game: PathBuf,
+@@ -262,6 +264,12 @@ fn main() -> Result<()> {
+                 .to_string_lossy();
+             emit(&knightlm_core::pgn::import(&text, &name, game)?, false)?;
+         }
++        Command::ExportPgn { game } => {
++            print!(
++                "{}",
++                knightlm_core::pgn::export(&read::<GameRecord>(&game)?)?
++            )
++        }
+         Command::TrainSmoke { checkpoint } => emit(&smoke::train_smoke(&checkpoint)?, false)?,
+         Command::VerifyModel { profile } => {
+             let report = verify_model(&read::<ModelProfile>(&profile)?)?;
+diff --git a/crates/core/src/pgn.rs b/crates/core/src/pgn.rs
+index d6df6eb..0be9318 100644
+--- a/crates/core/src/pgn.rs
++++ b/crates/core/src/pgn.rs
+@@ -1,4 +1,4 @@
+-//! PGN import into normalized `GameRecord`s. Comments, NAGs and variations are
++//! PGN import into normalized `GameRecord`s, and export back to PGN. Comments, NAGs and variations are
+ //! skipped; only the main line is kept. Provenance comes from the file and tags.
+ use anyhow::{Context, Result, bail, ensure};
+ 
+@@ -166,3 +166,78 @@ pub fn import(text: &str, file_name: &str, index: usize) -> Result<GameRecord> {
+     }
+     Ok(state.record().clone())
+ }
++
++/// PGN export format: the Seven Tag Roster (unknowns as `?`, `Site` carries the
++/// game id), `SetUp`/`FEN` unless the record starts from the standard position
++/// with complete history, then SAN movetext wrapped at 79 columns.
++pub fn export(record: &GameRecord) -> Result<String> {
++    let mut state = GameState::replay(&GameRecord {
++        moves: vec![],
++        ..record.clone()
++    })?;
++    let mut tokens = Vec::new();
++    for (ply, uci) in record.moves.iter().enumerate() {
++        let fen = state.fen();
++        let fields: Vec<_> = fen.split_whitespace().collect();
++        if fields[1] == "w" {
++            tokens.push(format!("{}.", fields[5]));
++        } else if ply == 0 {
++            tokens.push(format!("{}...", fields[5]));
++        }
++        tokens.push(
++            state
++                .san(uci)
++                .with_context(|| format!("move {}", ply + 1))?,
++        );
++        state
++            .play(uci)
++            .with_context(|| format!("move {}", ply + 1))?;
++    }
++    let facts = state.facts();
++    let result = if facts.checkmate {
++        if state.fen().split_whitespace().nth(1) == Some("w") {
++            "0-1"
++        } else {
++            "1-0"
++        }
++    } else if facts.terminal_reason.is_some() {
++        "1/2-1/2"
++    } else {
++        "*"
++    };
++    tokens.push(result.to_owned());
++    let escape = |v: &str| v.replace('\\', "\\\\").replace('"', "\\\"");
++    let mut tags = vec![
++        ("Event", "?".to_owned()),
++        ("Site", escape(&record.game_id)),
++        ("Date", "????.??.??".to_owned()),
++        ("Round", "?".to_owned()),
++        ("White", "?".to_owned()),
++        ("Black", "?".to_owned()),
++        ("Result", result.to_owned()),
++    ];
++    if record.initial_fen != START_FEN || !record.history_complete {
++        tags.push(("SetUp", "1".to_owned()));
++        tags.push(("FEN", escape(&record.initial_fen)));
++    }
++    let mut out = String::new();
++    for (name, value) in tags {
++        out.push_str(&format!("[{name} \"{value}\"]\n"));
++    }
++    out.push('\n');
++    let mut line = String::new();
++    for token in tokens {
++        if !line.is_empty() && line.len() + 1 + token.len() > 79 {
++            out.push_str(&line);
++            out.push('\n');
++            line.clear();
++        }
++        if !line.is_empty() {
++            line.push(' ');
++        }
++        line.push_str(&token);
++    }
++    out.push_str(&line);
++    out.push('\n');
++    Ok(out)
++}
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index ecfd078..855e7a5 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -461,3 +461,27 @@ fn pgn_import_keeps_main_line_and_never_asserts_setup_history() {
+     );
+     assert!(knightlm_core::pgn::import(text, "t.pgn", 3).is_err());
+ }
++
++#[test]
++fn pgn_export_round_trips_through_import() {
++    let mut fool = start();
++    for m in ["f2f3", "e7e5", "g2g4", "d8h4"] {
++        fool.play(m).unwrap();
++    }
++    let record = GameRecord {
++        game_id: "fool".into(),
++        ..fool.record().clone()
++    };
++    let pgn = knightlm_core::pgn::export(&record).unwrap();
++    assert!(pgn.ends_with("\n\n1. f3 e5 2. g4 Qh4# 0-1\n"), "{pgn}");
++    let back = knightlm_core::pgn::import(&pgn, "x.pgn", 1).unwrap();
++    assert_eq!(
++        (
++            back.game_id,
++            back.initial_fen,
++            back.history_complete,
++            back.moves
++        ),
++        (record.game_id, record.initial_fen, true, record.moves)
++    );
++}

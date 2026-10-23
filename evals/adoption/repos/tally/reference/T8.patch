@@ -1,0 +1,161 @@
+diff --git a/README.md b/README.md
+index 22f792a..9ee2860 100644
+--- a/README.md
++++ b/README.md
+@@ -22,6 +22,7 @@ python3 -m tally <command> <journal file> [options]
+ | `export [ACCOUNT] [--from DATE] [--until DATE]` | every posting as `;`-separated text (`date;payee;account;amount;commodity`, decimal comma) |
+ | `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
+ | `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
++| `budget ... --monthly` | one table per calendar month, each headed `FIRST..LAST`; a month's remaining carries into the next month's budget |
+ | `import CSV --rules FILE` | a bank CSV export as journal transactions (rules: see `tally/importer.py`) |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+diff --git a/docs/FORMAT.md b/docs/FORMAT.md
+index 0a5c402..331897c 100644
+--- a/docs/FORMAT.md
++++ b/docs/FORMAT.md
+@@ -95,6 +95,8 @@ Each posting of a periodic transaction that states its amount budgets that
+ amount to its account at every occurrence in the period; the posting whose
+ amount is left out is the funding side and is not budgeted. The actual is
+ the sum of real postings in the period to the account or its descendants.
++With `--monthly`, each calendar month in the period gets its own table, and
++what is left of a month's budget (or overspent) carries into the next month.
+ 
+ ## Problems
+ 
+diff --git a/tally/cli.py b/tally/cli.py
+index ed28df0..3219919 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -24,7 +24,12 @@ from tally.parser import load_journal, parse_file
+ from tally.periodic import expand
+ from tally.reports.accounts import compute_accounts, render_accounts
+ from tally.reports.balance import compute_balances, render_balance
+-from tally.reports.budget import compute_budget, render_budget
++from tally.reports.budget import (
++    compute_budget,
++    compute_monthly_budget,
++    render_budget,
++    render_monthly_budget,
++)
+ from tally.reports.export import compute_export, render_export
+ from tally.reports.register import compute_register, render_register
+ from tally.writer import render_transactions
+@@ -109,6 +114,10 @@ def cmd_forecast(args: argparse.Namespace) -> int:
+ 
+ def cmd_budget(args: argparse.Namespace) -> int:
+     journal = load_selected(args)
++    if args.monthly:
++        blocks = compute_monthly_budget(journal, args.date_from, args.date_until)
++        print(render_monthly_budget(blocks))
++        return EXIT_OK
+     rows = compute_budget(journal, args.date_from, args.date_until)
+     print(render_budget(rows))
+     return EXIT_OK
+@@ -211,6 +220,10 @@ def _add_budget(sub: argparse._SubParsersAction) -> None:
+             flag, dest=dest, type=date_argument, required=True, metavar="DATE",
+             help=f"{word} day of the budget period (inclusive)",
+         )
++    p.add_argument(
++        "--monthly", action="store_true",
++        help="one table per calendar month, unspent budget carried forward",
++    )
+     p.set_defaults(func=cmd_budget)
+ 
+ 
+diff --git a/tally/reports/budget.py b/tally/reports/budget.py
+index 08f091e..574645f 100644
+--- a/tally/reports/budget.py
++++ b/tally/reports/budget.py
+@@ -5,6 +5,11 @@ for that account; the posting whose amount was left out is the funding side
+ and is not budgeted. Over a date range, an account's budget is the sum of
+ its rule occurrences in the range, and its actual is the sum of real
+ postings in the range to that account or any of its descendants.
++
++With ``--monthly`` the range is cut into calendar months, each clipped to
++the range, and each month gets its own table. What is left of a month's
++budget carries into the next month: a month's Budget is its own budget plus
++the previous month's Remaining (negative after an overspend).
+ """
+ 
+ from __future__ import annotations
+@@ -17,7 +22,7 @@ from decimal import Decimal
+ from tally.accounts import account_matches
+ from tally.amounts import ZERO, format_quantity
+ from tally.model import Journal
+-from tally.periodic import occurrences
++from tally.periodic import add_months, occurrences
+ 
+ ACCOUNT_COLUMN = 30
+ AMOUNT_COLUMN = 14
+@@ -59,6 +64,35 @@ def compute_budget(journal: Journal, start: dt.date, end: dt.date) -> list[Budge
+     ]
+ 
+ 
++def month_ranges(start: dt.date, end: dt.date) -> list[tuple[dt.date, dt.date]]:
++    """Calendar months overlapping ``start..end``, each clipped to it."""
++    ranges = []
++    first = start
++    while first <= end:
++        next_month = add_months(first.replace(day=1), 1)
++        last = min(end, next_month - dt.timedelta(days=1))
++        ranges.append((first, last))
++        first = next_month
++    return ranges
++
++
++def compute_monthly_budget(
++    journal: Journal, start: dt.date, end: dt.date
++) -> list[tuple[dt.date, dt.date, list[BudgetRow]]]:
++    """One budget table per month, with each month's Remaining carried forward."""
++    blocks = []
++    carried: dict[tuple[str, str], Decimal] = {}
++    for first, last in month_ranges(start, end):
++        rows = []
++        for row in compute_budget(journal, first, last):
++            key = (row.account, row.commodity)
++            row = BudgetRow(row.account, row.commodity, row.actual, row.budget + carried.get(key, ZERO))
++            carried[key] = row.remaining
++            rows.append(row)
++        blocks.append((first, last, rows))
++    return blocks
++
++
+ def _row(account: str, *cells: str) -> str:
+     return f"{account:<{ACCOUNT_COLUMN}}" + "".join(f"{c:>{AMOUNT_COLUMN}}" for c in cells)
+ 
+@@ -75,3 +109,10 @@ def render_budget(rows: list[BudgetRow]) -> str:
+             )
+         )
+     return "\n".join(lines)
++
++
++def render_monthly_budget(blocks: list[tuple[dt.date, dt.date, list[BudgetRow]]]) -> str:
++    return "\n\n".join(
++        f"{first.isoformat()}..{last.isoformat()}\n{render_budget(rows)}"
++        for first, last, rows in blocks
++    )
+diff --git a/tests/test_budget.py b/tests/test_budget.py
+index 6600ede..d249948 100644
+--- a/tests/test_budget.py
++++ b/tests/test_budget.py
+@@ -36,3 +36,19 @@ def test_budget_command(journal):
+         "Account                               Actual        Budget     Remaining",
+         "Expenses:Food                         420.50        800.00        379.50",
+     ]
++
++
++def test_budget_monthly_carries_remaining(journal):
++    result = run_tally(
++        "budget", journal(JOURNAL), "--from", "2026-01-01", "--until", "2026-02-28", "--monthly"
++    )
++    assert result.returncode == 0, result.stderr
++    assert result.stdout.splitlines() == [
++        "2026-01-01..2026-01-31",
++        "Account                               Actual        Budget     Remaining",
++        "Expenses:Food                         120.50        400.00        279.50",
++        "",
++        "2026-02-01..2026-02-28",
++        "Account                               Actual        Budget     Remaining",
++        "Expenses:Food                         300.00        679.50        379.50",
++    ]

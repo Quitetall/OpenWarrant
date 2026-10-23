@@ -1,0 +1,3 @@
+schema = "ow-adoption/source/v1"
+kind = "seed-dir"
+path = "seed"

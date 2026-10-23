@@ -1,0 +1,210 @@
+diff --git a/README.md b/README.md
+index 7209afc..9657fb8 100644
+--- a/README.md
++++ b/README.md
+@@ -19,6 +19,7 @@ python3 -m tally <command> <journal file> [options]
+ | `print [--from DATE] [--until DATE]` | the transactions in date order, elided amounts filled in |
+ | `prices [COMMODITY]` | the `P` price directives in date order, as `DATE COMMODITY RATE QUOTE` |
+ | `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
++| `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+ `ACCOUNT` limits a report to that account and its descendants
+diff --git a/docs/FORMAT.md b/docs/FORMAT.md
+index 2effe8a..0a5c402 100644
+--- a/docs/FORMAT.md
++++ b/docs/FORMAT.md
+@@ -88,6 +88,14 @@ occurrences keep the start day, falling on the last day of a shorter month
+ (Jan 31, Feb 28, Mar 31). Without a description the generated payee is
+ `Forecast`.
+ 
++### Budgets
++
++`budget --from DATE --until DATE` treats periodic transactions as a budget.
++Each posting of a periodic transaction that states its amount budgets that
++amount to its account at every occurrence in the period; the posting whose
++amount is left out is the funding side and is not budgeted. The actual is
++the sum of real postings in the period to the account or its descendants.
++
+ ## Problems
+ 
+ `tally check` reports every problem it finds as `FILE:LINE: message`, where
+diff --git a/tally/cli.py b/tally/cli.py
+index 7940b94..1a5811d 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -23,6 +23,7 @@ from tally.parser import load_journal, parse_file
+ from tally.periodic import expand
+ from tally.reports.accounts import compute_accounts, render_accounts
+ from tally.reports.balance import compute_balances, render_balance
++from tally.reports.budget import compute_budget, render_budget
+ from tally.reports.register import compute_register, render_register
+ from tally.writer import render_transactions
+ 
+@@ -96,6 +97,13 @@ def cmd_forecast(args: argparse.Namespace) -> int:
+     return EXIT_OK
+ 
+ 
++def cmd_budget(args: argparse.Namespace) -> int:
++    journal = load_selected(args)
++    rows = compute_budget(journal, args.date_from, args.date_until)
++    print(render_budget(rows))
++    return EXIT_OK
++
++
+ def cmd_prices(args: argparse.Namespace) -> int:
+     journal = load_journal(args.journal)
+     for price in journal.sorted_prices():
+@@ -165,6 +173,17 @@ def _add_forecast(sub: argparse._SubParsersAction) -> None:
+     p.set_defaults(func=cmd_forecast)
+ 
+ 
++def _add_budget(sub: argparse._SubParsersAction) -> None:
++    p = sub.add_parser("budget", help="periodic transactions as a budget, against actuals")
++    p.add_argument("journal", help="journal file")
++    for flag, dest, word in (("--from", "date_from", "first"), ("--until", "date_until", "last")):
++        p.add_argument(
++            flag, dest=dest, type=date_argument, required=True, metavar="DATE",
++            help=f"{word} day of the budget period (inclusive)",
++        )
++    p.set_defaults(func=cmd_budget)
++
++
+ def _add_prices(sub: argparse._SubParsersAction) -> None:
+     p = sub.add_parser("prices", help="list price directives in date order")
+     p.add_argument("journal", help="journal file")
+@@ -186,6 +205,7 @@ COMMANDS: list[Callable[[argparse._SubParsersAction], None]] = [
+     _add_print,
+     _add_prices,
+     _add_forecast,
++    _add_budget,
+     _add_check,
+ ]
+ 
+diff --git a/tally/reports/budget.py b/tally/reports/budget.py
+new file mode 100644
+index 0000000..08f091e
+--- /dev/null
++++ b/tally/reports/budget.py
+@@ -0,0 +1,77 @@
++"""The budget report: periodic transactions as a budget, against actuals.
++
++Every posting of a periodic transaction that states its amount is a budget
++for that account; the posting whose amount was left out is the funding side
++and is not budgeted. Over a date range, an account's budget is the sum of
++its rule occurrences in the range, and its actual is the sum of real
++postings in the range to that account or any of its descendants.
++"""
++
++from __future__ import annotations
++
++import datetime as dt
++from collections import defaultdict
++from dataclasses import dataclass
++from decimal import Decimal
++
++from tally.accounts import account_matches
++from tally.amounts import ZERO, format_quantity
++from tally.model import Journal
++from tally.periodic import occurrences
++
++ACCOUNT_COLUMN = 30
++AMOUNT_COLUMN = 14
++
++
++@dataclass(frozen=True)
++class BudgetRow:
++    account: str
++    commodity: str
++    actual: Decimal
++    budget: Decimal
++
++    @property
++    def remaining(self) -> Decimal:
++        return self.budget - self.actual
++
++
++def compute_budget(journal: Journal, start: dt.date, end: dt.date) -> list[BudgetRow]:
++    """Budget and actual per budgeted account and commodity, sorted."""
++    budgets: dict[tuple[str, str], Decimal] = defaultdict(lambda: ZERO)
++    for rule in journal.periodic:
++        count = sum(1 for date in occurrences(rule, end) if date >= start)
++        for posting in rule.template.postings:
++            if not posting.inferred:
++                budgets[(posting.account, posting.commodity)] += posting.amount * count
++
++    actuals: dict[tuple[str, str], Decimal] = defaultdict(lambda: ZERO)
++    for txn in journal.transactions:
++        if not start <= txn.date <= end:
++            continue
++        for posting in txn.postings:
++            for account, commodity in budgets:
++                if commodity == posting.commodity and account_matches(posting.account, account):
++                    actuals[(account, commodity)] += posting.amount
++
++    return [
++        BudgetRow(account, commodity, actuals[(account, commodity)], budgets[(account, commodity)])
++        for account, commodity in sorted(budgets)
++    ]
++
++
++def _row(account: str, *cells: str) -> str:
++    return f"{account:<{ACCOUNT_COLUMN}}" + "".join(f"{c:>{AMOUNT_COLUMN}}" for c in cells)
++
++
++def render_budget(rows: list[BudgetRow]) -> str:
++    lines = [_row("Account", "Actual", "Budget", "Remaining")]
++    for row in rows:
++        lines.append(
++            _row(
++                row.account,
++                format_quantity(row.actual, row.commodity),
++                format_quantity(row.budget, row.commodity),
++                format_quantity(row.remaining, row.commodity),
++            )
++        )
++    return "\n".join(lines)
+diff --git a/tests/test_budget.py b/tests/test_budget.py
+new file mode 100644
+index 0000000..6600ede
+--- /dev/null
++++ b/tests/test_budget.py
+@@ -0,0 +1,38 @@
++import datetime as dt
++from decimal import Decimal
++
++from conftest import run_tally
++from tally.parser import parse_text
++from tally.reports.budget import compute_budget
++
++JOURNAL = """\
++~ monthly from 2026-01-01 Groceries
++    Expenses:Food  400
++    Assets:Checking
++
++2026-01-10 Market
++    Expenses:Food:Groceries  120.50
++    Assets:Checking
++
++2026-02-10 Market
++    Expenses:Food  300
++    Assets:Checking
++"""
++
++
++def test_compute_budget():
++    journal, problems = parse_text(JOURNAL, "j.ledger")
++    assert problems == []
++    (row,) = compute_budget(journal, dt.date(2026, 1, 1), dt.date(2026, 1, 31))
++    assert (row.account, row.actual, row.budget, row.remaining) == (
++        "Expenses:Food", Decimal("120.50"), Decimal("400"), Decimal("279.50"),
++    )
++
++
++def test_budget_command(journal):
++    result = run_tally("budget", journal(JOURNAL), "--from", "2026-01-01", "--until", "2026-02-28")
++    assert result.returncode == 0, result.stderr
++    assert result.stdout.splitlines() == [
++        "Account                               Actual        Budget     Remaining",
++        "Expenses:Food                         420.50        800.00        379.50",
++    ]
