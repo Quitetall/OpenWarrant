@@ -134,7 +134,7 @@ def main():
     check = request("source-lock", descriptors=[descriptor], files=[{"path": descriptor["source_digest"], "hex": raw.hex()}])
     locked = call("unseen:lock", check)
     assert locked["exit_code"] == 0 and json.loads(locked["result"]["canonical"]) == [descriptor]
-    with tempfile.TemporaryDirectory(prefix="ow-source-output-") as temp:
+    with tempfile.TemporaryDirectory(prefix="ow-source-output-", dir=output) as temp:
         target = Path(temp) / "result.json"
         saved = call("output:new", check, ("--output", str(target)))
         assert saved["exit_code"] == 0 and json.loads(target.read_bytes()) == saved

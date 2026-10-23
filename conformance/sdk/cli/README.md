@@ -28,6 +28,7 @@ named refusals are in `cases.json`. No fixture ID is sent to the implementation.
 | `source-describe` | `path`, `bytes_hex`, `holder`, `metadata`; (`dialect`) | `describe_source` |
 | `source-codec`, `reference-codec` | `payload` | source/reference decode and encode |
 | `sources-check` | `descriptors`, `files`; (`reference`) | `check_sources`, `check_reference` |
+| `source-lock` | `descriptors`, `files` | `check_sources`, `CheckedSources::canonical_lock` |
 | `packet-decode`, `packet-encode` | `payload` | packet decode/encode |
 | `packet-check` | `payload`, `files`, `entry` | `check_packet_integrity` |
 | `package-check` | `files` | `check_package` |
