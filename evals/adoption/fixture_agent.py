@@ -64,6 +64,12 @@ def mark_done(arm: str, backlog: dict, iid: str) -> None:
             if label in (issue.get("labels") or []):
                 subprocess.run(["bd", "close", issue["id"], "--reason", "fixture"], env=env, check=True,
                                capture_output=True)
+    elif arm == "jira":
+        import jira_arm
+        j = jira_arm.Jira(env)
+        for issue in j.search(f'project = "{j.project}" AND labels = "{env["STUDY_JIRA_LABEL"]}"', "labels"):
+            if label in (issue["fields"].get("labels") or []):
+                j.transition_to_done(issue["key"])
     elif arm == "openwarrant":
         rows = json.loads(subprocess.run(["war", "view", "tickets", "--json"], capture_output=True,
                                          text=True, env=env).stdout)["result"]["tickets"]

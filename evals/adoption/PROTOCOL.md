@@ -18,6 +18,8 @@ that is the finding.
 
 ## Arms
 
+Six arms (Jira added at the owner's request on 2026-10-22, before any pilot).
+
 Every arm's `CLAUDE.md` starts with the same project facts (`[project] facts` in
 the backlog). The backlog's words (titles, descriptions, acceptance criteria,
 design notes, dependencies) are identical in every arm; only their home differs.
@@ -30,6 +32,14 @@ design notes, dependencies) are identical in every arm; only their home differs.
 | `speckit` | `specs/001-backlog/{spec,plan,tasks}.md`, one task per acceptance criterion | 3 lines in `CLAUDE.md` (written for the study; Spec Kit installs skills but no `CLAUDE.md`) | Spec Kit v1.2.2, `specify init --integration claude` |
 | `beads` | Beads issues (description, acceptance, design, dependencies) | the block and `SessionStart` hook `bd init` installs, verbatim | Beads v1.3.1, `bd init` |
 | `openwarrant` | one ticket per item, acceptance criteria as its checklist items, dependencies as `--after` | the block `war admin agents-md --block --file CLAUDE.md` installs, verbatim | OpenWarrant 1.0.0-alpha.5, `war init` |
+| `jira` | one Jira Cloud issue per item (summary, description with the acceptance criteria and notes, "Blocks" links), labelled for the cell | 5 lines in `CLAUDE.md` (written for the study): project, label, and the REST API with `curl` | Jira Cloud REST API v3 (added 2026-10-22 at the owner's request) |
+
+The Jira arm needs credentials in the agent's sandbox (`JIRA_SITE`,
+`JIRA_EMAIL`, `JIRA_API_TOKEN`, `JIRA_PROJECT`), so it should use a Jira site or
+project kept for the study. Each cell's issues carry their own label and are
+deleted when the cell ends. Its tracker is read from the host over the API,
+since Jira's records live on Jira's servers; nothing from the repository runs
+there.
 
 Rules for fairness:
 

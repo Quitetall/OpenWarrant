@@ -39,6 +39,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import arms  # noqa: E402
+import jira_arm  # noqa: E402
 
 STUDY = Path(os.environ.get("ADOPTION_STUDY_ROOT", "/mnt/4tb/tmp/openwarrant-adoption"))
 KEEP = Path(os.environ.get("ADOPTION_KEEP_ROOT", "/mnt/4tb/artifacts/OpenWarrant/keep/adoption"))
@@ -156,11 +157,11 @@ def apply_reference(repo: str, dest: Path, ids: list[str]) -> None:
                        check=True, capture_output=True, timeout=120)
 
 
-def seed_repo(repo: str, arm: str, dest: Path, done: list[str]) -> dict:
+def seed_repo(repo: str, arm: str, dest: Path, done: list[str], extra: dict | None = None) -> dict:
     backlog = load_backlog(repo)
     materialize(repo, dest)
     apply_reference(repo, dest, done)
-    arms.seed(arm, dest, backlog, set(done), tools())
+    arms.seed(arm, dest, backlog, set(done), {**tools(), **(extra or {})})
     return backlog
 
 
@@ -208,7 +209,7 @@ class Sandbox:
     def _code_binds(self) -> list[str]:
         """The harness's own files and this repository's backlog.toml, never hidden/ or reference/."""
         a = []
-        for f in ("run.py", "arms.py", "fixture_agent.py"):
+        for f in ("run.py", "arms.py", "fixture_agent.py", "jira_arm.py"):
             a += ["--ro-bind", str(HERE / f), f"/opt/study/code/{f}"]
         a += ["--ro-bind", str(repo_def(self.repo) / "backlog.toml"),
               f"/opt/study/code/repos/{self.repo}/backlog.toml"]
@@ -471,15 +472,16 @@ def parse_stream(path: Path) -> dict:
 
 
 def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, model: str,
-                max_turns: int, extra_env: dict | None = None) -> dict:
+                max_turns: int, extra_env: dict | None = None, arm: str = "") -> dict:
     sdir.mkdir(parents=True, exist_ok=True)
     config = sdir / "claude-config"
     config.mkdir(exist_ok=True)
     (sdir / "prompt.txt").write_text(prompt + "\n")
     t0 = time.time()
     with open(sdir / "stream.jsonl", "w") as out, open(sdir / "stderr.txt", "w") as err:
-        p = sb.run(agent_argv(agent, prompt, model, max_turns), cwd, net=(agent == "claude"),
-                   timeout=SESSION_TIMEOUT, config=config, extra_env=extra_env, stdout=out, stderr=err)
+        env = {**(extra_env or {}), **(jira_env(sb.cell) if arm == "jira" else {})}
+        p = sb.run(agent_argv(agent, prompt, model, max_turns), cwd, net=(agent == "claude" or arm == "jira"),
+                   timeout=SESSION_TIMEOUT, config=config, extra_env=env, stdout=out, stderr=err)
     metrics = parse_stream(sdir / "stream.jsonl")
     if metrics.get("api_error"):
         # The model never ran: this is the harness's problem, not the arm's. Stop, score nothing.
@@ -490,11 +492,29 @@ def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, mode
     return metrics
 
 
+def read_tracker(sb: Sandbox, cwd: str, repo: str, arm: str, target: str = "target") -> dict:
+    """The arm's own record of what is done. Jira's lives on Jira's servers, so it is read
+    from the host over the API (nothing from the repository runs); every other arm's is read
+    inside the sandbox, without network."""
+    if arm == "jira":
+        return arms.tracker("jira", Path("."), load_backlog(repo), jira_env(sb.cell))
+    return sb.inside(["_tracker", repo, arm], cwd, timeout=300, target=target)
+
+
+def jira_label(cell: Path) -> str:
+    import hashlib
+    return "study-" + hashlib.sha256(str(cell).encode()).hexdigest()[:12]
+
+
+def jira_env(cell: Path) -> dict:
+    return {**{k: os.environ[k] for k in jira_arm.ENV}, "STUDY_JIRA_LABEL": jira_label(cell)}
+
+
 def observe(sb: Sandbox, sdir: Path, cwd: str, repo: str, arm: str, target: str = "target") -> dict:
     """After a session: grade (no network, hidden tests mounted read-only) and read the tracker."""
     sdir.mkdir(parents=True, exist_ok=True)
     grade = sb.inside(["_grade", repo], cwd, timeout=3600, hidden=repo_def(repo) / "hidden", target=target)
-    tracker = sb.inside(["_tracker", repo, arm], cwd, timeout=300, target=target)
+    tracker = read_tracker(sb, cwd, repo, arm, target)
     (sdir / "grade.json").write_text(json.dumps(grade, indent=1))
     (sdir / "tracker.json").write_text(json.dumps(tracker, indent=1))
     passing = {k: v["pass"] for k, v in grade.get("items", {}).items()}
@@ -522,14 +542,29 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
     fixture_env = {"STUDY_ARM": c["arm"], "STUDY_REPO": c["repo"]}
     result: dict = {"cell": c, "agent": agent, "model": model, "sessions": []}
     t0 = time.time()
+    extra = jira_env(cell) if c["arm"] == "jira" else None
+    try:
+        _run_cell_body(c, cell, sb, backlog, agent, model, fixture_env, result, extra)
+    finally:
+        if c["arm"] == "jira":
+            result["jira_issues_deleted"] = jira_arm.cleanup(jira_label(cell), jira_env(cell))
+    result["wall_secs"] = round(time.time() - t0, 1)
+    result["cost_usd"] = round(sum((s.get("metrics") or {}).get("cost_usd") or 0 for s in result["sessions"]), 4)
+    (cell / "result.json").write_text(json.dumps(result, indent=1))
+    keep_cell(run_id, c, cell)
+    return result
+
+
+def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str, model: str,
+                   fixture_env: dict, result: dict, extra: dict | None) -> None:
 
     if c["scenario"] == "directed":
         idx = backlog["order"].index(c["item"])
-        seed_repo(c["repo"], c["arm"], cell / "repo", backlog["order"][:idx])
+        seed_repo(c["repo"], c["arm"], cell / "repo", backlog["order"][:idx], extra)
         item = next(i for i in backlog["item"] if i["id"] == c["item"])
         prompt = PROMPTS["directed"].format(id=item["id"], title=item["title"])
         m = run_session(sb, cell / "s01", f"{sb.WORK}/repo", prompt, agent, model, SESSION_TURNS,
-                        {**fixture_env, "STUDY_TARGET": item["id"]})
+                        {**fixture_env, "STUDY_TARGET": item["id"]}, arm=c["arm"])
         sb.inside(["_git", "snapshot", "s01"], f"{sb.WORK}/repo")
         obs = observe(sb, cell / "s01", f"{sb.WORK}/repo", c["repo"], c["arm"])
         earlier = backlog["order"][:idx]
@@ -541,15 +576,16 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
         })
 
     elif c["scenario"] == "relay":
-        seed_repo(c["repo"], c["arm"], cell / "repo", [])
+        seed_repo(c["repo"], c["arm"], cell / "repo", [], extra)
         n_max = len(backlog["item"]) + 2
         stalled = 0
         prev_pass: dict = {}
-        prev_tracker: dict = sb.inside(["_tracker", c["repo"], c["arm"]], f"{sb.WORK}/repo")
+        prev_tracker: dict = read_tracker(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         for s in range(1, n_max + 1):
             sdir = cell / f"s{s:02d}"
             turns = INTERRUPT_TURNS if s == 2 else SESSION_TURNS
-            m = run_session(sb, sdir, f"{sb.WORK}/repo", PROMPTS["relay"], agent, model, turns, fixture_env)
+            m = run_session(sb, sdir, f"{sb.WORK}/repo", PROMPTS["relay"], agent, model, turns, fixture_env,
+                            arm=c["arm"])
             snap = sb.inside(["_git", "snapshot", f"s{s:02d}"], f"{sb.WORK}/repo")
             stat = sb.inside(["_git", "diffstat", "HEAD~1"], f"{sb.WORK}/repo")
             obs = observe(sb, sdir, f"{sb.WORK}/repo", c["repo"], c["arm"])
@@ -575,14 +611,15 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
 
     elif c["scenario"] == "parallel":
         k = c["k"]
-        seed_repo(c["repo"], c["arm"], cell / "repo", [])
+        seed_repo(c["repo"], c["arm"], cell / "repo", [], extra)
         sb.inside(["_git", "worktrees", str(k)], f"{sb.WORK}/repo")
         finished: list[tuple[float, int, dict]] = []
         lock = threading.Lock()
 
         def one(j: int):
             m = run_session(sb, cell / f"a{j}", f"{sb.WORK}/w{j}", PROMPTS["parallel"], agent, model,
-                            SESSION_TURNS, {**fixture_env, "CARGO_TARGET_DIR": f"{sb.WORK}/target-{j}"})
+                            SESSION_TURNS, {**fixture_env, "CARGO_TARGET_DIR": f"{sb.WORK}/target-{j}"},
+                            arm=c["arm"])
             sb.inside(["_git", "snapshot", f"agent{j}"], f"{sb.WORK}/w{j}")
             with lock:
                 finished.append((time.time(), j, m))
@@ -611,11 +648,6 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
             "false_completions_merged": final["false_completions"],
         })
 
-    result["wall_secs"] = round(time.time() - t0, 1)
-    result["cost_usd"] = round(sum((s.get("metrics") or {}).get("cost_usd") or 0 for s in result["sessions"]), 4)
-    (cell / "result.json").write_text(json.dumps(result, indent=1))
-    keep_cell(run_id, c, cell)
-    return result
 
 
 def keep_cell(run_id: str, c: dict, cell: Path) -> None:
@@ -674,6 +706,8 @@ def sessions_in(c: dict, backlog: dict) -> int:
 def cmd_execute(args) -> None:
     cells = json.loads(Path(args.plan).read_text())["cells"]
     problems = check_tools()
+    if any(c["arm"] == "jira" for c in cells) and jira_arm.missing():
+        problems.append("jira cells need " + ", ".join(jira_arm.missing()) + " in the environment")
     if args.agent == "claude" and check_auth():
         problems.append(check_auth())
     if problems:
@@ -854,7 +888,11 @@ def cmd_parity(args) -> None:
     report = {}
     for arm in arms.ARMS:
         dest = base / arm
-        seed_repo(args.repo, arm, dest, [])
+        if arm == "jira" and jira_arm.missing():
+            print(f"{arm:12} skipped: needs {', '.join(jira_arm.missing())}")
+            continue
+        extra = jira_env(dest) if arm == "jira" else None
+        seed_repo(args.repo, arm, dest, [], extra)
         text = ""
         for f in dest.rglob("*"):
             if f.is_file() and ".git" not in f.parts and f.suffix in (".md", ".jsonl", ".toml", ""):
@@ -872,12 +910,23 @@ def cmd_parity(args) -> None:
                 for d in shown if isinstance(shown, list) else [shown]:
                     text += "\n".join(str(d.get(k) or "") for k in
                                       ("title", "description", "acceptance_criteria", "design")) + "\n"
+        if arm == "jira":
+            text += jira_arm.text(jira_label(dest), jira_env(dest))
+        flat = " ".join(text.split())
+
+        def norm(piece: str) -> str:
+            piece = piece.strip()
+            piece = piece[2:] if arm == "jira" and piece.startswith("- ") else piece
+            return " ".join(piece.split())
+
         missing = []
         for item in backlog["item"]:
             for piece in [item["title"], *item["acceptance"], *[l for l in item.get("notes", "").splitlines() if l.strip()]]:
-                if piece.strip() not in text:
+                if norm(piece) not in flat:
                     missing.append(f"{item['id']}: {piece.strip()[:70]}")
-        trk = arms.tracker(arm, dest, backlog, tools())
+        trk = arms.tracker(arm, dest, backlog, {**tools(), **(extra or {})})
+        if arm == "jira":
+            jira_arm.cleanup(jira_label(dest), jira_env(dest))
         report[arm] = {"missing": missing, "tracker": trk}
         print(f"{arm:12} missing {len(missing):3}  tracker {trk}")
         for m in missing[:5]:

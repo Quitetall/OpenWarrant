@@ -20,7 +20,7 @@ import re
 import subprocess
 from pathlib import Path
 
-ARMS = ("plain", "plans", "speckit", "beads", "openwarrant")
+ARMS = ("plain", "plans", "speckit", "beads", "openwarrant", "jira")
 
 SEED_ENV = {
     "GIT_AUTHOR_NAME": "study-seed",
@@ -153,7 +153,7 @@ def seed_speckit(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
         us = stories[item["id"]]
         spec += [f"### User Story {us} - {item['id']}: {item['title']} (Priority: P{us})", "",
                  item["summary"].strip(), "", item["description"].strip(), "",
-                 f"**Independent Test**: the acceptance scenarios below.", "",
+                 "**Independent Test**: the acceptance scenarios below.", "",
                  "**Acceptance Scenarios**:", ""]
         spec += [f"{k}. {c}" for k, c in enumerate(item["acceptance"], 1)] + [""]
         if item.get("notes", "").strip():
@@ -312,10 +312,26 @@ def tracker_openwarrant(repo: Path, backlog: dict, env: dict) -> dict:
     return state
 
 
+# ---------------------------------------------------------------- jira
+
+
+def seed_jira(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+    import jira_arm
+    label = env["STUDY_JIRA_LABEL"]
+    pointer = jira_arm.POINTER.format(project=env["JIRA_PROJECT"], site=env["JIRA_SITE"], label=label)
+    (repo / "CLAUDE.md").write_text(facts_header(backlog) + "\n" + pointer)
+    jira_arm.seed(backlog, done, label, env)
+
+
+def tracker_jira(repo: Path, backlog: dict, env: dict) -> dict:
+    import jira_arm
+    return jira_arm.tracker(backlog, env["STUDY_JIRA_LABEL"], env)
+
+
 SEEDERS = {"plain": seed_plain, "plans": seed_plans, "speckit": seed_speckit,
-           "beads": seed_beads, "openwarrant": seed_openwarrant}
+           "beads": seed_beads, "openwarrant": seed_openwarrant, "jira": seed_jira}
 TRACKERS = {"plain": tracker_plain, "plans": tracker_plans, "speckit": tracker_speckit,
-            "beads": tracker_beads, "openwarrant": tracker_openwarrant}
+            "beads": tracker_beads, "openwarrant": tracker_openwarrant, "jira": tracker_jira}
 
 
 def seed(arm: str, repo: Path, backlog: dict, done: set[str], tools: dict) -> None:
