@@ -279,7 +279,10 @@ def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> No
     for item in backlog["item"]:
         body = item["description"].strip()
         if item.get("notes", "").strip():
-            body += "\n\n## Notes\n\n" + item["notes"].strip()
+            # Not `## Notes`: that heading is where `war note` appends dated notes,
+            # and OpenWarrant's views read what is under it as those, not as
+            # part of the description.
+            body += "\n\n## Design notes\n\n" + item["notes"].strip()
         deps = [tickets[d] for d in item.get("depends_on", [])]
         argv = ["create", f"{item['id']}: {item['title']}", "--summary", item["summary"].strip(),
                 "--body", body, "-l", _label(item["id"])]

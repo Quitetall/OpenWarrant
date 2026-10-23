@@ -82,7 +82,9 @@ SCENARIOS = ("directed", "relay", "parallel")
 def tools() -> dict:
     t = STUDY / "tools"
     return {
-        "STUDY_WAR": str(HOME / ".local/lib/openwarrant" / PINS["war"] / "bin/war"),
+        # ADOPTION_WAR: a local build to measure instead of the pinned release.
+        "STUDY_WAR": os.environ.get("ADOPTION_WAR")
+        or str(HOME / ".local/lib/openwarrant" / PINS["war"] / "bin/war"),
         "STUDY_BD": str(t / "beads/bd"),
         "STUDY_SPECIFY": str(t / "bin/specify"),
         "STUDY_CLAUDE": str(HOME / ".local/share/claude/versions" / PINS["claude"]),
@@ -102,6 +104,8 @@ def check_tools() -> list[str]:
             continue
         if key in probes:
             argv, want = probes[key]
+            if key == "STUDY_WAR" and os.environ.get("ADOPTION_WAR"):
+                continue  # a local build, recorded in run.json, not the pin
             out = subprocess.run([path, *argv], text=True, capture_output=True, timeout=60).stdout
             if want not in out:
                 problems.append(f"{key}: {path} reports {out.strip()[:80]!r}, not {want}")
@@ -765,6 +769,7 @@ def cmd_execute(args) -> None:
     run_root.mkdir(parents=True, exist_ok=True)
     (run_root / "run.json").write_text(json.dumps({
         "run_id": args.run_id, "agent": args.agent, "model": args.model, "pins": PINS,
+        "war_build": os.environ.get("ADOPTION_WAR"), "plugin_ref": os.environ.get("ADOPTION_OW_PLUGIN_REF"),
         "auth": auth_mode(), "budget_usd": args.budget_usd,
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1))
     spent = 0.0
@@ -903,10 +908,11 @@ def cmd_prepare(args) -> None:
     plugin = STUDY / "tools" / "ow-plugin"
     shutil.rmtree(plugin, ignore_errors=True)
     plugin.mkdir(parents=True)
-    archive = subprocess.run(["git", "-C", str(OW_REPO), "archive", PINS["ow_plugin"], *PLUGIN_FILES],
+    ref = os.environ.get("ADOPTION_OW_PLUGIN_REF", PINS["ow_plugin"])
+    archive = subprocess.run(["git", "-C", str(OW_REPO), "archive", ref, *PLUGIN_FILES],
                              capture_output=True, check=True, timeout=120).stdout
     subprocess.run(["tar", "-x", "-C", str(plugin)], input=archive, check=True, timeout=120)
-    print(f"openwarrant plugin {PINS['ow_plugin']}: {sum(1 for _ in plugin.rglob('*') if _.is_file())} files")
+    print(f"openwarrant plugin {ref}: {sum(1 for _ in plugin.rglob('*') if _.is_file())} files")
     py = STUDY / "py"
     if not (py / "bin/python3").exists():
         subprocess.run(["python3", "-m", "venv", str(py)], check=True, timeout=300)
