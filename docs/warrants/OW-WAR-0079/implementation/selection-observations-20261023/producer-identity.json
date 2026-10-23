@@ -1,0 +1,14 @@
+{
+  "provider_head": "2572894f28ce76c2c7e6c6c9ae6be51a7f400fa1",
+  "provider_status": "",
+  "binary_sha256": "b906c9db54b9124538cf4df405852c240bfb3c3382ac65b79bd0d29e068c9b16",
+  "sdk_pin": "4b626f23b3076ff7e764f08eeb15e8bdfa6af5cd",
+  "inputs_sha256": {
+    "lamu-rs/lamu-openwarrant/Cargo.toml": "57d0e11d347e8627f31fcd3e295937e4eac1f195c6260660f221c20fd39f62c0",
+    "lamu-rs/lamu-openwarrant/Cargo.lock": "704814c31572e1d116e6bca69d0ea9f7a9e97093451d6aca76850ae4e9e9c8eb",
+    "lamu-rs/lamu-openwarrant/examples/compile_package.rs": "35b227a3917cd8a0dee08c2f84dfd09fd71eeaea8e8672ca0473a483e11f19f5",
+    "lamu-rs/lamu-openwarrant/src/selection.rs": "12cb41a1e168ff8a8e873e75f82cbaa919a8f91f1eab1cbced8fd808f49a04ee",
+    "lamu-rs/lamu-openwarrant/src/conditions.rs": "f8e441e1620e679f1806254c50675107e0dac9b029ba4181ff10ee6038b522a9",
+    "lamu-rs/lamu-openwarrant/src/projections.rs": "55288951c4098ae2f79a7f1383f412fead1f9471f5f2f12f5977b9b99f64bb03"
+  }
+}

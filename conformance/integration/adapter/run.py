@@ -9,6 +9,9 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from observation import publish_observation, require_new_destination
 from exchange import exchange
 
 
@@ -46,8 +49,7 @@ def main():
     parser.add_argument("--provider-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
-    if args.output.exists():
-        raise ValueError("Receipt destination exists")
+    require_new_destination(args.output)
     root = args.provider_root.resolve(strict=True)
     ow = Path(__file__).resolve().parents[3]
     crate = root / "lamu-openwarrant"
@@ -119,9 +121,7 @@ def main():
                "limitations": ["No human assurance", "Task readiness evaluation remains blocked",
                                "Native macOS Phase 1 evidence remains pending",
                                "This does not declare Phase 2 exit"]}
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    with args.output.open("x") as output:
-        json.dump(receipt, output, indent=2); output.write("\n")
+    publish_observation(args.output, receipt)
     print(json.dumps({"passed": passed, "receipt": str(args.output)}))
     return 0 if passed else 1
 

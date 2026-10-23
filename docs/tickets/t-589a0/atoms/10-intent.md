@@ -1,0 +1,3 @@
+# Preserve integration observations when output destinations already exist
+
+Six integration drivers used write_text and could replace an existing execution observation. The adapter had an exclusive open but could expose a partial file. A public-CLI regression reproduced a destination created after preflight being overwritten with success. Use shared exclusive publication, preserve the record schema and provider contracts, run the controls in Phase 1 CI, and retain real provider observations. Synthetic external-tool facades in the I/O tests prove publication behavior only, never provider qualification.

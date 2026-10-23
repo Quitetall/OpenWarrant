@@ -1,0 +1,68 @@
+.FFFFFFF.
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='source')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='conditions')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='selection')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='projections')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='package')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='budgets')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+======================================================================
+FAIL: test_dangling_destination_link_refuses_before_provider_work (test_observation_output.ObservationOutput.test_dangling_destination_link_refuses_before_provider_work) (stage='adapter')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 29, in test_dangling_destination_link_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp730cwxuv/missing-provider'\n"
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.725s
+
+FAILED (failures=7)

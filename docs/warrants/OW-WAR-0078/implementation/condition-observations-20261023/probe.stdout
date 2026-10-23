@@ -1,0 +1,9 @@
+PASS all-fields
+PASS unicode-path
+PASS unknown-operator
+PASS empty-list
+PASS embedded-double-star
+PASS traversal
+PASS wrong-type
+PASS empty-table
+8 condition syntax cases passed; applicability not evaluated

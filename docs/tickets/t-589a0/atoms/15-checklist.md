@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Publish complete new observations exclusively across all seven drivers; exercise prior-file and symlink refusals plus a real provider run (i-63f7) — done by agent://codex, 2026-10-23: Observed red then green through public driver CLIs: existing-file and dangling-link refusals across seven drivers, complete new JSON, and a destination created after preflight. Shared atomic exclusive publication preserves prior bytes. All seven real LAMU/provider-consumer integration drivers passed with unchanged record formats/contracts; Phase 1 now runs the I/O regression. Claimed implementation completion only; independent qualification and protected CI remain separate.
