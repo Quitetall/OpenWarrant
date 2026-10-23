@@ -1,0 +1,22 @@
+# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms
+# beside this file are the Warrant; `war show t-49c5a` renders them. Nothing here is signed.
+schema = "oh.war/ticket/v1"
+id = "t-49c5a"
+uuid = "01a16836-cfd5-7513-bdf7-376e20587100"
+title = "Keep private Git index copies faithful to source timestamps"
+summary = "Prevent private index copies from hiding same-size edits or inventing source changes"
+profile = "ticket"
+priority = 2
+created_at = "2026-10-23T10:03:05Z"
+created_by = "agent://codex"
+type = "bug"
+
+[[atoms]]
+ordinal = 10
+role = "intent"
+path = "atoms/10-intent.md"
+
+[[atoms]]
+ordinal = 15
+role = "ticket.checklist"
+path = "atoms/15-checklist.md"
