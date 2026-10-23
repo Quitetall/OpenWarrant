@@ -1964,6 +1964,10 @@
 > war next costs two git walks per receipt, and the evidence wave made it 4x slower
 - t-eca6 · ticket · done · war next costs two git walks per receipt, and the evidence wave made it 4x slower · docs/tickets/t-eca6/manifest.toml:1
 
+## docs/tickets/t-f4858/manifest.toml
+> Bind W86 integration evidence to the SDK actually resolved by Cargo
+- t-f4858 · ticket · done · Bind W86 integration evidence to the SDK actually resolved by Cargo · docs/tickets/t-f4858/manifest.toml:1
+
 ## docs/tickets/t-f815/manifest.toml
 > OW-WAR-0120's budget at 1,000 Warrants: check --generated, compile, next and console over their limits
 - t-f815 · ticket · done · OW-WAR-0120's budget at 1,000 Warrants: check --generated, compile, next and console over their limits · docs/tickets/t-f815/manifest.toml:1
