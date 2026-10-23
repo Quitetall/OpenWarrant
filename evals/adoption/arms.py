@@ -142,6 +142,12 @@ def seed_speckit(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
     _run([env["STUDY_SPECIFY"], "init", "--here", "--force", "--non-interactive",
           "--integration", "claude", "--script", "sh", "--ignore-agent-tools"], repo, env)
     (repo / "CLAUDE.md").write_text(facts_header(backlog) + "\n" + SPECKIT_POINTER)
+    # What `/speckit-constitution` leaves in a set-up project, holding only the facts every arm gets.
+    (repo / ".specify" / "memory" / "constitution.md").write_text(
+        f"# {backlog['repo']} Constitution\n\n## Core Principles\n\n### I. The project as it is\n\n"
+        + backlog["project"]["facts"].strip()
+        + "\n\n## Governance\n\nThis constitution records the project's existing facts; it adds no rule"
+        " beyond them.\n\n**Version**: 1.0.0 | **Ratified**: 2026-10-22 | **Last Amended**: 2026-10-22\n")
     feature = repo / "specs" / "001-backlog"
     feature.mkdir(parents=True, exist_ok=True)
     stories = {item["id"]: n + 1 for n, item in enumerate(backlog["item"])}
@@ -162,7 +168,10 @@ def seed_speckit(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
 
     plan = [f"# Implementation Plan: {backlog['repo']} backlog", "",
             "**Spec**: [spec.md](spec.md)", "", "## Technical Context", "",
-            backlog["project"]["facts"].strip(), "", "## Story order and dependencies", ""]
+            backlog["project"]["facts"].strip(), "", "## Constitution Check", "",
+            "No conflict: the constitution records the same project facts.", "",
+            "## Project Structure", "", "The existing layout described above; no new top-level directories.", "",
+            "## Story order and dependencies", ""]
     for item in backlog["item"]:
         deps = item.get("depends_on", [])
         plan.append(f"- User Story {stories[item['id']]} ({item['id']}): "
@@ -261,9 +270,11 @@ def _war(argv, repo, env):
 
 def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
     war = env["STUDY_WAR"]
-    _run([war, "init", "--root", "."], repo, env)
+    # QUICKSTART's order: the project's CLAUDE.md exists, and `war init` appends its managed block.
     (repo / "CLAUDE.md").write_text(facts_header(backlog))
-    _run([war, "admin", "agents-md", "--block", "--file", "CLAUDE.md"], repo, env)
+    _run([war, "init", "--root", "."], repo, env)
+    if "<!-- openwarrant:begin -->" not in (repo / "CLAUDE.md").read_text():
+        raise RuntimeError("war init did not add its block to CLAUDE.md")
     tickets = {}
     for item in backlog["item"]:
         body = item["description"].strip()

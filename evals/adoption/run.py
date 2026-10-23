@@ -52,7 +52,10 @@ PINS = {
     "specify": "v1.2.2",
     "rust": "1.97.1",
     "pytest": "9.0.2",
+    "ow_plugin": "v1.0.0-alpha.5",   # the OpenWarrant Claude Code plugin, from this tag
 }
+OW_REPO = Path(os.environ.get("ADOPTION_OW_REPO", "/mnt/4tb/OpenWarrant"))
+PLUGIN_FILES = (".claude-plugin", ".claude/skills", ".claude/hooks", ".mcp.json")
 DEFAULT_MODEL = "claude-sonnet-5-5"
 SESSION_TURNS = 80          # a session's turn cap
 INTERRUPT_TURNS = 12        # relay session 2 is cut here: the next session must resume it
@@ -203,8 +206,8 @@ class Sandbox:
     WORK = "/work"
     AHOME = "/home/agent"
 
-    def __init__(self, cell: Path, repo: str, fixture: bool = False):
-        self.cell, self.repo, self.fixture = cell, repo, fixture
+    def __init__(self, cell: Path, repo: str, fixture: bool = False, arm: str = ""):
+        self.cell, self.repo, self.fixture, self.arm = cell, repo, fixture, arm
 
     def _code_binds(self) -> list[str]:
         """The harness's own files and this repository's backlog.toml, never hidden/ or reference/."""
@@ -235,6 +238,9 @@ class Sandbox:
               "--ro-bind", t["STUDY_BD"], "/opt/study/bin/bd",
               "--ro-bind", t["STUDY_CLAUDE"], "/opt/study/bin/claude",
               "--bind", str(self.cell), self.WORK]
+        if self.arm == "openwarrant" and not harness:
+            # The plugin QUICKSTART tells a Claude Code user to install: skills, MCP server, hooks.
+            a += ["--ro-bind", str(STUDY / "tools" / "ow-plugin"), "/opt/study/ow-plugin"]
         if harness or self.fixture:
             a += self._code_binds()
         if self.fixture and not harness:
@@ -364,14 +370,23 @@ def _inside_tracker(repo: str, arm: str) -> dict:
 # ------------------------------------------------------------------ one agent session
 
 
-def agent_argv(agent: str, prompt: str, model: str, max_turns: int) -> list[str]:
+ARM_MCP = {
+    # Each arm's MCP servers as its own setup installs them: only the OpenWarrant plugin has one.
+    "openwarrant": {"openwarrant": {"command": "war", "args": ["mcp"]}},
+}
+
+
+def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "") -> list[str]:
     if agent == "claude":
-        return ["/opt/study/bin/claude", "-p", prompt, "--model", model,
+        argv = ["/opt/study/bin/claude", "-p", prompt, "--model", model,
                 "--output-format", "stream-json", "--verbose",
                 "--permission-mode", "bypassPermissions",
-                "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
+                "--strict-mcp-config", "--mcp-config", json.dumps({"mcpServers": ARM_MCP.get(arm, {})}),
                 "--setting-sources", "project,local", "--no-session-persistence",
                 "--max-turns", str(max_turns), "--max-budget-usd", str(SESSION_BUDGET_USD)]
+        if arm == "openwarrant":
+            argv += ["--plugin-dir", "/opt/study/ow-plugin"]
+        return argv
     if agent in ("fixture-reference", "fixture-noop", "fixture-claim"):
         return ["python3", "/opt/study/code/fixture_agent.py", agent.split("-", 1)[1]]
     raise SystemExit(f"unknown agent {agent!r}")
@@ -480,7 +495,7 @@ def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, mode
     t0 = time.time()
     with open(sdir / "stream.jsonl", "w") as out, open(sdir / "stderr.txt", "w") as err:
         env = {**(extra_env or {}), **(jira_env(sb.cell) if arm == "jira" else {})}
-        p = sb.run(agent_argv(agent, prompt, model, max_turns), cwd, net=(agent == "claude" or arm == "jira"),
+        p = sb.run(agent_argv(agent, prompt, model, max_turns, arm), cwd, net=(agent == "claude" or arm == "jira"),
                    timeout=SESSION_TIMEOUT, config=config, extra_env=env, stdout=out, stderr=err)
     metrics = parse_stream(sdir / "stream.jsonl")
     if metrics.get("api_error"):
@@ -538,7 +553,7 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
         shutil.rmtree(cell)
     cell.mkdir(parents=True)
     backlog = load_backlog(c["repo"])
-    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"))
+    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"])
     fixture_env = {"STUDY_ARM": c["arm"], "STUDY_REPO": c["repo"]}
     result: dict = {"cell": c, "agent": agent, "model": model, "sessions": []}
     t0 = time.time()
@@ -676,10 +691,13 @@ def keep_cell(run_id: str, c: dict, cell: Path) -> None:
 # ------------------------------------------------------------------ plan, execute, report
 
 
-def plan_cells(pilot: bool, reps: int, k: int) -> list[dict]:
+FIRST_RUN_ARMS = ("plain", "plans", "speckit", "beads", "openwarrant")  # jira: a later run
+
+
+def plan_cells(pilot: bool, reps: int, k: int, arm_list: list[str] | None = None) -> list[dict]:
     repos = ["tally"] if pilot else sorted(p.name for p in (HERE / "repos").iterdir()
                                           if (p / "backlog.toml").exists() and not p.name.startswith("_"))
-    arm_list = ["plain", "openwarrant"] if pilot else list(arms.ARMS)
+    arm_list = ["plain", "openwarrant"] if pilot else (arm_list or list(FIRST_RUN_ARMS))
     reps = 1 if pilot else reps
     cells = []
     for repo in repos:
@@ -851,6 +869,13 @@ def cmd_report(args) -> None:
 def cmd_prepare(args) -> None:
     for d in ("cargo-home", "sccache", "runs"):
         (STUDY / d).mkdir(parents=True, exist_ok=True)
+    plugin = STUDY / "tools" / "ow-plugin"
+    shutil.rmtree(plugin, ignore_errors=True)
+    plugin.mkdir(parents=True)
+    archive = subprocess.run(["git", "-C", str(OW_REPO), "archive", PINS["ow_plugin"], *PLUGIN_FILES],
+                             capture_output=True, check=True, timeout=120).stdout
+    subprocess.run(["tar", "-x", "-C", str(plugin)], input=archive, check=True, timeout=120)
+    print(f"openwarrant plugin {PINS['ow_plugin']}: {sum(1 for _ in plugin.rglob('*') if _.is_file())} files")
     py = STUDY / "py"
     if not (py / "bin/python3").exists():
         subprocess.run(["python3", "-m", "venv", str(py)], check=True, timeout=300)
@@ -948,6 +973,7 @@ def main() -> None:
     pl.add_argument("--smoke", action="store_true", help="one directed tally T6 session, plain arm")
     pl.add_argument("--reps", type=int, default=3); pl.add_argument("--k", type=int, default=3)
     pl.add_argument("--out")
+    pl.add_argument("--arms", nargs="*", choices=arms.ARMS, help="arms for the full plan (default: all but jira)")
     ex = sub.add_parser("execute"); ex.add_argument("plan"); ex.add_argument("--run-id", required=True)
     ex.add_argument("--agent", required=True); ex.add_argument("--model", default=DEFAULT_MODEL)
     ex.add_argument("--jobs", type=int, default=2); ex.add_argument("--budget-usd", type=float, default=0)
@@ -969,7 +995,7 @@ def main() -> None:
         cmd_parity(args)
     elif args.cmd == "plan":
         cells = ([{"scenario": "directed", "repo": "tally", "arm": "plain", "item": "T6", "rep": 1}]
-                 if args.smoke else plan_cells(args.pilot, args.reps, args.k))
+                 if args.smoke else plan_cells(args.pilot, args.reps, args.k, args.arms))
         n = sum(sessions_in(c, load_backlog(c["repo"])) for c in cells)
         doc = {"pilot": args.pilot, "cells": cells, "max_sessions": n}
         text = json.dumps(doc, indent=1)

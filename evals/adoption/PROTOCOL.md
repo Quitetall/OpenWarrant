@@ -18,7 +18,14 @@ that is the finding.
 
 ## Arms
 
-Six arms (Jira added at the owner's request on 2026-10-22, before any pilot).
+Six arms are built; the first run uses five (Jira, added at the owner's request on
+2026-10-22, is left for a later run, also at the owner's request).
+
+Every arm's startup was checked from inside its sandbox (Claude Code's own `init`
+event, 2026-10-22): `speckit` loads its 10 skills; `beads` fires its
+`SessionStart` hook and injects `bd prime`; `openwarrant` loads its plugin, 8
+skills and the connected `war mcp` server with 41 tools; `plain` and `plans`
+load only their `CLAUDE.md`. No arm gets another arm's skills, hooks or servers.
 
 Every arm's `CLAUDE.md` starts with the same project facts (`[project] facts` in
 the backlog). The backlog's words (titles, descriptions, acceptance criteria,
@@ -29,9 +36,9 @@ design notes, dependencies) are identical in every arm; only their home differs.
 |---|---|---|---|
 | `plain` | a `## Backlog` section in `CLAUDE.md` | nothing more: it is in the file Claude Code reads | none |
 | `plans` | `PLAN.md`, checkboxes and a handoff log | 4 lines in `CLAUDE.md` (written for the study) | none |
-| `speckit` | `specs/001-backlog/{spec,plan,tasks}.md`, one task per acceptance criterion | 3 lines in `CLAUDE.md` (written for the study; Spec Kit installs skills but no `CLAUDE.md`) | Spec Kit v1.2.2, `specify init --integration claude` |
-| `beads` | Beads issues (description, acceptance, design, dependencies) | the block and `SessionStart` hook `bd init` installs, verbatim | Beads v1.3.1, `bd init` |
-| `openwarrant` | one ticket per item, acceptance criteria as its checklist items, dependencies as `--after` | the block `war admin agents-md --block --file CLAUDE.md` installs, verbatim | OpenWarrant 1.0.0-alpha.5, `war init` |
+| `speckit` | `specs/001-backlog/{spec,plan,tasks}.md`, one task per acceptance criterion, and a constitution holding the project facts (what `/speckit-constitution` leaves) | 3 lines in `CLAUDE.md` (written for the study; Spec Kit installs skills but no `CLAUDE.md`), and its 10 `/speckit-*` skills | Spec Kit v1.2.2, `specify init --integration claude` |
+| `beads` | Beads issues (description, acceptance, design, dependencies) | the block and `SessionStart` hook (`bd prime`) `bd init` installs, verbatim; `bd setup claude` adds nothing further | Beads v1.3.1, `bd init` |
+| `openwarrant` | one ticket per item, acceptance criteria as its checklist items, dependencies as `--after` | as QUICKSTART sets it up for Claude Code: the block `war init` appends to the existing `CLAUDE.md`, and the OpenWarrant plugin (8 skills, the `war mcp` server with 41 tools, the edit-guard and end-of-turn hooks) | OpenWarrant 1.0.0-alpha.5 and its plugin at `v1.0.0-alpha.5` |
 | `jira` | one Jira Cloud issue per item (summary, description with the acceptance criteria and notes, "Blocks" links), labelled for the cell | 5 lines in `CLAUDE.md` (written for the study): project, label, and the REST API with `curl` | Jira Cloud REST API v3 (added 2026-10-22 at the owner's request) |
 
 The Jira arm needs credentials in the agent's sandbox (`JIRA_SITE`,
@@ -48,13 +55,12 @@ Rules for fairness:
   where a tool installs its own agent instructions (Beads, OpenWarrant) they are
   used verbatim. Where a tool installs none (plan files, Spec Kit), the study
   adds the shortest pointer a user would write; its text is in `arms.py`.
-- `war init` alone writes a 9 KB `AGENTS.md`. Claude Code 2.1.301 loads
+- `war init` also writes a 9 KB `AGENTS.md`. Claude Code 2.1.301 loads
   `AGENTS.md` only when a project has no `CLAUDE.md` of its own (its default,
   `claude-md-or-agents-md`). Every arm here has a `CLAUDE.md` with the project
-  facts, so no arm's `AGENTS.md` loads, and the OpenWarrant arm runs the
-  documented `war admin agents-md --block --file CLAUDE.md`: its agent sees the
-  five-line block, which points at `war view prime` and `war context`. That is
-  what an adopter with an existing `CLAUDE.md` gets.
+  facts, so no arm's `AGENTS.md` loads; the OpenWarrant agent reads the block
+  `war init` appends to `CLAUDE.md` (pointing at `war view prime` and `war
+  context`) and has the plugin's skills and MCP tools.
 - The seeder, not the model, writes each backlog into each tool, so no arm
   benefits from a better-drafted backlog.
 
