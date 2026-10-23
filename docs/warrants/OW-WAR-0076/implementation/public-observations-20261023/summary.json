@@ -1,0 +1,60 @@
+{
+  "cases": [
+    "T54-minimum",
+    "T56-revision",
+    "FOOTER08-title-crlf",
+    "T55-duplicate-field",
+    "T55-unit-injection",
+    "T55-footer-injection",
+    "T56-false-assurance",
+    "FOOTER08-title-conflict",
+    "T56-duplicate-edit",
+    "T56-unit-edit"
+  ],
+  "case_files": [
+    {
+      "case": "T54-minimum",
+      "path": "case-580f9b6df153087956e0b6dc6ed4d2e65dc32dc5d4f8bacfe65db6eed0834ccd.json"
+    },
+    {
+      "case": "T56-revision",
+      "path": "case-86ea8b0beca9d5d0f4c1a738c18510efa4d5296729cde885381737156e2e81b5.json"
+    },
+    {
+      "case": "FOOTER08-title-crlf",
+      "path": "case-b662be7cc2c361d89c87bb869fff02c4b466a7121878a1b2a2293816b03e31c9.json"
+    },
+    {
+      "case": "T55-duplicate-field",
+      "path": "case-15d221ec30e7e0f8ccdddb7f1e08f4fac6724402fed7d12d1f47303ba4af94be.json"
+    },
+    {
+      "case": "T55-unit-injection",
+      "path": "case-58a127ed310845b92fa48154e3f87143f4adae726132551fac6e713f45f240c7.json"
+    },
+    {
+      "case": "T55-footer-injection",
+      "path": "case-253829acb6b84a9caa79a803dfc6cfab2b6d0bb949ca19d9b12a32224b40a719.json"
+    },
+    {
+      "case": "T56-false-assurance",
+      "path": "case-39603d19688358da67d851d5eaeaa70876d01cbdf9d4779ae25bddbf7fb38c64.json"
+    },
+    {
+      "case": "FOOTER08-title-conflict",
+      "path": "case-1fca188ac8941dd1e063d1c97cc3095af9e9cd64742a1c917fd4cde8b61075c0.json"
+    },
+    {
+      "case": "T56-duplicate-edit",
+      "path": "case-81fe5362a048aca1ec4ff66ef3d9fb12e24b45c118e8f4b3feb6327a4db1fa12.json"
+    },
+    {
+      "case": "T56-unit-edit",
+      "path": "case-bd74d7d92e85f61685ca60a8cce2a1e5c705f31f945eaa5f49dce43337bd44f3.json"
+    }
+  ],
+  "sdk_calls": 47,
+  "binary_sha256": "2915ca8771693c1818015054f982d36a8527c2ad8a49d43df213e9a4de7ddcf7",
+  "wire_sha256": "12c225746607835c600b7f8b625297aa6be9ee8c38a70657b6780aac6441ae75",
+  "qualification_established": false
+}
