@@ -1,0 +1,424 @@
+schema = "ow-adoption/backlog/v1"
+repo = "tally"
+order = ["T1", "T2", "T3", "T4", "T5", "T6"]
+
+[project]
+facts = """
+tally is a small plain-text double-entry ledger written in Python 3.10+ using
+only the standard library. A journal is a text file of dated transactions,
+each with two or more postings that must sum to zero; tally parses it,
+validates it and prints reports. The journal syntax is described in
+docs/FORMAT.md and the commands in README.md.
+
+Layout:
+- tally/cli.py: argparse subcommands (one cmd_* function and one _add_* function
+  per command, registered in COMMANDS), exit codes, `tally: error: ...` messages
+- tally/parser.py: journal text to a Journal, collecting Problems with file:line
+- tally/validate.py: balancing and elided-amount inference for one transaction
+- tally/model.py: Posting, Transaction, Journal dataclasses
+- tally/amounts.py, accounts.py, dates.py: amounts (decimal.Decimal), account
+  names, YYYY-MM-DD dates
+- tally/filters.py: --from/--until date ranges
+- tally/writer.py: transactions back out as journal text (used by `print`)
+- tally/reports/: balance, register, accounts (compute_* rows, render_* text)
+- tests/: the pytest suite; tests/conftest.py has run_tally() and a journal fixture
+- docs/FORMAT.md: journal syntax
+
+Run the CLI from the repository root:
+    python3 -m tally <command> <journal file> [options]
+Commands today: balance, register, accounts, print, check.
+Exit status: 0 success, 1 `check` found problems, 2 usage error, unreadable
+file, or a report asked of a journal with problems. Errors go to stderr as
+`tally: error: <message>`.
+
+Run the tests from the repository root:
+    python3 -m pytest -q
+"""
+
+[[item]]
+id = "T1"
+title = "Add commodities and price directives"
+summary = "Amounts may carry a commodity code; balances are kept per commodity; P directives record prices and a new `prices` command lists them."
+description = """
+Today every amount is a bare number in one implicit currency. Users who hold
+more than one currency or security need amounts tagged with a commodity, and
+a way to record what one commodity was worth in another (the conversion
+itself comes in T2).
+
+**Amounts.** A posting amount may be followed by whitespace and a commodity
+code: `42.50 EUR`, `-3 AAPL`. A code is one to ten uppercase ASCII letters
+(A-Z). An amount without a code is in the *default commodity*, which is
+displayed without any suffix, exactly as today. Displayed amounts are the
+number formatted to two places, then a space and the code when there is one
+(`42.50 EUR`, `42.50`).
+
+**Balancing.** Each transaction must balance in every commodity separately.
+A posting may omit its amount only when all the other postings use the same
+commodity; it then receives the balancing amount in that commodity.
+
+**Price directives.** A line starting in column one with `P` records a price:
+
+    P 2026-01-15 EUR 1.0850 USD
+
+meaning that on 2026-01-15 one EUR was worth 1.0850 USD. The fields are the
+date, the commodity, the rate and the quote commodity. A `;` comment may
+follow on the same line.
+
+**Reports.**
+- `balance`: one row per account *and commodity* the account has postings in
+  (shown even if that commodity nets to zero), sorted by account name, then
+  by commodity code with the default commodity first. Each row is the
+  amount text right-aligned in the existing 14-character column, two spaces,
+  and the account name. After the line of 14 dashes come one total row per
+  commodity that appears in the rows, in the same commodity order and the
+  same alignment; when there are no rows the total stays a single `0.00`.
+- `register`: the amount and running-total columns show the commodity code,
+  and the running total is kept per commodity: each row shows the running
+  total of its own commodity.
+- `print`: amounts show their commodity code, including filled-in amounts.
+- New command `prices <journal> [COMMODITY]`: one line per price directive,
+  `DATE COMMODITY RATE QUOTE`, with RATE exactly as written in the journal
+  (`1.0850` stays `1.0850`), ordered by date with same-date directives in
+  file order. With COMMODITY, only directives whose first commodity is
+  COMMODITY are listed.
+"""
+acceptance = [
+  "`balance` prints one row per account and commodity, sorted by account then commodity code with the default commodity first, with amounts like `100.00 EUR` right-aligned in 14 characters, followed by the dashes and one total row per commodity.",
+  "An elided posting amount takes the commodity of the other postings, and `print` shows it with its code (`-42.50 EUR`).",
+  "`check` reports a transaction that does not balance in a named commodity as `FILE:LINE: transaction does not balance in EUR (off by 10.00)` at its header line, one problem per unbalanced commodity, and keeps the existing message for the default commodity.",
+  "`check` reports `FILE:LINE: cannot infer amount: postings use more than one commodity` at the elided posting's line when the other postings use more than one commodity, and reports and other commands refuse that journal with exit status 2.",
+  "`check` reports `FILE:LINE: invalid commodity 'eur'` for a code that is not one to ten uppercase letters.",
+  "`register` shows each posting's commodity in the amount and running-total columns and keeps the running total per commodity.",
+  "`prices <journal>` lists every price directive as `DATE COMMODITY RATE QUOTE` in date order (file order within a date) with the rate as written; `prices <journal> GBP` lists only GBP's directives.",
+  "Malformed price directives are reported by `check` with file and line: `invalid price directive`, `invalid date '...'`, `invalid commodity '...'`, `invalid price '...'`.",
+]
+notes = """
+- Commodity codes: one to ten uppercase ASCII letters, nothing else; the
+  amount and code are separated by whitespace (`42.50EUR` is an invalid amount).
+- The `off by` figure is the sum of that commodity's amounts in the
+  transaction, formatted to two places, as the existing message does. When
+  several commodities are unbalanced, report one problem per commodity at the
+  transaction's header line, in commodity-code order.
+- The default commodity (no code) keeps today's message exactly:
+  `transaction does not balance (off by 2.50)`.
+- Elision with more than one commodity among the other postings is a problem
+  at the line of the posting that omits its amount, message exactly
+  `cannot infer amount: postings use more than one commodity`.
+- Price directive problems, each at the directive's line:
+  - not exactly five whitespace-separated fields (`P`, date, commodity, rate,
+    quote) after removing a `;` comment: `invalid price directive`
+  - a bad date: `invalid date '<text>'`
+  - a bad commodity or quote code: `invalid commodity '<text>'`
+  - a rate that is not a positive decimal number: `invalid price '<text>'`
+- `prices` prints the rate exactly as written (keep the parsed Decimal; do not
+  reformat it to two places). A journal with problems makes `prices` exit 2
+  like every other report.
+"""
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[[item]]
+id = "T2"
+title = "Convert balances into one commodity with --convert"
+summary = "`balance --convert COMMODITY [--at DATE]` converts every amount into one commodity using the latest price on or before a date."
+description = """
+With T1, a balance can hold several commodities. Users want a single figure:
+`balance --convert USD` shows every account in USD, using the `P` price
+directives.
+
+Add two options to `balance`:
+
+- `--convert COMMODITY`: convert amounts into COMMODITY (the *target*).
+- `--at DATE`: use the prices in effect on DATE (`YYYY-MM-DD`). Only valid
+  together with `--convert`.
+
+For each posting the report includes, if its commodity is neither the target
+nor the default commodity, its amount is multiplied by the rate of the latest
+price directive `P d <its commodity> <rate> <target>` with `d` on or before
+the `--at` date. Converted amounts are added to the account's amounts
+already in the target. The output format is the normal `balance` format
+(T1): rows now show the target commodity.
+
+Amounts in the default commodity (no code) are not converted and keep their
+own rows. Amounts already in the target are used as they are.
+
+If a commodity needs converting and no price applies, `balance` fails.
+"""
+acceptance = [
+  "`balance <journal> --convert USD --at 2026-01-31` converts each non-USD posting with the latest direct price to USD dated on or before 2026-01-31 and prints the usual balance rows in USD.",
+  "A price dated exactly on the `--at` date is used; among several prices on the same date, the one last in the file is used.",
+  "Without `--at`, the date used is the latest date of any transaction or price directive in the journal.",
+  "Each converted posting is rounded to two places with ROUND_HALF_EVEN before anything is summed (three postings of 1.00 EUR at 1.005 USD give 3.00 USD, not 3.02 or 3.03).",
+  "Amounts in the default commodity are left unconverted in their own rows; amounts already in the target are unchanged.",
+  "When a commodity has no usable price, `balance` exits with status 3, prints nothing on stdout and prints exactly `tally: error: no price for EUR in USD on or before 2026-01-12` on stderr.",
+  "Only direct prices are used: `P d USD 0.92 EUR` does not convert EUR into USD.",
+  "Only postings the report includes (after the ACCOUNT argument and --from/--until) need a price.",
+  "`--at` without `--convert`, an invalid `--at` date, and a target that is not a valid commodity code each exit with status 2 and a message containing `--at requires --convert`, `invalid date '<text>'` or `invalid commodity '<text>'` respectively.",
+]
+notes = """
+- Rounding rule: convert per posting, `(amount * rate)` quantized to 0.01 with
+  ROUND_HALF_EVEN, before adding it to anything. Never round only the total.
+  Amounts already in the target are not re-rounded before summing (display
+  rounding is unchanged).
+- Price lookup: direct prices only (`P d FROM rate TARGET`). Do not invert a
+  `P d TARGET rate FROM` directive and do not chain through a third
+  commodity. The latest directive with date <= the `--at` date wins; on equal
+  dates, the one later in the file wins. Price directives anywhere in the file
+  count, whatever --from/--until select.
+- Default `--at`: the latest date among all transactions and price directives
+  in the journal file (not limited by --from/--until).
+- Missing price: stderr exactly
+  `tally: error: no price for <COMMODITY> in <TARGET> on or before <YYYY-MM-DD>`,
+  where the date is the `--at` date in use and COMMODITY the first commodity
+  found without a price; exit status **3** (a new code, distinct from usage
+  errors); nothing on stdout.
+- Usage errors (exit status 2, message on stderr): `--at` without `--convert`
+  (`tally: error: --at requires --convert`), an invalid `--at` date
+  (message containing `invalid date '<text>'`), an invalid target code
+  (message containing `invalid commodity '<text>'`).
+- Postings excluded by the ACCOUNT argument or by --from/--until never need a
+  price, so they can never cause exit status 3.
+"""
+depends_on = ["T1"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[[item]]
+id = "T3"
+title = "Add periodic transactions and a forecast command"
+summary = "`~ monthly from DATE` blocks describe recurring transactions; `forecast --until DATE` expands them into dated transactions."
+description = """
+Users want to describe recurring transactions once (rent, salary, an
+allowance) and see them laid out ahead of time.
+
+**Syntax.** A periodic transaction starts in column one with `~`, a period,
+the word `from`, a start date, and an optional description (the rest of the
+line):
+
+    ~ monthly from 2026-01-31 Rent
+        Expenses:Rent      1200.00
+        Assets:Checking
+
+The period is `weekly`, `monthly` or `yearly`. Its postings follow exactly the
+same rules as a transaction's (at least two, they must balance, one may omit
+its amount), and the same problems are reported for them at the `~` line.
+
+Periodic transactions are not real transactions: `balance`, `register`,
+`print` and the transaction and posting counts in `check`'s `ok:` line ignore
+them.
+
+**Command.** `forecast <journal> --until DATE` prints every occurrence of
+every periodic transaction from its start date through DATE inclusive, in the
+same format as `print`: a header `DATE DESCRIPTION`, then each posting as four
+spaces, the account, two spaces and the amount formatted to two places (an
+omitted amount filled in), with one blank line between transactions. When
+there are no occurrences it prints nothing. `--until` is required.
+"""
+acceptance = [
+  "`forecast <journal> --until 2026-03-01` on a `~ monthly from 2026-01-01 Rent` block prints three transactions dated 2026-01-01, 2026-02-01 and 2026-03-01 in `print` format, with the omitted amount filled in.",
+  "A monthly rule from the 31st produces Jan 31, Feb 28, Mar 31, Apr 30; a yearly rule from 2024-02-29 produces 2025-02-28; a weekly rule recurs every 7 days.",
+  "Occurrences of several rules are ordered by date, with same-date occurrences in the order the rules appear in the file; a rule without a description produces the payee `Forecast`.",
+  "`forecast` prints nothing and exits 0 when DATE is before every start date, and its output is itself a journal that `check` accepts.",
+  "Periodic transactions do not appear in `balance` and are not counted in `check`'s `ok:` line.",
+  "`check` reports `FILE:LINE: unknown period 'fortnightly'`, `FILE:LINE: invalid periodic header` and `FILE:LINE: invalid date '...'` at the `~` line, and balance problems of a periodic transaction at its `~` line.",
+  "`forecast` without `--until` exits with status 2, and `forecast` on a journal with problems exits with status 2.",
+]
+notes = """
+- Header shape: `~`, whitespace, PERIOD, whitespace, `from`, whitespace, DATE,
+  then optionally whitespace and a description. Anything else (for example a
+  missing `from`, or `~monthly`) is the problem `invalid periodic header`. A
+  correct shape with an unknown period word is `unknown period '<word>'`; a
+  bad date is `invalid date '<text>'`. All at the `~` line.
+- Without a description, the generated transactions' payee is `Forecast`.
+- Occurrence rule: weekly is start + 7*n days. Monthly keeps the start's day of
+  month; in a month that is too short it falls on the month's last day, and
+  the next month returns to the original day (no drift: Jan 31, Feb 28,
+  Mar 31, Apr 30). Yearly is the same month and day each year, Feb 29 falling
+  on Feb 28 in non-leap years.
+- `forecast` lists occurrences from each rule's start date (not from the last
+  real transaction) through `--until` inclusive.
+- Sort: by date; same date keeps rule file order.
+"""
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[[item]]
+id = "T4"
+title = "Add a budget report from periodic transactions"
+summary = "`budget --from DATE --until DATE` compares the amounts periodic transactions plan with what was actually posted."
+description = """
+Periodic transactions (T3) describe what is expected to happen. Treated as a
+budget, they let users see how actual spending compares.
+
+New command:
+
+    python3 -m tally budget <journal> --from DATE --until DATE
+
+Both dates are required and inclusive.
+
+- **Budgeted accounts.** Every posting of a periodic transaction that states
+  its amount budgets that account. The posting whose amount is omitted is the
+  funding side and is not budgeted.
+- **Budget.** For each budgeted account, the posting's amount times the number
+  of occurrences of its rule between --from and --until (occurrences as
+  `forecast` computes them), summed over all rules that budget that account.
+- **Actual.** The sum of the amounts of real transactions dated between
+  --from and --until that are posted to the account or any of its
+  descendants (`Expenses:Food:Groceries` counts toward `Expenses:Food`).
+- **Remaining.** Budget minus Actual.
+
+Output is a header line then one row per budgeted account (and commodity,
+if commodities exist), sorted by account name, laid out with these Python
+format strings:
+
+    f"{'Account':<30}{'Actual':>14}{'Budget':>14}{'Remaining':>14}"
+    f"{account:<30}{actual:>14}{budget:>14}{remaining:>14}"
+
+where the amounts are formatted to two places (with a commodity code when
+the amount has one, as `balance` shows it). When nothing is budgeted only the
+header line is printed.
+"""
+acceptance = [
+  "`budget <journal> --from 2026-01-01 --until 2026-01-31` prints the header line and one row per budgeted account, sorted, in the stated format, with Actual, Budget and Remaining to two places.",
+  "Budget counts only occurrences inside the period (5 occurrences of a weekly rule from 2026-01-01 in January) and Actual counts only real postings dated inside it.",
+  "Actual includes postings to descendant accounts of a budgeted account.",
+  "Remaining is Budget minus Actual and is negative when over budget.",
+  "The posting whose amount is omitted in a periodic transaction is not a row; when both sides state amounts both are rows.",
+  "With no periodic transactions only the header line is printed.",
+  "`--from` after `--until` exits with status 2 and stderr `tally: error: --from must not be after --until`; a missing `--from` or `--until`, or an invalid date, exits with status 2.",
+]
+notes = """
+- Budget = posting amount x number of rule occurrences with
+  from <= date <= until; summed when several rules budget the same account.
+- Only postings that *state* an amount in the periodic transaction are
+  budgeted; the elided (funding) posting is not a row.
+- Actual = sum over real transactions with from <= date <= until of postings
+  whose account equals the budgeted account or is a descendant of it (same
+  matching as the ACCOUNT argument of `balance`), in the same commodity.
+- Columns: account left-aligned in 30, then Actual, Budget, Remaining each
+  right-aligned in 14, no other separators; header labels exactly `Account`,
+  `Actual`, `Budget`, `Remaining`.
+- Reuse the existing `--from must not be after --until` error (exit 2).
+"""
+depends_on = ["T3"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[[item]]
+id = "T5"
+title = "Import bank CSV exports with a rules file"
+summary = "`import CSV --rules FILE` turns a bank CSV export into journal transactions, assigning accounts by payee regex."
+description = """
+Users download CSV statements from their bank and retype them. Add an
+importer that converts a CSV file into journal text on stdout:
+
+    python3 -m tally import <csv file> --rules <rules file>
+
+**Rules file.** One directive per line, `KEY VALUE` (the key is the first
+word, the value the rest of the line, trimmed). Blank lines and lines
+starting with `#` are ignored.
+
+| key | value | |
+|---|---|---|
+| `account` | the bank account, e.g. `Assets:Checking` | required |
+| `date-column` | 1-based column number of the date | required |
+| `payee-column` | 1-based column number of the payee | required |
+| `amount-column` | 1-based column number of the amount | required |
+| `date-format` | a Python `strptime` format | default `%Y-%m-%d` |
+| `skip` | number of rows at the top of the CSV to ignore | default `0` |
+| `default-account` | counter-account when no rule matches | default `Expenses:Unknown` |
+| `rule` | `REGEX => ACCOUNT` | any number |
+
+A `rule` is matched against the row's payee with Python `re.search`,
+case-insensitively; the first matching rule in file order gives the
+counter-account, otherwise `default-account` is used.
+
+**CSV.** Comma-separated with standard double-quote quoting. Rows that are
+empty are ignored. The payee is trimmed of surrounding whitespace. An amount
+may contain `,` thousands separators, which are removed; the rest must be a
+decimal number as in a journal. A positive amount is money into `account`.
+
+**Output.** One transaction per row, in CSV order, in the `print` format:
+
+    2026-03-01 BLUE BOTTLE COFFEE #12
+        Expenses:Coffee  4.50
+        Assets:Checking  -4.50
+
+The header is the date (`YYYY-MM-DD`) and the payee. The first posting is the
+counter-account with the negated amount, the second is `account` with the
+amount, both to two places. Transactions are separated by one blank line.
+"""
+acceptance = [
+  "`import bank.csv --rules bank.rules` prints one transaction per CSV row in CSV order, header `DATE PAYEE`, the counter-account posting first with the negated amount and the bank account second with the amount, both to two places, separated by blank lines.",
+  "Rules match the trimmed payee case-insensitively with `re.search`, first match wins; unmatched rows use `default-account`, which defaults to `Expenses:Unknown`.",
+  "`skip`, `date-format` (default `%Y-%m-%d`), quoted amounts with `,` separators and empty rows are handled as stated.",
+  "The output of `import` is a journal that `check` accepts.",
+  "A rules file missing a required key exits with status 2 and stderr exactly `tally: error: RULES: missing 'payee-column'` (RULES being the path as given), with nothing on stdout.",
+  "Bad rules lines exit with status 2 and stderr `tally: error: RULES:LINE: <message>` for `unknown directive 'currency'`, `invalid rule`, `invalid regex '(unclosed'` and `invalid number 'zero'` / `invalid number '0'`.",
+  "Bad CSV rows exit with status 2, print nothing on stdout, and print `tally: error: CSV:LINE: <message>` for `invalid date '2026-13-01'`, `invalid amount 'seven'` and `missing column 3`.",
+  "`import` without `--rules` exits with status 2.",
+]
+notes = """
+- Errors are fatal: print nothing on stdout, one `tally: error: ...` line on
+  stderr, exit status 2. Paths are printed exactly as given on the command line.
+- Rules-file messages, prefixed `RULES:LINE: ` (LINE is the 1-based line in
+  the rules file):
+  - unknown key: `unknown directive '<key>'`
+  - a column number that is not an integer >= 1, or a `skip` that is not an
+    integer >= 0: `invalid number '<value>'`
+  - a `rule` value without ` => ` (space, `=>`, space) or with an empty side:
+    `invalid rule`; split at the first ` => `, trim both sides
+  - a regex Python cannot compile: `invalid regex '<regex>'`
+  - an invalid account name: `invalid account name '<name>'`
+- A missing required key is checked after the whole file is read and is
+  reported as `RULES: missing '<key>'` (no line number), checking in the order
+  account, date-column, payee-column, amount-column and reporting the first.
+- CSV messages, prefixed `CSV:LINE: ` where LINE is the 1-based physical line
+  of the row in the CSV file (skipped and empty lines still count):
+  `invalid date '<text>'` (does not parse with date-format),
+  `invalid amount '<text>'` (the original cell text, trimmed),
+  `missing column <n>` (the row has fewer than n columns).
+- Sign convention: CSV amount A becomes `counter-account  -A` then
+  `account  A`.
+- Rule regexes use Python `re` syntax, `re.IGNORECASE`, `search` (not `match`).
+"""
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[[item]]
+id = "T6"
+title = "Roll balances up to a depth with --depth"
+summary = "`balance --depth N` rolls child accounts up into their ancestors of at most N segments."
+description = """
+A detailed chart of accounts makes `balance` long. `--depth N` shows a
+summary: each account is replaced by its ancestor made of its first N
+`:`-separated segments, and the amounts of accounts that end up with the same
+name are added together. `balance --depth 1` shows just `Assets`,
+`Expenses`, `Income` and so on.
+
+Accounts with N or fewer segments are shown unchanged. Rows are sorted by the
+resulting names and printed in the normal `balance` format; the total is
+unchanged. The ACCOUNT argument and `--from`/`--until` select postings first,
+by their full account names; the roll-up happens afterwards.
+"""
+acceptance = [
+  "`balance <journal> --depth 1` prints one row per top-level account with the summed amounts of all its descendants, then the usual total.",
+  "With `--depth 2`, accounts with one or two segments keep their own rows (`Expenses` with direct postings stays a separate row from `Expenses:Food`).",
+  "A depth larger than any account's segment count prints exactly what `balance` prints without `--depth`.",
+  "`--depth` combines with the ACCOUNT argument and with `--from`/`--until`, which select postings before the roll-up.",
+  "`--depth 0` or a negative depth exits with status 2, prints nothing on stdout and prints `tally: error: --depth must be at least 1`; a non-integer depth exits with status 2.",
+]
+notes = """
+- N must be an integer >= 1. N < 1: stderr exactly
+  `tally: error: --depth must be at least 1`, exit status 2, nothing on stdout.
+- Truncate to the first N segments; an account already at or above that level
+  is unchanged. Sum per resulting name (and per commodity, if commodities
+  exist), then sort by the resulting name.
+- The ACCOUNT filter matches the original, untruncated account names.
+"""
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300

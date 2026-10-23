@@ -1,0 +1,122 @@
+diff --git a/README.md b/README.md
+index 91ca6eb..b03fd80 100644
+--- a/README.md
++++ b/README.md
+@@ -14,6 +14,7 @@ python3 -m tally <command> <journal file> [options]
+ |---|---|
+ | `balance [ACCOUNT] [--from DATE] [--until DATE]` | net amount per account, sorted by name, then a total |
+ | `balance ... --convert COMMODITY [--at DATE]` | every amount converted into COMMODITY at the latest prices on or before DATE |
++| `balance ... --depth N` | accounts rolled up into their ancestors of at most N segments |
+ | `register [ACCOUNT] [--from DATE] [--until DATE]` | each posting in date order with a running total |
+ | `accounts` | every account name the journal uses |
+ | `print [--from DATE] [--until DATE]` | the transactions in date order, elided amounts filled in |
+diff --git a/tally/accounts.py b/tally/accounts.py
+index 02afbe0..86c7bd7 100644
+--- a/tally/accounts.py
++++ b/tally/accounts.py
+@@ -24,6 +24,15 @@ def segments(name: str) -> list[str]:
+     return name.split(SEPARATOR)
+ 
+ 
++def truncate(name: str, depth: int) -> str:
++    """The ancestor of ``name`` with at most ``depth`` segments.
++
++    ``truncate("Expenses:Food:Groceries", 2)`` is ``Expenses:Food``; a name
++    with ``depth`` segments or fewer is returned unchanged.
++    """
++    return SEPARATOR.join(segments(name)[:depth])
++
++
+ def account_matches(name: str, pattern: str) -> bool:
+     """True if ``name`` is ``pattern`` or one of its descendants.
+ 
+diff --git a/tally/cli.py b/tally/cli.py
+index ba477d6..b8d8689 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -50,6 +50,8 @@ def load_selected(args: argparse.Namespace) -> Journal:
+ def cmd_balance(args: argparse.Namespace) -> int:
+     if args.at is not None and args.convert is None:
+         raise UsageError("--at requires --convert")
++    if args.depth is not None and args.depth < 1:
++        raise UsageError("--depth must be at least 1")
+     convert = None
+     if args.convert is not None:
+         try:
+@@ -62,7 +64,7 @@ def cmd_balance(args: argparse.Namespace) -> int:
+         at = args.at or latest_date(full)
+         if at is not None:
+             convert = Converter(journal, target, at)
+-    rows = compute_balances(journal, account=args.account, convert=convert)
++    rows = compute_balances(journal, account=args.account, convert=convert, depth=args.depth)
+     print(render_balance(rows))
+     return EXIT_OK
+ 
+@@ -148,6 +150,10 @@ def _add_balance(sub: argparse._SubParsersAction) -> None:
+         "--at", type=date_argument, metavar="DATE",
+         help="use the latest prices on or before DATE (default: the journal's last date)",
+     )
++    p.add_argument(
++        "--depth", type=int, metavar="N",
++        help="roll accounts up into their ancestors with at most N segments",
++    )
+     p.set_defaults(func=cmd_balance)
+ 
+ 
+diff --git a/tally/reports/balance.py b/tally/reports/balance.py
+index 6c8ed15..fa41f58 100644
+--- a/tally/reports/balance.py
++++ b/tally/reports/balance.py
+@@ -7,7 +7,7 @@ from dataclasses import dataclass
+ from decimal import Decimal
+ from typing import Callable
+ 
+-from tally.accounts import account_matches
++from tally.accounts import account_matches, truncate
+ from tally.amounts import ZERO
+ from tally.model import Journal, Posting
+ from tally.reports.columns import AMOUNT_WIDTH, amount_cell, quantity_cell
+@@ -24,6 +24,7 @@ def compute_balances(
+     journal: Journal,
+     account: str | None = None,
+     convert: Callable[[Posting], tuple[Decimal, str]] | None = None,
++    depth: int | None = None,
+ ) -> list[BalanceRow]:
+     """Net amount per account and commodity, sorted by account then commodity.
+ 
+@@ -31,6 +32,8 @@ def compute_balances(
+     that commodity nets to zero. With ``account``, only that account and its
+     descendants are included. With ``convert``, each included posting's
+     (amount, commodity) is replaced by ``convert(posting)`` before summing.
++    With ``depth``, each account is rolled up into its ancestor with at most
++    ``depth`` segments.
+     """
+     sums: dict[tuple[str, str], Decimal] = defaultdict(lambda: ZERO)
+     for txn in journal.transactions:
+@@ -41,7 +44,8 @@ def compute_balances(
+                 amount, commodity = posting.amount, posting.commodity
+             else:
+                 amount, commodity = convert(posting)
+-            sums[(posting.account, commodity)] += amount
++            name = posting.account if depth is None else truncate(posting.account, depth)
++            sums[(name, commodity)] += amount
+     return [BalanceRow(name, sums[(name, c)], c) for name, c in sorted(sums)]
+ 
+ 
+diff --git a/tests/test_reports.py b/tests/test_reports.py
+index 5e75e9c..1370a9d 100644
+--- a/tests/test_reports.py
++++ b/tests/test_reports.py
+@@ -46,3 +46,12 @@ def test_register_is_in_date_order_with_running_total():
+         ("Grocery", "957.50"),
+         ("Cafe", "950.25"),
+     ]
++
++
++def test_balance_depth_rolls_up_children():
++    rows = compute_balances(load(), depth=1)
++    assert [(r.account, str(r.amount)) for r in rows] == [
++        ("Assets", "950.25"),
++        ("Expenses", "49.75"),
++        ("Income", "-1000"),
++    ]

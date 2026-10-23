@@ -1,0 +1,283 @@
+diff --git a/README.md b/README.md
+index 670bfdd..0972b03 100644
+--- a/README.md
++++ b/README.md
+@@ -13,6 +13,7 @@ python3 -m tally <command> <journal file> [options]
+ | command | what it prints |
+ |---|---|
+ | `balance [ACCOUNT] [--from DATE] [--until DATE]` | net amount per account, sorted by name, then a total |
++| `balance ... --convert COMMODITY [--at DATE]` | every amount converted into COMMODITY at the latest prices on or before DATE |
+ | `register [ACCOUNT] [--from DATE] [--until DATE]` | each posting in date order with a running total |
+ | `accounts` | every account name the journal uses |
+ | `print [--from DATE] [--until DATE]` | the transactions in date order, elided amounts filled in |
+@@ -25,6 +26,7 @@ and both ends of a range are inclusive.
+ 
+ Exit status is 0 on success, 1 when `check` finds problems, and 2 for a usage
+ error, an unreadable file, or a report asked of a journal that has problems.
++`balance --convert` exits with 3 when a commodity has no price.
+ Errors go to stderr as `tally: error: <message>`.
+ 
+ Amounts may carry a commodity (`42.50 EUR`). `balance` shows one row per
+diff --git a/docs/FORMAT.md b/docs/FORMAT.md
+index e6ff8d0..57322fa 100644
+--- a/docs/FORMAT.md
++++ b/docs/FORMAT.md
+@@ -62,6 +62,13 @@ P 2026-01-15 EUR 1.0850 USD
+ It records that on 2026-01-15 one EUR was worth 1.0850 USD. The rate must be
+ a positive number; both codes follow the commodity rules above.
+ 
++`balance --convert TARGET [--at DATE]` uses these directives. Each posting
++not already in TARGET is multiplied by the latest direct price from its
++commodity to TARGET dated on or before DATE (by default the journal's latest
++transaction or price date), then rounded to two places, half to even, before
++anything is added up. Inverse and chained rates are not used. Amounts in the
++default commodity are not converted.
++
+ ## Problems
+ 
+ `tally check` reports every problem it finds as `FILE:LINE: message`, where
+diff --git a/tally/cli.py b/tally/cli.py
+index e13e842..87940ef 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -4,6 +4,7 @@ Exit status:
+     0  success
+     1  ``check`` found problems in the journal
+     2  usage error, unreadable file, or a journal with problems
++    3  ``balance --convert`` found no price for a commodity
+ """
+ 
+ from __future__ import annotations
+@@ -13,8 +14,10 @@ import sys
+ from typing import Callable
+ 
+ from tally import __version__
++from tally.amounts import AmountError, parse_commodity
++from tally.convert import ConversionError, Converter, latest_date
+ from tally.errors import JournalError, UsageError
+-from tally.filters import add_date_range_options, date_range_from_args, restrict
++from tally.filters import add_date_range_options, date_argument, date_range_from_args, restrict
+ from tally.model import Journal
+ from tally.parser import load_journal, parse_file
+ from tally.reports.accounts import compute_accounts, render_accounts
+@@ -25,19 +28,38 @@ from tally.writer import render_transactions
+ EXIT_OK = 0
+ EXIT_PROBLEMS = 1
+ EXIT_USAGE = 2
++EXIT_NO_PRICE = 3
++
++
++def select(args: argparse.Namespace, journal: Journal) -> Journal:
++    """Apply the --from/--until options to a loaded journal."""
++    dates = date_range_from_args(args)
++    if dates.is_empty():
++        raise UsageError("--from must not be after --until")
++    return restrict(journal, dates)
+ 
+ 
+ def load_selected(args: argparse.Namespace) -> Journal:
+     """Load the journal named on the command line, applying --from/--until."""
+-    dates = date_range_from_args(args)
+-    if dates.is_empty():
+-        raise UsageError("--from must not be after --until")
+-    return restrict(load_journal(args.journal), dates)
++    return select(args, load_journal(args.journal))
+ 
+ 
+ def cmd_balance(args: argparse.Namespace) -> int:
+-    journal = load_selected(args)
+-    rows = compute_balances(journal, account=args.account)
++    if args.at is not None and args.convert is None:
++        raise UsageError("--at requires --convert")
++    convert = None
++    if args.convert is not None:
++        try:
++            target = parse_commodity(args.convert)
++        except AmountError as exc:
++            raise UsageError(str(exc)) from None
++    full = load_journal(args.journal)
++    journal = select(args, full)
++    if args.convert is not None:
++        at = args.at or latest_date(full)
++        if at is not None:
++            convert = Converter(journal, target, at)
++    rows = compute_balances(journal, account=args.account, convert=convert)
+     print(render_balance(rows))
+     return EXIT_OK
+ 
+@@ -92,6 +114,14 @@ def _add_balance(sub: argparse._SubParsersAction) -> None:
+     p.add_argument("journal", help="journal file")
+     p.add_argument("account", nargs="?", help="limit to this account and its descendants")
+     add_date_range_options(p)
++    p.add_argument(
++        "--convert", metavar="COMMODITY",
++        help="convert every amount into COMMODITY using price directives",
++    )
++    p.add_argument(
++        "--at", type=date_argument, metavar="DATE",
++        help="use the latest prices on or before DATE (default: the journal's last date)",
++    )
+     p.set_defaults(func=cmd_balance)
+ 
+ 
+@@ -163,6 +193,9 @@ def main(argv: list[str] | None = None) -> int:
+         for problem in exc.problems:
+             error(str(problem))
+         return EXIT_USAGE
++    except ConversionError as exc:
++        error(str(exc))
++        return EXIT_NO_PRICE
+     except UsageError as exc:
+         error(str(exc))
+         return EXIT_USAGE
+diff --git a/tally/convert.py b/tally/convert.py
+new file mode 100644
+index 0000000..2e15c26
+--- /dev/null
++++ b/tally/convert.py
+@@ -0,0 +1,62 @@
++"""Converting amounts into one commodity using price directives."""
++
++from __future__ import annotations
++
++import datetime as dt
++from decimal import Decimal
++
++from tally.amounts import round_amount
++from tally.model import Journal, Posting, Price
++
++
++class ConversionError(Exception):
++    """An amount could not be converted because no price applies."""
++
++
++class PriceBook:
++    """Direct prices only: ``P d EUR r USD`` converts EUR to USD, not back."""
++
++    def __init__(self, prices: list[Price]):
++        # Sorted by date with file order kept for ties, so the last match wins.
++        self._prices = sorted(prices, key=lambda p: p.date)
++
++    def rate(self, commodity: str, target: str, on: dt.date) -> Decimal | None:
++        """The latest rate from ``commodity`` to ``target`` dated on or before ``on``."""
++        found = None
++        for price in self._prices:
++            if price.date > on:
++                break
++            if price.commodity == commodity and price.quote == target:
++                found = price.rate
++        return found
++
++
++class Converter:
++    """Converts posting amounts into ``target`` at the prices of one date.
++
++    Each converted posting is rounded to two places, half to even, before it
++    is added to anything. Amounts already in ``target`` and amounts in the
++    default (unnamed) commodity are returned unchanged.
++    """
++
++    def __init__(self, journal: Journal, target: str, at: dt.date):
++        self.book = PriceBook(journal.prices)
++        self.target = target
++        self.at = at
++
++    def __call__(self, posting: Posting) -> tuple[Decimal, str]:
++        if posting.commodity in ("", self.target):
++            return posting.amount, posting.commodity
++        rate = self.book.rate(posting.commodity, self.target, self.at)
++        if rate is None:
++            raise ConversionError(
++                f"no price for {posting.commodity} in {self.target} "
++                f"on or before {self.at.isoformat()}"
++            )
++        return round_amount(posting.amount * rate), self.target
++
++
++def latest_date(journal: Journal) -> dt.date | None:
++    """The latest date of any transaction or price directive."""
++    dates = [t.date for t in journal.transactions] + [p.date for p in journal.prices]
++    return max(dates, default=None)
+diff --git a/tally/reports/balance.py b/tally/reports/balance.py
+index 8958211..6c8ed15 100644
+--- a/tally/reports/balance.py
++++ b/tally/reports/balance.py
+@@ -5,10 +5,11 @@ from __future__ import annotations
+ from collections import defaultdict
+ from dataclasses import dataclass
+ from decimal import Decimal
++from typing import Callable
+ 
+ from tally.accounts import account_matches
+ from tally.amounts import ZERO
+-from tally.model import Journal
++from tally.model import Journal, Posting
+ from tally.reports.columns import AMOUNT_WIDTH, amount_cell, quantity_cell
+ 
+ 
+@@ -19,19 +20,28 @@ class BalanceRow:
+     commodity: str = ""
+ 
+ 
+-def compute_balances(journal: Journal, account: str | None = None) -> list[BalanceRow]:
++def compute_balances(
++    journal: Journal,
++    account: str | None = None,
++    convert: Callable[[Posting], tuple[Decimal, str]] | None = None,
++) -> list[BalanceRow]:
+     """Net amount per account and commodity, sorted by account then commodity.
+ 
+     An account has a row for every commodity it has postings in, even when
+     that commodity nets to zero. With ``account``, only that account and its
+-    descendants are included.
++    descendants are included. With ``convert``, each included posting's
++    (amount, commodity) is replaced by ``convert(posting)`` before summing.
+     """
+     sums: dict[tuple[str, str], Decimal] = defaultdict(lambda: ZERO)
+     for txn in journal.transactions:
+         for posting in txn.postings:
+             if account is not None and not account_matches(posting.account, account):
+                 continue
+-            sums[(posting.account, posting.commodity)] += posting.amount
++            if convert is None:
++                amount, commodity = posting.amount, posting.commodity
++            else:
++                amount, commodity = convert(posting)
++            sums[(posting.account, commodity)] += amount
+     return [BalanceRow(name, sums[(name, c)], c) for name, c in sorted(sums)]
+ 
+ 
+diff --git a/tests/test_convert.py b/tests/test_convert.py
+new file mode 100644
+index 0000000..a175e74
+--- /dev/null
++++ b/tests/test_convert.py
+@@ -0,0 +1,28 @@
++import datetime as dt
++from decimal import Decimal
++
++from conftest import run_tally
++from tally.convert import PriceBook
++from tally.parser import parse_text
++
++PRICES = """\
++P 2026-01-15 EUR 1.0850 USD
++P 2026-02-01 EUR 1.10 USD
++P 2026-02-01 EUR 1.20 USD
++"""
++
++
++def test_price_book_takes_latest_on_or_before():
++    journal, _ = parse_text(PRICES, "j.ledger")
++    book = PriceBook(journal.prices)
++    assert book.rate("EUR", "USD", dt.date(2026, 1, 31)) == Decimal("1.0850")
++    assert book.rate("EUR", "USD", dt.date(2026, 2, 1)) == Decimal("1.20")
++    assert book.rate("EUR", "USD", dt.date(2026, 1, 14)) is None
++    assert book.rate("USD", "EUR", dt.date(2026, 3, 1)) is None
++
++
++def test_balance_convert(journal):
++    path = journal(PRICES + "\n2026-01-20 Cafe\n    Expenses:Food  10 EUR\n    Assets:Wallet\n")
++    result = run_tally("balance", path, "--convert", "USD", "--at", "2026-01-31")
++    assert result.returncode == 0, result.stderr
++    assert result.stdout.splitlines()[:2] == ["    -10.85 USD  Assets:Wallet", "     10.85 USD  Expenses:Food"]
