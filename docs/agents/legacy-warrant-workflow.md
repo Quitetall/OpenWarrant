@@ -17,23 +17,25 @@ Use them when they help, or when the person you work with asks for them.
 ## Tracking work with tickets (optional)
 
 ```bash
-war view prime                             # what is open, who holds what, recent notes
-war next                                   # what can start now
-war claim <item>                           # take one; a second claim on it is refused by name
+war start                                  # take the next ready Warrant; prints only what its work needs
 # do the work
-war done <item> --note "what you did"      # ticks the box and gives the claim back
+war done --note "what you did"             # closes the Warrant you hold: every item, in one call
+war view prime                             # what is open, one line each (`war view prime <id>`: one in full)
 war note <ticket> "a decision, a dead end, a link"   # context for the next agent
 war create "What this work accomplishes" --item "..."   # new work; `war add <ticket> "..."` extends one
 ```
 
 No step in this loop needs a signature or anyone's approval: a ticket is done
-when its boxes are ticked. When several agents share the repository, give each
-one a name with `--as <name>` (or `OPENWARRANT_ACTOR`). Over MCP the same loop
-is `war_prime`, `war_ready`, `war_claim`, `war_done`, `war_create`, `war_add`
-and `war_note`. `war next` lists what is ready; with nothing tracked it says
-"nothing tracked; work freely".
+when its boxes are ticked. `war start` claims the Warrant whole, so a second
+agent gets the next one instead; started again, it prints the one you hold. When several
+agents share the repository, give each one a name with `--as <name>` (or
+`OPENWARRANT_ACTOR`). Over MCP the same loop is `war_start`, `war_done`,
+`war_prime`, `war_create`, `war_add` and `war_note`. With nothing tracked,
+`war start` says "nothing tracked; work freely".
 
 ## Loading context
+
+`war start` already prints what its Warrant's work needs. For anything else:
 
 ```bash
 war context <id>      # a Warrant, ticket, item (t-x/i-y), record id or file path
@@ -173,8 +175,8 @@ sign-off, not your work.
 <!-- openwarrant:begin -->
 <!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->
 Ordinary coding needs no Warrant and no ticket: work here as in any repository.
-OpenWarrant tracks optional plans and checklists in this repository; run
-`war view prime` to see what is tracked (open work, who holds what, recent notes).
-`war context <id>` loads what a task needs: a Warrant, item, record id or file, cited by id.
+Tracked work, when there is some: `war start` takes the next ready Warrant and prints
+only what it needs; `war done <id> --note "what you did"` closes it.
+`war view prime` lists what is open, one line each.
 <!-- openwarrant agents-md: written by war 1.0.0-alpha.5 -->
 <!-- openwarrant:end -->

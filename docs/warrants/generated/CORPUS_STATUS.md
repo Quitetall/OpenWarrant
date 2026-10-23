@@ -68,13 +68,14 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 98 |
+| artifact digests verify | 99 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
 | required deliverables exist | 53 |
 | runtime receipts match the basis | 2 |
+| exact authorized Contract Revision | 1 |
 
 ## Requirements (SAS §106, §34.3)
 
@@ -215,7 +216,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0066` Run: the conformance battery as a service stage | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0067` Release 1.0: the seven acts that close the plan, deferred to the owner's signature | draft | unknown | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0069` The board, the hotline, and the harness: one system from master record to running agents | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0070` Add `war inbox` to list Warrants awaiting a human act | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | unknown | 1 | — | required deliverables exist |
@@ -294,7 +295,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0144` Amending an authorization keeps the superseded one beside it, as a retired response is kept | draft | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0145` The battery as an askable gate: it runs in a disposable clone of the committed tree and mutates nothing | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0146` A verification bundle carries what each gate printed, so a blind verifier can see the evidence | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
-| `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | artifact digests verify |
+| `OW-WAR-0147` Tickets: a task-first loop to create, claim and finish work with no signature, the authority layer opt-in | draft | unknown | 0 | 0 of 2 | exact authorized Contract Revision |
 | `OW-WAR-0148` Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel | draft | unknown | 0 | 0 of 5 | artifact digests verify |
 | `OW-WAR-0149` Shared Katana and BLUT runtime receipt binding contract | draft | unknown | 0 | 0 of 3 | required deliverables exist |
 

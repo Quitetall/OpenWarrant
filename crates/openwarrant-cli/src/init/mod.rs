@@ -73,9 +73,9 @@ pub fn run(
 /// scaffold does not print it — its three lines are pinned (99-init,
 /// 59-adoption), and asking for the scaffold is asking for the authority layer.
 pub const START_HINT: &str = "start: ordinary coding needs no ticket and no Warrant. To track work, \
-     `war create \"what this work accomplishes\" --item \"...\"`, then `war next`, `war claim <id>`, \
-     `war done <id>`; no signature needed. Agents run `war view prime` first (AGENTS.md). Sign-off is \
-     opt-in: `war plan promote <ticket>`.";
+     `war create \"what this work accomplishes\" --item \"...\"`, then `war start` takes it and \
+     `war done --note \"...\"` closes it; no signature needed. Agents run `war view prime` first \
+     (AGENTS.md). Sign-off is opt-in: `war plan promote <ticket>`.";
 
 /// The namespace `war init` uses when none is given (M9): derived from a
 /// name, so a script or an agent's shell never has to invent one and a

@@ -50,8 +50,8 @@ if [[ $(head -1 <<<"$OW_N1") == 'nothing tracked; work freely' ]] && grep -q 'wa
 else
     ow_fail "next with nothing ready frees work" "$(head -1 <<<"$OW_N1") | $(head -1 <<<"$OW_N2")"
 fi
-if [[ -n $OW_ITEM ]] && grep -qF "war claim $OW_ITEM" <<<"$OW_N3" && ! grep -q 'work freely' <<<"$OW_N3"; then
-    ow_ok "a ready item replaces the idle line" "the claim is listed, no work-freely line"
+if [[ -n $OW_ITEM ]] && grep -qF "war start ${OW_ITEM%%/*}" <<<"$OW_N3" && ! grep -q 'work freely' <<<"$OW_N3"; then
+    ow_ok "a ready item replaces the idle line" "its Warrant is listed with war start, no work-freely line"
 else
     ow_fail "a ready item replaces the idle line" "$(tr '\n' '|' <<<"$OW_N3")"
 fi

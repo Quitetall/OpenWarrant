@@ -6,6 +6,34 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- The ticket loop an agent runs is two calls, and what it reads is only the
+  work it takes. The adoption pilot (2026-10-22) measured alpha.5's loop at 47%
+  more tokens than a plain `CLAUDE.md` for the same items: the agent read the
+  backlog three times over (`war view prime`, `war next`/`ready`, `war context`)
+  and ticked each item with its own call.
+  - `war start` takes the next ready Warrant whole and prints its brief: the
+    description, the open items, every note, what it depends on, and the
+    command that closes it. Holding one already, it prints that one again, so an
+    interrupted session resumes. `war start <id>` takes that one. The worktree
+    and harness launch (M15) is `war start --worktree <id>`. MCP: `war_start`.
+  - `war done <ticket>` ticks every open item in one write, or none: each is
+    judged as an item's done is (claim, blockers, checks, least tick), and an
+    item that fails refuses the whole. `war done` with no id closes the one
+    Warrant you hold (`ticket.nothing-held`, `ticket.several-held` otherwise). A
+    note is one note on the Warrant.
+  - `war view prime` is one line per open Warrant (progress, who holds it, what
+    it waits on) and done work by id; `war view prime <id>` is one in full, now
+    with a Format 1.0 ticket's journal notes. On an 11-Warrant repository:
+    20,736 bytes to 1,576.
+  - `war view ready` and `war next` print one line per ready Warrant with
+    `war start <id>`, not every item (4,481 and 7,778 bytes to 282 and 558);
+    their JSON keeps a row per item.
+  - The managed block, the AGENTS.md template, the plugin's skills, the MCP
+    instructions and the docs teach `war start` / `war done`. Plant 186 holds
+    prime, ready and start to a byte budget.
+
 ## [1.0.0-alpha.5] — 2026-10-20
 
 ### Added

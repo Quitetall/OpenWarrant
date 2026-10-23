@@ -1,0 +1,19 @@
+schema: "oh.war/amendment/v1"
+
+id: "AM-001-1d57"
+band: "manual_revision"
+reason: "OBL-007 has the `war prime` overview list every open ticket's remaining items with their claims and blockers and its recent note. The adoption pilot (2026-10-22) measured that, with `war next` and `war context` repeating the same list, as the largest part of the 47% more tokens OpenWarrant's loop cost against a plain CLAUDE.md. The owner directed on 2026-10-23 that token use be minimized: prime links to items instead of listing every criterion, and `war start` returns only the work taken. The overview is now one line per open ticket (progress, who holds it, what it waits on) and done work by id; `war view prime <ticket>` lists that ticket's remaining items, blockers and every note, and counts the done ones. What is left stays one command away, and what is done stays compacted. Wording drafted by the performer `claude`, for the owner's authorization."
+governing_adr_or_policy: "owner direction 2026-10-23 (minimize agent token use)"
+artifact_admissibility: "remain_admissible"
+restart_or_repair_instruction: "Continue. `ticket/render.rs` (prime) and plant 45 change with this amendment; the plant asserts the overview has no item or note text and one line per ticket, and `war view prime <ticket>` the remaining items, blockers and note. The assurance atom's OBL-007 evidence says so, the contract digest moves, and the next revision is authorized against it."
+re_preflight_required: "false"
+authorizer: "Brian Lam"
+effective_time: "2026-10-23"
+
+semantic_diff:
+  - element: "obligations"
+    before: "OBL-007 accepting: `war prime` lists the remaining items with their claims and blockers and the recent note, and `war prime <ticket>` counts the done items without listing them."
+    after: "OBL-007 accepting: `war view prime` lists each open ticket on one line with its progress, claims and blockers, and no item or note text; `war view prime <ticket>` lists its remaining items with their blockers and every note, and counts the done items without listing them."
+
+affected_stages: []
+affected_milestones: []

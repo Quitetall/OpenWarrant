@@ -10,7 +10,7 @@ Commands:
   init    Set up this repository: openwarrant.toml, record directories, AGENTS.md
   create  Create a Warrant (a ticket) and print its id: a title is enough
   next    What is ready, and whose step it is
-  start   Start a Warrant's work in a worktree of its own, with its settings
+  start   Take the next ready Warrant and print only what its work needs
   claim   Take an item or a whole Warrant, so no other agent works it
   done    Tick an item done in its Warrant's checklist and release the claim
   add     Add an item to a Warrant, or a test, KPI or milestone
@@ -88,7 +88,7 @@ value of the `--json` envelope, the same under either spelling.
 | `war init` | (prints lines; no envelope, as before) |
 | `war create` | `create` |
 | `war next` | `next` |
-| `war start` (M15, new) | `start` |
+| `war start` (M15, new; the worktree path is `war start --worktree`) | `start` |
 | `war claim` | `claim` |
 | `war done` | `done` |
 | `war add` | `add` |
@@ -302,8 +302,11 @@ value of the `--json` envelope, the same under either spelling.
   uses); messages name the `plan` spellings.
 
 - **`start` is the twelfth daily verb; `go` is under `evidence`** (M15,
-  docs/GO.md). `war start <id>` is what a person or an agent types to pick
-  up one piece of work, so it sits beside `claim` and `done`. `war go` runs
+  docs/GO.md). `war start` is what a person or an agent types to pick up one
+  piece of work, so it sits beside `claim` and `done`: it claims the next ready
+  Warrant and prints only what its work needs (2026-10-23, to cut what an agent
+  reads to begin). `war start --worktree <id>` is M15's path: the node in a
+  worktree of its own, with the harness started there. `war go` runs
   the whole graph unattended: it is the stage runner `war evidence perform`
   generalized, so it joins `perform` and `run`, and the daily list stays at
   twelve. `war go` still parses, hidden, as every member does; messages name

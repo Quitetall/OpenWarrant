@@ -188,9 +188,11 @@ A submission's `artifact_refs` may name `git:<ref>`; it is fetched from
 | `gastown` | the node as Beads issue JSONL (`war admin export beads`) | none: give both |
 | `argv` | packet | none: give both |
 
-## `war start <id>`
+## `war start --worktree <id>`
 
-The twelfth daily verb: one node, interactively.
+The twelfth daily verb's worktree path: one node, interactively. (`war start`
+without `--worktree` claims the next ready Warrant in place and prints its
+brief; [TICKETS](TICKETS.md).)
 
 1. Claims the node, from its worktree (so the claim's journal line is on its
    branch), as the acting agent.
