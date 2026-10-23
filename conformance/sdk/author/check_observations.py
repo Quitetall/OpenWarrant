@@ -114,6 +114,55 @@ def main():
         (output / name).write_bytes(encoded_record)
         completed.append(case["id"])
         print("PASS", case["id"], flush=True)
+    # Exercise preservation across multiple units through the public seam.
+    # Expected text comes from the supplied literals, not a second author call.
+    begin = len(calls)
+    multi = copy.deepcopy(json.loads(read("T54-minimum.json")))
+    original_body = multi["units"][0]["text"].replace("\n", "\r\n")
+    notes = "## Notes\r\n\r\nUntouched é and literal $(shell).\r\n"
+    multi["units"][0]["text"] = original_body
+    multi["units"].append({"id": "notes", "kind": "background", "text": notes})
+    authored = call("multi-unit:author", request("author", metadata=multi["metadata"],
+                    units=multi["units"], crlf=True, wrap=True))
+    assert authored["exit_code"] == 0
+    original = authored["result"]["source"]
+    replacement = "# Author é\r\n\r\nChanged only the binding unit.\r\n"
+    edited = call("multi-unit:edit", request("edit", source=original, dialect="rc3",
+                  edits=[{"kind": "unit", "id": "context", "text": replacement}]))
+    assert edited["exit_code"] == 0
+    changed = edited["result"]["source"]
+    assert changed == original.replace(original_body, replacement, 1)
+    observed_notes = call("multi-unit:untouched", request("unit", source=changed,
+                          dialect="rc3", unit="notes"))
+    assert observed_notes["exit_code"] == 0 and observed_notes["result"]["unit"] == notes
+    revised = call("multi-unit:revision", request("edit", source=changed, dialect="rc3",
+                   edits=[{"kind": "metadata", "key": "revision", "value": 2}]))
+    assert revised["exit_code"] == 0
+    assert revised["result"]["source"].split("<!-- ow:metadata -->", 1)[0] == changed.split("<!-- ow:metadata -->", 1)[0]
+    parsed_revision = call("multi-unit:parse-revision", request("parse",
+                           source=revised["result"]["source"], dialect="rc3"))
+    assert parsed_revision["exit_code"] == 0
+    assert parsed_revision["result"]["metadata"]["revision"] == 2
+    assert parsed_revision["result"]["metadata"]["id"] == "example:author"
+    renamed = call("multi-unit:identity", request("edit", source=revised["result"]["source"],
+                   dialect="rc3", edits=[{"kind": "metadata", "key": "id", "value": "example:author-revised"}]))
+    assert renamed["exit_code"] == 0
+    parsed_identity = call("multi-unit:parse-identity", request("parse",
+                           source=renamed["result"]["source"], dialect="rc3"))
+    assert parsed_identity["exit_code"] == 0
+    assert parsed_identity["result"]["metadata"]["id"] == "example:author-revised"
+    assert parsed_identity["result"]["metadata"]["revision"] == 2
+    assert renamed["result"]["source"].split("<!-- ow:metadata -->", 1)[0] == changed.split("<!-- ow:metadata -->", 1)[0]
+    missing = call("multi-unit:missing", request("edit", source=original, dialect="rc3",
+                   edits=[{"kind": "unit", "id": "absent", "text": "No partial output.\n"}]))
+    assert missing["exit_code"] != 0 and missing["result"] is None
+    assert any(d.get("code") == "unit-missing" for d in missing["diagnostics"])
+    (output / "multi-unit-controls.json").write_text(json.dumps({
+        "kind": "actual-sdk-multi-unit-controls", "calls": calls[begin:],
+        "untouched_unit_exact": True, "untouched_metadata_exact": True,
+        "revision_keeps_unit_bytes": True, "identity_change_is_explicit": True,
+        "missing_unit_has_no_partial_output": True,
+        "qualification_established": False}, ensure_ascii=False, separators=(",", ":")) + "\n")
     # A new, unlisted payload must change the document. No fixture filename is
     # sent to the SDK; it receives only the actual metadata and unit values.
     spec = copy.deepcopy(json.loads(read("T54-minimum.json")))

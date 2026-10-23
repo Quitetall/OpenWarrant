@@ -1,0 +1,11 @@
+{
+  "binary_sha256": "2915ca8771693c1818015054f982d36a8527c2ad8a49d43df213e9a4de7ddcf7",
+  "source_state": "Built from ec64dd36c plus timestamp repair; source file hashes match the committed candidate below",
+  "candidate_commit": "42ac152bc40e66e442a8cb5ff08cde5a1e6af12b",
+  "source_inputs": {
+    "crates/openwarrant-cli/src/gate_cmd.rs": "8475de4035ced1025247bfcb622f4dba305fe3aaf2b9b8920c1845ac153275d5",
+    "crates/openwarrant-cli/src/atomic.rs": "dfd7850e791cf252bef658eeda478a684e0fc7b97fa5c217c3cfee7228a1819c",
+    "crates/openwarrant-cli/tests/gate_tree_reads.rs": "d20e765820be89eae9aa37fd46b0d208004fe4e7924f46f165d27e745261eb0f",
+    "Cargo.lock": "7218cbaa55df90da589412f81932e3b5d4d4369a534e6f6e2319fcdaf9e71b3d"
+  }
+}

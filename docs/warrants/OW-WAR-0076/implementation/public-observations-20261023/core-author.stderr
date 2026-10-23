@@ -1,0 +1,5 @@
+    Blocking waiting for file lock on build directory
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow76-evidence-20261023/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 25.83s
+     Running tests/document_author.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/document_author-c29f65c43c9797c1)
+     Running tests/document_author_resources.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/document_author_resources-9ace56f2d08fc534)
