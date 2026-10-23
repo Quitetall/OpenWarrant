@@ -41020,7 +41020,7 @@ observer.
 | D-025 | §56.1 checks by capability; not applicable by name | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
 | D-026 | WarrantRung by capability | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
 | D-027 | Authorize refuses a kind without the capability | `crates/openwarrant-cli/src/authorize.rs` | not_content_addressed |
-| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | verified |
+| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-029 | Unassigned only for kinds that join the roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | not_content_addressed |
 | D-030 | Falsifiability from profile data | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
 | D-031 | Falsifiability from profile data | `crates/openwarrant-core/src/resolution.rs` | not_content_addressed |

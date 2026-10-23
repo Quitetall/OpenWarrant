@@ -534,7 +534,7 @@ pub fn current_records(
                         .as_ref()
                         .is_some_and(|v| event.warrant_uuid == v.uuid.to_string())
                     && reviewed == &current
-                    && record::decode(&String::from_utf8_lossy(&bytes)).is_ok_and(|stored| {
+                    && record::decode_shared(&String::from_utf8_lossy(&bytes)).is_ok_and(|stored| {
                         record_context_current(
                             repo,
                             one,

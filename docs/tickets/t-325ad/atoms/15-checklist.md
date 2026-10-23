@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Prove exact-byte parse reuse and preserve changed-byte refusals and all live binding checks (i-296e) — done by agent://codex, 2026-10-23: Exact-byte shared parse contract observed RED then GREEN. Cached/uncached codec acceptance and binding envelopes match across all existing fault controls;64 public verification controls and strict schema-enabled all-target Clippy pass. Frozen W75 project a5f8905 full status envelopes equal:baseline9.23s wall/9.64s userCPU, candidate3.67s wall/5.81s userCPU. No current-source or IO result cached. Host request312MB input-size failure remains separate and unresolved; no limit changed. Evidence:/mnt/4tb/artifacts/OpenWarrant/keep/verification-decode-cache-20261023/.
