@@ -3,16 +3,21 @@
   "warrant": "OW-WAR-0080",
   "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "f8dc55dc714c8b22946134a2bcd7b9471d1d428a",
-  "summary": "Master and four-role task projections implemented and independently reviewed; exact rules and source labels retained. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
-  "notes": "docs/warrants/OW-WAR-0080/implementation/notes.md",
+  "revision": "003c72e4c0bf21ef9a4461077467aad219e75fb5",
+  "summary": "Implementation remains complete and unverified. Three original provider tests and 20 observed projection/refusal cases passed; a separate current SDK consumer passed 20 calls over canonical packets, source metadata and exact unit slices. Qualification remains separate.",
+  "notes": "docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0080/implementation/projection-observation.json",
     "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
-    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json",
+    "docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/native-projections.json",
+    "docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/probe.stdout",
+    "docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/sdk-wire.jsonl",
+    "docs/warrants/OW-WAR-0080/implementation/projection-observations-20261023/summary.json"
   ],
   "next_steps": [
-    "Retain exact historical evidence and unverified status.",
-    "Complete full Phase 1/2 qualification through OW85/86."
+    "Retain original implementation/review history without treating old verdicts as current qualification.",
+    "Independently assess the exact result and declared limits; human acceptance remains separate.",
+    "Complete Phase 1/2 qualification through OW85/86; no phase exit is claimed."
   ]
 }
