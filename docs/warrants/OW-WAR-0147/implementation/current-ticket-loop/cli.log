@@ -1,0 +1,14 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow147-completion-20261023/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.69s
+     Running tests/all.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/all-962fabe8847d6410)
+
+running 6 tests
+test tickets_cli::of_concurrent_claim_processes_exactly_one_wins ... ok
+test tickets_cli::claiming_a_whole_ticket_names_a_command_that_works ... ok
+test tickets_cli::an_agent_works_a_ticket_over_mcp ... ok
+test tickets_cli::check_validates_structure_and_never_asks_for_authority ... ok
+test tickets_cli::create_ready_claim_done_needs_no_signature_and_no_human ... ok
+test tickets_cli::after_done_ready_and_claim_agree_under_concurrency ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 356 filtered out; finished in 2.25s
+
