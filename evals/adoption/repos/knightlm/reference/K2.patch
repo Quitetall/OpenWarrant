@@ -1,0 +1,100 @@
+diff --git a/README.md b/README.md
+index 52fdb5e..2497faa 100644
+--- a/README.md
++++ b/README.md
+@@ -142,7 +142,8 @@ records cannot establish repetition history or counters. Normalized game
+ replays carry explicit source assertions about history completeness. PGN import,
+ streaming bulk ingestion and training mixture scheduling are later work.
+ 
+-Only K-vs-K, K+B-vs-K and K+N-vs-K are recognized as proven dead positions.
++Only K-vs-K, K+B-vs-K, K+N-vs-K and kings with any number of bishops that all
++stand on one square colour are recognized as proven dead positions.
+ Other dead-position cases are unknown; this scaffold is not a complete FIDE
+ adjudicator. Ordinary legality, mate/stalemate, claimable 50-move/threefold rules
+ and automatic 75-move/fivefold rules are tested. Future draw claims can be checked
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index 372c41a..acc8a60 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -39,7 +39,7 @@ pub struct RuleFacts {
+     pub fifty_move_claim_now: bool,
+     pub fivefold_automatic: Option<bool>,
+     pub seventy_five_move_automatic: bool,
+-    /// Only proven elementary dead positions are recognized in v1.
++    /// Only recognized dead-position patterns yield `Some(true)`; `None` is unknown.
+     pub dead_position: Option<bool>,
+     pub terminal_reason: Option<String>,
+ }
+@@ -283,16 +283,24 @@ impl GameState {
+         }
+     }
+ 
++    /// Recognized dead positions, and nothing else (`None` stays unknown):
++    /// K vs K, K+minor vs K, and kings with any number of bishops for either
++    /// side, all standing on one square colour. No universal dead-position claim.
+     fn elementary_dead_position(&self) -> bool {
+-        let mut minors = 0;
++        let mut knights = 0;
++        let mut bishop_square_colors = [0u32; 2];
+         for square in Square::ALL {
+             match self.board.piece_on(square) {
+                 Some(Piece::Pawn | Piece::Rook | Piece::Queen) => return false,
+-                Some(Piece::Bishop | Piece::Knight) => minors += 1,
++                Some(Piece::Knight) => knights += 1,
++                Some(Piece::Bishop) => {
++                    bishop_square_colors[(square.file() as usize + square.rank() as usize) % 2] += 1
++                }
+                 _ => {}
+             }
+         }
+-        minors <= 1 // K vs K, K+B vs K, K+N vs K only; no universal dead-position claim.
++        let bishops = bishop_square_colors[0] + bishop_square_colors[1];
++        knights + bishops <= 1 || (knights == 0 && bishop_square_colors.contains(&0))
+     }
+ 
+     pub fn compile(&self, options: PacketOptions) -> ContextPacket {
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index d8f1511..0abd90b 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -396,3 +396,26 @@ fn perft_matches_published_counts_and_ignores_adjudication() {
+     assert!(dead.legal_moves().is_empty());
+     assert_eq!(dead.perft(1), 15);
+ }
++
++#[test]
++fn same_coloured_bishops_are_dead_and_other_minors_stay_unknown() {
++    for fen in [
++        "8/8/4k3/8/8/2B5/8/4K3 w - - 0 1",
++        "8/4b3/4k3/8/8/2B5/8/4K3 w - - 0 1", // e7 and c3 are both dark
++        "8/8/4k3/8/8/2B5/1B6/4K3 b - - 0 1",
++    ] {
++        let s = setup(fen, true);
++        assert_eq!(s.facts().dead_position, Some(true), "{fen}");
++        assert!(s.legal_moves().is_empty(), "{fen}");
++    }
++    for fen in [
++        "8/5b2/4k3/8/8/2B5/8/4K3 w - - 0 1", // f7 light, c3 dark
++        "8/8/4k3/8/8/2B5/2B5/4K3 w - - 0 1",
++        "8/8/4k3/8/8/2N5/2N5/4K3 w - - 0 1",
++        "8/5n2/4k3/8/8/2B5/8/4K3 w - - 0 1",
++    ] {
++        let s = setup(fen, true);
++        assert_eq!(s.facts().dead_position, None, "{fen}");
++        assert_eq!(s.facts().terminal_reason, None, "{fen}");
++    }
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index a4319a8..8ffe55d 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -30,7 +30,8 @@ complete-state experiment preparation refuses them. Context overflow is an
+ error, not silent truncation. Packet size varies with relevant history.
+ 
+ `dead_position: null` means unknown, not false. The v1 recognizer handles only
+-three elementary material patterns. `terminal_reason: null` therefore means no
++three elementary material patterns plus kings with bishops that all stand on
++one square colour. `terminal_reason: null` therefore means no
+ terminal condition was established by supported checks. Claimable draws do not
+ automatically terminate play. Checkmate takes precedence over the 75-move rule.
+ 

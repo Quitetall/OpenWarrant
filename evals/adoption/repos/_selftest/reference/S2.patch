@@ -1,0 +1,11 @@
+diff --git a/greet.py b/greet.py
+index bab3eb0..e2f6bac 100644
+--- a/greet.py
++++ b/greet.py
+@@ -1,2 +1,6 @@
+ def greet(name):
+     return f"hello, {name}"
++
++
++def farewell(name):
++    return f"bye, {name}"

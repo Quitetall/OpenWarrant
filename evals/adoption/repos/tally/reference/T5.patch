@@ -1,0 +1,273 @@
+diff --git a/README.md b/README.md
+index 9657fb8..91ca6eb 100644
+--- a/README.md
++++ b/README.md
+@@ -20,6 +20,7 @@ python3 -m tally <command> <journal file> [options]
+ | `prices [COMMODITY]` | the `P` price directives in date order, as `DATE COMMODITY RATE QUOTE` |
+ | `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
+ | `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
++| `import CSV --rules FILE` | a bank CSV export as journal transactions (rules: see `tally/importer.py`) |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+ `ACCOUNT` limits a report to that account and its descendants
+diff --git a/tally/cli.py b/tally/cli.py
+index 1a5811d..ba477d6 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -18,6 +18,7 @@ from tally.amounts import AmountError, parse_commodity
+ from tally.convert import ConversionError, Converter, latest_date
+ from tally.errors import JournalError, UsageError
+ from tally.filters import add_date_range_options, date_argument, date_range_from_args, restrict
++from tally.importer import CsvImportError, import_csv, parse_rules
+ from tally.model import Journal
+ from tally.parser import load_journal, parse_file
+ from tally.periodic import expand
+@@ -104,6 +105,14 @@ def cmd_budget(args: argparse.Namespace) -> int:
+     return EXIT_OK
+ 
+ 
++def cmd_import(args: argparse.Namespace) -> int:
++    rules = parse_rules(args.rules)
++    transactions = import_csv(args.csv, rules)
++    if transactions:
++        print(render_transactions(transactions))
++    return EXIT_OK
++
++
+ def cmd_prices(args: argparse.Namespace) -> int:
+     journal = load_journal(args.journal)
+     for price in journal.sorted_prices():
+@@ -184,6 +193,13 @@ def _add_budget(sub: argparse._SubParsersAction) -> None:
+     p.set_defaults(func=cmd_budget)
+ 
+ 
++def _add_import(sub: argparse._SubParsersAction) -> None:
++    p = sub.add_parser("import", help="convert a bank CSV export into journal transactions")
++    p.add_argument("csv", help="CSV file")
++    p.add_argument("--rules", required=True, metavar="FILE", help="rules file")
++    p.set_defaults(func=cmd_import)
++
++
+ def _add_prices(sub: argparse._SubParsersAction) -> None:
+     p = sub.add_parser("prices", help="list price directives in date order")
+     p.add_argument("journal", help="journal file")
+@@ -206,6 +222,7 @@ COMMANDS: list[Callable[[argparse._SubParsersAction], None]] = [
+     _add_prices,
+     _add_forecast,
+     _add_budget,
++    _add_import,
+     _add_check,
+ ]
+ 
+@@ -236,6 +253,9 @@ def main(argv: list[str] | None = None) -> int:
+     except ConversionError as exc:
+         error(str(exc))
+         return EXIT_NO_PRICE
++    except CsvImportError as exc:
++        error(str(exc))
++        return EXIT_USAGE
+     except UsageError as exc:
+         error(str(exc))
+         return EXIT_USAGE
+diff --git a/tally/importer.py b/tally/importer.py
+new file mode 100644
+index 0000000..d00b5d6
+--- /dev/null
++++ b/tally/importer.py
+@@ -0,0 +1,150 @@
++"""Importing bank CSV exports as journal transactions, driven by a rules file.
++
++A rules file maps CSV columns to transaction fields and assigns each row a
++counter-account by matching its payee against regular expressions::
++
++    # Checking account export
++    account Assets:Checking
++    skip 1
++    date-column 1
++    date-format %m/%d/%Y
++    payee-column 2
++    amount-column 3
++    default-account Expenses:Unknown
++    rule ^coffee => Expenses:Coffee
++    rule amazon|ebay => Expenses:Shopping
++
++A positive CSV amount is money into ``account``. Each row becomes a
++transaction whose first posting is the counter-account with the negated
++amount and whose second is ``account`` with the amount.
++"""
++
++from __future__ import annotations
++
++import csv
++import datetime as dt
++import re
++from dataclasses import dataclass, field
++from pathlib import Path
++
++from tally.accounts import account_problem
++from tally.amounts import AmountError, parse_amount
++from tally.model import Posting, Transaction
++
++REQUIRED = ("account", "date-column", "payee-column", "amount-column")
++DEFAULT_ACCOUNT = "Expenses:Unknown"
++DEFAULT_DATE_FORMAT = "%Y-%m-%d"
++
++
++class CsvImportError(Exception):
++    """A rules file or CSV file that cannot be imported."""
++
++
++@dataclass
++class Rules:
++    account: str = ""
++    date_column: int = 0
++    payee_column: int = 0
++    amount_column: int = 0
++    date_format: str = DEFAULT_DATE_FORMAT
++    skip: int = 0
++    default_account: str = DEFAULT_ACCOUNT
++    rules: list[tuple[re.Pattern, str]] = field(default_factory=list)
++
++    def account_for(self, payee: str) -> str:
++        for pattern, account in self.rules:
++            if pattern.search(payee):
++                return account
++        return self.default_account
++
++
++def _number(where: str, text: str, minimum: int) -> int:
++    try:
++        value = int(text)
++    except ValueError:
++        value = minimum - 1
++    if value < minimum:
++        raise CsvImportError(f"{where}: invalid number '{text}'")
++    return value
++
++
++def _account(where: str, text: str) -> str:
++    problem = account_problem(text)
++    if problem:
++        raise CsvImportError(f"{where}: {problem}")
++    return text
++
++
++def parse_rules(path: str) -> Rules:
++    rules = Rules()
++    seen: set[str] = set()
++    text = Path(path).read_text(encoding="utf-8")
++    for lineno, raw in enumerate(text.splitlines(), start=1):
++        line = raw.strip()
++        if not line or line.startswith("#"):
++            continue
++        where = f"{path}:{lineno}"
++        key, _, value = line.partition(" ")
++        value = value.strip()
++        seen.add(key)
++        if key == "account":
++            rules.account = _account(where, value)
++        elif key == "default-account":
++            rules.default_account = _account(where, value)
++        elif key in ("date-column", "payee-column", "amount-column"):
++            setattr(rules, key.replace("-", "_"), _number(where, value, 1))
++        elif key == "skip":
++            rules.skip = _number(where, value, 0)
++        elif key == "date-format":
++            rules.date_format = value
++        elif key == "rule":
++            regex, sep, account = value.partition(" => ")
++            if not sep or not regex.strip() or not account.strip():
++                raise CsvImportError(f"{where}: invalid rule")
++            try:
++                pattern = re.compile(regex.strip(), re.IGNORECASE)
++            except re.error:
++                raise CsvImportError(f"{where}: invalid regex '{regex.strip()}'") from None
++            rules.rules.append((pattern, _account(where, account.strip())))
++        else:
++            raise CsvImportError(f"{where}: unknown directive '{key}'")
++    for key in REQUIRED:
++        if key not in seen:
++            raise CsvImportError(f"{path}: missing '{key}'")
++    return rules
++
++
++def _cell(row: list[str], column: int, where: str) -> str:
++    if column > len(row):
++        raise CsvImportError(f"{where}: missing column {column}")
++    return row[column - 1].strip()
++
++
++def import_csv(path: str, rules: Rules) -> list[Transaction]:
++    """Every data row of the CSV file as a transaction, in file order."""
++    transactions: list[Transaction] = []
++    with open(path, encoding="utf-8", newline="") as handle:
++        reader = csv.reader(handle)
++        for index, row in enumerate(reader):
++            if index < rules.skip or not any(cell.strip() for cell in row):
++                continue
++            lineno = reader.line_num
++            where = f"{path}:{lineno}"
++            date_text = _cell(row, rules.date_column, where)
++            try:
++                date = dt.datetime.strptime(date_text, rules.date_format).date()
++            except ValueError:
++                raise CsvImportError(f"{where}: invalid date '{date_text}'") from None
++            payee = _cell(row, rules.payee_column, where)
++            amount_text = _cell(row, rules.amount_column, where)
++            try:
++                amount = parse_amount(amount_text.replace(",", ""))
++            except AmountError:
++                raise CsvImportError(f"{where}: invalid amount '{amount_text}'") from None
++            txn = Transaction(date=date, payee=payee, path=path, line=lineno)
++            txn.postings = [
++                Posting(rules.account_for(payee), -amount, lineno),
++                Posting(rules.account, amount, lineno),
++            ]
++            transactions.append(txn)
++    return transactions
+diff --git a/tests/test_importer.py b/tests/test_importer.py
+new file mode 100644
+index 0000000..fb01018
+--- /dev/null
++++ b/tests/test_importer.py
+@@ -0,0 +1,40 @@
++from conftest import run_tally
++
++RULES = """\
++account Assets:Checking
++skip 1
++date-column 1
++payee-column 2
++amount-column 3
++rule coffee => Expenses:Coffee
++"""
++
++CSV = """\
++Date,Description,Amount
++2026-03-01,Blue Bottle Coffee,-4.50
++2026-03-02,Employer,"1,000.00"
++"""
++
++
++def test_import(tmp_path):
++    (tmp_path / "r.rules").write_text(RULES)
++    (tmp_path / "b.csv").write_text(CSV)
++    result = run_tally("import", tmp_path / "b.csv", "--rules", tmp_path / "r.rules")
++    assert result.returncode == 0, result.stderr
++    assert result.stdout == (
++        "2026-03-01 Blue Bottle Coffee\n"
++        "    Expenses:Coffee  4.50\n"
++        "    Assets:Checking  -4.50\n"
++        "\n"
++        "2026-03-02 Employer\n"
++        "    Expenses:Unknown  -1000.00\n"
++        "    Assets:Checking  1000.00\n"
++    )
++
++
++def test_import_rejects_unknown_directive(tmp_path):
++    (tmp_path / "r.rules").write_text(RULES + "colour blue\n")
++    (tmp_path / "b.csv").write_text(CSV)
++    result = run_tally("import", tmp_path / "b.csv", "--rules", tmp_path / "r.rules")
++    assert result.returncode == 2
++    assert result.stderr == f"tally: error: {tmp_path / 'r.rules'}:7: unknown directive 'colour'\n"

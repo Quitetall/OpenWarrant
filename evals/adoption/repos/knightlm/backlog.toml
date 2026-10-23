@@ -1,0 +1,411 @@
+schema = "ow-adoption/backlog/v1"
+repo = "knightlm"
+order = ["K1", "K2", "K3", "K4", "K5", "K6"]
+
+[project]
+facts = '''
+KnightLM is a Rust/Burn research scaffold for chess reasoning with compiled
+state: a deterministic compiler replays a normalized game record and emits a
+fresh, complete state packet (FEN, repetition ledger, rule facts, optional legal
+moves and derived features). Chess rules come from the `cozy-chess` crate
+(pinned at 0.3.4). There is no pretrained model; the CLI emits JSON fixtures and
+reports.
+
+Layout:
+- `crates/core`: game replay and rules (`src/state.rs`: `GameRecord`,
+  `GameState`, `RuleFacts`, `ContextPacket`, `BoardObservation`), dataset
+  contracts (`src/data.rs`), experiment requests and scoring
+  (`src/experiment.rs`), SVG fixtures (`src/vision.rs`). Integration tests in
+  `crates/core/tests/contracts.rs`.
+- `crates/model`: model backend/reset boundary and the Burn CPU smoke.
+- `crates/cli`: the `knightlm` binary (`src/main.rs`, clap subcommands).
+- `fixtures/`, `configs/`: small authored fixtures and model profiles.
+- `ports/`: Python and Mojo protocol-parity slices; `scripts/`: CLI and port checks.
+- `docs/plan.md` (scope), `docs/contracts.md` (state, failure and evidence semantics).
+
+A game record (`GameRecord`, JSON) has exactly the fields `schema_version` (1),
+`game_id`, `source`, `initial_fen` (six fields), `history_complete` (bool) and
+`moves` (standard UCI, castling written as the king's two-square move, e.g.
+`e1g1`); unknown fields are rejected. CLI errors print `Error: ...` on stderr and
+exit nonzero.
+
+Build and test (from the repository root):
+
+    cargo build --locked -j 2
+    cargo test --workspace --locked -j 2
+    cargo fmt --all -- --check
+    cargo clippy --workspace --all-targets --locked -j 2 -- -D warnings
+    python3 -m unittest discover -s ports/python
+    python3 scripts/check_cli.py
+    python3 scripts/check_ports.py
+
+Run the CLI as `cargo run --locked -q -- <command> [args]`, for example
+`cargo run --locked -q -- compile fixtures/start.json --legal-choices`.
+'''
+prepare = ["cargo", "build", "--locked", "-q"]
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K1"
+title = "Add a perft command"
+summary = "`perft <game.json> <depth> [--divide]` counts legal move paths from the replayed position and prints JSON."
+description = '''
+The scaffold claims its rules are tested, but nothing exercises move generation
+against published reference counts. Add a `perft` subcommand: the standard
+move-generator check that counts every legal move sequence of a given length.
+
+    knightlm perft <game.json> <depth> [--divide]
+
+`<game.json>` is a `GameRecord`; it is replayed exactly as `compile` does, and
+perft starts from the resulting current position. `<depth>` is a non-negative
+integer number of plies.
+
+Output is one JSON object on stdout:
+
+    {"fen": "<current six-field FEN>", "depth": <depth>, "nodes": <count>}
+
+- `fen` is the same current FEN that `compile` reports for that game.
+- `nodes` is the number of legal move sequences of exactly `depth` plies;
+  depth 0 counts the position itself, so `nodes` is 1.
+- With `--divide`, the object has one more key, `divide`: an object mapping each
+  legal move of the current position, written in standard UCI exactly as
+  `compile --legal-choices` writes it in `legal_moves` (castling as `e1g1`,
+  promotions as `e7e8q`), to the number of sequences of `depth` plies that begin
+  with that move. The `divide` values sum to `nodes`. Without `--divide` the key
+  is absent.
+
+Perft counts by the rules of movement only. It deliberately ignores draw and
+dead-position adjudication: a position the compiler reports as terminal because
+of a recognized dead position, fivefold repetition or the 75-move rule still has
+its legal moves counted. Checkmate and stalemate have no legal moves, so they
+contribute no successors.
+
+Perft is a bounded diagnostic, not a search: depths above 6 are refused.
+'''
+acceptance = [
+  "From the standard start position, `perft` reports nodes 20, 400, 8902 and 197281 at depths 1 to 4.",
+  "For the published test positions Kiwipete, position 3 and position 5 of the Chess Programming Wiki perft page, the reported nodes match the published counts at depths 1 to 3 (to 4 for position 3).",
+  "Depth 0 prints exactly {\"fen\", \"depth\", \"nodes\"} with nodes 1 and no `divide` key.",
+  "`--divide` adds a `divide` object whose keys are exactly the current legal moves in UCI (castling as `e1g1`/`e1c1`) and whose values sum to `nodes`.",
+  "Perft starts from the replayed position of the record's `moves`, and its `fen` equals the FEN `compile` reports.",
+  "Positions that the compiler treats as terminal by dead position or fivefold repetition still have their legal moves counted; a checkmated position has 0 nodes at any depth of at least 1.",
+  "Depth above 6, `--divide` with depth 0, a non-integer depth, and a game record with an illegal move are each refused: nonzero exit and nothing on stdout.",
+]
+notes = '''
+- Exact output keys: `fen`, `depth`, `nodes`, and `divide` only with `--divide`.
+- Maximum depth is 6. Depth 7 or more is refused with an error (nonzero exit,
+  nothing printed on stdout).
+- `--divide` with depth 0 is refused (there are no root moves to divide).
+- Move generation must not consult `GameState::legal_moves()`, which returns an
+  empty list for adjudicated terminal positions; perft ignores adjudication.
+- Reference positions used by the acceptance checks (FENs):
+  Kiwipete `r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1`
+  (48, 2039, 97862); position 3 `8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1`
+  (14, 191, 2812, 43238); position 5
+  `rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8` (44, 1486, 62379).
+'''
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K2"
+title = "Recognize same-coloured bishops as a dead position"
+summary = "Kings plus any number of bishops, all on one square colour, are a proven dead position; everything else beyond the existing three cases stays unknown."
+description = '''
+`docs/contracts.md` says the v1 dead-position recognizer handles only three
+elementary material patterns (K vs K, K+B vs K, K+N vs K), and `dead_position:
+null` means unknown. Extend the recognizer in `GameState::facts` with the one
+further case that is provably dead regardless of placement: no side can ever
+checkmate when the only pieces besides the kings are bishops, of either side and
+in any number, that all stand on squares of the same colour.
+
+Exactly these material sets are recognized as dead (`dead_position: true`):
+
+1. kings only;
+2. kings plus exactly one knight or exactly one bishop (either side);
+3. kings plus one or more bishops, any side and any split between the sides,
+   all on light squares or all on dark squares, and no other pieces.
+
+Every other position keeps `dead_position: null` (unknown), never `false`. In
+particular these remain unknown: any pawn, rook or queen on the board; two or
+more knights; a knight together with any bishop or another knight; bishops on
+both square colours (for example opposite-coloured bishops, or a bishop pair).
+
+A recognized dead position behaves like the existing recognized cases: it is
+terminal with `terminal_reason: "proven_dead_position"`, `compile
+--legal-choices` lists no legal moves, and `simulate` refuses further moves.
+Checkmate and stalemate keep their precedence over the dead-position reason.
+
+Update the recognizer's doc comment, the README "Data and proof limits"
+paragraph and `docs/contracts.md` so they name the new case.
+'''
+acceptance = [
+  "`compile` reports `dead_position: true` and `terminal_reason: \"proven_dead_position\"` for kings plus bishops that all stand on one square colour, including one bishop each, several bishops for one side, and bishops for both sides.",
+  "For such a position `compile --legal-choices` lists no legal moves, and `simulate` reports the attempted move as not legal.",
+  "A position reached by a capture that leaves only same-coloured bishops is recognized as dead.",
+  "Opposite-coloured bishops, a bishop pair on both colours, two knights, bishop versus knight, bishop and knight together, and same-coloured bishops plus a pawn all report `dead_position: null` and `terminal_reason: null`, with legal moves still listed.",
+  "K vs K, K+N vs K and K+B vs K are still recognized as dead, and the start position still reports `dead_position: null`.",
+]
+notes = '''
+- Square colour: a1 is a dark square; a square is dark when its file index plus
+  rank index (both from 0) is even.
+- "Unknown" is JSON `null`. The recognizer never emits `false`.
+- Knights are not included in the new case at all: even one knight together
+  with any bishop is unknown.
+'''
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K3"
+title = "List legal moves in SAN"
+summary = "`compile --legal-choices --san` adds `legal_moves_san`, the legal moves in Standard Algebraic Notation, aligned with `legal_moves`."
+description = '''
+Models and humans read chess in Standard Algebraic Notation (SAN), but packets
+only list UCI moves. Add a SAN module to `knightlm-core` (it is also the
+foundation for PGN import and export) and expose it through `compile`:
+
+    knightlm compile <game.json> --legal-choices --san
+
+adds one key to the packet, `legal_moves_san`: a list of strings with the same
+length and order as `legal_moves`, where entry *i* is the SAN of
+`legal_moves[i]` in the current position.
+
+SAN rules (standard, as in the PGN specification):
+
+- Piece moves start with the piece letter `K`, `Q`, `R`, `B` or `N`; pawn moves
+  have no letter.
+- A capture is marked `x`. Pawn captures start with the pawn's origin file
+  (`exd5`); en passant is written like any pawn capture (`exd6`), without a suffix.
+- Promotion appends `=` and the piece letter (`e8=Q`, `bxa8=N`).
+- Castling is `O-O` (king side) and `O-O-O` (queen side), with capital letter O.
+- Disambiguation: when another piece of the same type and colour can also
+  legally move to the destination square, insert the origin file if it is
+  unique among those pieces, otherwise the origin rank if that is unique,
+  otherwise both (`Nbd2`, `R1a3`, `Qa1b2`). Only legal moves count: a pinned
+  piece that cannot legally reach the square causes no disambiguation.
+- Suffix `+` when the move gives check, `#` when it gives checkmate.
+
+Without `--san` the packet has no `legal_moves_san` key. `--san` is only
+meaningful with `--legal-choices`; using it alone is refused. In a terminal
+position both lists are empty.
+
+The Python protocol port (`ports/python/knightlm_contract.py`) must accept the
+new optional key so packet parity still holds.
+'''
+acceptance = [
+  "For the start position, `legal_moves_san` is exactly a3, a4, Na3, Nc3, b3, b4, c3, c4, d3, d4, e3, e4, f3, f4, Nf3, Nh3, g3, g4, h3, h4, aligned index-for-index with `legal_moves`.",
+  "Disambiguation uses the file when it suffices (`Nbd2`), otherwise the rank (`R1a3`), otherwise both (`Qa1b2`), and is omitted when the other piece is pinned.",
+  "Pawn captures, en passant and promotions render as `exd6`, `bxa8=Q+`, `b8=N`; castling as `O-O` / `O-O-O` for both colours.",
+  "Moves that give check end in `+` and moves that give checkmate end in `#` (for example `Qh4#` in Fool's mate and `Qxf7#` in Scholar's mate).",
+  "In a checkmated position both `legal_moves` and `legal_moves_san` are empty lists.",
+  "Without `--san` the packet has no `legal_moves_san` key; `--san` without `--legal-choices` is refused with a nonzero exit and nothing on stdout.",
+]
+notes = '''
+- Key name: `legal_moves_san`. It is serialized only when `--san` is given.
+- Order is the order of `legal_moves` (which is sorted by UCI string), not
+  sorted by SAN.
+- A move is not "ambiguous" merely because another piece of the same type could
+  reach the square pseudo-legally; only legal moves are considered.
+'''
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K4"
+title = "Import a PGN game as a GameRecord"
+summary = "`import-pgn <file.pgn> [--game N]` parses one game's main line with the SAN module and prints a normalized GameRecord."
+description = '''
+`docs/plan.md` names PGN ingestion as a later stage and `docs/contracts.md`
+requires it to produce normalized `GameRecord`s with explicit provenance, handle
+setup positions and preserve history completeness. Add it for single files:
+
+    knightlm import-pgn <file.pgn> [--game N]
+
+reads a PGN file that may contain several games, selects game `N` (1-based,
+default 1) and prints that game as a `GameRecord` JSON object on stdout, ready
+for `compile`, `perft` and the other commands. SAN is resolved against the
+current position using the SAN module from K3.
+
+Record fields:
+
+- `schema_version`: 1.
+- `game_id`: the value of the `Site` tag when present, non-empty and not `?`;
+  otherwise `<file name>#<N>`.
+- `source`: `pgn:<file name>#<N>`.
+- `initial_fen`: the `FEN` tag when present, otherwise the standard start position.
+- `history_complete`: see the notes; it is never inferred from the FEN's contents.
+- `moves`: the main line in standard UCI (castling as `e1g1`).
+
+`<file name>` is the last path component of the argument as given (for
+`/tmp/x/games.pgn` it is `games.pgn`).
+
+Movetext handling: move numbers (`12.`, `12...`, also glued to the move as in
+`1.e4`), brace comments `{...}`, rest-of-line comments starting with `;`, NAGs
+(`$1`) and recursive variations `( ... )`, including nested ones, are skipped;
+only the main line is imported. A game ends at its termination marker: `1-0`,
+`0-1`, `1/2-1/2` or `*`.
+
+Errors are refusals: nonzero exit, nothing on stdout, and the message on stderr.
+'''
+acceptance = [
+  "A Lichess-style game with tags, comments, NAGs, nested variations and `;` comments imports as exactly the main line in UCI, with `game_id` from `Site`, `source` `pgn:<file name>#1`, the standard initial FEN and `history_complete: true`.",
+  "The printed record is accepted by `compile`, which reports the expected final FEN.",
+  "`--game 2` selects the second game; a game with a `FEN` tag uses it as `initial_fen`, has `history_complete: false` (even when the FEN is the standard start), and with no usable `Site` tag gets `game_id` `<file name>#2`.",
+  "Glued move numbers (`1.e4`), `0-0`/`0-0-0` castling, annotation glyphs such as `!?` and `?!`, and an over-specified but unique origin such as `Ngf3` are accepted.",
+  "An illegal or ambiguous move is refused and stderr contains `move <M> (<white|black>): illegal or ambiguous SAN \"<token>\"`, with M the fullmove number of the position (counted from the FEN tag when present).",
+  "A `Result` tag that differs from the termination marker, a missing termination marker, and `--game` 0 or beyond the number of games are each refused with nothing on stdout.",
+]
+notes = '''
+- history_complete: `false` whenever the game has a `FEN` tag, even if that FEN
+  is the standard start position and even if `SetUp` is absent or `0`; `true`
+  otherwise. A setup position never proves the history before it.
+- The `FEN` tag is used whenever present; the `SetUp` tag is ignored.
+- Illegal or ambiguous SAN: the error message (stderr) contains exactly
+  `move <M> (<side>): illegal or ambiguous SAN "<token>"`, where `<M>` is the
+  fullmove number of the position in which the move was to be played, `<side>`
+  is `white` or `black` (the side to move), and `<token>` is the move as it
+  appears in the movetext without its move number. Example:
+  `move 2 (white): illegal or ambiguous SAN "Ke3"`. Exit status nonzero, nothing
+  on stdout.
+- Accepted SAN variants: trailing `!`/`?` annotation glyphs are ignored; a
+  trailing `+` or `#` is ignored (not verified); `0-0` and `0-0-0` mean `O-O` and
+  `O-O-O`; an origin that over-specifies the piece (`Ngf3`, `Qd1h5`) is accepted
+  when it identifies exactly one legal move. A token that matches no legal move,
+  or more than one, is "illegal or ambiguous".
+- Termination: every game must end with `1-0`, `0-1`, `1/2-1/2` or `*`; end of
+  file before it is refused with `missing game termination marker`.
+- Result tag: when a `Result` tag is present and differs from the game's
+  termination marker, refuse with a message containing
+  `disagrees with termination marker`. The result itself is not stored: a
+  `GameRecord` has no result field.
+- `--game` out of range (0, or greater than the number of games in the file):
+  refused with a message containing `out of range`.
+- Tag values may contain `\"` and `\\` escapes (a quote and a backslash).
+'''
+depends_on = ["K3"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K5"
+title = "Export a GameRecord as PGN"
+summary = "`export-pgn <game.json>` writes a game as PGN with SAN movetext and a computed result; it round-trips through `import-pgn`."
+description = '''
+Add the inverse of K4 so normalized games can be inspected in any chess tool:
+
+    knightlm export-pgn <game.json>
+
+reads a `GameRecord`, replays it, and writes PGN text (not JSON) to stdout:
+
+1. The Seven Tag Roster, one `[Name "value"]` per line, in this order:
+   `Event "?"`, `Site "<game_id>"`, `Date "????.??.??"`, `Round "?"`,
+   `White "?"`, `Black "?"`, `Result "<result>"`.
+2. Then `[SetUp "1"]` and `[FEN "<initial_fen>"]`, only when the record does
+   not start from the standard position with complete history (that is, when
+   `initial_fen` differs from the standard start FEN or `history_complete` is
+   false).
+3. One empty line.
+4. The movetext: SAN moves (K3 rules) with move numbers, ending with the result
+   token, then a single newline. The output ends with that newline.
+
+The result is computed from the final position, not stored in the record:
+`1-0` when Black is checkmated, `0-1` when White is checkmated, `1/2-1/2` when
+the final position is stalemate or any other terminal reason the compiler
+reports (`proven_dead_position`, `fivefold_repetition`, `seventy_five_move`),
+otherwise `*`. Claimable draws (threefold, fifty-move) are not terminal and give `*`.
+
+Exporting and importing again (`import-pgn`) must give back the same `game_id`,
+`initial_fen`, `moves` and `history_complete` (see the notes for the one
+exception). An invalid record is refused.
+'''
+acceptance = [
+  "Fool's mate with game_id `fool` exports exactly the seven roster tags (Site \"fool\", Result \"0-1\"), an empty line, and `1. f3 e5 2. g4 Qh4# 0-1` followed by one newline.",
+  "A record with no moves exports the roster tags, an empty line and `*`.",
+  "A setup record with Black to move exports `[SetUp \"1\"]` and `[FEN \"...\"]` after the roster and movetext starting `40... Kd7 41. e4`; a standard-start record with `history_complete: false` also gets the SetUp/FEN tags, and one with complete history does not.",
+  "The result tag and final token are `1-0`/`0-1` for checkmate, `1/2-1/2` for stalemate, a dead position and fivefold repetition, and `*` for an ongoing game or a merely claimable threefold repetition.",
+  "Movetext lines are at most 79 characters, greedily filled, single-spaced, with no leading or trailing spaces.",
+  "Export followed by `import-pgn` reproduces `game_id`, `initial_fen`, `moves` and `history_complete` for games with castling, en passant and promotion; a complete-history record from a non-standard FEN re-imports with `history_complete: false`.",
+  "A `game_id` containing `\"` and `\\` is escaped in the Site tag and survives the round trip.",
+  "A record with an illegal move or an unknown field is refused with a nonzero exit and nothing on stdout.",
+]
+notes = '''
+- Unknown tags use `?`; the date is `????.??.??`. `Site` carries the `game_id`
+  (that is what `import-pgn` reads back). `source` is not exported.
+- Escaping in tag values: backslash becomes `\\`, double quote becomes `\"`.
+- Move numbers: `N.` (number and dot) is its own token before every White move,
+  where N is the fullmove number of that position. If the first move is Black's,
+  it is preceded by the token `N...`. No number token appears before other
+  Black moves.
+- Wrapping: tokens (move numbers, moves, the result) are joined by single
+  spaces; a token starts a new line only when appending it to the current line
+  (with its separating space) would make the line longer than 79 characters. A
+  move number may thus end a line with its move on the next one.
+- An empty game's movetext is just the result token.
+- Known lossy case: a record with `history_complete: true` whose `initial_fen` is
+  not the standard start is exported with SetUp/FEN tags and therefore
+  re-imports with `history_complete: false` (K4 rule). This is intended.
+'''
+depends_on = ["K3", "K4"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K6"
+title = "Report per-square observation mismatches"
+summary = "`verify-observation` lists every square where the observed placement disagrees with the ledger, and refuses malformed placements instead of comparing them."
+description = '''
+`verify-observation` checks an observed board placement against the
+authoritative ledger, but on disagreement it only prints an error. Whole-board
+perception is meant to be scored separately (README "Experiments"), which needs
+to know *which* squares were wrong. A malformed placement string is today
+indistinguishable from a wrong one.
+
+Change `verify-observation <game.json> <observation.json>` so that, whenever the
+observation's placement is well formed, it prints this JSON object on stdout:
+
+    {"placement_matches": <bool>, "repaired": false, "mismatches": [...]}
+
+Each mismatch is `{"square": "e4", "expected": <piece or null>, "observed":
+<piece or null>}`, where pieces are FEN letters (`P`, `n`, ...) and `null` is
+an empty square. `expected` comes from the replayed game's current position,
+`observed` from the observation. Mismatches are listed in square order a1, b1,
+..., h1, a2, ..., h8. Nothing is ever repaired.
+
+- No mismatches: `placement_matches` is true, `mismatches` is `[]`, exit 0.
+- Any mismatch: the JSON is printed, then the command fails: nonzero exit, and
+  stderr contains `perception failure`.
+- Malformed placement: refused before any comparison: nonzero exit, nothing on
+  stdout, and stderr contains `malformed observation placement`.
+
+Existing refusals stay as they are (unsupported `schema_version`, empty
+`image_id`, unknown fields): nonzero exit and nothing on stdout.
+'''
+acceptance = [
+  "A matching observation prints exactly `{\"placement_matches\": true, \"repaired\": false, \"mismatches\": []}` and exits 0, also after replayed moves.",
+  "A mismatching observation prints the JSON with `placement_matches: false` and every differing square as {square, expected, observed}, then exits nonzero with `perception failure` on stderr.",
+  "Mismatches are ordered a1..h1, a2..h8, and a piece of the wrong colour counts as a mismatch.",
+  "An empty-board observation against the start position lists all 32 pieces with `observed: null`, from a1 to h8.",
+  "Placements without exactly eight ranks, with a rank that does not total eight squares, with characters other than piece letters and digits 1-8, a full FEN instead of a placement, or an empty string are refused with nothing on stdout and `malformed observation placement` on stderr.",
+  "An observation with an unsupported schema_version or an empty image_id is still refused with nothing on stdout.",
+]
+notes = '''
+- Well-formed placement: exactly 8 ranks separated by `/`, listed from rank 8
+  down to rank 1; each rank consists only of the piece letters
+  `pnbrqkPNBRQK` and digits `1`-`8` (a digit counts that many empty squares),
+  and covers exactly 8 squares. Anything else, including a full six-field FEN,
+  is malformed.
+- Key order in the JSON does not matter; key names and value types do.
+- `expected`/`observed` are one-character strings or JSON `null`.
+'''
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600

@@ -1,0 +1,29 @@
+# The harness's own self-test: two trivial items, used only with fixture agents.
+schema = "ow-adoption/backlog/v1"
+repo = "_selftest"
+order = ["S1", "S2"]
+
+[project]
+facts = """A two-function Python module, `greet.py`, used to test the study harness itself."""
+
+[[item]]
+id = "S1"
+title = "Greet by name"
+summary = "greet(name) returns a greeting that names the person."
+description = """`greet("Ada")` should return `"hello, Ada"`."""
+acceptance = ['greet("Ada") returns "hello, Ada".']
+notes = """Lowercase hello, a comma and one space."""
+depends_on = []
+check = ["python3", "-B", "{hidden}/check.py"]
+timeout_secs = 30
+
+[[item]]
+id = "S2"
+title = "Farewell"
+summary = "Add farewell(name)."
+description = """`farewell("Ada")` returns `"bye, Ada"`, built on the same format as greet."""
+acceptance = ['farewell("Ada") returns "bye, Ada".']
+notes = ""
+depends_on = ["S1"]
+check = ["python3", "-B", "{hidden}/check.py"]
+timeout_secs = 30

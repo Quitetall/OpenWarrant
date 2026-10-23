@@ -1,0 +1,175 @@
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index a93f34f..7727289 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -208,11 +208,22 @@ fn main() -> Result<()> {
+             game: path,
+             observation,
+         } => {
+-            game(&path)?.verify_observation(&read::<BoardObservation>(&observation)?)?;
++            let mismatches =
++                game(&path)?.observation_mismatches(&read::<BoardObservation>(&observation)?)?;
+             emit(
+-                &serde_json::json!({"placement_matches":true,"repaired":false}),
++                &serde_json::json!({
++                    "placement_matches": mismatches.is_empty(),
++                    "repaired": false,
++                    "mismatches": mismatches,
++                }),
+                 false,
+             )?;
++            ensure!(
++                mismatches.is_empty(),
++                "perception failure: observed placement disagrees with authoritative ledger \
++                 on {} squares",
++                mismatches.len()
++            );
+         }
+         Command::Simulate {
+             game: path,
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index e299dd5..6ef6423 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -90,6 +90,38 @@ pub struct BoardObservation {
+     pub placement: String,
+ }
+ 
++/// One square where an observation disagrees with the authoritative ledger.
++/// Pieces are FEN letters; `None` is an empty square.
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct SquareMismatch {
++    pub square: String,
++    pub expected: Option<char>,
++    pub observed: Option<char>,
++}
++
++/// FEN piece placement as 64 squares indexed a1 = 0 ... h8 = 63.
++fn parse_placement(placement: &str) -> Result<[Option<char>; 64]> {
++    let ranks: Vec<_> = placement.split('/').collect();
++    ensure!(ranks.len() == 8, "placement needs eight ranks");
++    let mut squares = [None; 64];
++    for (row, rank) in ranks.iter().enumerate() {
++        let mut file = 0;
++        for c in rank.chars() {
++            match c {
++                '1'..='8' => file += c as usize - '0' as usize,
++                'p' | 'n' | 'b' | 'r' | 'q' | 'k' | 'P' | 'N' | 'B' | 'R' | 'Q' | 'K' => {
++                    ensure!(file < 8, "rank has more than eight squares");
++                    squares[(7 - row) * 8 + file] = Some(c);
++                    file += 1;
++                }
++                _ => bail!("invalid placement character {c:?}"),
++            }
++        }
++        ensure!(file == 8, "rank does not have eight squares");
++    }
++    Ok(squares)
++}
++
+ impl GameState {
+     pub fn replay(record: &GameRecord) -> Result<Self> {
+         ensure!(
+@@ -351,17 +383,38 @@ impl GameState {
+     }
+ 
+     pub fn verify_observation(&self, observation: &BoardObservation) -> Result<()> {
++        ensure!(
++            self.observation_mismatches(observation)?.is_empty(),
++            "perception failure: observed placement disagrees with authoritative ledger"
++        );
++        Ok(())
++    }
++
++    /// Per-square disagreements between an observation and the ledger, in
++    /// square order a1, b1, ..., h8. Nothing is repaired. A placement that is
++    /// not eight ranks of eight squares is refused rather than compared.
++    pub fn observation_mismatches(
++        &self,
++        observation: &BoardObservation,
++    ) -> Result<Vec<SquareMismatch>> {
+         ensure!(
+             observation.schema_version == SCHEMA_VERSION,
+             "unsupported observation schema"
+         );
+         ensure!(!observation.image_id.is_empty(), "missing image identity");
+-        let actual = self.fen();
+-        ensure!(
+-            actual.split_whitespace().next() == Some(observation.placement.as_str()),
+-            "perception failure: observed placement disagrees with authoritative ledger"
+-        );
+-        Ok(())
++        let observed =
++            parse_placement(&observation.placement).context("malformed observation placement")?;
++        let fen = self.fen();
++        let expected = parse_placement(fen.split_whitespace().next().unwrap())?;
++        Ok(Square::ALL
++            .into_iter()
++            .filter(|&sq| expected[sq as usize] != observed[sq as usize])
++            .map(|sq| SquareMismatch {
++                square: sq.to_string(),
++                expected: expected[sq as usize],
++                observed: observed[sq as usize],
++            })
++            .collect())
+     }
+ 
+     /// Count legal move paths of exactly `depth` plies by the rules of movement
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index 855e7a5..b5c11ea 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -485,3 +485,39 @@ fn pgn_export_round_trips_through_import() {
+         (record.game_id, record.initial_fen, true, record.moves)
+     );
+ }
++
++#[test]
++fn observation_mismatches_are_listed_per_square_and_malformed_input_refused() {
++    let s = start();
++    let o = |placement: &str| BoardObservation {
++        schema_version: 1,
++        image_id: "board.png".into(),
++        placement: placement.into(),
++    };
++    let found = s
++        .observation_mismatches(&o("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR"))
++        .unwrap();
++    assert_eq!(
++        found,
++        [
++            SquareMismatch {
++                square: "e2".into(),
++                expected: Some('P'),
++                observed: None
++            },
++            SquareMismatch {
++                square: "e4".into(),
++                expected: None,
++                observed: Some('P')
++            },
++        ]
++    );
++    for bad in [
++        "8/8/8/8/8/8/8",
++        "9/8/8/8/8/8/8/8",
++        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNX",
++    ] {
++        let err = s.observation_mismatches(&o(bad)).unwrap_err();
++        assert_eq!(err.to_string(), "malformed observation placement", "{bad}");
++    }
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index 95163da..bbe41c9 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -37,7 +37,8 @@ automatically terminate play. Checkmate takes precedence over the 75-move rule.
+ 
+ `BoardObservation` contains image identity and visible piece placement only.
+ Image prediction is compared against the authoritative ledger. Disagreement is
+-an explicit error. There is no inferred castling right, clock, side to move, or
++an explicit error that lists every mismatched square; a malformed placement is
++refused, not compared. There is no inferred castling right, clock, side to move, or
+ repetition history from pixels. This integrity boundary is not a perception model.
+ 
+ ## Assistance and evidence

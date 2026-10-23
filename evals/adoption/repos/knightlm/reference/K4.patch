@@ -1,0 +1,339 @@
+diff --git a/README.md b/README.md
+index 2497faa..65dd195 100644
+--- a/README.md
++++ b/README.md
+@@ -58,6 +58,8 @@ cargo run --locked -- render fixtures/start.json --black-bottom --blue-theme
+ cargo run --locked -- evaluate-fixtures fixtures/start.json
+ cargo run --locked -- simulate fixtures/start.json e2e4 e7e5 --budget 8
+ cargo run --locked -- perft fixtures/start.json 3 --divide
++cargo run --locked -- compile fixtures/start.json --legal-choices --san
++cargo run --locked -- import-pgn game.pgn --game 1
+ cargo run --locked -- validate-evals fixtures/evaluations.jsonl
+ cargo run --locked -- audit-splits fixtures/splits.json
+ cargo run --locked -- validate-corpora fixtures/corpora.json
+@@ -139,8 +141,9 @@ The evaluation JSONL fixture contains **fabricated example scores**, not actual
+ Stockfish results. The real [Lichess export](https://database.lichess.org/) has
+ four-field FENs, heterogeneous search depths and UCI_Chess960 PV notation. Those
+ records cannot establish repetition history or counters. Normalized game
+-replays carry explicit source assertions about history completeness. PGN import,
+-streaming bulk ingestion and training mixture scheduling are later work.
++replays carry explicit source assertions about history completeness. `import-pgn`
++normalizes one PGN game's main line; streaming bulk ingestion and training
++mixture scheduling are later work.
+ 
+ Only K-vs-K, K+B-vs-K, K+N-vs-K and kings with any number of bishops that all
+ stand on one square colour are recognized as proven dead positions.
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 00f5d9d..792aee4 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -58,6 +58,13 @@ enum Command {
+         #[arg(long)]
+         divide: bool,
+     },
++    /// Import one PGN game (main line only) as a normalized GameRecord.
++    ImportPgn {
++        file: PathBuf,
++        /// 1-based index of the game within the file.
++        #[arg(long, default_value_t = 1)]
++        game: usize,
++    },
+     /// Apply a bounded sequence of single-ply hypothetical moves.
+     Simulate {
+         game: PathBuf,
+@@ -246,6 +253,15 @@ fn main() -> Result<()> {
+             }
+             emit(&report, false)?;
+         }
++        Command::ImportPgn { file, game } => {
++            let text =
++                std::fs::read_to_string(&file).with_context(|| file.display().to_string())?;
++            let name = file
++                .file_name()
++                .context("PGN path has no file name")?
++                .to_string_lossy();
++            emit(&knightlm_core::pgn::import(&text, &name, game)?, false)?;
++        }
+         Command::TrainSmoke { checkpoint } => emit(&smoke::train_smoke(&checkpoint)?, false)?,
+         Command::VerifyModel { profile } => {
+             let report = verify_model(&read::<ModelProfile>(&profile)?)?;
+diff --git a/crates/core/src/lib.rs b/crates/core/src/lib.rs
+index 50fe89d..e29e3c8 100644
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -1,6 +1,7 @@
+ //! Deterministic state and research contracts. No neural inference or engine access.
+ pub mod data;
+ pub mod experiment;
++pub mod pgn;
+ pub mod san;
+ pub mod state;
+ pub mod vision;
+diff --git a/crates/core/src/pgn.rs b/crates/core/src/pgn.rs
+new file mode 100644
+index 0000000..d6df6eb
+--- /dev/null
++++ b/crates/core/src/pgn.rs
+@@ -0,0 +1,168 @@
++//! PGN import into normalized `GameRecord`s. Comments, NAGs and variations are
++//! skipped; only the main line is kept. Provenance comes from the file and tags.
++use anyhow::{Context, Result, bail, ensure};
++
++use crate::SCHEMA_VERSION;
++use crate::state::{GameRecord, GameState, START_FEN};
++
++const TERMINATIONS: [&str; 4] = ["1-0", "0-1", "1/2-1/2", "*"];
++
++/// One game's tag pairs (in file order) and main-line SAN tokens.
++#[derive(Debug, Clone, Default)]
++pub struct PgnGame {
++    pub tags: Vec<(String, String)>,
++    pub moves: Vec<String>,
++    pub termination: String,
++}
++
++impl PgnGame {
++    pub fn tag(&self, name: &str) -> Option<&str> {
++        self.tags
++            .iter()
++            .rev()
++            .find(|(k, _)| k == name)
++            .map(|(_, v)| v.as_str())
++    }
++}
++
++/// Split PGN text into games. Every game must end with a termination marker.
++pub fn parse_games(text: &str) -> Result<Vec<PgnGame>> {
++    let mut games = Vec::new();
++    let mut game = PgnGame::default();
++    let mut started = false;
++    let mut depth = 0usize;
++    let mut chars = text.chars().peekable();
++    let mut at_line_start = true;
++    while let Some(c) = chars.next() {
++        let line_start = at_line_start;
++        at_line_start = c == '\n';
++        match c {
++            c if c.is_whitespace() => {}
++            '%' if line_start => {
++                for c in chars.by_ref() {
++                    if c == '\n' {
++                        at_line_start = true;
++                        break;
++                    }
++                }
++            }
++            ';' => {
++                for c in chars.by_ref() {
++                    if c == '\n' {
++                        at_line_start = true;
++                        break;
++                    }
++                }
++            }
++            '{' => {
++                chars
++                    .by_ref()
++                    .find(|&c| c == '}')
++                    .context("unterminated comment")?;
++            }
++            '(' => depth += 1,
++            ')' => depth = depth.checked_sub(1).context("unbalanced variation")?,
++            '[' if depth == 0 => {
++                let mut tag = String::new();
++                let mut value = None;
++                loop {
++                    match chars.next().context("unterminated tag pair")? {
++                        ']' => break,
++                        '"' => {
++                            let mut v = String::new();
++                            loop {
++                                match chars.next().context("unterminated tag value")? {
++                                    '"' => break,
++                                    '\\' => v.push(chars.next().context("unterminated tag value")?),
++                                    c => v.push(c),
++                                }
++                            }
++                            value = Some(v);
++                        }
++                        c if value.is_none() => tag.push(c),
++                        c if c.is_whitespace() => {}
++                        _ => bail!("malformed tag pair"),
++                    }
++                }
++                let name = tag.trim().to_owned();
++                ensure!(!name.is_empty(), "malformed tag pair");
++                game.tags
++                    .push((name, value.context("tag pair without a value")?));
++                started = true;
++            }
++            _ => {
++                let mut token = String::from(c);
++                while let Some(&n) = chars.peek() {
++                    if n.is_whitespace() || "{}()[];".contains(n) {
++                        break;
++                    }
++                    token.push(n);
++                    chars.next();
++                }
++                if depth > 0 || token.starts_with('$') {
++                    continue;
++                }
++                started = true;
++                if TERMINATIONS.contains(&token.as_str()) {
++                    game.termination = token;
++                    games.push(std::mem::take(&mut game));
++                    started = false;
++                    continue;
++                }
++                // Strip move numbers such as `12.`, `12...` and `1.e4`.
++                let san = match token.rfind('.') {
++                    None => token.as_str(),
++                    Some(i) if token[..i].chars().all(|c| c.is_ascii_digit() || c == '.') => {
++                        &token[i + 1..]
++                    }
++                    Some(_) => bail!("unexpected token {token:?}"),
++                };
++                if !san.is_empty() {
++                    game.moves.push(san.to_owned());
++                }
++            }
++        }
++    }
++    ensure!(depth == 0, "unbalanced variation");
++    ensure!(!started, "missing game termination marker");
++    ensure!(!games.is_empty(), "no games in PGN file");
++    Ok(games)
++}
++
++/// Import game `index` (1-based) of a PGN file into a normalized record.
++pub fn import(text: &str, file_name: &str, index: usize) -> Result<GameRecord> {
++    let games = parse_games(text)?;
++    ensure!(
++        (1..=games.len()).contains(&index),
++        "PGN file contains {} games; --game {index} is out of range",
++        games.len()
++    );
++    let game = &games[index - 1];
++    if let Some(result) = game.tag("Result") {
++        ensure!(
++            result == game.termination,
++            "Result tag {result:?} disagrees with termination marker {:?}",
++            game.termination
++        );
++    }
++    let reference = format!("{file_name}#{index}");
++    let fen = game.tag("FEN");
++    let game_id = match game.tag("Site") {
++        Some(site) if !site.trim().is_empty() && site != "?" => site.to_owned(),
++        _ => reference.clone(),
++    };
++    let mut state = GameState::replay(&GameRecord {
++        schema_version: SCHEMA_VERSION,
++        game_id,
++        source: format!("pgn:{reference}"),
++        initial_fen: fen.unwrap_or(START_FEN).to_owned(),
++        // A setup position never proves the history before it.
++        history_complete: fen.is_none(),
++        moves: vec![],
++    })
++    .context("invalid FEN tag")?;
++    for token in &game.moves {
++        state.play_san(token)?;
++    }
++    Ok(state.record().clone())
++}
+diff --git a/crates/core/src/san.rs b/crates/core/src/san.rs
+index c9520e1..0a5ff7e 100644
+--- a/crates/core/src/san.rs
++++ b/crates/core/src/san.rs
+@@ -10,3 +10,20 @@ pub fn uci_to_san(board: &Board, uci: &str) -> Result<String> {
+     ensure!(board.is_legal(mv), "illegal move: {uci}");
+     Ok(cozy_chess::util::display_san_move(board, mv).to_string())
+ }
++
++/// Resolve a SAN token to exactly one legal move, returned as standard UCI.
++/// Trailing `!`/`?` annotations and `+`/`#` are ignored, `0-0` is read as
++/// `O-O`, and over-specified disambiguation is accepted when it is unique.
++pub fn san_to_uci(board: &Board, token: &str) -> Result<String> {
++    let mut san = token.trim_end_matches(['!', '?']).to_owned();
++    for (zeros, letters) in [("0-0-0", "O-O-O"), ("0-0", "O-O")] {
++        if let Some(rest) = san.strip_prefix(zeros) {
++            san = format!("{letters}{rest}");
++            break;
++        }
++    }
++    let mv = cozy_chess::util::parse_san_move(board, &san)
++        .ok()
++        .context("no unique legal move")?;
++    Ok(cozy_chess::util::display_uci_move(board, mv).to_string())
++}
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index dce24bf..e299dd5 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -210,6 +210,21 @@ impl GameState {
+         crate::san::uci_to_san(&self.board, uci)
+     }
+ 
++    /// Play one SAN token. Errors name the move number and side to move.
++    pub fn play_san(&mut self, token: &str) -> Result<String> {
++        let side = match self.board.side_to_move() {
++            Color::White => "white",
++            Color::Black => "black",
++        };
++        let label = format!(
++            "move {} ({side}): illegal or ambiguous SAN {token:?}",
++            self.fullmove
++        );
++        let uci = crate::san::san_to_uci(&self.board, token).context(label.clone())?;
++        self.play(&uci).context(label)?;
++        Ok(uci)
++    }
++
+     pub fn is_legal(&self, uci: &str) -> bool {
+         self.facts().terminal_reason.is_none()
+             && cozy_chess::util::parse_uci_move(&self.board, uci)
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index 90aef34..ecfd078 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -442,3 +442,22 @@ fn san_disambiguates_among_legal_moves_and_marks_check_and_mate() {
+     });
+     assert_eq!(packet.legal_moves_san.unwrap()[..3], ["a3", "a4", "Na3"]);
+ }
++
++#[test]
++fn pgn_import_keeps_main_line_and_never_asserts_setup_history() {
++    let text = "[Site \"?\"]\n[Result \"*\"]\n\n1. e4 {c} e5 (1... c5 2. Nf3) 2. Nf3 $1 Nc6 *\n\n\
++                [FEN \"4k3/8/8/8/8/8/4P3/4K3 b - - 0 9\"]\n\n9... Kd7 10. e4 *\n";
++    let first = knightlm_core::pgn::import(text, "t.pgn", 1).unwrap();
++    assert_eq!(first.moves, ["e2e4", "e7e5", "g1f3", "b8c6"]);
++    assert_eq!(first.game_id, "t.pgn#1");
++    assert!(first.history_complete);
++    let second = knightlm_core::pgn::import(text, "t.pgn", 2).unwrap();
++    assert!(!second.history_complete);
++    assert_eq!(second.moves, ["e8d7", "e2e4"]);
++    let err = knightlm_core::pgn::import("1. e4 e5 2. Ke3 *", "t.pgn", 1).unwrap_err();
++    assert_eq!(
++        err.to_string(),
++        "move 2 (white): illegal or ambiguous SAN \"Ke3\""
++    );
++    assert!(knightlm_core::pgn::import(text, "t.pgn", 3).is_err());
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index 8ffe55d..95163da 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -86,8 +86,9 @@ for JSON shape/serialization. Neither is an independent full chess rules oracle.
+ 
+ ## Deferred interfaces
+ 
+-PGN ingestion must produce normalized `GameRecord`s with explicit provenance,
+-handle setup positions, and preserve history completeness. Bulk eval ingestion
++PGN import (`import-pgn`) produces normalized `GameRecord`s with explicit
++provenance; a FEN setup tag yields `history_complete: false`. Bulk PGN ingestion
++must stream and cap resources. Bulk eval ingestion
+ must stream, cap resources, preserve depth/node metadata and retain cp-versus-mate
+ semantics. The current in-memory JSONL reader is for bounded fixtures only.
+ 

@@ -65,6 +65,17 @@ Notable changes to OpenWarrant. Format loosely follows
     runs `war view prime --session`, which shows the agent the Warrant it
     holds (a resumed session needs no call to find it), or the open list and
     how to take the next. Unset, it prints nothing and the hook adds nothing.
+||||||| parent of b0a25d37c (evals/adoption: the adoption study, ready for a pilot)
+### Added
+
+- `evals/adoption/`: the adoption study's harness, ready for a pilot and not
+  yet run with a model. Five arms (a plain `CLAUDE.md`, plan files, Spec Kit
+  v1.2.2, Beads v1.3.1, OpenWarrant) hold the same backlog in each tool's own
+  form; two repositories (`tally`, synthetic Python; `knightlm`, at
+  `36979e9`) carry six items each, with hidden acceptance tests and reference
+  solutions; agents run in a bubblewrap sandbox. `PROTOCOL.md` fixes the
+  measures before any run. Fixture agents (`reference`, `noop`, `claim`) check
+  the harness end to end at no cost.
 
 ## [1.0.0-alpha.5] — 2026-10-20
 

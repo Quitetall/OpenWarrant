@@ -1,0 +1,351 @@
+diff --git a/README.md b/README.md
+index 0972b03..7209afc 100644
+--- a/README.md
++++ b/README.md
+@@ -18,6 +18,7 @@ python3 -m tally <command> <journal file> [options]
+ | `accounts` | every account name the journal uses |
+ | `print [--from DATE] [--until DATE]` | the transactions in date order, elided amounts filled in |
+ | `prices [COMMODITY]` | the `P` price directives in date order, as `DATE COMMODITY RATE QUOTE` |
++| `forecast --until DATE` | every occurrence of the `~` periodic transactions up to DATE, as journal text |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+ `ACCOUNT` limits a report to that account and its descendants
+diff --git a/docs/FORMAT.md b/docs/FORMAT.md
+index 57322fa..2effe8a 100644
+--- a/docs/FORMAT.md
++++ b/docs/FORMAT.md
+@@ -69,6 +69,25 @@ transaction or price date), then rounded to two places, half to even, before
+ anything is added up. Inverse and chained rates are not used. Amounts in the
+ default commodity are not converted.
+ 
++## Periodic transactions
++
++A periodic transaction starts with `~` in column one, a period, `from`, a
++start date, and an optional description:
++
++```text
++~ monthly from 2026-01-31 Rent
++    Expenses:Rent      1200.00
++    Assets:Checking
++```
++
++The period is `weekly`, `monthly` or `yearly`. The postings follow the same
++rules as a transaction's. Periodic transactions are not part of `balance`,
++`register` or `print`; `forecast --until DATE` turns each into dated
++transactions from its start date through DATE. Monthly and yearly
++occurrences keep the start day, falling on the last day of a shorter month
++(Jan 31, Feb 28, Mar 31). Without a description the generated payee is
++`Forecast`.
++
+ ## Problems
+ 
+ `tally check` reports every problem it finds as `FILE:LINE: message`, where
+diff --git a/tally/cli.py b/tally/cli.py
+index 87940ef..7940b94 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -20,6 +20,7 @@ from tally.errors import JournalError, UsageError
+ from tally.filters import add_date_range_options, date_argument, date_range_from_args, restrict
+ from tally.model import Journal
+ from tally.parser import load_journal, parse_file
++from tally.periodic import expand
+ from tally.reports.accounts import compute_accounts, render_accounts
+ from tally.reports.balance import compute_balances, render_balance
+ from tally.reports.register import compute_register, render_register
+@@ -87,6 +88,14 @@ def cmd_print(args: argparse.Namespace) -> int:
+     return EXIT_OK
+ 
+ 
++def cmd_forecast(args: argparse.Namespace) -> int:
++    journal = load_journal(args.journal)
++    transactions = expand(journal.periodic, args.until)
++    if transactions:
++        print(render_transactions(transactions))
++    return EXIT_OK
++
++
+ def cmd_prices(args: argparse.Namespace) -> int:
+     journal = load_journal(args.journal)
+     for price in journal.sorted_prices():
+@@ -146,6 +155,16 @@ def _add_print(sub: argparse._SubParsersAction) -> None:
+     p.set_defaults(func=cmd_print)
+ 
+ 
++def _add_forecast(sub: argparse._SubParsersAction) -> None:
++    p = sub.add_parser("forecast", help="expand periodic transactions up to a date")
++    p.add_argument("journal", help="journal file")
++    p.add_argument(
++        "--until", type=date_argument, required=True, metavar="DATE",
++        help="last date to generate occurrences for (inclusive)",
++    )
++    p.set_defaults(func=cmd_forecast)
++
++
+ def _add_prices(sub: argparse._SubParsersAction) -> None:
+     p = sub.add_parser("prices", help="list price directives in date order")
+     p.add_argument("journal", help="journal file")
+@@ -166,6 +185,7 @@ COMMANDS: list[Callable[[argparse._SubParsersAction], None]] = [
+     _add_accounts,
+     _add_print,
+     _add_prices,
++    _add_forecast,
+     _add_check,
+ ]
+ 
+diff --git a/tally/filters.py b/tally/filters.py
+index 39886ae..11a0e5e 100644
+--- a/tally/filters.py
++++ b/tally/filters.py
+@@ -31,7 +31,12 @@ class DateRange:
+ def restrict(journal: Journal, dates: DateRange) -> Journal:
+     """A copy of ``journal`` holding only the transactions within ``dates``."""
+     kept: list[Transaction] = [t for t in journal.transactions if dates.contains(t.date)]
+-    return Journal(path=journal.path, transactions=kept, prices=list(journal.prices))
++    return Journal(
++        path=journal.path,
++        transactions=kept,
++        prices=list(journal.prices),
++        periodic=list(journal.periodic),
++    )
+ 
+ 
+ def date_argument(text: str) -> dt.date:
+diff --git a/tally/model.py b/tally/model.py
+index 893c9ec..2c550ec 100644
+--- a/tally/model.py
++++ b/tally/model.py
+@@ -63,6 +63,22 @@ class Price:
+     line: int
+ 
+ 
++@dataclass
++class PeriodicRule:
++    """``~ PERIOD from DATE [DESCRIPTION]``: a transaction that recurs.
++
++    ``template`` holds the postings (elided amount already filled in); its
++    date is the rule's start date and its payee the rule's description.
++    """
++
++    period: str
++    template: Transaction
++
++    @property
++    def start(self) -> dt.date:
++        return self.template.date
++
++
+ @dataclass
+ class Journal:
+     """Everything read from one journal file."""
+@@ -70,6 +86,7 @@ class Journal:
+     path: str
+     transactions: list[Transaction] = field(default_factory=list)
+     prices: list[Price] = field(default_factory=list)
++    periodic: list[PeriodicRule] = field(default_factory=list)
+ 
+     def sorted_transactions(self) -> list[Transaction]:
+         """Transactions by date; same-day transactions keep file order."""
+diff --git a/tally/parser.py b/tally/parser.py
+index 1474ee7..5f0bb82 100644
+--- a/tally/parser.py
++++ b/tally/parser.py
+@@ -13,6 +13,10 @@ Syntax overview (see docs/FORMAT.md for the full description)::
+         Assets:Checking
+ 
+     P 2026-01-15 EUR 1.0850 USD
++
++    ~ monthly from 2026-01-01 Rent
++        Expenses:Rent        1200.00
++        Assets:Checking
+ """
+ 
+ from __future__ import annotations
+@@ -24,7 +28,8 @@ from tally.accounts import account_problem
+ from tally.amounts import AmountError, parse_amount, parse_commodity, parse_quantity
+ from tally.dates import DateError, parse_date
+ from tally.errors import JournalError, Problem
+-from tally.model import Journal, Posting, Price, Transaction
++from tally.model import Journal, PeriodicRule, Posting, Price, Transaction
++from tally.periodic import DEFAULT_DESCRIPTION, PERIODS
+ from tally.validate import finalize
+ 
+ COMMENT_CHARS = (";", "#")
+@@ -42,6 +47,9 @@ class Parser:
+         self.journal = Journal(path)
+         self.problems: list[Problem] = []
+         self._current: Transaction | None = None
++        # The period of the entry being read when it is a periodic rule
++        # rather than a transaction.
++        self._period: str | None = None
+         # True while skipping the indented lines of an entry whose first
+         # line was already reported, so one mistake is reported once.
+         self._skipping = False
+@@ -76,6 +84,8 @@ class Parser:
+             self._read_transaction_header(lineno, line)
+         elif line.startswith("P "):
+             self._read_price(lineno, line)
++        elif line.startswith("~"):
++            self._read_periodic_header(lineno, line)
+         else:
+             self._problem(lineno, f"unrecognised line '{line}'")
+             self._skipping = True
+@@ -104,6 +114,29 @@ class Parser:
+             return
+         self._current = Transaction(date=date, payee=payee.strip(), path=self.path, line=lineno)
+ 
++    def _read_periodic_header(self, lineno: int, line: str) -> None:
++        fields = line.split(None, 4)
++        if len(fields) < 4 or fields[0] != "~" or fields[2] != "from":
++            self._problem(lineno, "invalid periodic header")
++            self._skipping = True
++            return
++        period, date_text = fields[1], fields[3]
++        if period not in PERIODS:
++            self._problem(lineno, f"unknown period '{period}'")
++            self._skipping = True
++            return
++        try:
++            start = parse_date(date_text)
++        except DateError as exc:
++            self._problem(lineno, str(exc))
++            self._skipping = True
++            return
++        description = fields[4].strip() if len(fields) > 4 else ""
++        self._current = Transaction(
++            date=start, payee=description or DEFAULT_DESCRIPTION, path=self.path, line=lineno
++        )
++        self._period = period
++
+     def _read_price(self, lineno: int, line: str) -> None:
+         fields = _strip_comment(line).split()
+         if len(fields) != 5:
+@@ -149,9 +182,12 @@ class Parser:
+             problems = finalize(self._current)
+             if problems:
+                 self.problems.extend(problems)
++            elif self._period is not None:
++                self.journal.periodic.append(PeriodicRule(self._period, self._current))
+             else:
+                 self.journal.transactions.append(self._current)
+         self._current = None
++        self._period = None
+         self._skipping = False
+         self._broken = False
+ 
+diff --git a/tally/periodic.py b/tally/periodic.py
+new file mode 100644
+index 0000000..45f2682
+--- /dev/null
++++ b/tally/periodic.py
+@@ -0,0 +1,70 @@
++"""Periodic transactions and their expansion into dated transactions.
++
++A rule recurs from its start date: ``weekly`` every 7 days, ``monthly`` on
++the same day of each month and ``yearly`` on the same day each year. When a
++month is too short the occurrence falls on its last day, and later
++occurrences return to the original day (Jan 31, Feb 28, Mar 31).
++"""
++
++from __future__ import annotations
++
++import calendar
++import datetime as dt
++from dataclasses import replace
++from typing import Iterator
++
++PERIODS = ("weekly", "monthly", "yearly")
++DEFAULT_DESCRIPTION = "Forecast"
++
++
++def add_months(start: dt.date, months: int) -> dt.date:
++    """``start`` moved by ``months``, clamped to the end of a short month."""
++    year, month0 = divmod(start.month - 1 + months, 12)
++    year += start.year
++    last = calendar.monthrange(year, month0 + 1)[1]
++    return dt.date(year, month0 + 1, min(start.day, last))
++
++
++def nth_occurrence(period: str, start: dt.date, n: int) -> dt.date:
++    if period == "weekly":
++        return start + dt.timedelta(weeks=n)
++    if period == "monthly":
++        return add_months(start, n)
++    if period == "yearly":
++        return add_months(start, 12 * n)
++    raise ValueError(f"unknown period '{period}'")
++
++
++def occurrences(rule, until: dt.date) -> Iterator[dt.date]:
++    """Dates of ``rule`` from its start through ``until`` inclusive."""
++    n = 0
++    while True:
++        date = nth_occurrence(rule.period, rule.start, n)
++        if date > until:
++            return
++        yield date
++        n += 1
++
++
++def instantiate(rule, date: dt.date):
++    """A transaction for one occurrence of ``rule``."""
++    template = rule.template
++    return replace(
++        template,
++        date=date,
++        postings=[replace(p, inferred=False) for p in template.postings],
++    )
++
++
++def expand(rules, until: dt.date) -> list:
++    """Every occurrence of every rule up to ``until``, in date order.
++
++    Occurrences on the same date keep the order of their rules in the file.
++    """
++    dated = [
++        (date, index, rule)
++        for index, rule in enumerate(rules)
++        for date in occurrences(rule, until)
++    ]
++    dated.sort(key=lambda item: (item[0], item[1]))
++    return [instantiate(rule, date) for date, _, rule in dated]
+diff --git a/tests/test_periodic.py b/tests/test_periodic.py
+new file mode 100644
+index 0000000..1f5efba
+--- /dev/null
++++ b/tests/test_periodic.py
+@@ -0,0 +1,35 @@
++import datetime as dt
++
++from conftest import run_tally
++from tally.parser import parse_text
++from tally.periodic import add_months, expand
++
++
++def test_add_months_clamps_and_recovers():
++    start = dt.date(2026, 1, 31)
++    assert [add_months(start, n) for n in range(4)] == [
++        dt.date(2026, 1, 31), dt.date(2026, 2, 28), dt.date(2026, 3, 31), dt.date(2026, 4, 30),
++    ]
++    assert add_months(dt.date(2024, 2, 29), 12) == dt.date(2025, 2, 28)
++
++
++def test_periodic_rules_are_kept_apart_from_transactions():
++    journal, problems = parse_text(
++        "~ weekly from 2026-01-01 Allowance\n  Expenses:Kids  5\n  Assets:Cash\n", "j.ledger"
++    )
++    assert problems == []
++    assert journal.transactions == []
++    (rule,) = journal.periodic
++    dates = [t.date for t in expand(journal.periodic, dt.date(2026, 1, 15))]
++    assert dates == [dt.date(2026, 1, 1), dt.date(2026, 1, 8), dt.date(2026, 1, 15)]
++    assert rule.template.payee == "Allowance"
++
++
++def test_forecast_command(journal):
++    path = journal("~ monthly from 2026-01-31\n    Expenses:Rent  1200\n    Assets:Checking\n")
++    result = run_tally("forecast", path, "--until", "2026-02-28")
++    assert result.returncode == 0, result.stderr
++    assert result.stdout == (
++        "2026-01-31 Forecast\n    Expenses:Rent  1200.00\n    Assets:Checking  -1200.00\n\n"
++        "2026-02-28 Forecast\n    Expenses:Rent  1200.00\n    Assets:Checking  -1200.00\n"
++    )
