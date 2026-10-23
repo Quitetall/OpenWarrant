@@ -1,11 +1,11 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0085",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "f873ff0051c458d534a9f64a9f48a9d1f8e05cdc",
-  "summary": "Latest recorded Phase 1 source tree8f68a09c passed all11 native checks and real FIFO refusal on Linux x86_64 and macOS arm64, with matching12363-file inventories. Full PR gate plus final candidate check and post-merge main CI passed. Independent phase review and human acceptance remain pending; this work report is unverified.",
-  "notes": "docs/warrants/OW-WAR-0085/implementation/notes.md",
+  "revision": "6e462d659fdb5614cac4bc92f81b4eb0547263b44fcc6444c32ba3881ef8f17a",
+  "summary": "Scoped Phase 1 SDK, CLI and fixed skill artifact implementation complete, unverified. Eleven checks plus source/binary stability pass on native Linux and macOS; special-backup refusals pass. All receipts match the exact 13,433-file tested inventory. Final protected gate, independent phase review and human acceptance remain separate.",
+  "notes": "docs/warrants/OW-WAR-0085/implementation/current-inventory-notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0085/implementation/linux-observation.json",
     "docs/warrants/OW-WAR-0085/implementation/clippy.log",
@@ -15,10 +15,14 @@
     "docs/warrants/OW-WAR-0085/implementation/current-test-target-20261010/README.md",
     "docs/releases/qualification-20261011/native-2692/observation.json",
     "docs/releases/qualification-20261011/gate-2692/observation.json",
-    "docs/warrants/OW-WAR-0085/implementation/native-20261015/final-bef7e690/README.md"
+    "docs/warrants/OW-WAR-0085/implementation/native-20261015/final-bef7e690/README.md",
+    "docs/warrants/OW-WAR-0085/implementation/native-20261023/ci-run.json",
+    "docs/warrants/OW-WAR-0085/implementation/native-20261023/comparison.json",
+    "docs/warrants/OW-WAR-0085/implementation/native-20261023/linux.json",
+    "docs/warrants/OW-WAR-0085/implementation/native-20261023/macos.json"
   ],
   "next_steps": [
-    "Review exact native receipts and final phase subject independently.",
-    "Complete remaining phase/release dependencies without treating native tests as assurance."
+    "Consolidate completed evidence and pass the protected gate on its exact candidate.",
+    "Complete independent Phase 1/2 qualification and required secure human acts; no phase exit is established by these observations."
   ]
 }

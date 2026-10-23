@@ -1,0 +1,104 @@
+{
+  "schema": "oh.war/native-source-comparison/v1",
+  "head": "0635fc594a104ec1506500eafd0d55e208b9666c",
+  "run": 40023564482,
+  "receipts": {
+    "local": {
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow85-evidence-20261023/linux-observation.json",
+      "sha256": "a55799b0c62b3fdca1e9837dcd0e9ec4689d0403ee2259b43e1ea284772af4f9",
+      "host": "Linux",
+      "architecture": "x86_64",
+      "build_identity": {
+        "git_head": "0635fc594a104ec1506500eafd0d55e208b9666c",
+        "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6",
+        "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)"
+      },
+      "source_files": 13433,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "probe_observations": "PASS",
+        "core": "PASS",
+        "cli": "PASS",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "observation_output": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      }
+    },
+    "hosted_linux": {
+      "file": "docs/warrants/OW-WAR-0085/implementation/native-20261023/linux.json",
+      "sha256": "cfe91f179e1d499980209dfa8b4a7a8cc4db6b31600e91dc544eb2f5ac02583e",
+      "host": "Linux",
+      "architecture": "x86_64",
+      "build_identity": {
+        "git_head": "98f4dc944e501a2f640609d78c69b9fa8190453c",
+        "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6",
+        "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)"
+      },
+      "source_files": 13433,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "probe_observations": "PASS",
+        "core": "PASS",
+        "cli": "PASS",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "observation_output": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      }
+    },
+    "hosted_macos": {
+      "file": "docs/warrants/OW-WAR-0085/implementation/native-20261023/macos.json",
+      "sha256": "806c770b5208fd50622d2c7f53319075eed0c290dc0988e3e7414ecf3b887c58",
+      "host": "Darwin",
+      "architecture": "arm64",
+      "build_identity": {
+        "git_head": "98f4dc944e501a2f640609d78c69b9fa8190453c",
+        "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: aarch64-apple-darwin\nrelease: 1.97.1\nLLVM version: 22.1.6",
+        "cargo": "cargo 1.97.1 (c980f4866 2026-06-30)"
+      },
+      "source_files": 13433,
+      "checks": {
+        "build": "PASS",
+        "fixtures": "PASS",
+        "probe_observations": "PASS",
+        "core": "PASS",
+        "cli": "PASS",
+        "skills": "PASS",
+        "context": "PASS",
+        "stage": "PASS",
+        "structure": "PASS",
+        "inventory": "PASS",
+        "observation_output": "PASS",
+        "source_stability": "PASS",
+        "binary_stability": "PASS"
+      }
+    }
+  },
+  "source_files_match": true,
+  "source_files": 13433,
+  "assignments_match": true,
+  "source_and_binary_stable": true,
+  "special_backup_controls": {
+    "Phase 1 ubuntu-latest": "success",
+    "Phase 1 macos-latest": "success"
+  },
+  "phase_exit_established": false,
+  "qualification_established": false,
+  "independent_review": "not obtained for this exact subject",
+  "remaining": [
+    "Full protected repository gate on final consolidated candidate",
+    "Independent phase review",
+    "Secure human acceptance where required"
+  ]
+}

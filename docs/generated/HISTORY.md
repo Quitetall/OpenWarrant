@@ -22922,6 +22922,24 @@ does not establish the other required OS or full phase exit. Phase exit also run
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0085/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | conformance/sdk/phase1.json | `conformance/sdk/phase1.json` | verified |
+| D-002 | conformance/sdk/run_phase1.py | `conformance/sdk/run_phase1.py` | verified |
+| D-003 | conformance/sdk/test_inventory.py | `conformance/sdk/test_inventory.py` | verified |
+| D-004 | conformance/sdk/skills/check_artifacts.py | `conformance/sdk/skills/check_artifacts.py` | verified |
+| D-005 | crates/openwarrant-core/examples/sdk_probe.rs | `crates/openwarrant-core/examples/sdk_probe.rs` | verified |
+| D-006 | crates/openwarrant-core/tests/skill_artifacts.rs | `crates/openwarrant-core/tests/skill_artifacts.rs` | verified |
+| D-007 | docs/reviews/phase-1.md | `docs/reviews/phase-1.md` | verified |
+| D-008 | docs/warrants/OW-WAR-0085/implementation/current-inventory-notes.md | `docs/warrants/OW-WAR-0085/implementation/current-inventory-notes.md` | verified |
+| D-009 | docs/warrants/OW-WAR-0085/implementation/progress.json | `docs/warrants/OW-WAR-0085/implementation/progress.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0085/implementation/native-20261023/ci-run.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/ci-run.json` | verified |
+| D-011 | docs/warrants/OW-WAR-0085/implementation/native-20261023/comparison.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/comparison.json` | verified |
+| D-012 | docs/warrants/OW-WAR-0085/implementation/native-20261023/linux.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/linux.json` | verified |
+| D-013 | docs/warrants/OW-WAR-0085/implementation/native-20261023/macos.json | `docs/warrants/OW-WAR-0085/implementation/native-20261023/macos.json` | verified |
+
 ### OW-WAR-0086 — Integrate SDK with LAMU and a second minimal consumer
 
 [manifest](../../docs/warrants/OW-WAR-0086/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0086/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
