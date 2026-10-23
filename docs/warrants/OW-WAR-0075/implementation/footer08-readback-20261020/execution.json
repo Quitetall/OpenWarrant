@@ -1,0 +1,109 @@
+{
+  "tool_sha256": "bd1977698ad2727d8acf58f79110275c0f61f569d52fe2a25d5bd27e6f5854c9",
+  "source_git_head": "e00ef016a0c264c8a8cf5c3b4848d0207666a2c2",
+  "calls": [
+    {
+      "name": "FOOTER08-title-crlf-author",
+      "exit_code": 0,
+      "request_sha256": "1b7271fa64a41c26da2f085dd7df47af340a46b26b9990e7c57f1ea81be94f87",
+      "response_sha256": "487fc73e03384c6fa2fef7ffdf420d8360532d92f8dd9db2d72e67044814b881"
+    },
+    {
+      "name": "FOOTER08-title-crlf-parse-before",
+      "exit_code": 0,
+      "request_sha256": "8f3c17d373991cfbb1f2efe2b68dba9296cbbc77e32c5ba5231bc4874baccf70",
+      "response_sha256": "e9311d919b5ab57a175bd2bf8dfbbd6bbae8f242beedd27e0dd116f60ba25ca6"
+    },
+    {
+      "name": "FOOTER08-title-crlf-edit",
+      "exit_code": 0,
+      "request_sha256": "ffa11d9a35bbad73d3142ccf1325752a27a959c8380985424185eb64fb6ac245",
+      "response_sha256": "bd1e6ee20bb7c9ef2273d95cdd0b03fd5e09a955e140e6986f23b884938fdfe2"
+    },
+    {
+      "name": "FOOTER08-title-crlf-parse-after",
+      "exit_code": 0,
+      "request_sha256": "eba1927ac7b79b1a74385275121275b49167100d1463b62224f5cb2b8aee51f1",
+      "response_sha256": "8bf01549546d3e577c44351390743d3899c1eb23515e6d02497dff751dfd9c1e"
+    },
+    {
+      "name": "FOOTER08-title-crlf-validate",
+      "exit_code": 0,
+      "request_sha256": "466ccd0810451fedac6c360a7dd7dd01ce31ed6b601dc266dd1535978ef804a8",
+      "response_sha256": "8bf01549546d3e577c44351390743d3899c1eb23515e6d02497dff751dfd9c1e"
+    },
+    {
+      "name": "FOOTER08-title-crlf-unit-before-context",
+      "exit_code": 0,
+      "request_sha256": "c8a81dc769ca5ffae9edf54ee2728e11423509522d710802aa1d0d42f803a00c",
+      "response_sha256": "82eb6f0f559b41935fefdd0d7bbe83293929c8e85afab4375a07e9c6091fd389"
+    },
+    {
+      "name": "FOOTER08-title-crlf-unit-after-context",
+      "exit_code": 0,
+      "request_sha256": "f730af57001be5123d7554b412f08c65952c524d1af15e6aee80cb77b3b37037",
+      "response_sha256": "a02c2f1f59af32b1405bf27c1511702799aa078a73ea8337a9bdf3ee4c4503bc"
+    },
+    {
+      "name": "T56-revision-author",
+      "exit_code": 0,
+      "request_sha256": "3a045bb996e9416fd9e8f8f14e320953b9301e3697bfc8766fe083c63e12db2a",
+      "response_sha256": "27dc8899087a5e5031aec35e913df0ccaa2c80339e5339b135b98fdcb630ac6c"
+    },
+    {
+      "name": "T56-revision-parse-before",
+      "exit_code": 0,
+      "request_sha256": "0ca65d18943cb62e8c87030f5fafa83fcd6c8167609e6360739c197dca798898",
+      "response_sha256": "a3122195ef8113b2c6de69685cce9e71363af1b64e277c48bc0ae1fc7c7bca41"
+    },
+    {
+      "name": "T56-revision-edit",
+      "exit_code": 0,
+      "request_sha256": "4250cc3bfa4a71072b2f76a19c0374aa77b08895367337ea4763e28fe6533dcc",
+      "response_sha256": "98039ed343ecaff4dc69f5dc3d744951877afd6071c4230a750fce08a047df83"
+    },
+    {
+      "name": "T56-revision-parse-after",
+      "exit_code": 0,
+      "request_sha256": "f6a1f0860771b5592cc3d225a91c5eb922c8a04c1d763d26c35980f329fc15e8",
+      "response_sha256": "d2b015cb41e3dc73cfdabf0f2851023f1662556263b367f8f5f26fa24af2ffb4"
+    },
+    {
+      "name": "T56-revision-validate",
+      "exit_code": 0,
+      "request_sha256": "7e1e2ddd098294143a966710603804ed6116e50f81fa2ed5f45874aaa8e4fe92",
+      "response_sha256": "d2b015cb41e3dc73cfdabf0f2851023f1662556263b367f8f5f26fa24af2ffb4"
+    },
+    {
+      "name": "T56-revision-unit-before-context",
+      "exit_code": 0,
+      "request_sha256": "72464294f99c8eca611c57a82e2180d71c424fecce442e940ccf36893ebf26fb",
+      "response_sha256": "5777ea61496dfef749cd295ca6b9ef7166d2207c2012cd705102f374eb214f7d"
+    },
+    {
+      "name": "T56-revision-unit-after-context",
+      "exit_code": 0,
+      "request_sha256": "4bd6d4b4582219186e0d348e620e20e495a7d93dd7f72215b65387d599a0fb77",
+      "response_sha256": "5777ea61496dfef749cd295ca6b9ef7166d2207c2012cd705102f374eb214f7d"
+    },
+    {
+      "name": "conflict-author",
+      "exit_code": 0,
+      "request_sha256": "a11c9cd580f051cc505c8cfb3ecc575b985eb2451db8ca774d4f75dd05a02d2b",
+      "response_sha256": "27dc8899087a5e5031aec35e913df0ccaa2c80339e5339b135b98fdcb630ac6c"
+    },
+    {
+      "name": "conflict-edit",
+      "exit_code": 1,
+      "request_sha256": "1b8d7e65f32249bcebeab027815a055ad2ac5170d6b69a82b24cb24cda53b1e9",
+      "response_sha256": "a6cdad7607b4d94ab39b254f62bada22f6d9f1bf2c637c9e986f59d08aa1e078"
+    },
+    {
+      "name": "existing-output-refusal",
+      "exit_code": 1,
+      "request_sha256": "1b8d7e65f32249bcebeab027815a055ad2ac5170d6b69a82b24cb24cda53b1e9",
+      "response_sha256": "a6cdad7607b4d94ab39b254f62bada22f6d9f1bf2c637c9e986f59d08aa1e078"
+    }
+  ],
+  "note": "Exact request/response bytes and all stdout/stderr retained under /mnt/4tb/artifacts/OpenWarrant/keep/ow75-fresh-review-20261020/footer08/. Observations are performer data, not an independent judgment."
+}

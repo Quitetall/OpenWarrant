@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-20.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-21.
 
 ## Lineage
 
@@ -42,7 +42,8 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-15 | 1 | sync.receipt_attached 1 |
 | 2026-10-16 | 49 | authorization.recorded 21, question.answered 9, sync.receipt_attached 7, verification.recorded 12 |
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
-| 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
+| 2026-10-20 | 3 | attestation.recorded 1, authorization.recorded 1, sync.receipt_attached 1 |
+| 2026-10-21 | 9 | sync.receipt_attached 5, verification.recorded 4 |
 
 ## Roadmap revisions
 
@@ -20502,6 +20503,14 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-057 | Actual probe case T09-context-binding | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-651b9a2fc04bad1413a38496bde0f06b449ff593cc7d6844c86942d59406245b.json` | verified |
 | D-058 | Actual probe case T09-context-background-refusal | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-50a87ab0e7ec320e4ab0f6bcf4f0e7aed3a1f0d49ca5e060abb21d52f382bf5a.json` | verified |
 | D-059 | Actual probe case T06-combined-depth-refusal | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-344f94c57812883296b7a97ad817536546eb2b29d9a9e5b9fabf345c880bc8d0.json` | verified |
+| D-060 | Actual synchronized-title and CRLF parser readback | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/FOOTER08-title-crlf.json` | verified |
+| D-061 | Actual untouched-unit parser readback | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/T56-revision.json` | verified |
+| D-062 | Actual conflicting-edit and prior-output refusal | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/failure.json` | verified |
+| D-063 | Actual core probe author/edit and parser run | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/core-probe76.json` | verified |
+| D-064 | Foot08 execution identity and request/response hashes | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/execution.json` | verified |
+| D-065 | Foot08 evidence gap and additional observations | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/README.md` | verified |
+| D-066 | Exact observed unit text dictionary with case and unit uses | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/unit-texts.json` | verified |
+| D-067 | Actual unseen-content mutation and unexpected-refusal controls | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observer-control.json` | verified |
 
 ### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 

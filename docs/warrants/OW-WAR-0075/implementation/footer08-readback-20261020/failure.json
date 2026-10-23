@@ -1,0 +1,1 @@
+{"case":"FOOTER08-title-conflict","actual_sdk_refusal":[{"severity":"error","rule":"source-invalid","code":"source-invalid","file":null,"message":"First heading must be level one and equal title exactly","span":{"start":79,"end":217}}],"existing_output_unchanged_on_failure":true,"independent_acceptance":false}

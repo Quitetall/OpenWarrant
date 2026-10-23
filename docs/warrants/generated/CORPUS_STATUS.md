@@ -65,9 +65,9 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 
 | requirement | Warrants blocked |
 |---|---|
-| every required obligation is dispositioned | 145 |
-| independence requirements are met | 145 |
-| every required gate has admissible result | 116 |
+| every required obligation is dispositioned | 144 |
+| independence requirements are met | 144 |
+| every required gate has admissible result | 115 |
 | artifact digests verify | 98 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
@@ -222,7 +222,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0072` The batch act: one human signature over many pending acts | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0073` war tui: the dashboard in the terminal | draft | unknown | 1 | 0 of 4 | required deliverables exist |
 | `OW-WAR-0074` Adopt the exact RC.2 build basis without rewriting history | draft | unknown | 0 | 0 of 2 | required deliverables exist |
-| `OW-WAR-0075` Parse and validate human-first OpenWarrant documents | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0075` Parse and validate human-first OpenWarrant documents | draft | NOT satisfied | 1 | 2 of 3 | no required unknown remains |
 | `OW-WAR-0076` Author and edit human-first OpenWarrant documents | draft | unknown | 2 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0077` Define SDK source types and prove provider resolution integration | draft | unknown | 2 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0078` Validate condition syntax and prove provider evaluation integration | draft | unknown | 2 | 0 of 3 | required deliverables exist |
