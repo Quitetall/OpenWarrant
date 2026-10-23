@@ -1,0 +1,3 @@
+# Reuse decoded verification bytes without caching current-source judgments
+
+PR323 hit the existing 75-minute gate cap and the next/status 15-second backstop. Read-only stack sample shows verify::record::decode called repeatedly from prior_matches/packets_cover/current_records. Cache only successful immutable decoded records by exact input bytes, with bounded memory and entries; never cache admissibility or filesystem observations. Keep all wire bytes, schema/codec acceptance, source checks, and limits unchanged. Benchmark against frozen W75 checkout a5f8905, not this changed source checkout, because changing gate-input source could otherwise skip the expensive current-verification path. Separate host request size failure remains open.

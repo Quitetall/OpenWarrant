@@ -1512,6 +1512,10 @@
 > Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128)
 - t-30da3 · ticket · done · Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128) · docs/tickets/t-30da3/manifest.toml:1
 
+## docs/tickets/t-325ad/manifest.toml
+> Keep repeated validation of retained verification records within existing command budgets
+- t-325ad · ticket · done · Reuse decoded verification bytes without caching current-source judgments · docs/tickets/t-325ad/manifest.toml:1
+
 ## docs/tickets/t-3293/manifest.toml
 > Partial verdicts: 0141 OBL-004, 0133 OBL-005, 0136 OBL-006, 0130 OBL-002, 0134 OBL-005
 - t-3293 · ticket · done · Partial verdicts: 0141 OBL-004, 0133 OBL-005, 0136 OBL-006, 0130 OBL-002, 0134 OBL-005 · docs/tickets/t-3293/manifest.toml:1
