@@ -7,6 +7,7 @@ NATIVE_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd) || exit 1
 export PATH="$NATIVE_ROOT/conformance/native/bin:$PATH"
 printf 'Native host: %s\n' "$(uname -s -m)"
 printf 'Source: %s\n' "$(git -C "$NATIVE_ROOT" rev-parse HEAD)"
+printf 'Source tree: %s\n' "$(git -C "$NATIVE_ROOT" rev-parse 'HEAD^{tree}')"
 printf 'Bash: %s\n' "$BASH_VERSION"
 printf 'setsid: %s\n' "$(command -v setsid)"
 "$NATIVE_ROOT/target/debug/war" --version || exit 1
