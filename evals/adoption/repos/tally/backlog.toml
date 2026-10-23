@@ -1,6 +1,6 @@
 schema = "ow-adoption/backlog/v1"
 repo = "tally"
-order = ["T1", "T2", "T3", "T4", "T5", "T6"]
+order = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11"]
 
 [project]
 facts = """
@@ -422,3 +422,367 @@ notes = """
 depends_on = []
 check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
 timeout_secs = 300
+
+[[item]]
+id = "T7"
+title = "Export postings for a spreadsheet with an `export` command"
+summary = "`export <journal> [ACCOUNT] [--from DATE] [--until DATE]` writes one delimited row per posting, for a spreadsheet."
+description = '''
+Users want to analyse their postings in a spreadsheet. Add a command that
+writes every posting as one row of delimited text on stdout:
+
+    python3 -m tally export <journal> [ACCOUNT] [--from DATE] [--until DATE]
+
+**Rows.** First a header row with the five field names `date`, `payee`,
+`account`, `amount`, `commodity`, in that order. Then one row per posting of
+each real transaction, in `print` order: transactions by date, same-date
+transactions in file order, and each transaction's postings in the order
+they are written. An elided amount is exported as filled in.
+
+**Fields.**
+- `date`: `YYYY-MM-DD`.
+- `payee`: the transaction's payee as written (it may be empty).
+- `account`: the posting's account.
+- `amount`: the amount rounded to two places, half to even (as reports
+  display amounts), written with the decimal mark between the units and the
+  two decimals, a leading `-` when negative, no thousands separators, and no
+  sign on zero.
+- `commodity`: the commodity code (T1), or empty for the default commodity.
+
+The fields of a row are joined by the field separator, and every row, the
+header included, ends with a single `\n` (never `\r\n`). A field is enclosed
+in double quotes only when it contains the field separator or a double
+quote; a double quote inside a quoted field is doubled (`Cafe "Zum"` becomes
+`"Cafe ""Zum"""`). No other field is quoted.
+
+**Selection.** ACCOUNT keeps only postings to that account and its
+descendants, as for `register`; `--from`/`--until` select transactions by
+date as for the other reports. Periodic transactions (T3) are never
+exported. When nothing is selected, only the header row is printed.
+
+**Errors.** As for the other reports: a journal with problems exits with
+status 2 with its problems on stderr, and `--from` after `--until` exits
+with status 2 and `tally: error: --from must not be after --until`. In both
+cases nothing is printed on stdout.
+
+Open question: Which field separator and which decimal mark should `export` write? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "`export <journal>` prints the header row `date`, `payee`, `account`, `amount`, `commodity` and then one row per posting in `print` order, using the field separator and decimal mark from the answer to the open question, each row ending in a single newline.",
+  "Amounts are rounded to two places half to even with no thousands separators and no sign on zero, elided amounts are filled in, and the commodity field is empty for the default commodity.",
+  "A field containing the field separator or a double quote is enclosed in double quotes with inner double quotes doubled; no other field is quoted, and an empty payee is an empty field.",
+  "ACCOUNT keeps only postings to that account and its descendants, `--from`/`--until` select transactions by date, periodic transactions are never exported, and with nothing selected only the header row is printed.",
+  "A journal with problems, and `--from` after `--until`, exit with status 2 and print nothing on stdout.",
+]
+notes = '''
+- The header row is the five names joined by the field separator, nothing else.
+- Rounding is the reports' display rounding: two places, ROUND_HALF_EVEN;
+  `-0.005` exports as zero without a sign.
+- The quoting rule applies to every field. Payees may contain `;`, `,` and
+  `"` (a transaction header line has no comment syntax).
+- The open question concerns only the field separator and the decimal mark;
+  everything else above is fixed.
+'''
+depends_on = ["T1", "T3"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[item.question]
+asked = "Which field separator and which decimal mark should `export` write?"
+answer = "A semicolon (`;`) between fields and a comma as the decimal mark, for example `2026-01-05;Corner Grocery;Expenses:Food;42,50;`. The files are opened in a German-locale spreadsheet. The quoting rule is unchanged, with `;` as the field separator, so a payee that contains a comma is not quoted."
+
+[[item]]
+id = "T8"
+title = "Monthly budget tables with `budget --monthly`"
+summary = "`budget --from DATE --until DATE --monthly` prints one budget table per calendar month of the period."
+description = '''
+`budget` (T4) prints one table for the whole period. Users budget by the
+month and want each month on its own. Add a flag:
+
+    python3 -m tally budget <journal> --from DATE --until DATE --monthly
+
+**Blocks.** The period is cut into calendar months. The first block starts
+at `--from` and the last ends at `--until`, so the first and last blocks may
+be partial months; every other block is a whole month. When both dates fall
+in the same month there is a single block.
+
+For each block, in date order, print a line `FIRST..LAST` (the block's first
+and last dates as `YYYY-MM-DD`), then the budget table for the block in
+exactly T4's format: T4's header line, then one row per budgeted account and
+commodity. Blocks are separated by one blank line.
+
+**Within a block:**
+- **Actual** is T4's Actual over the block's dates.
+- **Budget** is computed from the rule occurrences dated inside the block,
+  as T4 computes it, subject to the answer to the open question below.
+- **Remaining** is the block's Budget minus its Actual.
+
+Every block lists the same rows: every account and commodity that any
+periodic transaction budgets (T4), including in a month where its rule has
+no occurrence. Without `--monthly`, `budget` is unchanged, and `--monthly`
+keeps every `budget` error.
+
+Open question: With `--monthly`, how is each month's Budget figure worked out? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "`budget <journal> --from 2026-01-01 --until 2026-03-31 --monthly` prints three blocks, each a `FIRST..LAST` line followed by a table in T4's format, separated by one blank line.",
+  "A period that starts or ends inside a month gives partial first and last blocks (`2026-01-15..2026-01-31`, `2026-02-01..2026-02-28`, `2026-03-01..2026-03-10`), and a period inside one month gives a single block.",
+  "Each block's Actual counts only real postings dated inside the block (descendant accounts included), its Budget follows the answer to the open question, and Remaining is Budget minus Actual.",
+  "Every block lists every budgeted account and commodity, even in a month where its rule has no occurrence.",
+  "Without `--monthly` the output of `budget` is unchanged.",
+  "`--monthly` with `--from` after `--until` exits with status 2 and `tally: error: --from must not be after --until`; a missing `--from` or `--until` exits with status 2.",
+]
+notes = '''
+- Block header: exactly `YYYY-MM-DD..YYYY-MM-DD` (two dots, no spaces).
+- One empty line between blocks and none after the last; the output ends
+  with a newline like every report.
+- An occurrence belongs to the block its date falls in; a yearly rule
+  budgets only the month of its occurrence.
+- Rows within a block are sorted by account name and, within one account,
+  with the default commodity first and then by commodity code (the order
+  `balance` uses).
+'''
+depends_on = ["T1", "T4"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[item.question]
+asked = "With `--monthly`, how is each month's Budget figure worked out?"
+answer = "Yes. Each month's Budget is that month's own budget plus the previous month's Remaining for the same account and commodity, so an overspend (a negative Remaining) reduces the next month's Budget. The first block carries nothing in. Actual is never carried, and Remaining is still that block's Budget minus its Actual."
+
+[[item]]
+id = "T9"
+title = "Show net worth over time with a `networth` command"
+summary = "`networth --until DATE [--from DATE] [--convert COMMODITY] [--forecast]` prints what Assets and Liabilities add up to at the end of each month."
+description = '''
+Users want to see how their net worth develops: what their assets and
+liabilities add up to at the end of each month, in one currency, and how it
+continues if their recurring transactions keep happening. This combines
+commodities (T1), conversion (T2) and periodic transactions (T3).
+
+    python3 -m tally networth <journal> --until DATE [--from DATE] [--convert COMMODITY] [--forecast]
+
+**Net worth on a date** is the sum, per commodity, of the amounts of every
+posting to `Assets`, `Liabilities` or any of their descendants
+(`Assets:Checking`, `Liabilities:Card:Visa`, but not `AssetsOld:Box`) in
+real transactions dated on or before that date. All history counts:
+`--from` only chooses where the report starts, never which postings count.
+
+**Row dates.** The last day of each month from the month of the first date
+through the month of `--until`, except that the final date is `--until`
+itself (the same thing when `--until` is a month end). The first date is
+`--from` when given; otherwise the date of the earliest real transaction,
+or `--until` when that is earlier or the journal has no real transactions.
+
+**Lines.** For each date, one line per commodity of its net worth, in
+`balance` order (default commodity first, then by code): the date, two
+spaces, and the amount right-aligned in the 14-character column exactly as
+`balance` shows amounts (T1), for example `2026-01-31     1055.00 USD`. A
+commodity with any counted posting gets a line even when it sums to zero. A
+date with no counted posting prints one line with `0.00`
+(`2026-01-31            0.00`).
+
+**`--convert COMMODITY`** converts each date's postings into COMMODITY
+exactly as `balance --convert` (T2) does, with the row's date in place of
+`--at`: the same price lookup, the same rounding, the same treatment of the
+default commodity and of amounts already in the target, and the same error
+message and exit status when a price is missing, naming the row's date. Each
+row is converted at its own date's prices. Only postings a row counts need a
+price. Rows are worked out in date order, and when any fails nothing is
+printed on stdout.
+
+**`--forecast`** also counts the occurrences of periodic transactions (T3),
+as `forecast` generates them, that are dated after the latest real
+transaction (any date, when there are no real transactions) and on or before
+the row's date. Their postings count like real ones and are converted like
+them.
+
+**Errors** (exit status 2, `tally: error: ...` on stderr, nothing on stdout):
+`--from` after `--until` (`--from must not be after --until`), an invalid
+`--convert` code (a message containing `invalid commodity '<text>'`), a
+journal with problems (its problems). A missing `--until` or an invalid date
+is a usage error with status 2.
+'''
+acceptance = [
+  "`networth <journal> --until 2026-03-15` prints, for 2026-01-31, 2026-02-28 and 2026-03-15 (starting from the month of the earliest transaction), one `DATE  AMOUNT` line per commodity of the sum of postings to Assets and Liabilities and their descendants dated on or before that date.",
+  "`--from` sets the first month but every posting on or before a row's date still counts, and a date before any counted posting prints a single `0.00` line.",
+  "Postings to accounts outside Assets and Liabilities never count (`AssetsOld:Box` is not under `Assets`), and a commodity that nets to zero keeps its line.",
+  "`--convert USD` converts each row at the prices in effect on that row's date, following every rule of `balance --convert` (T2), including its rounding and its handling of amounts already in USD and in the default commodity.",
+  "When a counted posting has no usable price for a row's date, `networth --convert` fails with T2's missing-price message naming that row's date and T2's exit status, printing nothing on stdout; postings the report does not count never need a price.",
+  "`--forecast` adds the periodic occurrences dated after the latest real transaction, together with commodities and `--convert`; without `--forecast` periodic transactions never count.",
+  "`--from` after `--until`, an invalid `--convert` code, a missing `--until`, and a journal with problems each exit with status 2 and print nothing on stdout.",
+]
+notes = '''
+- Line format: `f"{date}  {text:>14}"`, where text is the amount as
+  `balance` displays it (`1055.00 USD`, `-25.00 EUR`, `0.00`).
+- Every month between the first and the last gets a line, changed or not.
+- Without `--from`, periodic rules do not decide the first month; only real
+  transactions do.
+- `--forecast` cut-off: occurrences strictly after the latest real
+  transaction's date, generated from each rule's start date as `forecast`
+  lists them.
+- Conversion: T2's rules apply unchanged, with the row's date as the `--at`
+  date.
+'''
+depends_on = ["T1", "T2", "T3"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[[item]]
+id = "T10"
+title = "Record what commodities cost with `@`, and value postings at cost with `--cost`"
+summary = "A posting may carry an `@` cost; transactions balance on cost; `print` keeps it; `balance`, `register` and `networth` gain `--cost`."
+description = '''
+Users buy shares and foreign currency with money from another account. With
+T1 alone such a purchase cannot balance: `10 AAPL` against `-1500.00 USD` is
+unbalanced in both commodities. A cost annotation records what was paid, so
+the transaction balances on its cost. This touches parsing, balancing,
+writing and the reports from T1, T2, T3, T6 and T9.
+
+**Syntax.** A posting's amount may be followed by whitespace, `@`,
+whitespace and a *cost*: a decimal number with an optional commodity code,
+in the T1 amount syntax.
+
+    2026-02-01 Buy shares
+        Assets:Broker      10 AAPL @ COST USD
+        Assets:Checking
+
+How the cost relates to the quantity is the open question below.
+
+**Weight.** Every posting has a *weight*: what it counts as when balancing.
+A posting without a cost weighs its own amount in its own commodity. A
+posting with a cost weighs an amount in the cost's commodity determined by
+its quantity and its cost (see the open question), with the sign of its
+quantity. Weights are exact; nothing is rounded.
+
+Balancing (T1) uses weights in place of amounts: a transaction must balance
+in every commodity of its postings' weights, T1's `does not balance` problems
+report the sums of the weights, and an elided amount receives the balancing
+weight (and has no cost). Periodic transactions (T3) follow the same rules.
+
+**Problems**, reported by `check` at the posting's line (and making other
+commands exit 2, as every problem does):
+- the text after `@` is not a number with an optional valid commodity code,
+  or the number is not greater than zero: `invalid cost '<text>'`, where
+  `<text>` is everything after the `@`, trimmed, with each run of whitespace
+  written as one space;
+- the cost's commodity is the posting's own commodity (including both being
+  the default commodity): `cost must be in a different commodity`.
+
+**Display.** `print` and `forecast` write a posting with a cost as its
+amount, ` @ `, and the cost, both formatted as `balance` shows amounts:
+`10.00 AAPL @ 1500.00 USD`. Their output remains a journal `check` accepts.
+
+**Reports.** Every report keeps showing quantities (`balance` shows
+`6.00 AAPL`). A new flag `--cost` on `balance`, `register` and `networth`
+(T9) counts each posting that has a cost as its weight instead of its
+quantity; postings without a cost are unchanged. With `--convert`, the
+weight is what gets converted (by T2's rules), so a cost already in the
+target is not converted. `--depth` (T6), the ACCOUNT argument and
+`--from`/`--until` work as usual. Costs are not prices: `prices` lists only
+`P` directives and `--convert` uses only them.
+
+Open question: Is the amount after `@` the price of one unit of the posting's commodity, or the total cost of the posting's whole quantity? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "A purchase of AAPL with an `@` cost in USD and an elided second posting passes `check`, and `print` fills the elided posting with the negated weight in USD, as the answer to the open question defines the weight.",
+  "A transaction whose weights do not balance is reported with T1's `transaction does not balance in USD (off by ...)` message, computed from the weights, and a sale (negative quantity) weighs a negative amount.",
+  "`print` and `forecast` write `QUANTITY CODE @ COST CODE` with both amounts to two places, and `print`'s output passes `check`.",
+  "`check` reports `invalid cost '<text>'` for a cost that is not a positive amount with an optional valid code, and `cost must be in a different commodity` when the cost is in the posting's own commodity.",
+  "`balance` without `--cost` still shows quantities; `balance --cost` shows weights and combines with `--convert` (weights converted, costs already in the target unchanged), `--depth` and the ACCOUNT argument.",
+  "`register --cost` lists each posting with a cost as its weight, with the running total kept per commodity of the weights, and `networth --cost` counts weights.",
+  "`prices` does not list costs, and `balance --convert` without a `P` price still fails for a commodity that only has `@` costs.",
+]
+notes = '''
+- The amount text is split on whitespace; a token that is exactly `@`
+  separates the quantity (before) from the cost (after). Both sides use T1's
+  amount forms: `NUMBER` or `NUMBER CODE`.
+- The weight's sign is the sign of the quantity.
+- A cost in the default commodity is allowed when the quantity has a code:
+  `2 AAPL @ 300` weighs in the default commodity.
+- An elided posting next to postings with costs: the residuals are computed
+  per weight commodity; with more than one, T1's
+  `cannot infer amount: postings use more than one commodity` applies.
+- `--cost` with `--convert`: value each included posting at its weight
+  first, then apply T2's conversion and rounding to that weight.
+- `register --cost`: the amount column shows the weight and its commodity;
+  running totals are kept per weight commodity.
+- `networth --cost`: weights are summed (and converted with `--convert`)
+  instead of quantities.
+'''
+depends_on = ["T1", "T2", "T3", "T6", "T9"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[item.question]
+asked = "Is the amount after `@` the price of one unit of the posting's commodity, or the total cost of the posting's whole quantity?"
+answer = "The total for the whole quantity. `10 AAPL @ 1500.00 USD` means the ten shares cost 1500.00 USD together, so the posting weighs 1500.00 USD; `-4 AAPL @ 700 USD` (a sale) weighs -700.00 USD. Never multiply the cost by the quantity: the broker statements the owner copies from give totals."
+
+[[item]]
+id = "T11"
+title = "Import into an existing journal: a commodity, and skipping rows already recorded"
+summary = "`import` gains a `commodity` rules directive and a `--journal FILE` option that leaves out rows the journal already records."
+description = '''
+Two gaps in `import` (T5): imported amounts cannot carry a commodity (T1),
+and re-importing a statement that overlaps what is already in the journal
+produces duplicates.
+
+**`commodity CODE` directive.** A new rules-file directive. When present,
+both postings of every imported transaction carry CODE
+(`Expenses:Coffee  4.50 EUR`). The value must be a valid commodity code
+(T1); otherwise the error is `invalid commodity '<value>'`, reported the way
+T5 reports every rules-file error. Without the directive, amounts are in the
+default commodity, as today.
+
+**`--journal FILE` option.**
+
+    python3 -m tally import <csv file> --rules <rules file> --journal <journal file>
+
+FILE is loaded the way reports load their journal: if it has problems,
+`import` fails as reports do (exit status 2, each problem on stderr as
+`tally: error: FILE:LINE: message`, nothing on stdout), and an unreadable
+FILE exits with status 2.
+
+A CSV row is a *duplicate* when FILE has a posting, in a real transaction
+(not a periodic one), to exactly the rules' `account` (not a descendant),
+with the row's amount (compared as numbers: `-4.5` equals `-4.50`) and
+commodity (the `commodity` directive's, or the default), and with a date
+that matches the row's date (see the open question). Rows are taken in CSV
+order; a duplicate row uses up one journal posting, and a used posting
+cannot make another row a duplicate, so two identical rows need two journal
+postings to both be left out.
+
+Duplicate rows are left out of the output; the other rows are printed
+exactly as T5 prints them. When at least one row was left out, stderr gets
+exactly one line, after the output: `tally: note: skipped N duplicate row(s)`
+(N the number left out), and the exit status is still 0. When no row was
+left out, stderr is empty. When every row was a duplicate, stdout is empty.
+
+The rules file and the CSV are read and checked first, exactly as in T5; the
+journal is loaded after them.
+
+Open question: When looking for duplicates, must the journal posting's date equal the CSV row's date exactly? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "`commodity EUR` in the rules file gives both postings of every imported transaction the code `EUR`; without it the output is unchanged.",
+  "An invalid `commodity` value exits with status 2, prints nothing on stdout, and prints `tally: error: RULES:LINE: invalid commodity 'eur'` on stderr.",
+  "With `--journal`, a row matched by a journal posting to the rules' account with the same amount and commodity and a date matching as the answer to the open question says is left out, and stderr is exactly `tally: note: skipped N duplicate row(s)` with exit status 0.",
+  "Rows are taken in CSV order and each journal posting makes at most one row a duplicate.",
+  "Postings to another account (including a descendant of the rules' account), with a different amount or commodity, or in periodic transactions never make a row a duplicate, and when nothing is skipped stderr is empty.",
+  "A `--journal` file with problems exits with status 2 with its problems on stderr and nothing on stdout; a `--journal` file that does not exist exits with status 2.",
+]
+notes = '''
+- Amounts are compared after T5's handling of the CSV cell (thousands
+  separators removed), as decimal numbers.
+- The note line is exactly `tally: note: skipped N duplicate row(s)`, with
+  `row(s)` whatever N is.
+- A rules-file error or a CSV error is reported before the journal is read,
+  with T5's messages.
+'''
+depends_on = ["T1", "T5"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 300
+
+[item.question]
+asked = "When looking for duplicates, must the journal posting's date equal the CSV row's date exactly?"
+answer = "No. The bank books card payments a few days after they happen, so a journal posting dated up to 3 days before or after the row's date (inclusive) matches; account, amount and commodity must still be equal. When several unused journal postings match a row, the row uses the one whose date is closest to the row's date, and the earliest in the journal file on a tie."

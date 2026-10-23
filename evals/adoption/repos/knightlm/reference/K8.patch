@@ -1,0 +1,395 @@
+diff --git a/README.md b/README.md
+index 2644849..eb2a585 100644
+--- a/README.md
++++ b/README.md
+@@ -62,6 +62,7 @@ cargo run --locked -- compile fixtures/start.json --legal-choices --san
+ cargo run --locked -- import-pgn game.pgn --game 1
+ cargo run --locked -- export-pgn fixtures/repetition.json
+ cargo run --locked -- encode fixtures/start.json --relative
++cargo run --locked -- opening-tree fixtures/openings.pgn --plies 2
+ cargo run --locked -- validate-evals fixtures/evaluations.jsonl
+ cargo run --locked -- audit-splits fixtures/splits.json
+ cargo run --locked -- validate-corpora fixtures/corpora.json
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 59ec3a4..0a606ea 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -67,6 +67,16 @@ enum Command {
+     },
+     /// Write a normalized game as PGN with SAN movetext.
+     ExportPgn { game: PathBuf },
++    /// Count main-line move sequences across every game of a PGN file.
++    OpeningTree {
++        file: PathBuf,
++        /// Depth of the tree in plies (1 to 12).
++        #[arg(long, default_value_t = 4)]
++        plies: usize,
++        /// Leave out moves played in fewer games than this.
++        #[arg(long, default_value_t = 1)]
++        min_count: u32,
++    },
+     /// Encode the current position as a flat 64-square board (FEN reading order).
+     Encode {
+         game: PathBuf,
+@@ -98,6 +108,16 @@ fn read<T: serde::de::DeserializeOwned>(path: &PathBuf) -> Result<T> {
+ fn game(path: &PathBuf) -> Result<GameState> {
+     GameState::replay(&read::<GameRecord>(path)?)
+ }
++/// A PGN file's text and its file name (the last path component), for provenance.
++fn read_pgn(path: &PathBuf) -> Result<(String, String)> {
++    let text = std::fs::read_to_string(path).with_context(|| path.display().to_string())?;
++    let name = path
++        .file_name()
++        .context("PGN path has no file name")?
++        .to_string_lossy()
++        .into_owned();
++    Ok((text, name))
++}
+ fn emit<T: serde::Serialize>(value: &T, compact: bool) -> Result<()> {
+     let value = serde_json::to_value(value)?;
+     println!(
+@@ -274,12 +294,7 @@ fn main() -> Result<()> {
+             emit(&report, false)?;
+         }
+         Command::ImportPgn { file, game } => {
+-            let text =
+-                std::fs::read_to_string(&file).with_context(|| file.display().to_string())?;
+-            let name = file
+-                .file_name()
+-                .context("PGN path has no file name")?
+-                .to_string_lossy();
++            let (text, name) = read_pgn(&file)?;
+             emit(&knightlm_core::pgn::import(&text, &name, game)?, false)?;
+         }
+         Command::ExportPgn { game } => {
+@@ -288,6 +303,17 @@ fn main() -> Result<()> {
+                 knightlm_core::pgn::export(&read::<GameRecord>(&game)?)?
+             )
+         }
++        Command::OpeningTree {
++            file,
++            plies,
++            min_count,
++        } => {
++            let (text, name) = read_pgn(&file)?;
++            emit(
++                &knightlm_core::tree::opening_tree(&text, &name, plies, min_count)?,
++                false,
++            )?;
++        }
+         Command::Encode {
+             game: path,
+             relative,
+diff --git a/crates/core/src/lib.rs b/crates/core/src/lib.rs
+index bcf5c8e..61bd174 100644
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -5,6 +5,7 @@ pub mod experiment;
+ pub mod pgn;
+ pub mod san;
+ pub mod state;
++pub mod tree;
+ pub mod vision;
+ 
+ pub const SCHEMA_VERSION: u32 = 1;
+diff --git a/crates/core/src/pgn.rs b/crates/core/src/pgn.rs
+index 0be9318..c114f7e 100644
+--- a/crates/core/src/pgn.rs
++++ b/crates/core/src/pgn.rs
+@@ -137,7 +137,25 @@ pub fn import(text: &str, file_name: &str, index: usize) -> Result<GameRecord> {
+         "PGN file contains {} games; --game {index} is out of range",
+         games.len()
+     );
+-    let game = &games[index - 1];
++    import_game(&games[index - 1], file_name, index)
++}
++
++/// Import every game of a PGN file, in file order. The first game that fails
++/// to import refuses the whole file; its error names the game (`game 2: ...`).
++pub fn import_all(text: &str, file_name: &str) -> Result<Vec<(PgnGame, GameRecord)>> {
++    parse_games(text)?
++        .into_iter()
++        .enumerate()
++        .map(|(i, game)| {
++            let record = import_game(&game, file_name, i + 1)
++                .map_err(|e| anyhow::anyhow!("game {}: {e:#}", i + 1))?;
++            Ok((game, record))
++        })
++        .collect()
++}
++
++/// Import one parsed game; `index` (1-based) names it in the provenance.
++pub fn import_game(game: &PgnGame, file_name: &str, index: usize) -> Result<GameRecord> {
+     if let Some(result) = game.tag("Result") {
+         ensure!(
+             result == game.termination,
+diff --git a/crates/core/src/tree.rs b/crates/core/src/tree.rs
+new file mode 100644
+index 0000000..3f63cb2
+--- /dev/null
++++ b/crates/core/src/tree.rs
+@@ -0,0 +1,140 @@
++//! Opening tree: how often each main-line move sequence occurs across the games
++//! of one PGN file, with the termination markers of the games behind it.
++//! Nodes are move sequences, not positions: transpositions stay separate.
++use anyhow::{Result, ensure};
++use serde::Serialize;
++
++use crate::state::GameState;
++
++/// Deepest opening tree that may be requested, in plies.
++pub const MAX_TREE_PLIES: usize = 12;
++
++/// Games behind a node, counted by their PGN termination marker.
++#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
++pub struct ResultCounts {
++    #[serde(rename = "1-0")]
++    pub white_wins: u32,
++    #[serde(rename = "0-1")]
++    pub black_wins: u32,
++    #[serde(rename = "1/2-1/2")]
++    pub draws: u32,
++    #[serde(rename = "*")]
++    pub unfinished: u32,
++}
++
++impl ResultCounts {
++    fn add(&mut self, termination: &str) {
++        match termination {
++            "1-0" => self.white_wins += 1,
++            "0-1" => self.black_wins += 1,
++            "1/2-1/2" => self.draws += 1,
++            _ => self.unfinished += 1,
++        }
++    }
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct TreeNode {
++    pub san: String,
++    pub uci: String,
++    /// The current FEN after this node's move sequence, as `compile` reports it.
++    pub fen: String,
++    pub count: u32,
++    pub results: ResultCounts,
++    pub moves: Vec<TreeNode>,
++    /// 1-based index of the earliest game in the file that reaches this node.
++    #[serde(skip)]
++    pub first_game: usize,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct OpeningTree {
++    /// Games that contribute to the tree (every game without a `FEN` tag).
++    pub games: u32,
++    /// Games left out because they start from a setup position.
++    pub skipped_setup: u32,
++    pub plies: usize,
++    pub min_count: u32,
++    pub moves: Vec<TreeNode>,
++}
++
++/// Build the opening tree of a PGN file down to `plies` plies, leaving out
++/// nodes reached by fewer than `min_count` games (and everything below them).
++/// Every game is imported with the `import-pgn` rules; one that fails refuses
++/// the file.
++pub fn opening_tree(
++    text: &str,
++    file_name: &str,
++    plies: usize,
++    min_count: u32,
++) -> Result<OpeningTree> {
++    ensure!(
++        (1..=MAX_TREE_PLIES).contains(&plies),
++        "--plies must be between 1 and {MAX_TREE_PLIES}"
++    );
++    ensure!(min_count >= 1, "--min-count must be at least 1");
++    let mut tree = OpeningTree {
++        games: 0,
++        skipped_setup: 0,
++        plies,
++        min_count,
++        moves: Vec::new(),
++    };
++    for (index, (game, record)) in crate::pgn::import_all(text, file_name)?
++        .into_iter()
++        .enumerate()
++    {
++        if game.tag("FEN").is_some() {
++            tree.skipped_setup += 1;
++            continue;
++        }
++        tree.games += 1;
++        let mut state = GameState::replay(&crate::state::GameRecord {
++            moves: vec![],
++            ..record.clone()
++        })?;
++        let mut level = &mut tree.moves;
++        for uci in record.moves.iter().take(plies) {
++            let san = state.san(uci)?;
++            state.play(uci)?;
++            let at = match level.iter().position(|node| &node.uci == uci) {
++                Some(at) => at,
++                None => {
++                    level.push(TreeNode {
++                        san,
++                        uci: uci.clone(),
++                        fen: state.fen(),
++                        count: 0,
++                        results: ResultCounts::default(),
++                        moves: Vec::new(),
++                        first_game: index + 1,
++                    });
++                    level.len() - 1
++                }
++            };
++            let node = &mut level[at];
++            node.count += 1;
++            node.results.add(&game.termination);
++            level = &mut node.moves;
++        }
++    }
++    prune(&mut tree.moves, min_count);
++    sort_siblings(&mut tree.moves);
++    Ok(tree)
++}
++
++fn prune(nodes: &mut Vec<TreeNode>, min_count: u32) {
++    nodes.retain(|node| node.count >= min_count);
++    for node in nodes {
++        prune(&mut node.moves, min_count);
++    }
++}
++
++/// Most frequent first; equal counts keep the order of first appearance in
++/// the file (the earliest game reaching the move comes first).
++fn sort_siblings(nodes: &mut [TreeNode]) {
++    nodes.sort_by(|a, b| b.count.cmp(&a.count).then(a.first_game.cmp(&b.first_game)));
++    for node in nodes {
++        sort_siblings(&mut node.moves);
++    }
++}
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index f8d600d..26f40ba 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -551,3 +551,53 @@ fn encoding_lists_squares_in_fen_reading_order_and_mirrors_when_relative() {
+         knightlm_core::encode::encode(&start(), false).squares
+     });
+ }
++
++#[test]
++fn opening_tree_counts_lines_and_orders_ties_by_first_appearance() {
++    let text = std::fs::read_to_string(concat!(
++        env!("CARGO_MANIFEST_DIR"),
++        "/../../fixtures/openings.pgn"
++    ))
++    .unwrap();
++    let tree = knightlm_core::tree::opening_tree(&text, "openings.pgn", 2, 1).unwrap();
++    assert_eq!((tree.games, tree.skipped_setup, tree.plies), (3, 1, 2));
++    let first: Vec<_> = tree
++        .moves
++        .iter()
++        .map(|n| (n.san.as_str(), n.count))
++        .collect();
++    assert_eq!(first, [("e4", 2), ("d4", 1)]);
++    let e4 = &tree.moves[0];
++    assert_eq!(e4.uci, "e2e4");
++    assert_eq!(
++        (
++            e4.results.white_wins,
++            e4.results.black_wins,
++            e4.results.draws
++        ),
++        (1, 1, 0)
++    );
++    // e5 (game 1) and c5 (game 3) tie: the earlier game's move comes first.
++    let replies: Vec<_> = e4.moves.iter().map(|n| n.san.as_str()).collect();
++    assert_eq!(replies, ["e5", "c5"]);
++    assert!(e4.moves.iter().all(|n| n.moves.is_empty()));
++    assert_eq!(
++        e4.moves[0].fen,
++        "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
++    );
++    for plies in [0, knightlm_core::tree::MAX_TREE_PLIES + 1] {
++        assert!(knightlm_core::tree::opening_tree(&text, "openings.pgn", plies, 1).is_err());
++    }
++    let common = knightlm_core::tree::opening_tree(&text, "openings.pgn", 2, 2).unwrap();
++    assert_eq!(common.moves.len(), 1);
++    assert_eq!(common.moves[0].san, "e4");
++    assert!(common.moves[0].moves.is_empty());
++    assert!(knightlm_core::tree::opening_tree(&text, "openings.pgn", 2, 0).is_err());
++    let err = knightlm_core::tree::opening_tree("1. e4 *\n\n1. Ke2 *\n", "bad.pgn", 4, 1)
++        .unwrap_err()
++        .to_string();
++    assert!(
++        err.starts_with("game 2: move 1 (white): illegal or ambiguous SAN"),
++        "{err}"
++    );
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index fa3d108..1f9c4cf 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -95,7 +95,14 @@ for JSON shape/serialization. Neither is an independent full chess rules oracle.
+ ## Deferred interfaces
+ 
+ PGN import (`import-pgn`) produces normalized `GameRecord`s with explicit
+-provenance; a FEN setup tag yields `history_complete: false`. Bulk PGN ingestion
++provenance; a FEN setup tag yields `history_complete: false`. `opening-tree` imports every game of
++one PGN file with the same rules and counts main-line move sequences to a
++bounded depth (at most 12 plies), optionally leaving out moves played in fewer
++than `--min-count` games. Nodes are move sequences, not positions, so
++transpositions stay separate; games from a setup position are counted as
++skipped rather than merged into the tree. Siblings are ordered by count, then
++by first appearance in the file. One game that fails to import refuses the
++whole file. Bulk PGN ingestion
+ must stream and cap resources. Bulk eval ingestion
+ must stream, cap resources, preserve depth/node metadata and retain cp-versus-mate
+ semantics. The current in-memory JSONL reader is for bounded fixtures only.
+diff --git a/fixtures/openings.pgn b/fixtures/openings.pgn
+new file mode 100644
+index 0000000..b640a55
+--- /dev/null
++++ b/fixtures/openings.pgn
+@@ -0,0 +1,25 @@
++[Event "KnightLM opening-tree fixture"]
++[Site "fixture-openings-1"]
++[Result "1-0"]
++
++1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 1-0
++
++[Event "KnightLM opening-tree fixture"]
++[Site "fixture-openings-2"]
++[Result "1/2-1/2"]
++
++1. d4 d5 2. c4 e6 1/2-1/2
++
++[Event "KnightLM opening-tree fixture"]
++[Site "fixture-openings-3"]
++[Result "0-1"]
++
++1. e4 c5 2. Nf3 d6 0-1
++
++[Event "KnightLM opening-tree fixture"]
++[Site "fixture-openings-4"]
++[Result "*"]
++[SetUp "1"]
++[FEN "4k3/8/8/8/8/8/4P3/4K3 w - - 0 1"]
++
++1. e4 Kd7 *
+diff --git a/scripts/check_cli.py b/scripts/check_cli.py
+index 930825e..77fb489 100644
+--- a/scripts/check_cli.py
++++ b/scripts/check_cli.py
+@@ -32,6 +32,10 @@ def main():
+     run("audit-splits", "fixtures/splits.json")
+     run("validate-corpora", "fixtures/corpora.json")
+     run("verify-observation", "fixtures/start.json", "fixtures/observation.json")
++    tree = json.loads(run("opening-tree", "fixtures/openings.pgn", "--plies", "2"))
++    assert (tree["games"], tree["skipped_setup"]) == (3, 1)
++    assert [(n["san"], n["count"]) for n in tree["moves"]] == [("e4", 2), ("d4", 1)]
++    run("opening-tree", "fixtures/openings.pgn", "--plies", "13", succeeds=False)
+     replies = json.loads(run("simulate", "fixtures/start.json", "e2e4", "e7e5", "--budget", "2"))
+     assert [r["branch"] for r in replies] == [1, 2]
+     run("simulate", "fixtures/start.json", "e2e4", "e7e5", "--budget", "1", succeeds=False)

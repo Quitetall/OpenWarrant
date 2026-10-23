@@ -5,6 +5,10 @@
 #   2. Before patch i is applied (patches 0..i-1 applied), item i's check fails.
 #   3. After patches 0..i are applied, items 0..i pass and the visible
 #      test suite passes.
+#   4. For an item with an open question ([item.question]): with patches
+#      0..i-1 plus reference/<ID>.default.patch (the item built with the
+#      natural default instead of the answer), the item's check fails and the
+#      visible tests pass. That tree is then discarded and <ID>.patch applied.
 #
 # Takes no arguments. Works in a temporary directory under /mnt/4tb/tmp and
 # removes it on exit. Exit status 0 only if every assertion holds.
@@ -31,7 +35,7 @@ git -C "$REPO" init -q
 git -C "$REPO" add -A
 git -C "$REPO" commit -qm seed
 
-# One line per item, in `order`: ID <TAB> timeout <TAB> shell-quoted check.
+# One line per item, in `order`: ID <TAB> timeout <TAB> question? (0/1) <TAB> shell-quoted check.
 mapfile -t ITEMS < <(python3 - "$HERE/backlog.toml" "$HIDDEN" "$REPO" <<'PY'
 import shlex, sys, tomllib
 backlog_path, hidden, repo = sys.argv[1:]
@@ -47,13 +51,23 @@ for item_id in order:
     seen.add(item_id)
 for item_id in order:
     item = items[item_id]
+    question = item.get("question")
+    if question:
+        text = f"Open question: {question['asked'].strip()} The answer will be added to this item; follow it."
+        assert item["description"].rstrip().endswith(text), f"{item_id}: description must end with the open question"
+        assert question["answer"].strip() not in item["description"], f"{item_id}: answer leaks into the description"
     argv = [a.replace("{hidden}", f"{hidden}/{item_id}").replace("{repo}", repo) for a in item["check"]]
-    print(f"{item_id}\t{item['timeout_secs']}\t{shlex.join(argv)}")
+    print(f"{item_id}\t{item['timeout_secs']}\t{1 if question else 0}\t{shlex.join(argv)}")
 PY
 )
 
 ids=()
-for line in "${ITEMS[@]}"; do ids+=("${line%%$'\t'*}"); done
+questions=()
+for line in "${ITEMS[@]}"; do
+    ids+=("${line%%$'\t'*}")
+    rest="${line#*$'\t'}"; rest="${rest#*$'\t'}"
+    questions+=("${rest%%$'\t'*}")
+done
 printf 'items in order: %s\n' "${ids[*]}"
 
 run_check() { # index -> exit status of that item's check, run in the repo
@@ -61,6 +75,7 @@ run_check() { # index -> exit status of that item's check, run in the repo
     rest="${line#*$'\t'}"
     timeout="${rest%%$'\t'*}"
     cmd="${rest#*$'\t'}"
+    cmd="${cmd#*$'\t'}"
     (cd "$REPO" && eval "timeout $timeout $cmd" >/dev/null 2>&1)
 }
 
@@ -78,6 +93,21 @@ for i in "${!ids[@]}"; do
     id="${ids[$i]}"
     echo "$id:"
     if run_check "$i"; then fail "$id check passes before its patch"; else pass "$id check fails before its patch"; fi
+    if [ "${questions[$i]}" = 1 ]; then
+        default="$HERE/reference/$id.default.patch"
+        if [ ! -f "$default" ]; then
+            fail "reference/$id.default.patch is missing"
+        elif git -C "$REPO" apply --check "$default" 2>/dev/null; then
+            git -C "$REPO" apply "$default"
+            pass "reference/$id.default.patch applies"
+            if run_check "$i"; then fail "$id check passes with the default instead of the answer"; else pass "$id check fails with the default instead of the answer"; fi
+            if run_visible; then pass "visible tests pass with the default"; else fail "visible tests fail with the default"; fi
+        else
+            fail "reference/$id.default.patch does not apply"
+        fi
+        git -C "$REPO" reset -q --hard HEAD
+        git -C "$REPO" clean -qfdx
+    fi
     if git -C "$REPO" apply --check "$HERE/reference/$id.patch" 2>/dev/null; then
         git -C "$REPO" apply "$HERE/reference/$id.patch"
         git -C "$REPO" add -A

@@ -1,6 +1,6 @@
 schema = "ow-adoption/backlog/v1"
 repo = "knightlm"
-order = ["K1", "K2", "K3", "K4", "K5", "K6"]
+order = ["K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9", "K10", "K11"]
 
 [project]
 facts = '''
@@ -407,5 +407,366 @@ notes = '''
 - `expected`/`observed` are one-character strings or JSON `null`.
 '''
 depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K7"
+title = "Encode the current position as a flat board"
+summary = "`encode <game.json> [--relative]` prints the current position as 64 square strings plus castling, en passant, counters and repetition count, optionally from the side to move's point of view."
+description = '''
+Model inputs need the position as a fixed-size array, not a FEN string the
+model has to parse. Add an `encode` subcommand:
+
+    knightlm encode <game.json> [--relative]
+
+`<game.json>` is a `GameRecord`, replayed exactly as `compile` does. Output is
+one JSON object on stdout with exactly these keys:
+
+- `fen`: the current FEN, exactly as `compile` reports it.
+- `side_to_move`: `"white"` or `"black"`.
+- `relative`: `true` when `--relative` was given, otherwise `false`.
+- `squares`: a list of 64 one-character strings, one per square: the FEN piece
+  letter of the piece on it (`P`, `n`, ...) or `"."` for an empty square.
+- `castling`: an object with exactly the boolean keys `white_king_side`,
+  `white_queen_side`, `black_king_side`, `black_queen_side`: the current
+  castling rights (the FEN castling field).
+- `en_passant`: the en passant target square (e.g. `"d6"`) only when an en
+  passant capture is legal right now, otherwise `null`. This is the same rule
+  the repetition ledger uses: a double pawn push with no pawn able to capture,
+  or whose capture would be illegal (a pinned pawn), gives `null`.
+- `halfmove_clock` and `fullmove_number`: integers, the last two fields of `fen`.
+- `repetition_count`: exactly `compile`'s `facts.repetition_count` (an integer,
+  or `null` when the record does not assert complete history).
+
+`--relative` presents the position from the side to move's point of view. When
+White is to move it changes nothing but `relative`. When Black is to move:
+
+- the board is mirrored vertically (a piece on rank r is placed on rank 9 - r,
+  files unchanged) and every piece changes case (`p` becomes `P`, `K` becomes
+  `k`), so the side to move is always uppercase and moves up the board; `squares`
+  lists this mirrored board, in the same order as without the flag;
+- `castling` swaps sides: `white_king_side` and `white_queen_side` carry Black's
+  rights, `black_*` carry White's;
+- `en_passant` is mirrored too (`d3` becomes `d6`);
+- `fen`, `side_to_move` and the counters stay exactly as without the flag.
+
+An invalid game record (illegal move, unknown field, unreadable file) is
+refused: nonzero exit and nothing on stdout.
+
+Open question: In what order does `squares` list the 64 squares: which square is index 0, and which comes next? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "For the start position, `encode` prints exactly the keys fen, side_to_move, relative, squares, castling, en_passant, halfmove_clock, fullmove_number and repetition_count, with the start FEN, `white`, `false`, all four castling rights, `null` en passant, counters 0 and 1 and repetition count 1.",
+  "`squares` holds 64 one-character strings (piece letters or `.`) in the order the answer to the open question gives, after any replayed moves.",
+  "`fen`, the counters and `repetition_count` agree with `compile`; `repetition_count` is `null` for a record without complete history.",
+  "Castling rights follow the ledger (lost after a king move; partial rights from the FEN).",
+  "`en_passant` names the target square only when an en passant capture is legal now, and is `null` after a double push with no capturer or with only a pinned capturer.",
+  "With `--relative` and White to move, the output equals the plain output except `relative: true`.",
+  "With `--relative` and Black to move, the board is mirrored vertically with colours swapped, castling rights swap sides and the en passant square is mirrored, while `fen` and `side_to_move` stay absolute.",
+  "An illegal move, an unknown record field or a missing file is refused with a nonzero exit and nothing on stdout.",
+]
+notes = '''
+- Key names are exact; `squares` entries are strings of length 1, `.` for empty.
+- `en_passant` is a lowercase square name or JSON `null`.
+- Mirroring is vertical only (ranks flip, files stay): e4 maps to e5, a1 to a8.
+'''
+depends_on = []
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+[item.question]
+asked = "In what order does `squares` list the 64 squares: which square is index 0, and which comes next?"
+answer = "FEN reading order: index 0 is a8, then b8 ... h8, then a7 ... h7, and so on down to h1 at index 63 (rank 8 first; files a to h within each rank). Under `--relative` the same order applies to the mirrored board. This deliberately differs from the a1-first order `verify-observation` uses for mismatches."
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K8"
+title = "Build an opening tree from a PGN file"
+summary = "`opening-tree <file.pgn> [--plies N] [--min-count C]` imports every game with the K4 rules and prints a nested tree of main-line move sequences with counts, FENs (K3 SAN) and results."
+description = '''
+To choose evaluation positions we need to see which opening lines a PGN
+collection actually contains. Add:
+
+    knightlm opening-tree <file.pgn> [--plies N] [--min-count C]
+
+Every game of the file is imported with exactly the `import-pgn` rules (K4).
+If any game fails to import, the whole command is refused: nonzero exit,
+nothing on stdout, and stderr contains `game <i>: ` (i is the 1-based game
+number) immediately followed by the message `import-pgn` gives for that game,
+for example `game 2: move 1 (white): illegal or ambiguous SAN "Ke2"`. A file that
+cannot be split into games (for example a missing termination marker) is
+refused with `import-pgn`'s message.
+
+Games with a `FEN` tag start from a setup position: they are imported (and so
+validated) but left out of the tree, and counted in `skipped_setup`. All other
+games are counted in `games`, including games with no moves.
+
+Output is one JSON object:
+
+    {"games": <int>, "skipped_setup": <int>, "plies": N, "min_count": C, "moves": [<node>, ...]}
+
+and each node is
+
+    {"san": "e4", "uci": "e2e4", "fen": "<FEN>", "count": <int>,
+     "results": {"1-0": a, "0-1": b, "1/2-1/2": d, "*": u}, "moves": [<node>, ...]}
+
+- The top-level `moves` holds the first moves played; a node's `moves` holds the
+  moves played next by the games that reached it. A node is a move *sequence*
+  from the start: transpositions (the same position by different move orders)
+  are separate nodes.
+- `count` is the number of games whose main line begins with the node's
+  sequence. `results` counts those games by their termination marker; all four
+  keys are always present and they sum to `count`.
+- `san` is the move's SAN (K3 rules) and `uci` its standard UCI; `fen` is the
+  current FEN after the node's sequence, exactly as `compile` reports it for a
+  standard-start record with those moves.
+- The tree goes N plies deep (default 4): nodes at depth N have `"moves": []`,
+  and so does a node where every game reaching it ends.
+- Nodes reached by fewer than C games (default 1) are left out together with
+  everything below them; `games` and `skipped_setup` still count every game.
+- Siblings are listed by `count`, highest first.
+
+`--plies` outside 1..12 is refused with `--plies must be between 1 and 12`;
+`--min-count` 0 is refused with `--min-count must be at least 1`. Refusals print
+nothing on stdout.
+
+Open question: When sibling moves have the same `count`, in what order are they listed? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "A small file produces exactly the documented tree: games, skipped_setup, plies, min_count and nested nodes with san, uci, fen, count, results and moves.",
+  "Without `--plies` the tree is 4 plies deep and `min_count` is 1.",
+  "Siblings with different counts are listed most frequent first; siblings with equal counts follow the answer to the open question, at every level.",
+  "`results` counts termination markers and sums to `count` at every node.",
+  "Games with a `FEN` tag are counted in `skipped_setup` and contribute no nodes; games shorter than the depth end their branch; games with no moves count in `games`.",
+  "Transposed move orders give separate nodes, and every node's `fen` equals what `compile` reports for its sequence.",
+  "`--min-count C` removes nodes reached by fewer than C games, with their subtrees.",
+  "`--plies` 0 or 13 and `--min-count` 0 are refused; `--plies 12` is accepted.",
+  "A game with illegal SAN, a Result tag that disagrees with its marker, or a missing termination marker refuses the whole file with nothing on stdout, naming the game as `game <i>: `.",
+]
+notes = '''
+- Key names are exact, at the top level and in every node.
+- Counting is by main line only (variations are skipped by the K4 parser).
+- A move sequence is identified by its UCI moves; the same SAN in different
+  branches is a different node.
+'''
+depends_on = ["K3", "K4"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+[item.question]
+asked = "When sibling moves have the same `count`, in what order are they listed?"
+answer = "By first appearance in the file: among siblings with equal count, the move reached by the earliest game (lowest game number in the file) comes first. Do not order ties by SAN or UCI."
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K9"
+title = "Audit every game of a PGN file"
+summary = "`audit-pgn <file.pgn> [--only-failures]` imports each game (K4), computes the result its final position establishes (K5, K2) and reports whether each game's termination marker is consistent."
+description = '''
+Before PGN collections become training data we need to know which games are
+broken and which carry a result their final position contradicts. Add:
+
+    knightlm audit-pgn <file.pgn> [--only-failures]
+
+The file is split into games as `import-pgn` does. A file that cannot be split
+(a game without termination marker, an unbalanced variation, no games at all)
+or cannot be read is refused: nonzero exit, nothing on stdout.
+
+Each game is then imported independently with the `import-pgn` rules (K4).
+A game that fails to import does not stop the audit; it is reported.
+
+Output is one JSON object `{"games": [<entry>, ...], "summary": {...}}`. One
+entry per game, in file order, with exactly these keys:
+
+- `index`: the 1-based game number.
+- `termination`: the game's termination marker (`1-0`, `0-1`, `1/2-1/2`, `*`).
+- `error`: `null`, or for a game that failed to import a string containing the
+  message `import-pgn` gives for it (e.g. `move 2 (white): illegal or ambiguous
+  SAN "Ke3"`, or one containing `disagrees with termination marker`).
+- `game_id`: the `game_id` `import-pgn` assigns.
+- `length`: the game's length (see the open question).
+- `final_fen`: the current FEN after the last move, as `compile` reports it for
+  the imported record.
+- `computed_result`: the result the final position establishes, by the
+  `export-pgn` rule (K5): `1-0`/`0-1` for checkmate, `1/2-1/2` for stalemate or
+  any other terminal reason (`proven_dead_position`, `fivefold_repetition`,
+  `seventy_five_move`), otherwise `*`.
+- `terminal_reason`: `compile`'s `facts.terminal_reason` for the final position.
+- `consistent`: `true` when `computed_result` is `*` (a game may end by
+  resignation, agreement or time with any marker) or equals `termination`;
+  `false` otherwise (for example a checkmate marked `1/2-1/2`, a stalemate or a
+  dead position marked `1-0` or `*`).
+- `claimable_draw`: `true` when `compile` would report `threefold_claim_now:
+  true` or `fifty_move_claim_now: true` for the initial position or for the
+  position after any move of the game; otherwise `false`.
+
+For a game with an error, `game_id`, `length`, `final_fen`, `computed_result`,
+`terminal_reason`, `consistent` and `claimable_draw` are all `null`.
+
+`summary` has exactly: `games` (entries in the file), `errors` (games with an
+error), `inconsistent` (imported games with `consistent: false`),
+`claimable_draws` (imported games with `claimable_draw: true`) and
+`total_length` (sum of `length` over imported games).
+
+Exit status: 0 when `errors` and `inconsistent` are both 0. Otherwise the JSON is
+still printed, then the command exits nonzero with stderr containing
+`audit failed: <errors> errors, <inconsistent> inconsistent`.
+
+`--only-failures` lists only the entries with an error or with `consistent:
+false` (keeping their `index`); `summary` and the exit status still cover every
+game.
+
+Open question: Should a game's `length` count plies (half-moves) or full moves? The answer will be added to this item; follow it.
+'''
+acceptance = [
+  "A clean checkmate game produces exactly the documented entry and summary and exits 0.",
+  "`length` and `total_length` follow the answer to the open question, including a setup game whose first move is Black's and a game with no moves.",
+  "Games whose final position establishes nothing are consistent with any marker.",
+  "A checkmate with the wrong marker, a stalemate or same-coloured-bishops dead position marked other than `1/2-1/2` are inconsistent; the JSON is printed and the command exits nonzero with `audit failed: <e> errors, <c> inconsistent`.",
+  "`claimable_draw` is true for a threefold repetition with complete history and for a fifty-move claim, and false for the same repetition from a setup position.",
+  "Games that fail to import (illegal SAN, Result tag disagreement) are reported with an `error` and null fields while the other games are audited, and the summary counts them.",
+  "`game_id` and `final_fen` agree with `import-pgn` and `compile`.",
+  "`--only-failures` lists only failing entries with their original index and keeps the full summary.",
+  "A file without a termination marker, an empty file, an unbalanced variation and a missing file are refused with nothing on stdout.",
+]
+notes = '''
+- Key names are exact, in entries and in `summary`.
+- `inconsistent`, `claimable_draws` and `total_length` count imported games only.
+- Grammar in the failure message is fixed: `1 errors` is correct output.
+'''
+depends_on = ["K2", "K4", "K5"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+[item.question]
+asked = "Should a game's `length` count plies (half-moves) or full moves?"
+answer = "Full moves, as the movetext numbers them: the number of distinct move numbers that carry at least one move of the game. `1. e4 e5 2. Nf3` has length 2, `1. e4` has 1, a setup game `40... Kd7 41. e4 Ke6` has 2, and a game with no moves has 0. `total_length` sums these."
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K10"
+title = "Extract a ply range as its own game record"
+summary = "`extract <game.json> --from-ply N [--to-ply M] [--pgn]` cuts moves N..M out of a game as a new record starting from the position after N plies."
+description = '''
+Training examples often need a game fragment: the moves from some point on,
+starting from the position reached there. Add:
+
+    knightlm extract <game.json> --from-ply N [--to-ply M] [--pgn]
+
+Plies are counted from the record's first move: ply 0 is the record's initial
+position, and the fragment holds the moves with (0-based) indices N up to but
+not including M, that is `moves[N..M]`. `--to-ply` defaults to the number of
+moves in the record. `--from-ply` is required.
+
+The output is a `GameRecord` (JSON on stdout):
+
+- `schema_version`: 1.
+- `game_id`: `<original game_id>@<N>-<M>`, with M the effective end (so
+  `--from-ply 4` on a 6-move game gives `...@4-6`).
+- `source`: `extract:<original source>`.
+- `initial_fen`: the current FEN after the first N moves, exactly as `compile`
+  reports it for a record with those moves.
+- `moves`: `moves[N..M]` in standard UCI.
+- `history_complete`: an extract always starts from a stated position, exactly
+  like a PGN game with a `FEN` tag, also when N is 0 and the position is the
+  standard start. Set it by the rule K4 recorded for such games.
+
+With `--pgn` the command prints the extracted record as `export-pgn` (K5) would
+print it, instead of JSON.
+
+Refusals (nonzero exit, nothing on stdout): an invalid record (it is replayed in
+full first); a range with N > M or M greater than the number of moves, with
+stderr containing `ply range out of bounds`; a missing or negative
+`--from-ply`.
+'''
+acceptance = [
+  "A middle range prints exactly the documented record: `<id>@N-M`, `extract:<source>`, the FEN after N plies, the moves N..M and `history_complete` by the K4 rule.",
+  "Without `--to-ply` the extract runs to the last move.",
+  "`--from-ply 0` keeps the original initial FEN and all moves, and `history_complete` still follows the K4 rule.",
+  "An empty range (N = M) is a record with no moves; a source without complete history works the same way.",
+  "For every N, `initial_fen` equals the FEN `compile` reports after N moves, and compiling the extract gives the original game's final FEN.",
+  "A setup record's plies count from its own first move.",
+  "`--pgn` prints the extract as `export-pgn` would, including the SetUp/FEN tags and move numbers taken from the FEN, and it re-imports with `import-pgn` to the same game_id, initial_fen, history_complete and moves.",
+  "Ranges with N > M or ending past the last move are refused with `ply range out of bounds`; a missing or negative `--from-ply` and an invalid record are refused.",
+]
+notes = '''
+- Ply indices are 0-based positions between moves: `--from-ply 2 --to-ply 4`
+  on `e2e4 e7e5 g1f3 b8c6 f1b5` gives `g1f3 b8c6`, starting after `e7e5`.
+- The extract keeps no repetition history from before ply N; that is why its
+  history claim follows the setup-position rule.
+'''
+depends_on = ["K4", "K5"]
+check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
+timeout_secs = 600
+
+# ---------------------------------------------------------------------------
+[[item]]
+id = "K11"
+title = "Check a perft suite file"
+summary = "`perft-suite <file.epd> [--max-depth N]` runs perft (K1) on every position of an EPD-style suite and reports each `;D<d> <count>` entry as passed, failed or skipped."
+description = '''
+K1's `perft` checks one position at a time. Move-generator regressions are
+caught with suites of many positions and published counts. Add:
+
+    knightlm perft-suite <file.epd> [--max-depth N]
+
+Suite format, one position per line:
+
+    rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - ;D1 20 ;D2 400
+
+- Blank lines and lines starting with `#` are ignored; leading and trailing
+  whitespace is ignored.
+- The text before the first `;` is the position: either the four FEN fields
+  placement, side, castling, en passant (the counters are then `0 1`), or a full
+  six-field FEN. It must be a valid standard position.
+- Each `;`-separated entry after it is `D<depth> <count>`: depth an integer of
+  at least 1, count a non-negative integer. A line needs at least one entry and
+  may not list the same depth twice. Entries may come in any order.
+
+Nodes are counted exactly as `perft` (K1) counts them, so adjudicated positions
+(dead positions, for example) still have their moves counted.
+
+`--max-depth` defaults to perft's maximum depth from K1. It must be between 1
+and that maximum, otherwise the command is refused with `--max-depth must be
+between 1 and <maximum>`. Entries deeper than `--max-depth` are not computed:
+they are counted in `skipped` and not listed.
+
+Output is one JSON object:
+
+    {"positions": P, "checked": C, "passed": X, "failed": F, "skipped": S, "results": [...]}
+
+with one result per checked entry, in file order and, within a line, in the
+order the entries are written:
+
+    {"line": <1-based line number in the file>, "fen": "<six-field FEN>",
+     "depth": d, "expected": <count>, "nodes": <perft count>, "pass": <bool>}
+
+`positions` counts position lines; `fen` is the six-field FEN (with `0 1`
+appended to a four-field position). When `failed` is 0 the exit status is 0;
+otherwise the JSON is printed and the command exits nonzero with stderr
+containing `perft suite failed: <failed> of <checked>`.
+
+A malformed line refuses the whole suite: nonzero exit, nothing on stdout, and
+stderr contains `line <L>: ` with L its 1-based line number. A suite with no
+position lines, or a file that cannot be read, is refused too.
+'''
+acceptance = [
+  "A one-line start-position suite prints exactly the documented report with both entries passing and exits 0.",
+  "Kiwipete, position 3 and position 5 (K1 notes) pass at depths 1 to 3, with four-field positions reported with `0 1` and six-field FENs kept as given.",
+  "Line numbers count every line of the file, including comments and blanks, and results follow file order and the written entry order.",
+  "A wrong count is reported with its actual node count and `pass: false`, then the command exits nonzero with `perft suite failed: <F> of <C>`.",
+  "Entries deeper than `--max-depth` (default: perft's maximum depth from K1) are skipped and counted, not computed.",
+  "`--max-depth` 0 or above perft's maximum depth is refused with the documented message.",
+  "Dead and checkmated positions are counted by movement rules (a checkmate gives 0).",
+  "Missing counts, lines without entries, depth 0, duplicate depths, non-numeric counts, unknown labels, a position with the wrong number of fields and an invalid position are refused with `line <L>: `.",
+  "An empty suite, a comment-only suite and a missing file are refused with nothing on stdout.",
+]
+notes = '''
+- Key names are exact, in the report and in every result.
+- A position line with only skipped entries still counts in `positions`.
+'''
+depends_on = ["K1"]
 check = ["python3", "-m", "pytest", "-q", "-p", "no:cacheprovider", "{hidden}"]
 timeout_secs = 600

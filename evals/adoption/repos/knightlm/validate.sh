@@ -4,6 +4,11 @@
 #   1. On the seed alone, every item's check fails.
 #   2. With reference patches order[0..=i] applied, item order[i]'s check passes,
 #      so does every earlier item's, and `cargo test --workspace --locked` passes.
+#   3. (v2) For an item with an [item.question]: earlier patches plus
+#      reference/<ID>.default.patch (the item built with the natural default
+#      instead of the answer) make that item's check FAIL while
+#      `cargo test --workspace --locked` still passes. The default patch is then
+#      reverted and <ID>.patch applied as in 2.
 #
 # Standalone, no arguments. Clones the source at the pinned commit into a fresh
 # directory under /mnt/4tb/tmp, keeps all cargo output there, and removes it on exit.
@@ -86,8 +91,47 @@ for id in "${ORDER[@]}"; do
   log "seed: $id check fails as required ($((SECONDS - start))s; $(tail -1 "$WORK/check-$id.log"))"
 done
 
+has_question() { # has_question <id>: exit 0 when the item carries an [item.question]
+  python3 - "$HERE/backlog.toml" "$1" <<'PY'
+import sys, tomllib
+item = next(i for i in tomllib.load(open(sys.argv[1], "rb"))["item"] if i["id"] == sys.argv[2])
+sys.exit(0 if "question" in item else 1)
+PY
+}
+
+snapshot() { # tree id of the working tree (the throwaway clone's index is scratch)
+  git -C "$REPO" add -A && git -C "$REPO" write-tree
+}
+
+cargo_test() { # cargo_test <label>
+  local start=$SECONDS
+  if ! (cd "$REPO" && timeout 1800 cargo test --workspace --locked -q > "$WORK/test-$1.log" 2>&1); then
+    tail -30 "$WORK/test-$1.log"
+    fail "cargo test --workspace --locked fails after $1"
+  fi
+  log "  cargo test --workspace --locked passes ($((SECONDS - start))s)"
+}
+
 done_ids=()
 for id in "${ORDER[@]}"; do
+  if has_question "$id"; then
+    default="$HERE/reference/$id.default.patch"
+    [[ -f "$default" ]] || fail "$id has a question but no $id.default.patch"
+    before="$(snapshot)"
+    git -C "$REPO" apply --check "$default" || fail "$id.default.patch does not apply"
+    git -C "$REPO" apply "$default"
+    log "applied $id.default.patch ($(grep -c "^diff --git" "$default") files)"
+    prepare
+    start=$SECONDS
+    if run_check "$id"; then
+      tail -5 "$WORK/check-$id.log"
+      fail "$id check passes with the natural default instead of the answer"
+    fi
+    log "  $id check fails on the default as required ($((SECONDS - start))s; $(tail -1 "$WORK/check-$id.log"))"
+    cargo_test "$id.default"
+    git -C "$REPO" apply -R "$default" || fail "$id.default.patch does not revert"
+    [[ "$(snapshot)" == "$before" ]] || fail "reverting $id.default.patch did not restore the tree"
+  fi
   patch="$HERE/reference/$id.patch"
   git -C "$REPO" apply --check "$patch" || fail "$id.patch does not apply"
   git -C "$REPO" apply "$patch"
@@ -102,12 +146,7 @@ for id in "${ORDER[@]}"; do
     fi
     log "  $earlier check passes ($((SECONDS - start))s; $(tail -1 "$WORK/check-$earlier.log"))"
   done
-  start=$SECONDS
-  if ! (cd "$REPO" && timeout 1800 cargo test --workspace --locked -q > "$WORK/test-$id.log" 2>&1); then
-    tail -30 "$WORK/test-$id.log"
-    fail "cargo test --workspace --locked fails after $id"
-  fi
-  log "  cargo test --workspace --locked passes ($((SECONDS - start))s)"
+  cargo_test "$id"
 done
 
 log "disk: $(du -sh "$CARGO_TARGET_DIR" | cut -f1) target, $(du -sh "$CARGO_BUILD_BUILD_DIR" | cut -f1) build"
