@@ -50,6 +50,8 @@ path = "tests/all.rs"
 [dependencies]
 # Byte search for the schema prefilter over large records (compat.rs).
 memchr = "=2.8.3"
+# Anonymous capture files keep preceding gate evidence readable until publication.
+tempfile = "=3.27.0"
 chrono = { version = "=0.4.45", default-features = false, features = ["std"] }
 sha2 = { workspace = true }
 # Native BLUT reference byte identities; separate Apache-2.0-capable implementation.

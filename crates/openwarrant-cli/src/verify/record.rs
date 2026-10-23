@@ -66,6 +66,64 @@ pub(crate) fn new(
     }))
 }
 
+/// Shared immutable parse of exactly these wire bytes; no source judgment is cached.
+pub(crate) fn decode_shared(
+    text: &str,
+) -> Result<
+    std::sync::Arc<ReadRecord>,
+    openwarrant_core::verification_record::VerificationRecordError,
+> {
+    use std::collections::VecDeque;
+    use std::sync::{Arc, Mutex, OnceLock};
+    const MAX_ENTRIES: usize = 32;
+    const MAX_WIRE_BYTES: usize = 32 * 1024 * 1024;
+    #[derive(Default)]
+    struct Cache {
+        entries: VecDeque<(Box<str>, Arc<ReadRecord>)>,
+        wire_bytes: usize,
+    }
+    impl Cache {
+        fn get(&mut self, text: &str) -> Option<Arc<ReadRecord>> {
+            let index = self
+                .entries
+                .iter()
+                .position(|(wire, _)| wire.as_ref() == text)?;
+            let entry = self.entries.remove(index)?;
+            let record = Arc::clone(&entry.1);
+            self.entries.push_back(entry);
+            Some(record)
+        }
+    }
+    static CACHE: OnceLock<Mutex<Cache>> = OnceLock::new();
+    let cache = CACHE.get_or_init(Default::default);
+    if let Ok(mut cached) = cache.lock()
+        && let Some(record) = cached.get(text)
+    {
+        return Ok(record);
+    }
+    // Decode with the unchanged codec and outside the lock. Failed/unsupported
+    // inputs are never remembered; callers still observe their current bytes.
+    let record = Arc::new(decode(text)?);
+    if text.len() <= MAX_WIRE_BYTES
+        && let Ok(mut cached) = cache.lock()
+    {
+        if let Some(existing) = cached.get(text) {
+            return Ok(existing);
+        }
+        while cached.entries.len() >= MAX_ENTRIES
+            || cached.wire_bytes.saturating_add(text.len()) > MAX_WIRE_BYTES
+        {
+            let Some((wire, _)) = cached.entries.pop_front() else {
+                break;
+            };
+            cached.wire_bytes = cached.wire_bytes.saturating_sub(wire.len());
+        }
+        cached.wire_bytes += text.len();
+        cached.entries.push_back((text.into(), Arc::clone(&record)));
+    }
+    Ok(record)
+}
+
 pub(crate) fn decode(
     text: &str,
 ) -> Result<ReadRecord, openwarrant_core::verification_record::VerificationRecordError> {
@@ -196,18 +254,18 @@ pub(crate) fn prior_matches(
     let mut retained = Vec::new();
     let base = dir.join("verifications");
     for (directory, history) in [(&base, false), (&base.join("history"), true)] {
-        let metadata = match std::fs::symlink_metadata(directory) {
-            Ok(metadata) => metadata,
+        let regular = match crate::vfs::regular_directory(directory) {
+            Ok(regular) => regular,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
             Err(e) => return Err(unavailable("verify.history-unavailable", &e.to_string())),
         };
-        if !metadata.is_dir() || metadata.file_type().is_symlink() {
+        if !regular {
             return Err(unavailable(
                 "verify.history-unavailable",
                 "review history is not a regular directory",
             ));
         }
-        let entries = std::fs::read_dir(directory)
+        let entries = crate::vfs::read_dir(directory)
             .map_err(|e| unavailable("verify.history-unavailable", &e.to_string()))?;
         for entry in entries {
             let entry =
@@ -232,8 +290,8 @@ pub(crate) fn prior_matches(
             let Ok(text) = std::str::from_utf8(&bytes) else {
                 continue;
             };
-            match decode(text) {
-                Ok(record) => retained.push(record.verification),
+            match decode_shared(text) {
+                Ok(record) => retained.push(record.verification.clone()),
                 Err(openwarrant_core::verification_record::VerificationRecordError::UnsupportedSchema { schema }) => {
                     return Err(unavailable("verify.record-schema-unsupported", &format!("{relative}: unsupported verification record {schema}")));
                 }
@@ -248,6 +306,98 @@ pub(crate) fn prior_matches(
 mod tests {
     use super::*;
     use openwarrant_core::verification_record::VerificationRecordError;
+
+    #[test]
+    fn prior_observations_are_read_from_the_hosted_basis() {
+        let text = r#"
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "synthetic original evidence; no execution claim"
+performer = "fixture-worker"
+[verifier]
+actor = "fixture-reviewer"
+kind = "agent"
+[verifier.independence]
+performer_transcript_blind = false
+performer_rationale_blind = false
+separate_writable_workspace = false
+cannot_modify_subject_artifacts = false
+cannot_modify_gate_definition = false
+cannot_modify_gate_fixtures = false
+separate_context_compilation = false
+distinct_model_required = false
+distinct_human_required = false
+"#;
+        let root = camino::Utf8PathBuf::from(format!(
+            "/liminal-prior-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let config =
+            include_bytes!("../../../../conformance/fixtures/inbox/repository/openwarrant.toml");
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [
+                ("openwarrant.toml".to_owned(), config.to_vec()),
+                (
+                    "docs/warrants/IX-WAR-0003/verifications/OBL-001.toml".to_owned(),
+                    text.as_bytes().to_vec(),
+                ),
+            ]
+            .into_iter()
+            .collect(),
+            Default::default(),
+        ));
+        let observed = decode(text).unwrap().verification;
+        let shown = serde_json::json!([observed]);
+        crate::vfs::hosted(tree, || {
+            let repo = crate::repo::Repository::open(root.clone()).unwrap();
+            assert!(
+                prior_matches(&repo, &root.join("docs/warrants/IX-WAR-0003"), &shown).unwrap(),
+                "retained observations in the basis must not depend on a physical directory"
+            );
+        });
+    }
+
+    #[test]
+    fn shared_decode_reuses_only_identical_wire_bytes() {
+        let text = r#"
+obligation = "OBL-001"
+disposition = "not_established"
+evidence = "synthetic original evidence; no execution claim"
+performer = "fixture-worker"
+[verifier]
+actor = "fixture-reviewer"
+kind = "agent"
+[verifier.independence]
+performer_transcript_blind = false
+performer_rationale_blind = false
+separate_writable_workspace = false
+cannot_modify_subject_artifacts = false
+cannot_modify_gate_definition = false
+cannot_modify_gate_fixtures = false
+separate_context_compilation = false
+distinct_model_required = false
+distinct_human_required = false
+"#;
+        let first = decode_shared(text).unwrap();
+        let repeated = decode_shared(text).unwrap();
+        assert!(
+            std::sync::Arc::ptr_eq(&first, &repeated),
+            "identical successful parses share immutable data"
+        );
+        let changed = text.replace("original evidence", "changed evidence");
+        let next = decode_shared(&changed).unwrap();
+        assert!(!std::sync::Arc::ptr_eq(&first, &next));
+        assert_eq!(
+            next.verification.evidence,
+            "synthetic changed evidence; no execution claim"
+        );
+        let malformed = format!("obligation = 7\n{text}");
+        assert!(
+            decode_shared(&malformed).is_err(),
+            "a prior valid parse cannot hide changed invalid bytes"
+        );
+    }
 
     #[test]
     fn compact_read_adapter_preserves_codec_acceptance_and_bindings() {
@@ -337,6 +487,21 @@ distinct_human_required = false
             }
             let expected = openwarrant_core::compact_verification_record::decode(&text);
             let actual = decode(&text);
+            let shared = decode_shared(&text);
+            match (&actual, &shared) {
+                (Ok(actual), Ok(shared)) => {
+                    assert_eq!(actual.verification, shared.verification, "{fault}");
+                    assert_eq!(
+                        serde_json::to_value(&actual.binding).unwrap(),
+                        serde_json::to_value(&shared.binding).unwrap(),
+                        "{fault}"
+                    );
+                }
+                (Err(actual), Err(shared)) => {
+                    assert_eq!(actual.to_string(), shared.to_string(), "{fault}")
+                }
+                _ => panic!("shared decoding changed codec acceptance for {fault}"),
+            }
             match (expected, actual) {
                 (Ok(expected), Ok(actual)) => {
                     assert_eq!(actual.verification, expected.verification, "{fault}");

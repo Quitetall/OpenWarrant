@@ -1,0 +1,11 @@
+
+running 1 test
+test sdk_cli::source_lock_matches_the_existing_f5_vector_and_refuses_changed_bytes ... FAILED
+
+failures:
+
+failures:
+    sdk_cli::source_lock_matches_the_existing_f5_vector_and_refuses_changed_bytes
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 362 filtered out; finished in 0.01s
+

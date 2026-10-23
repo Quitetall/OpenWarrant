@@ -753,7 +753,9 @@
       "batch-acceptance-invalid",
       "difficulty-invalid",
       "legacy-import-invalid",
-      "legacy-capture-invalid"
+      "legacy-capture-invalid",
+      "source-lock",
+      "source-lock-drift"
     ],
     "conformance/sdk/conditions/cases.json": [
       "all-fields",

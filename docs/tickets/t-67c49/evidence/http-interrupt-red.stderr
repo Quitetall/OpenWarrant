@@ -1,0 +1,5 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow78-evidence-20261023/crates/openwarrant-cli)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-ow78-evidence-20261023/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 24.78s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+error: test failed, to rerun pass `-p openwarrant-cli --lib`

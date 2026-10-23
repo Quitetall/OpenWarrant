@@ -217,27 +217,9 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
         .timeout_secs
         .map_or(DEFAULT_GATE_TIMEOUT, Duration::from_secs);
 
-    // Where the streams land. Created before the spawn so a failure to open them
-    // is an askability problem, not a half-run.
-    if std::fs::create_dir_all(dir).is_err() {
-        return GateRun {
-            id,
-            gate: def.key(),
-            askability: Askability::NotAskable,
-            execution_status: ExecutionStatus::Invalid,
-            verdict: Verdict::Unknown,
-            reason_code: Some(ReasonCode::ForeignWorkingDirectory),
-        };
-    }
-    let slug = def.key().replace(['/', '@', '.'], "_");
-    let (out_path, err_path) = (
-        dir.join(format!("{slug}.stdout.txt")),
-        dir.join(format!("{slug}.stderr.txt")),
-    );
-    let (Ok(stdout_file), Ok(stderr_file)) = (
-        std::fs::File::create(&out_path),
-        std::fs::File::create(&err_path),
-    ) else {
+    // Capture away from the corpus: the child may check the preceding receipt
+    // and its streams, and must not see them truncated or a live temporary file.
+    let Ok(mut streams) = CapturedStreams::new(def, dir) else {
         return GateRun {
             id,
             gate: def.key(),
@@ -247,7 +229,92 @@ pub fn run_gate(def: &GateDefinition, repo: &Repository, dir: &camino::Utf8Path)
             reason_code: Some(ReasonCode::ForeignWorkingDirectory),
         };
     };
+    let (Ok(stdout_file), Ok(stderr_file)) =
+        (streams.stdout.try_clone(), streams.stderr.try_clone())
+    else {
+        return GateRun {
+            id,
+            gate: def.key(),
+            askability: Askability::Askable,
+            execution_status: ExecutionStatus::InfrastructureError,
+            verdict: Verdict::Unknown,
+            reason_code: None,
+        };
+    };
+    let mut run = execute_gate(def, repo, id, deadline, stdout_file, stderr_file);
+    if let Err(error) = streams.publish() {
+        eprintln!("gate-run.capture: {error}; captured output could not be published");
+        run.verdict = Verdict::Unknown;
+        // Preserve a pre-execution askability refusal; a completed process with
+        // unreadable/unpublishable output cannot provide an admissible verdict.
+        if run.askability == Askability::Askable {
+            run.execution_status = ExecutionStatus::InfrastructureError;
+            run.reason_code = None;
+        }
+    }
+    run
+}
 
+struct CapturedStreams {
+    stdout: std::fs::File,
+    stderr: std::fs::File,
+    stdout_path: camino::Utf8PathBuf,
+    stderr_path: camino::Utf8PathBuf,
+    stdout_before: crate::compile::atomic::Prestate,
+    stderr_before: crate::compile::atomic::Prestate,
+}
+
+impl CapturedStreams {
+    fn new(def: &GateDefinition, dir: &camino::Utf8Path) -> Result<Self, String> {
+        std::fs::create_dir_all(dir).map_err(|error| error.to_string())?;
+        let slug = def.key().replace(['/', '@', '.'], "_");
+        let stdout_path = dir.join(format!("{slug}.stdout.txt"));
+        let stderr_path = dir.join(format!("{slug}.stderr.txt"));
+        let stdout_before =
+            crate::compile::atomic::prestate(&stdout_path).map_err(|e| e.to_string())?;
+        let stderr_before =
+            crate::compile::atomic::prestate(&stderr_path).map_err(|e| e.to_string())?;
+        Ok(Self {
+            stdout: tempfile::tempfile().map_err(|e| e.to_string())?,
+            stderr: tempfile::tempfile().map_err(|e| e.to_string())?,
+            stdout_path,
+            stderr_path,
+            stdout_before,
+            stderr_before,
+        })
+    }
+
+    fn publish(&mut self) -> Result<(), String> {
+        use std::io::{Seek, SeekFrom};
+        self.stdout
+            .seek(SeekFrom::Start(0))
+            .map_err(|e| e.to_string())?;
+        self.stderr
+            .seek(SeekFrom::Start(0))
+            .map_err(|e| e.to_string())?;
+        crate::compile::atomic::write_from_if(
+            &self.stdout_path,
+            &mut self.stdout,
+            &self.stdout_before,
+        )
+        .map_err(|e| e.to_string())?;
+        crate::compile::atomic::write_from_if(
+            &self.stderr_path,
+            &mut self.stderr,
+            &self.stderr_before,
+        )
+        .map_err(|e| e.to_string())
+    }
+}
+
+fn execute_gate(
+    def: &GateDefinition,
+    repo: &Repository,
+    id: String,
+    deadline: Duration,
+    stdout_file: std::fs::File,
+    stderr_file: std::fs::File,
+) -> GateRun {
     let started = Instant::now();
     let spawned = Command::new(&def.argv[0])
         .args(&def.argv[1..])
@@ -965,8 +1032,22 @@ pub mod source {
             let index = Self(dir);
             match fs::metadata(&source) {
                 Ok(meta) if meta.is_file() => {
-                    fs::copy(source, index.0.join("index"))
+                    let modified = meta
+                        .modified()
+                        .map_err(|e| format!("cannot read Git index timestamp: {e}"))?;
+                    let copy = index.0.join("index");
+                    fs::copy(source, &copy)
                         .map_err(|e| format!("cannot copy Git index for observation: {e}"))?;
+                    // Git uses the index timestamp to decide whether matching
+                    // stat data may hide a same-size edit. A newer copy can
+                    // incorrectly turn that racy entry into a trusted one.
+                    fs::OpenOptions::new()
+                        .write(true)
+                        .open(&copy)
+                        .and_then(|file| {
+                            file.set_times(fs::FileTimes::new().set_modified(modified))
+                        })
+                        .map_err(|e| format!("cannot preserve Git index timestamp: {e}"))?;
                 }
                 Ok(_) => return Err("Git index is not a regular file".to_owned()),
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
@@ -2140,6 +2221,114 @@ mod warrant_arg_tests {
         assert_eq!(run.reason_code, Some(ReasonCode::NotRun));
         run.validate().expect("a coherent run");
         assert!(!dir.exists(), "nothing was spawned, so nothing was written");
+    }
+
+    /// A gate may inspect the evidence of its preceding run. Capturing its new
+    /// output must not destroy that evidence before the child can read it.
+    #[test]
+    fn a_child_can_read_previous_streams_until_it_finishes() {
+        let repo = this_repo();
+        let mut def = definition(&repo, "document.review@1.1.0");
+        let dir = scratch_dir("previous-streams");
+        std::fs::create_dir_all(&dir).unwrap();
+        let stdout = dir.join("document_review_1_1_0.stdout.txt");
+        let stderr = dir.join("document_review_1_1_0.stderr.txt");
+        std::fs::write(&stdout, "prior stdout\n").unwrap();
+        std::fs::write(&stderr, "prior stderr\n").unwrap();
+        def.argv = vec![
+            "python3".into(),
+            "-c".into(),
+            "import pathlib,sys; assert pathlib.Path(sys.argv[1]).read_text() == sys.argv[3]; assert pathlib.Path(sys.argv[2]).read_text() == sys.argv[4]; print('replacement stdout'); print('replacement stderr', file=sys.stderr)".into(),
+            stdout.to_string(), stderr.to_string(),
+            "prior stdout\n".into(), "prior stderr\n".into(),
+        ];
+        let direct = std::process::Command::new(&def.argv[0])
+            .args(&def.argv[1..])
+            .output()
+            .unwrap();
+        assert!(
+            direct.status.success(),
+            "the child passes before the runner: {direct:?}"
+        );
+        let run = run_gate(&def, &repo, &dir);
+        assert_eq!(
+            run.verdict,
+            Verdict::Pass,
+            "the runner must preserve the child's inputs"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&stdout).unwrap(),
+            "replacement stdout\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&stderr).unwrap(),
+            "replacement stderr\n"
+        );
+        assert_eq!(std::fs::read_dir(&dir).unwrap().count(), 2);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_failed_child_keeps_its_actual_failure_output() {
+        let repo = this_repo();
+        let mut def = definition(&repo, "document.review@1.1.0");
+        def.argv = vec!["python3".into(), "-c".into(),
+            "import sys; print('failure stdout'); print('failure stderr', file=sys.stderr); sys.exit(7)".into()];
+        let dir = scratch_dir("failed-streams");
+        let run = run_gate(&def, &repo, &dir);
+        assert_eq!(run.execution_status, ExecutionStatus::Completed);
+        assert_eq!(run.verdict, Verdict::Fail);
+        assert_eq!(
+            std::fs::read_to_string(dir.join("document_review_1_1_0.stdout.txt")).unwrap(),
+            "failure stdout\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(dir.join("document_review_1_1_0.stderr.txt")).unwrap(),
+            "failure stderr\n"
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_moved_stream_is_preserved_and_cannot_supply_a_pass() {
+        let repo = this_repo();
+        let mut def = definition(&repo, "document.review@1.1.0");
+        let dir = scratch_dir("moved-stream");
+        std::fs::create_dir_all(&dir).unwrap();
+        let stdout = dir.join("document_review_1_1_0.stdout.txt");
+        std::fs::write(&stdout, "prior output").unwrap();
+        def.argv = vec!["python3".into(), "-c".into(),
+            "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text('other writer'); print('captured output')".into(), stdout.to_string()];
+        let run = run_gate(&def, &repo, &dir);
+        assert_eq!(run.verdict, Verdict::Unknown);
+        assert_eq!(run.execution_status, ExecutionStatus::InfrastructureError);
+        assert_eq!(std::fs::read_to_string(&stdout).unwrap(), "other writer");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn a_linked_stream_is_refused_before_the_child_starts() {
+        let repo = this_repo();
+        let mut def = definition(&repo, "document.review@1.1.0");
+        let dir = scratch_dir("linked-stream");
+        std::fs::create_dir_all(&dir).unwrap();
+        let outside = dir.join("unrelated.txt");
+        let marker = dir.join("spawned");
+        std::fs::write(&outside, "untouched").unwrap();
+        std::os::unix::fs::symlink(&outside, dir.join("document_review_1_1_0.stdout.txt")).unwrap();
+        def.argv = vec![
+            "python3".into(),
+            "-c".into(),
+            "import pathlib,sys; pathlib.Path(sys.argv[1]).touch()".into(),
+            marker.to_string(),
+        ];
+        let run = run_gate(&def, &repo, &dir);
+        assert_eq!(run.askability, Askability::NotAskable);
+        assert_eq!(run.verdict, Verdict::Unknown);
+        assert!(!marker.exists());
+        assert_eq!(std::fs::read_to_string(outside).unwrap(), "untouched");
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     /// The spawn: the bound argv is what runs. `echo <warrant>` bound to an

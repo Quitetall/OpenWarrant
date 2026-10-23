@@ -13,6 +13,9 @@ import subprocess
 import sys
 import tomllib
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from observation import publish_observation, require_new_destination
+
 
 def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
@@ -32,6 +35,7 @@ def main():
     parser.add_argument("--provider-root", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     args = parser.parse_args()
+    require_new_destination(args.output)
     root = args.provider_root.resolve(strict=True)
     ow = Path(__file__).resolve().parents[3]
     crate = root / "lamu-openwarrant"
@@ -80,8 +84,7 @@ def main():
         "limitations": ["No human assurance", "No portable package or semantic package verification", "Task readiness blocked pending record evaluation",
                         "Host OS only"],
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(receipt, indent=2) + "\n")
+    publish_observation(args.output, receipt)
     print(json.dumps({"passed": passed, "receipt": str(args.output), "tests": len(expected_tests)}))
     return 0 if passed else 1
 

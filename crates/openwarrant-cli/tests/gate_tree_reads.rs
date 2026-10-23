@@ -324,3 +324,129 @@ fn historical_comparisons_share_a_clean_tree_scan_without_hiding_dirty_changes()
         );
     }
 }
+
+/// Git deliberately rechecks content when a cached file timestamp is at least
+/// as new as the index. A private copy must preserve that index timestamp.
+#[test]
+fn private_indexes_preserve_racy_stat_content_checks() {
+    const NAME: &str = "gate_tree_reads::private_indexes_preserve_racy_stat_content_checks";
+    let Ok(value) = std::env::var("OW_RACY_INDEX_ROOT") else {
+        let scratch = std::env::temp_dir().join(format!(
+            "ow-racy-index-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        fs::create_dir(&scratch).unwrap();
+        struct Scratch(std::path::PathBuf);
+        impl Drop for Scratch {
+            fn drop(&mut self) {
+                let _ = fs::remove_dir_all(&self.0);
+            }
+        }
+        let _scratch = Scratch(scratch.clone());
+        for mode in ["off", "on"] {
+            let root = scratch.join(mode);
+            fs::create_dir(&root).unwrap();
+            let result = Command::new(std::env::current_exe().unwrap())
+                .args(["--exact", NAME, "--nocapture"])
+                .env("OW_RACY_INDEX_ROOT", root)
+                .env("OW_RACY_INDEX_CACHE", mode)
+                .output()
+                .unwrap();
+            assert!(
+                result.status.success(),
+                "{mode}: {} {}",
+                String::from_utf8_lossy(&result.stdout),
+                String::from_utf8_lossy(&result.stderr)
+            );
+        }
+        return;
+    };
+    let root = std::path::PathBuf::from(value);
+    fs::copy(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../conformance/fixtures/inbox/repository/openwarrant.toml"),
+        root.join("openwarrant.toml"),
+    )
+    .unwrap();
+    git(
+        &root,
+        &["init", "-q", "--template=", "--initial-branch=fixture"],
+    );
+    let set_time = |path: &Path, stamp| {
+        fs::OpenOptions::new()
+            .write(true)
+            .open(path)
+            .unwrap()
+            .set_times(fs::FileTimes::new().set_modified(stamp))
+            .unwrap();
+    };
+    let old = UNIX_EPOCH + std::time::Duration::from_secs(1_700_000_000);
+    let commit = |text: &str, stamp| {
+        fs::write(root.join("a"), text).unwrap();
+        set_time(&root.join("a"), stamp);
+        git(&root, &["add", "."]);
+        git(
+            &root,
+            &[
+                "-c",
+                "user.name=fixture",
+                "-c",
+                "user.email=fixture@example.invalid",
+                "-c",
+                "core.hooksPath=/dev/null",
+                "commit",
+                "--no-gpg-sign",
+                "-qm",
+                "synthetic racy source",
+            ],
+        );
+        git(&root, &["rev-parse", "HEAD^{tree}"]).trim().to_owned()
+    };
+    let first = commit("one", old);
+    let stamp = old + std::time::Duration::from_secs(1);
+    let second = commit("two", stamp);
+    assert_ne!(first, second);
+    git(&root, &["config", "core.checkStat", "minimal"]);
+    git(&root, &["config", "core.trustctime", "false"]);
+    let index = root.join(".git/index");
+    let before = fs::read(&index).unwrap();
+    fs::write(root.join("a"), "one").unwrap();
+    set_time(&root.join("a"), stamp);
+    let restore = || {
+        fs::write(&index, &before).unwrap();
+        set_time(&index, stamp);
+    };
+    restore();
+    assert_eq!(
+        git(
+            &root,
+            &["diff", "--no-renames", "--name-only", &first, "--"]
+        ),
+        ""
+    );
+    restore();
+    assert_eq!(
+        git(
+            &root,
+            &["diff", "--no-renames", "--name-only", &second, "--"]
+        ),
+        "a\n"
+    );
+    restore();
+    let repo = Repository::open(camino::Utf8PathBuf::from_path_buf(root.clone()).unwrap()).unwrap();
+    let exclusions = source::Exclusions::of(&repo);
+    if std::env::var("OW_RACY_INDEX_CACHE").unwrap() == "on" {
+        source::remember_tree_reads();
+    }
+    let against_first = source::moved_since(&repo.root, &first, &exclusions).unwrap();
+    assert_eq!(fs::read(&index).unwrap(), before);
+    assert_eq!(fs::metadata(&index).unwrap().modified().unwrap(), stamp);
+    restore();
+    let against_second = source::moved_since(&repo.root, &second, &exclusions).unwrap();
+    assert_eq!(fs::read(&index).unwrap(), before);
+    assert_eq!(fs::metadata(&index).unwrap().modified().unwrap(), stamp);
+    assert_eq!(
+        (against_first, against_second),
+        (Vec::<String>::new(), vec!["a".to_owned()])
+    );
+}

@@ -155,7 +155,7 @@ fn read_value(path: &Utf8Path) -> Result<(Vec<u8>, Value), RepoError> {
     let relative = path.strip_prefix("/").map_err(|_| {
         RepoError::Message("verify.preview-path: an absolute file path is required".into())
     })?;
-    let bytes = crate::progress_viewer::source::read(
+    let bytes = crate::vfs::read_anchored_limited(
         std::path::Path::new("/"),
         relative.as_std_path(),
         64 * 1024 * 1024,
@@ -352,15 +352,83 @@ fn obligation_for(
     }
     let mut allowance = usize::try_from(budget - fixed_bytes).unwrap_or(usize::MAX);
     for _ in 0..16 {
-        let preview = project_for(&obligation_bundle_at(src, requested, allowance)?, mode)?;
+        let bundle = obligation_bundle_at(src, requested, allowance)?;
+        let preview = project_for(&bundle, mode)?;
         if preview.view["over_budget"] == false || allowance == 0 {
-            return Ok(preview);
+            return complete_selected_files(src, bundle, preview, mode);
         }
         let over = (encoded(&preview.view)?.len() as u64).saturating_sub(budget);
         let over = usize::try_from(over).unwrap_or(usize::MAX);
         allowance = allowance.saturating_sub(over.saturating_add(over / 4).saturating_add(1024));
     }
     Ok(fixed)
+}
+
+/// Excerpt allocation is conservative about escaping and leaves useful room.
+/// Spend that room on complete small records, then their remaining source
+/// material. Fragments of structured observations can omit the value a reviewer
+/// needs. Only already-selected UTF-8 files are considered, and every promotion
+/// is measured as a final view; no existing content is removed to make room.
+fn complete_selected_files(
+    src: &Sources,
+    mut bundle: Bundle,
+    mut preview: Preview,
+    mode: Mode,
+) -> Result<Preview, RepoError> {
+    let mut candidates = Vec::new();
+    for (index, entry) in bundle.deliverables.iter().enumerate() {
+        if !entry.present || !entry.truncated {
+            continue;
+        }
+        let Some(file) = src
+            .files
+            .iter()
+            .find(|file| file.record.id == entry.id && file.record.target_ref == entry.target_ref)
+        else {
+            continue;
+        };
+        let Ok(bytes) = &file.read else { continue };
+        if bytes.len() as u64 > src.budget.saturating_mul(4) {
+            continue;
+        }
+        if std::str::from_utf8(bytes).is_err() {
+            continue;
+        }
+        let structured = matches!(
+            serde_json::from_slice::<Value>(bytes),
+            Ok(Value::Object(_) | Value::Array(_))
+        );
+        candidates.push((
+            u8::from(!structured),
+            bytes.len(),
+            entry.target_ref.clone(),
+            index,
+            file,
+        ));
+    }
+    candidates.sort_by(|a, b| (a.0, a.1, &a.2).cmp(&(b.0, b.1, &b.2)));
+    for (_, size, _, index, file) in candidates {
+        let whole = carry_file(
+            file,
+            Carry::Head(size),
+            &[],
+            bundle.deliverables[index].carried_because.clone(),
+        );
+        let previous = std::mem::replace(&mut bundle.deliverables[index], whole);
+        bundle.over_budget = false;
+        bundle = finish(bundle)?;
+        // Rebuild the archive as well as the view. Ingestion must still be
+        // able to derive the exact visible bytes from its bound archive.
+        let candidate = project_for(&bundle, mode)?;
+        if candidate.view["over_budget"] == false {
+            preview = candidate;
+        } else {
+            bundle.deliverables[index] = previous;
+            bundle.over_budget = false;
+            bundle = finish(bundle)?;
+        }
+    }
+    Ok(preview)
 }
 
 /// Retain v3 model inputs and their exact v2 archives. Canonical archives stay
@@ -500,4 +568,29 @@ pub(crate) fn emit(
         report,
         json!({"schema": "oh.war/review-previews/v1", "dispatch_eligible": false, "previews": index}),
     ))
+}
+
+#[cfg(test)]
+mod hosted_tests {
+    #[test]
+    fn retained_views_are_read_from_the_basis_without_granting_withheld_reads() {
+        let root = camino::Utf8PathBuf::from(format!(
+            "/hosted-view-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let bytes = br#"{"literal":"retained view"}"#.to_vec();
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [("view.json".into(), bytes.clone())].into_iter().collect(),
+            ["withheld.json".into()].into_iter().collect(),
+        ));
+        crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+            let (raw, value) = super::read_value(&root.join("view.json")).unwrap();
+            assert_eq!(raw, bytes);
+            assert_eq!(value, serde_json::json!({"literal":"retained view"}));
+            assert!(super::read_value(&root.join("withheld.json")).is_err());
+            assert!(super::read_value(&root.join("../outside.json")).is_err());
+        });
+        assert!(tree.consulted().withheld_read.contains("withheld.json"));
+    }
 }

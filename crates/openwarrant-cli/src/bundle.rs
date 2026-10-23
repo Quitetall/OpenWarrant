@@ -258,7 +258,7 @@ fn test_names(source: &str) -> Vec<String> {
 fn plants_naming(repo: &Repository, alias: &str) -> Vec<BundledPlant> {
     let mut out = Vec::new();
     let dir = repo.root.join("conformance/plants.d");
-    let mut files: Vec<Utf8PathBuf> = std::fs::read_dir(&dir)
+    let mut files: Vec<Utf8PathBuf> = crate::vfs::read_dir(&dir)
         .map(|rd| {
             rd.filter_map(Result::ok)
                 .filter_map(|e| Utf8PathBuf::from_path_buf(e.path()).ok())
@@ -268,7 +268,7 @@ fn plants_naming(repo: &Repository, alias: &str) -> Vec<BundledPlant> {
         .unwrap_or_default();
     files.sort();
     for f in files {
-        let Ok(text) = std::fs::read_to_string(&f) else {
+        let Ok(text) = crate::vfs::read_to_string(&f) else {
             continue;
         };
         for (i, line) in text.lines().enumerate() {
@@ -671,14 +671,10 @@ fn required_sources(
         required.insert(path.clone(), ("fixture", digest.clone()));
     }
     let directory = repo.root.join(&repo.config.paths.gates);
-    if directory.exists() {
-        for entry in directory
-            .read_dir_utf8()
+    if crate::vfs::exists(&directory) {
+        for path in crate::verify::source_directory(&directory)
             .map_err(|e| RepoError::Message(e.to_string()))?
         {
-            let path = entry
-                .map_err(|e| RepoError::Message(e.to_string()))?
-                .into_path();
             if !matches!(path.extension(), Some("yaml" | "yml")) {
                 continue;
             }
@@ -834,7 +830,7 @@ fn load_from_loaded(
             } else {
                 repo.root.join("conformance/plants.d").join(&path)
             };
-            if let Ok(text) = std::fs::read_to_string(&full) {
+            if let Ok(text) = crate::vfs::read_to_string(&full) {
                 heads.extend(echoed_headers(&text));
                 plant_sources.push(text);
             }
@@ -1201,13 +1197,13 @@ fn named_paths(src: &Sources, paths: &[String], carried_ids: &[String]) -> Vec<N
                 .collect();
             let absent = carried.is_empty().then(|| {
                 let local = src.warrant_dir.join(term.trim_end_matches('/'));
-                if local.exists() {
+                if crate::vfs::exists(&local) {
                     format!(
                         "a record of {} ({}), not a deliverable: not carried",
                         src.alias,
                         local.strip_prefix(&src.root).unwrap_or(&local)
                     )
-                } else if src.root.join(term.trim_end_matches('/')).exists() {
+                } else if crate::vfs::exists(src.root.join(term.trim_end_matches('/'))) {
                     format!(
                         "a repository path that is not a deliverable of {}: not carried",
                         src.alias
@@ -1995,6 +1991,42 @@ pub const RESPONSES_DIR: &str = "responses";
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn hosted_plant_sources_keep_the_original_lines() {
+        let root = Utf8PathBuf::from(format!(
+            "/hosted-plants-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let path = "conformance/plants.d/probe.sh";
+        let text =
+            "# unrelated\n# plant IX-WAR-0003 actual refusal\n# plant IX-WAR-9999 other work\n";
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [
+                (
+                    "openwarrant.toml".into(),
+                    include_bytes!(
+                        "../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                    )
+                    .to_vec(),
+                ),
+                (path.into(), text.as_bytes().to_vec()),
+            ]
+            .into_iter()
+            .collect(),
+            Default::default(),
+        ));
+        crate::vfs::hosted(tree, || {
+            let repo = Repository::open(root).unwrap();
+            let plants = plants_naming(&repo, "IX-WAR-0003");
+            assert_eq!(plants.len(), 1);
+            assert_eq!(plants[0].file, path);
+            assert_eq!(plants[0].line, 2);
+            assert_eq!(plants[0].text, "# plant IX-WAR-0003 actual refusal");
+            assert!(plants_naming(&repo, "IX-WAR-7777").is_empty());
+        });
+    }
 
     #[test]
     fn a_plant_s_literal_headers_are_read_and_an_expanded_one_is_not() {

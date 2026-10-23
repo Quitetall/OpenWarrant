@@ -1,0 +1,13 @@
+{
+  "kind": "source-sdk-observation-source-inputs",
+  "source_head": "045f9ec2cb8c6fcb0e077f1c6474f5c078163afe",
+  "source_status": "working candidate; source-lock implementation and observation runner added after recorded baseline tests",
+  "source_sha256": {
+    "crates/openwarrant-core/src/document/source.rs": "9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8",
+    "crates/openwarrant-cli/src/sdk.rs": "5a383412234ef5183dff7d29f5fef6318c9704c2bd32dca0835ff9d2277db07e",
+    "conformance/sdk/source/check_observations.py": "1b1f627fc4acd8fcf08b3aeb78c8bc9cad990c06693c0c85d266cb8247823d9d",
+    "conformance/sdk/source/cases.json": "cfcb93b588d15823ea5ae4662eb4acfe9560687736ec2efd267437d7b33fd4b9",
+    "docs/integrations/lamu-source-provider.md": "b0e349730732155ffb92cfdfb6500e076588bfd4c5f2239c8a9201cbc8c9ab7d"
+  },
+  "qualification_established": false
+}

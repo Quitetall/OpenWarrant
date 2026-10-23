@@ -1031,17 +1031,28 @@ pub fn answer(bytes: &[u8]) -> (u8, Response) {
     let supplied = (ssh.len(), git.len());
     let tree = Rc::new(
         vfs::Tree::new(Utf8PathBuf::from(VIRTUAL_ROOT), files, withheld)
+            .with_content_digests(
+                request
+                    .basis
+                    .members
+                    .iter()
+                    .map(|member| (member.path.clone(), member.digest.clone()))
+                    .collect(),
+            )
             .with_observations(ssh, git),
     );
     let mut diagnostics: BTreeSet<HostDiagnostic> = BTreeSet::new();
-    let built = vfs::hosted(Rc::clone(&tree), || -> Result<_, RepoError> {
-        let repo = Repository::open(Utf8PathBuf::from(VIRTUAL_ROOT))?;
-        crate::gate_cmd::source::remember_tree_reads();
-        let corpus = Corpus::new(&repo);
-        let model = model::build(&corpus)?;
-        let projections = render(&corpus, &model, &request.options.projections);
-        Ok((model, projections))
+    let built = crate::repo::compat::with_content_schema_cache(|| {
+        vfs::hosted(Rc::clone(&tree), || -> Result<_, RepoError> {
+            let repo = Repository::open(Utf8PathBuf::from(VIRTUAL_ROOT))?;
+            crate::gate_cmd::source::remember_tree_reads();
+            let corpus = Corpus::new(&repo);
+            let model = model::build(&corpus)?;
+            let projections = render(&corpus, &model, &request.options.projections);
+            Ok((model, projections))
+        })
     });
+
     let consulted = tree.consulted();
     for path in &consulted.withheld_read {
         diagnostics.insert(HostDiagnostic {
@@ -1288,13 +1299,15 @@ pub fn export(
         root: root.clone(),
         ..vfs::Recorder::default()
     }));
-    let model = vfs::recording(Rc::clone(&recorder), || -> Result<Model, RepoError> {
-        let repo = Repository::open(root.clone())?;
-        crate::gate_cmd::source::remember_tree_reads();
-        let corpus = Corpus::new(&repo);
-        let model = model::build(&corpus)?;
-        let _ = render(&corpus, &model, &projections);
-        Ok(model)
+    let model = crate::repo::compat::with_content_schema_cache(|| {
+        vfs::recording(Rc::clone(&recorder), || -> Result<Model, RepoError> {
+            let repo = Repository::open(root.clone())?;
+            crate::gate_cmd::source::remember_tree_reads();
+            let corpus = Corpus::new(&repo);
+            let model = model::build(&corpus)?;
+            let _ = render(&corpus, &model, &projections);
+            Ok(model)
+        })
     })?;
     let rec = recorder.borrow();
     let mut members = Vec::new();

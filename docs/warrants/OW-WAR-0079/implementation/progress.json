@@ -3,16 +3,20 @@
   "warrant": "OW-WAR-0079",
   "work_state": "completed",
   "reported_by": "agent://codex",
-  "revision": "334267c6af2560f5ec99f7da33666ead141d8e2f",
-  "summary": "Required context closure implemented and reviewed, including UNKNOWN, cycles, conflicts and resource bounds. Implementation complete, unverified. Merged LAMU provider retested through OW86; full-phase qualification remains separate.",
-  "notes": "docs/warrants/OW-WAR-0079/implementation/notes.md",
+  "revision": "5a032fe5b662f237f612a2a51ebac575533522fe",
+  "summary": "Implementation remains complete and unverified. Fresh native selection tests and seven input-dependent compiler cases passed, with exact source spans and named refusals retained. Independent qualification and human acceptance remain separate.",
+  "notes": "docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0079/implementation/selection-observation.json",
     "docs/warrants/OW-WAR-0086/implementation/merged-exchange-observation.json",
-    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json"
+    "docs/warrants/OW-WAR-0086/implementation/lamu-merged-pr.json",
+    "docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/native-selection.json",
+    "docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/summary.json",
+    "docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/wire.jsonl"
   ],
   "next_steps": [
-    "Retain exact historical evidence and unverified status.",
-    "Complete full Phase 1/2 qualification through OW85/86."
+    "Retain original implementation and review history without treating old verdicts as current qualification.",
+    "Assess the exact result independently, including the stated single-source compiler-example limits.",
+    "Complete Phase 1/2 qualification through OW85/86; secure human acceptance remains separate."
   ]
 }

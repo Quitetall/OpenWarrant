@@ -1,0 +1,3 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow78-evidence-20261023/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 14.35s
+     Running tests/document_condition.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/document_condition-be266649354e8f01)

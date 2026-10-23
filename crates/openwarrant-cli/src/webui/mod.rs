@@ -680,12 +680,18 @@ fn read_request(
         if Instant::now() >= deadline {
             return Err(("408 Request Timeout", "request not received in time"));
         }
-        match stream.read(&mut chunk) {
+        // A read may return bytes, EOF or an error after its caller's
+        // deadline. Classify the elapsed bound before interpreting it.
+        let read = stream.read(&mut chunk);
+        if Instant::now() >= deadline {
+            return Err(("408 Request Timeout", "request not received in time"));
+        }
+        match read {
             Ok(n) if n > 0 => bytes.extend_from_slice(&chunk[..n]),
             // A read that times out is a pause, not an end: the deadline
             // above is the bound (t-26ca). Under load a client can stall
             // longer than one read's timeout mid-request.
-            Err(e) if stalled(&e) => {}
+            Err(e) if stalled(&e) || e.kind() == std::io::ErrorKind::Interrupted => {}
             Ok(_) | Err(_) => return Err(("400 Bad Request", "incomplete request")),
         }
     };
@@ -721,9 +727,13 @@ fn read_request(
         if Instant::now() >= deadline {
             return Err(("408 Request Timeout", "body not received in time"));
         }
-        match stream.read(&mut chunk) {
+        let read = stream.read(&mut chunk);
+        if Instant::now() >= deadline {
+            return Err(("408 Request Timeout", "body not received in time"));
+        }
+        match read {
             Ok(n) if n > 0 => body.extend_from_slice(&chunk[..n]),
-            Err(e) if stalled(&e) => {}
+            Err(e) if stalled(&e) || e.kind() == std::io::ErrorKind::Interrupted => {}
             Ok(_) | Err(_) => return Err(("400 Bad Request", "incomplete body")),
         }
     }
@@ -2081,6 +2091,66 @@ fn help(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn interrupted_reads_resume_without_changing_the_request() {
+        // Script the external byte-reader boundary, not the parser itself.
+        struct Input(std::collections::VecDeque<std::io::Result<Vec<u8>>>);
+        impl Read for Input {
+            fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
+                match self.0.pop_front().unwrap_or_else(|| Ok(vec![])) {
+                    Ok(bytes) => {
+                        assert!(bytes.len() <= output.len());
+                        output[..bytes.len()].copy_from_slice(&bytes);
+                        Ok(bytes.len())
+                    }
+                    Err(error) => Err(error),
+                }
+            }
+        }
+        let header = b"POST /x HTTP/1.1\r\nHost: h\r\nContent-Length: 2\r\n\r\n";
+        let interrupt = || Err(std::io::Error::from(std::io::ErrorKind::Interrupted));
+        for steps in [
+            vec![interrupt(), Ok([header.as_slice(), b"ok"].concat())],
+            vec![Ok(header.to_vec()), interrupt(), Ok(b"ok".to_vec())],
+        ] {
+            let request = read_request(&mut Input(steps.into()), Duration::from_secs(5))
+                .expect("an interrupted read is retried within the same deadline");
+            assert_eq!(request.path, "/x");
+            assert_eq!(request.body, b"ok");
+        }
+    }
+
+    #[test]
+    fn a_read_returning_after_the_deadline_is_a_timeout() {
+        struct Input(std::collections::VecDeque<(Duration, Vec<u8>)>);
+        impl Read for Input {
+            fn read(&mut self, output: &mut [u8]) -> std::io::Result<usize> {
+                let (pause, bytes) = self.0.pop_front().unwrap_or_default();
+                std::thread::sleep(pause);
+                assert!(bytes.len() <= output.len());
+                output[..bytes.len()].copy_from_slice(&bytes);
+                Ok(bytes.len())
+            }
+        }
+        let pause = Duration::from_millis(50);
+        let header = b"POST /x HTTP/1.1\r\nHost: h\r\nContent-Length: 2\r\n\r\n";
+        for steps in [
+            vec![(pause, vec![])],
+            vec![(pause, b"GET /x HTTP/1.1\r\nHost: h\r\n\r\n".to_vec())],
+            vec![(Duration::ZERO, header.to_vec()), (pause, vec![])],
+            vec![(Duration::ZERO, header.to_vec()), (pause, b"ok".to_vec())],
+        ] {
+            let refused = read_request(&mut Input(steps.into()), Duration::from_millis(10))
+                .err()
+                .expect("late bytes cannot complete an expired request");
+            assert!(refused.0.starts_with("408 "), "{refused:?}");
+        }
+        let early = read_request(&mut std::io::Cursor::new(vec![]), Duration::from_secs(5))
+            .err()
+            .expect("early EOF is still an incomplete request");
+        assert!(early.0.starts_with("400 "), "{early:?}");
+    }
 
     /// t-26ca: a client sends an oversized request, then reads the answer
     /// only after the server has finished with the connection — a busy

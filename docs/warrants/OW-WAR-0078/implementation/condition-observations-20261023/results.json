@@ -1,0 +1,47 @@
+[
+  {
+    "name": "core",
+    "argv": [
+      "cargo",
+      "test",
+      "--locked",
+      "-p",
+      "openwarrant-core",
+      "--test",
+      "document_condition"
+    ],
+    "exit_code": 0,
+    "seconds": 14.444769652000105
+  },
+  {
+    "name": "probe",
+    "argv": [
+      "cargo",
+      "run",
+      "--locked",
+      "-p",
+      "openwarrant-core",
+      "--example",
+      "sdk_probe",
+      "--",
+      "--scope",
+      "78",
+      "--fixtures",
+      "/mnt/4tb/tmp/openwarrant-ow78-evidence-20261023/conformance/sdk"
+    ],
+    "exit_code": 0,
+    "seconds": 1.0159945679988596
+  },
+  {
+    "name": "published-provider",
+    "argv": [
+      "python3",
+      "/mnt/4tb/tmp/openwarrant-ow78-evidence-20261023/conformance/integration/conditions/run.py",
+      "--provider-root",
+      "/mnt/4tb/tmp/openwarrant-ow78-lamu-provider-20261023/lamu-rs",
+      "--output",
+      "/mnt/4tb/artifacts/OpenWarrant/keep/ow78-evidence-20261023/published-provider-observation.json"
+    ],
+    "exit_code": 0
+  }
+]

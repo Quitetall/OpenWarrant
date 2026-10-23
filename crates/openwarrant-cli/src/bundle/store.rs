@@ -16,12 +16,11 @@ fn unavailable(message: String) -> RepoError {
 /// Read the referenced inode, without a metadata/read path-following window.
 /// Packet size policy remains a separate unfinished part of bundle budgeting.
 pub(crate) fn read(root: &Utf8Path, relative: &Utf8Path) -> Result<Vec<u8>, RepoError> {
-    crate::progress_viewer::source::read(root.as_std_path(), relative.as_std_path(), usize::MAX - 1)
-        .map_err(|error| {
-            unavailable(format!(
-                "could not inspect retained packet {relative}: {error}"
-            ))
-        })
+    crate::vfs::read_anchored(root.as_std_path(), relative.as_std_path()).map_err(|error| {
+        unavailable(format!(
+            "could not inspect retained packet {relative}: {error}"
+        ))
+    })
 }
 
 #[cfg(unix)]

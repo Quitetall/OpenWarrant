@@ -88,6 +88,7 @@ def main():
         'stage':['cargo','test','--locked','-p','openwarrant-core','--test','skill_artifacts'],
         'structure':[sys.executable,'conformance/skills/check_skills.py'],
         'inventory':[sys.executable,'-m','unittest','discover','-s','conformance/sdk','-p','test_inventory.py'],
+        'observation_output':[sys.executable,'-m','unittest','discover','-s','conformance/integration','-p','test_observation_output.py'],
     }
     if {check for case in value['cases'].values() for check in case['checks']}-commands.keys():
         raise ValueError('inventory.unknown-check')

@@ -126,6 +126,10 @@ enum Operation {
         files: Vec<Blob>,
         reference: Option<s::BoundReference>,
     },
+    SourceLock {
+        descriptors: Vec<s::SourceDescriptor>,
+        files: Vec<Blob>,
+    },
     PacketDecode {
         payload: String,
     },
@@ -566,6 +570,14 @@ fn execute(op: Operation) -> Result<Value, Error> {
                 .transpose()?;
             Ok(
                 json!({"source_count":checked.len(),"selected_hex":selected.map(|b|b.iter().map(|x|format!("{x:02x}")).collect::<String>()),"semantic_coverage_established":false}),
+            )
+        }
+        Operation::SourceLock { descriptors, files } => {
+            let files = blobs(files)?;
+            let checked = s::check_sources(&descriptors, &files, s::SourceLimits::default())?;
+            let canonical = String::from_utf8(checked.canonical_lock()?).expect("JSON UTF-8");
+            Ok(
+                json!({"canonical":canonical,"source_count":checked.len(),"semantic_coverage_established":false}),
             )
         }
         Operation::PacketDecode { payload } => Ok(

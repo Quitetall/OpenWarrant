@@ -1496,6 +1496,10 @@
 > Refuse oversized verifier packets before backend calls
 - t-28c41 · ticket · done · Refuse oversized verifier packets before backend calls · docs/tickets/t-28c41/manifest.toml:1
 
+## docs/tickets/t-2a254/manifest.toml
+> Prevent gate reruns from invalidating the evidence read by their own child checks
+- t-2a254 · ticket · done · Preserve prior gate streams while a new gate is running · docs/tickets/t-2a254/manifest.toml:1
+
 ## docs/tickets/t-2c94/manifest.toml
 > 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails
 - t-2c94 · ticket · done · 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails · docs/tickets/t-2c94/manifest.toml:1
@@ -1507,6 +1511,10 @@
 ## docs/tickets/t-30da3/manifest.toml
 > Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128)
 - t-30da3 · ticket · done · Write the KF decision documents: OW-ADR-0024 (OW-WAR-0126), kf-compiler.md and OW-ADR-0027 (OW-WAR-0128) · docs/tickets/t-30da3/manifest.toml:1
+
+## docs/tickets/t-325ad/manifest.toml
+> Keep repeated validation of retained verification records within existing command budgets
+- t-325ad · ticket · done · Reuse decoded verification bytes without caching current-source judgments · docs/tickets/t-325ad/manifest.toml:1
 
 ## docs/tickets/t-3293/manifest.toml
 > Partial verdicts: 0141 OBL-004, 0133 OBL-005, 0136 OBL-006, 0130 OBL-002, 0134 OBL-005
@@ -1548,6 +1556,10 @@
 > Observe declared Linux storage crash and refusal controls
 - t-3f3e9 · ticket · done · Observe declared Linux storage crash and refusal controls · docs/tickets/t-3f3e9/manifest.toml:1
 
+## docs/tickets/t-40a06/manifest.toml
+> Keep complete review records when model budget permits
+- t-40a06 · ticket · done · Keep complete review records when model budget permits · docs/tickets/t-40a06/manifest.toml:1
+
 ## docs/tickets/t-418bc/manifest.toml
 > Reconnect retained provider captures in source-detached runtime archive queries
 - t-418bc · ticket · done · Reconnect retained provider captures in source-detached runtime archive queries · docs/tickets/t-418bc/manifest.toml:1
@@ -1571,6 +1583,10 @@
 ## docs/tickets/t-4948f/manifest.toml
 > Correct stale additive agent-guidance installation instructions (OW68/S08)
 - t-4948f · ticket · done · Correct stale additive agent-guidance installation instructions (OW68/S08) · docs/tickets/t-4948f/manifest.toml:1
+
+## docs/tickets/t-49c5a/manifest.toml
+> Prevent private index copies from hiding same-size edits or inventing source changes
+- t-49c5a · ticket · done · Keep private Git index copies faithful to source timestamps · docs/tickets/t-49c5a/manifest.toml:1
 
 ## docs/tickets/t-4c3f/manifest.toml
 > 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it
@@ -1619,6 +1635,10 @@
 ## docs/tickets/t-5872/manifest.toml
 > Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations
 - t-5872 · ticket · done · Verifier fixes: DV-14 proposal, 0125 OBL-006, plant assertions, gate re-citations · docs/tickets/t-5872/manifest.toml:1
+
+## docs/tickets/t-589a0/manifest.toml
+> Refuse early and late output collisions without replacing retained evidence
+- t-589a0 · ticket · done · Preserve integration observations when output destinations already exist · docs/tickets/t-589a0/manifest.toml:1
 
 ## docs/tickets/t-59006/manifest.toml
 > M7: from a prompt to typed records
@@ -1675,6 +1695,10 @@
 ## docs/tickets/t-67b5f/manifest.toml
 > M8: war host, the standalone half of Liminal hosting
 - t-67b5f · ticket · done · M8: war host, the standalone half of Liminal hosting · docs/tickets/t-67b5f/manifest.toml:1
+
+## docs/tickets/t-67c49/manifest.toml
+> Retry interrupted reads and classify elapsed request deadlines as408 without enlarging bounds
+- t-67c49 · ticket · done · Preserve HTTP request deadlines across interrupted and late reads · docs/tickets/t-67c49/manifest.toml:1
 
 ## docs/tickets/t-67ed/manifest.toml
 > Make the ticket loop the documented default everywhere
@@ -1799,6 +1823,10 @@
 ## docs/tickets/t-a92bb/manifest.toml
 > M12: a small surface
 - t-a92bb · ticket · done · M12: a small surface · docs/tickets/t-a92bb/manifest.toml:1
+
+## docs/tickets/t-a9741/manifest.toml
+> Preserve complete hosted model facts within unchanged input limits
+- t-a9741 · ticket · open · Record schema-only duplicate content without repeating bodies · docs/tickets/t-a9741/manifest.toml:1
 
 ## docs/tickets/t-aade8/manifest.toml
 > Diagnose intermittent draft checkpoint startup timeout in integration suite

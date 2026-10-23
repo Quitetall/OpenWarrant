@@ -1,0 +1,21 @@
+
+running 5 tests
+test f4_paths_match_whole_case_sensitive_unicode_segments ... ok
+test inferred_stage_provenance_consumes_text_budget ... ok
+test invalid_inputs_and_bounded_computation_refuse_without_truth_result ... ok
+test missing_inputs_are_unknown_but_known_false_wins_and_empty_is_known ... ok
+test warrant_scope_supplies_defaults_and_overrides_keep_their_origin ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 6 tests
+test competing_required_revisions_refuse_and_master_order_is_stable ... ok
+test cycles_terminate_and_missing_members_and_conflicts_block ... ok
+test governing_unknown_pointer_includes_exact_transitive_background_and_all_reasons ... ok
+test limits_are_positive_before_traversal_even_without_conditions ... ok
+test optional_absence_is_catalogued_but_required_missing_and_included_dependencies_block ... ok
+test raw_document_target_retains_whole_blob_and_missing_optional_is_not_included ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+

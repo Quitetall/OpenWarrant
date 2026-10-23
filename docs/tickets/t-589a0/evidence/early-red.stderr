@@ -1,0 +1,59 @@
+FFFFFF
+======================================================================
+FAIL: test_existing_observation_refuses_before_provider_work (test_observation_output.ObservationOutput.test_existing_observation_refuses_before_provider_work) (stage='source')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 28, in test_existing_observation_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp6cunrf7z/missing-provider'\n"
+
+======================================================================
+FAIL: test_existing_observation_refuses_before_provider_work (test_observation_output.ObservationOutput.test_existing_observation_refuses_before_provider_work) (stage='conditions')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 28, in test_existing_observation_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp6cunrf7z/missing-provider'\n"
+
+======================================================================
+FAIL: test_existing_observation_refuses_before_provider_work (test_observation_output.ObservationOutput.test_existing_observation_refuses_before_provider_work) (stage='selection')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 28, in test_existing_observation_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp6cunrf7z/missing-provider'\n"
+
+======================================================================
+FAIL: test_existing_observation_refuses_before_provider_work (test_observation_output.ObservationOutput.test_existing_observation_refuses_before_provider_work) (stage='projections')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 28, in test_existing_observation_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp6cunrf7z/missing-provider'\n"
+
+======================================================================
+FAIL: test_existing_observation_refuses_before_provider_work (test_observation_output.ObservationOutput.test_existing_observation_refuses_before_provider_work) (stage='package')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 28, in test_existing_observation_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp6cunrf7z/missing-provider'\n"
+
+======================================================================
+FAIL: test_existing_observation_refuses_before_provider_work (test_observation_output.ObservationOutput.test_existing_observation_refuses_before_provider_work) (stage='budgets')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-integration-output-retention-20261023/conformance/integration/test_observation_output.py", line 28, in test_existing_observation_refuses_before_provider_work
+    self.assertIn(b"destination exists", result.stderr.lower())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: b'destination exists' not found in b"integration refused: [errno 2] no such file or directory: '/mnt/4tb/tmp/openwarrant-output-tests-20261023/tmp6cunrf7z/missing-provider'\n"
+
+----------------------------------------------------------------------
+Ran 1 test in 0.221s
+
+FAILED (failures=6)

@@ -94,14 +94,8 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
     let mut input_patterns = std::collections::BTreeSet::new();
     let mut whole_tree = cited.is_empty();
     let gate_dir = repo.root.join(&repo.config.paths.gates);
-    let paths = match gate_dir.read_dir_utf8() {
-        Ok(entries) => entries
-            .map(|entry| entry.map(|e| e.into_path()))
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|source| RepoError::Io {
-                context: format!("could not inspect {gate_dir}"),
-                source,
-            })?,
+    let paths = match source_directory(&gate_dir) {
+        Ok(entries) => entries,
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => vec![],
         Err(source) => {
             return Err(RepoError::Io {
@@ -189,7 +183,7 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
                         "link {path} has an unavailable target {dependency}"
                     ))
                 })?;
-                let metadata = fs::symlink_metadata(&resolved).map_err(|e| {
+                let metadata = crate::vfs::symlink_metadata(&resolved).map_err(|e| {
                     unavailable(format!("could not inspect link target {dependency}: {e}"))
                 })?;
                 if metadata.is_dir() {
@@ -260,7 +254,7 @@ fn input_link(repo: &Repository, path: &str) -> Result<Option<String>, RepoError
         return Ok(None);
     }
     let node = repo.root.join(relative);
-    match fs::symlink_metadata(&node) {
+    match crate::vfs::symlink_metadata(&node) {
         Ok(meta) if meta.file_type().is_symlink() => {
             let target = fs::read_link(&node)
                 .map_err(|e| unavailable(format!("could not inspect link {path}: {e}")))?;
@@ -314,10 +308,43 @@ fn bytes_digest(bytes: &[u8]) -> String {
 }
 
 fn file_digest(repo: &Repository, reference: &str) -> Result<String, RepoError> {
-    Ok(file_bytes(repo, reference)?
-        .as_deref()
-        .map(bytes_digest)
-        .unwrap_or_else(|| "missing".to_owned()))
+    let Some(path) = source_path(repo, reference)? else {
+        return Ok("missing".into());
+    };
+    match crate::vfs::symlink_metadata(&path) {
+        Ok(metadata) if metadata.is_file() => {
+            // Subject bindings need the exact digest observation. They do not
+            // grant permission to read withheld bytes; content consumers still
+            // go through file_bytes and must receive the complete body.
+            crate::vfs::fingerprint(path.as_std_path()).map_err(|source| RepoError::Io {
+                context: format!("could not read {path}"),
+                source,
+            })
+        }
+        Ok(_) => Err(RepoError::ObservationUnavailable {
+            rule: "verify.subject-unavailable",
+            message: format!("{path} is not a regular file"),
+        }),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok("missing".into()),
+        Err(source) => Err(RepoError::Io {
+            context: format!("could not inspect {path}"),
+            source,
+        }),
+    }
+}
+
+/// Preserve enumeration errors; silently skipping a gate or observation can
+/// change the subject being reviewed. Hosted runs use the same reader.
+pub(crate) fn source_directory(directory: &camino::Utf8Path) -> std::io::Result<Vec<Utf8PathBuf>> {
+    crate::vfs::read_dir(directory)?
+        .map(|entry| {
+            entry.and_then(|e| {
+                Utf8PathBuf::from_path_buf(e.path()).map_err(|_| {
+                    std::io::Error::new(std::io::ErrorKind::InvalidData, "non-UTF-8 source path")
+                })
+            })
+        })
+        .collect()
 }
 
 /// Check references before either reading a file or enumerating a directory.
@@ -336,7 +363,7 @@ fn source_path(repo: &Repository, reference: &str) -> Result<Option<Utf8PathBuf>
     let mut walked = repo.root.clone();
     for component in relative.components() {
         walked.push(component.as_str());
-        match fs::symlink_metadata(&walked) {
+        match crate::vfs::symlink_metadata(&walked) {
             Ok(metadata) if metadata.file_type().is_symlink() => {
                 return Err(RepoError::ObservationUnavailable {
                     rule: "verify.subject-unavailable",
@@ -367,17 +394,10 @@ fn gate_evidence(
     let Some(directory) = source_path(repo, &relative)? else {
         return Ok(sources);
     };
-    let entries = directory.read_dir_utf8().map_err(|source| RepoError::Io {
+    let mut paths = source_directory(&directory).map_err(|source| RepoError::Io {
         context: format!("could not inspect {directory}"),
         source,
     })?;
-    let mut paths = entries
-        .map(|entry| entry.map(|e| e.into_path()))
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|source| RepoError::Io {
-            context: format!("could not inspect {directory}"),
-            source,
-        })?;
     paths.sort();
     for path in paths
         .into_iter()
@@ -440,12 +460,14 @@ pub(crate) fn file_bytes(repo: &Repository, reference: &str) -> Result<Option<Ve
     let Some(path) = source_path(repo, reference)? else {
         return Ok(None);
     };
-    match fs::symlink_metadata(&path) {
+    match crate::vfs::symlink_metadata(&path) {
         Ok(metadata) if metadata.is_file() => {
-            fs::read(&path).map(Some).map_err(|source| RepoError::Io {
-                context: format!("could not read {path}"),
-                source,
-            })
+            crate::vfs::read(&path)
+                .map(Some)
+                .map_err(|source| RepoError::Io {
+                    context: format!("could not read {path}"),
+                    source,
+                })
         }
         Ok(_) => Err(RepoError::ObservationUnavailable {
             rule: "verify.subject-unavailable",
@@ -519,7 +541,7 @@ pub fn current_records(
                 .dir
                 .join("verifications")
                 .join(format!("{}.toml", record.obligation));
-            let Ok(bytes) = fs::read(path) else {
+            let Ok(bytes) = crate::vfs::read(path) else {
                 return false;
             };
             let digest = format!(
@@ -534,7 +556,7 @@ pub fn current_records(
                         .as_ref()
                         .is_some_and(|v| event.warrant_uuid == v.uuid.to_string())
                     && reviewed == &current
-                    && record::decode(&String::from_utf8_lossy(&bytes)).is_ok_and(|stored| {
+                    && record::decode_shared(&String::from_utf8_lossy(&bytes)).is_ok_and(|stored| {
                         record_context_current(
                             repo,
                             one,
@@ -1413,6 +1435,96 @@ pub fn ingest(
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
+    fn a_subject_digest_does_not_require_permission_to_read_the_body() {
+        let root = camino::Utf8PathBuf::from(format!(
+            "/subject-digest-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let expected = super::bytes_digest(b"exact source bytes");
+        let tree = std::rc::Rc::new(
+            crate::vfs::Tree::new(
+                root.clone(),
+                [(
+                    "openwarrant.toml".into(),
+                    include_bytes!(
+                        "../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                    )
+                    .to_vec(),
+                )]
+                .into_iter()
+                .collect(),
+                ["source.txt".into()].into_iter().collect(),
+            )
+            .with_content_digests(
+                [("source.txt".into(), expected.clone())]
+                    .into_iter()
+                    .collect(),
+            ),
+        );
+        crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+            let repo = super::Repository::open(root).unwrap();
+            assert_eq!(super::file_digest(&repo, "source.txt").unwrap(), expected);
+            assert!(tree.consulted().withheld_read.is_empty());
+            assert!(super::file_bytes(&repo, "source.txt").is_err());
+        });
+        assert!(tree.consulted().withheld_read.contains("source.txt"));
+    }
+
+    #[test]
+    fn hosted_subject_reads_supplied_bytes_and_refuses_withheld_bytes() {
+        let root = camino::Utf8PathBuf::from(format!(
+            "/hosted-subject-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [
+                (
+                    "openwarrant.toml".into(),
+                    include_bytes!(
+                        "../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                    )
+                    .to_vec(),
+                ),
+                (
+                    "delivered/body.txt".into(),
+                    b"observed literal body".to_vec(),
+                ),
+            ]
+            .into_iter()
+            .collect(),
+            ["delivered/withheld.txt".into()].into_iter().collect(),
+        ));
+        crate::vfs::hosted(std::rc::Rc::clone(&tree), || {
+            let repo = super::Repository::open(root).unwrap();
+            let paths = super::source_directory(&repo.root.join("delivered")).unwrap();
+            assert_eq!(
+                paths,
+                vec![
+                    repo.root.join("delivered/body.txt"),
+                    repo.root.join("delivered/withheld.txt")
+                ]
+            );
+            assert_eq!(
+                super::file_bytes(&repo, "delivered/body.txt").unwrap(),
+                Some(b"observed literal body".to_vec())
+            );
+            assert!(super::file_bytes(&repo, "delivered/withheld.txt").is_err());
+            assert!(super::file_bytes(&repo, "../outside.txt").is_err());
+            assert_eq!(
+                super::file_bytes(&repo, "delivered/absent.txt").unwrap(),
+                None
+            );
+        });
+        assert!(
+            tree.consulted()
+                .withheld_read
+                .contains("delivered/withheld.txt")
+        );
+    }
+
     use super::*;
 
     #[test]

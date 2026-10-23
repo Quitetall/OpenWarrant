@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-20.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-23.
 
 ## Lineage
 
@@ -43,6 +43,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-16 | 49 | authorization.recorded 21, question.answered 9, sync.receipt_attached 7, verification.recorded 12 |
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
 | 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
+| 2026-10-23 | 2 | sync.receipt_attached 2 |
 
 ## Roadmap revisions
 
@@ -20932,6 +20933,81 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0077/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/source.rs | `crates/openwarrant-core/src/document/source.rs` | verified |
+| D-002 | conformance/sdk/source/.gitattributes | `conformance/sdk/source/.gitattributes` | verified |
+| D-003 | conformance/sdk/source/README.md | `conformance/sdk/source/README.md` | verified |
+| D-004 | conformance/sdk/source/abc.bin | `conformance/sdk/source/abc.bin` | verified |
+| D-005 | conformance/sdk/source/abc.json | `conformance/sdk/source/abc.json` | verified |
+| D-006 | conformance/sdk/source/abc.lock.json | `conformance/sdk/source/abc.lock.json` | verified |
+| D-007 | conformance/sdk/source/architecture.json | `conformance/sdk/source/architecture.json` | verified |
+| D-008 | conformance/sdk/source/architecture.md | `conformance/sdk/source/architecture.md` | verified |
+| D-009 | conformance/sdk/source/cases.json | `conformance/sdk/source/cases.json` | verified |
+| D-010 | conformance/sdk/source/changed.md | `conformance/sdk/source/changed.md` | verified |
+| D-011 | conformance/sdk/source/check_observations.py | `conformance/sdk/source/check_observations.py` | verified |
+| D-012 | conformance/sdk/source/combined.lock.json | `conformance/sdk/source/combined.lock.json` | verified |
+| D-013 | conformance/sdk/source/conflicting.json | `conformance/sdk/source/conflicting.json` | verified |
+| D-014 | conformance/sdk/source/crlf-outcome.txt | `conformance/sdk/source/crlf-outcome.txt` | verified |
+| D-015 | conformance/sdk/source/crlf.json | `conformance/sdk/source/crlf.json` | verified |
+| D-016 | conformance/sdk/source/crlf.lock.json | `conformance/sdk/source/crlf.lock.json` | verified |
+| D-017 | conformance/sdk/source/crlf.md | `conformance/sdk/source/crlf.md` | verified |
+| D-018 | conformance/sdk/source/decision.txt | `conformance/sdk/source/decision.txt` | verified |
+| D-019 | conformance/sdk/source/false-authority.json | `conformance/sdk/source/false-authority.json` | verified |
+| D-020 | conformance/sdk/source/mixed.lock.json | `conformance/sdk/source/mixed.lock.json` | verified |
+| D-021 | conformance/sdk/source/outcome.txt | `conformance/sdk/source/outcome.txt` | verified |
+| D-022 | conformance/sdk/source/renamed.json | `conformance/sdk/source/renamed.json` | verified |
+| D-023 | conformance/sdk/source/renamed.lock.json | `conformance/sdk/source/renamed.lock.json` | verified |
+| D-024 | conformance/sdk/source/renamed.md | `conformance/sdk/source/renamed.md` | verified |
+| D-025 | conformance/sdk/source/task.json | `conformance/sdk/source/task.json` | verified |
+| D-026 | conformance/sdk/source/task.lock.json | `conformance/sdk/source/task.lock.json` | verified |
+| D-027 | conformance/sdk/source/task.md | `conformance/sdk/source/task.md` | verified |
+| D-028 | conformance/sdk/source/unsafe-path.json | `conformance/sdk/source/unsafe-path.json` | verified |
+| D-029 | conformance/sdk/source/wrong-identity.json | `conformance/sdk/source/wrong-identity.json` | verified |
+| D-030 | conformance/sdk/source/wrong-length.json | `conformance/sdk/source/wrong-length.json` | verified |
+| D-031 | conformance/integration/source/README.md | `conformance/integration/source/README.md` | verified |
+| D-032 | conformance/integration/source/run.py | `conformance/integration/source/run.py` | verified |
+| D-033 | docs/warrants/OW-WAR-0077/implementation/notes.md | `docs/warrants/OW-WAR-0077/implementation/notes.md` | verified |
+| D-034 | docs/warrants/OW-WAR-0077/implementation/progress.json | `docs/warrants/OW-WAR-0077/implementation/progress.json` | verified |
+| D-035 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/README.md | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/README.md` | verified |
+| D-036 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stderr` | verified |
+| D-037 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/all-integration-recheck.stdout` | verified |
+| D-038 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/cli-identity.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/cli-identity.json` | verified |
+| D-039 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stderr` | verified |
+| D-040 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/clippy.stdout` | verified |
+| D-041 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/controls.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/controls.json` | verified |
+| D-042 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/final-cli-recheck-results.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/final-cli-recheck-results.json` | verified |
+| D-043 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stderr` | verified |
+| D-044 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/fmt.stdout` | verified |
+| D-045 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green-result.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green-result.json` | verified |
+| D-046 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stderr` | verified |
+| D-047 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-green.stdout` | verified |
+| D-048 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red-result.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red-result.json` | verified |
+| D-049 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stderr` | verified |
+| D-050 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/lock-red.stdout` | verified |
+| D-051 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/native-provider-results.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/native-provider-results.json` | verified |
+| D-052 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-identity.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-identity.json` | verified |
+| D-053 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stderr` | verified |
+| D-054 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/probe-run.stdout` | verified |
+| D-055 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/provider-observation.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/provider-observation.json` | verified |
+| D-056 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stderr | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stderr` | verified |
+| D-057 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stdout | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-core.stdout` | verified |
+| D-058 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json` | verified |
+| D-059 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json` | verified |
+| D-060 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl` | verified |
+| D-061 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md` | verified |
+| D-062 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json` | verified |
+| D-063 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json` | verified |
+| D-064 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json` | verified |
+| D-065 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr` | verified |
+| D-066 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json` | verified |
+| D-067 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr` | verified |
+| D-068 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout` | verified |
+| D-069 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json` | verified |
+| D-070 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl` | verified |
+
 ### OW-WAR-0078 — Validate condition syntax and prove provider evaluation integration
 
 [manifest](../../docs/warrants/OW-WAR-0078/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0078/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -21147,6 +21223,43 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0078/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/condition.rs | `crates/openwarrant-core/src/document/condition.rs` | verified |
+| D-002 | conformance/sdk/conditions/README.md | `conformance/sdk/conditions/README.md` | verified |
+| D-003 | conformance/sdk/conditions/all-fields.toml | `conformance/sdk/conditions/all-fields.toml` | verified |
+| D-004 | conformance/sdk/conditions/cases.json | `conformance/sdk/conditions/cases.json` | verified |
+| D-005 | conformance/sdk/conditions/check_observations.py | `conformance/sdk/conditions/check_observations.py` | verified |
+| D-006 | conformance/sdk/conditions/embedded-double-star.toml | `conformance/sdk/conditions/embedded-double-star.toml` | verified |
+| D-007 | conformance/sdk/conditions/empty-list.toml | `conformance/sdk/conditions/empty-list.toml` | verified |
+| D-008 | conformance/sdk/conditions/empty-table.toml | `conformance/sdk/conditions/empty-table.toml` | verified |
+| D-009 | conformance/sdk/conditions/traversal.toml | `conformance/sdk/conditions/traversal.toml` | verified |
+| D-010 | conformance/sdk/conditions/unicode-path.toml | `conformance/sdk/conditions/unicode-path.toml` | verified |
+| D-011 | conformance/sdk/conditions/unknown-operator.toml | `conformance/sdk/conditions/unknown-operator.toml` | verified |
+| D-012 | conformance/sdk/conditions/wrong-type.toml | `conformance/sdk/conditions/wrong-type.toml` | verified |
+| D-013 | conformance/integration/conditions/run.py | `conformance/integration/conditions/run.py` | verified |
+| D-014 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/README.md | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/README.md` | verified |
+| D-015 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stderr` | verified |
+| D-016 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stdout | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stdout` | verified |
+| D-017 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.json` | verified |
+| D-018 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.stderr` | verified |
+| D-019 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-observation.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-observation.json` | verified |
+| D-020 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stderr` | verified |
+| D-021 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stdout | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stdout` | verified |
+| D-022 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/identity.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/identity.json` | verified |
+| D-023 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stderr` | verified |
+| D-024 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stdout` | verified |
+| D-025 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/published-provider-observation.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/published-provider-observation.json` | verified |
+| D-026 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/results.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/results.json` | verified |
+| D-027 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/summary.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/summary.json` | verified |
+| D-028 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/wire.jsonl` | verified |
+| D-029 | docs/warrants/OW-WAR-0078/implementation/conditions-observation.json | `docs/warrants/OW-WAR-0078/implementation/conditions-observation.json` | verified |
+| D-030 | docs/warrants/OW-WAR-0078/implementation/notes.md | `docs/warrants/OW-WAR-0078/implementation/notes.md` | verified |
+| D-031 | docs/warrants/OW-WAR-0078/implementation/progress.json | `docs/warrants/OW-WAR-0078/implementation/progress.json` | verified |
+| D-032 | docs/warrants/OW-WAR-0078/implementation/source-compatibility-observation.json | `docs/warrants/OW-WAR-0078/implementation/source-compatibility-observation.json` | verified |
+
 ### OW-WAR-0079 — Prove provider context selection and dependency closure
 
 [manifest](../../docs/warrants/OW-WAR-0079/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0079/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
@@ -21360,6 +21473,31 @@ Run the scoped consumer/release driver over the fixture paths in Work Order; rec
 The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0079/atoms/60-assurance.md ends -->
+
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | docs/integrations/selection.md | `docs/integrations/selection.md` | verified |
+| D-002 | conformance/integration/selection/README.md | `conformance/integration/selection/README.md` | verified |
+| D-003 | conformance/integration/selection/check_observations.py | `conformance/integration/selection/check_observations.py` | verified |
+| D-004 | conformance/integration/selection/run.py | `conformance/integration/selection/run.py` | verified |
+| D-005 | docs/warrants/OW-WAR-0079/implementation/notes.md | `docs/warrants/OW-WAR-0079/implementation/notes.md` | verified |
+| D-006 | docs/warrants/OW-WAR-0079/implementation/progress.json | `docs/warrants/OW-WAR-0079/implementation/progress.json` | verified |
+| D-007 | docs/warrants/OW-WAR-0079/implementation/selection-observation.json | `docs/warrants/OW-WAR-0079/implementation/selection-observation.json` | verified |
+| D-008 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/README.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/README.md` | verified |
+| D-009 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/identity.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/identity.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/1cde1190bf9d4264990932998585509c/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/1cde1190bf9d4264990932998585509c/task.md` | verified |
+| D-011 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/20803501a9ec431ab9532565617f65ff/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/20803501a9ec431ab9532565617f65ff/task.md` | verified |
+| D-012 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/2a6d348be0504208bb99d3d9604a8f42/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/2a6d348be0504208bb99d3d9604a8f42/task.md` | verified |
+| D-013 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/404ebb00a07e4204a0e703b33aeb6b29/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/404ebb00a07e4204a0e703b33aeb6b29/task.md` | verified |
+| D-014 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/60fa2d28dfc44ce0b56c40ffc8a96e92/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/60fa2d28dfc44ce0b56c40ffc8a96e92/task.md` | verified |
+| D-015 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/9b8f539ec1cc4541aa65e246a82a1bb6/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/9b8f539ec1cc4541aa65e246a82a1bb6/task.md` | verified |
+| D-016 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/bc764c475d504572b16855c7f3da7f1a/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/bc764c475d504572b16855c7f3da7f1a/task.md` | verified |
+| D-017 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/native-selection.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/native-selection.json` | verified |
+| D-018 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/producer-identity.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/producer-identity.json` | verified |
+| D-019 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/summary.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/summary.json` | verified |
+| D-020 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/wire.jsonl` | verified |
 
 ### OW-WAR-0080 — Prove provider master context and task projections
 
@@ -30158,7 +30296,7 @@ truncates nothing.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | One atomic write path: temp, fsync, rename, prestate, no symlinks | `crates/openwarrant-cli/src/atomic.rs` | verified |
+| D-001 | One atomic write path: temp, fsync, rename, prestate, no symlinks | `crates/openwarrant-cli/src/atomic.rs` | drift |
 | D-002 | Authorization and judgments written atomically | `crates/openwarrant-cli/src/authorize.rs` | verified |
 | D-003 | Resolution written atomically, against its prestate | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-004 | Verification records written atomically | `crates/openwarrant-cli/src/verify.rs` | drift |
@@ -31621,7 +31759,7 @@ anything.
 | D-005 | The generated section index | `docs/sas/generated/SECTIONS.json` | not_content_addressed |
 | D-006 | The generated section index, for reading | `docs/sas/generated/SECTIONS.md` | not_content_addressed |
 | D-007 | sas.section-ref and sas.section-current | `crates/openwarrant-cli/src/check.rs` | drift |
-| D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | verified |
+| D-008 | war sas diff names changed sections | `crates/openwarrant-cli/src/sas.rs` | drift |
 | D-009 | The SAS section plants | `conformance/plants.d/56-sas-sections.sh` | verified |
 | D-010 | The CI gate job fetches full history, so section currency is answered there (AM-002) | `.github/workflows/ci.yml` | drift |
 
@@ -40964,7 +41102,7 @@ observer.
 | D-025 | §56.1 checks by capability; not applicable by name | `crates/openwarrant-cli/src/resolve.rs` | not_content_addressed |
 | D-026 | WarrantRung by capability | `crates/openwarrant-core/src/status.rs` | not_content_addressed |
 | D-027 | Authorize refuses a kind without the capability | `crates/openwarrant-cli/src/authorize.rs` | not_content_addressed |
-| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | verified |
+| D-028 | Verify refuses a kind without the capability | `crates/openwarrant-cli/src/verify.rs` | drift |
 | D-029 | Unassigned only for kinds that join the roadmap | `crates/openwarrant-cli/src/roadmap_cmd.rs` | not_content_addressed |
 | D-030 | Falsifiability from profile data | `crates/openwarrant-cli/src/resolution_cmd.rs` | not_content_addressed |
 | D-031 | Falsifiability from profile data | `crates/openwarrant-core/src/resolution.rs` | not_content_addressed |

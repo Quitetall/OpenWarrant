@@ -160,12 +160,8 @@ pub(crate) fn capture(
         if repo.source_links.contains_key(&path) {
             return Err(unavailable(format!("ADR source {path} is a link")));
         }
-        let bytes = crate::progress_viewer::source::read(
-            repo.root.as_std_path(),
-            std::path::Path::new(&path),
-            usize::MAX - 1,
-        )
-        .map_err(|error| unavailable(format!("cannot read ADR {path}: {error}")))?;
+        let bytes = crate::vfs::read_anchored(repo.root.as_std_path(), std::path::Path::new(&path))
+            .map_err(|error| unavailable(format!("cannot read ADR {path}: {error}")))?;
         let text = std::str::from_utf8(&bytes)
             .map_err(|error| unavailable(format!("cannot parse ADR {path}: {error}")))?;
         let metadata = match openwarrant_core::frontmatter::parse(text) {
@@ -213,6 +209,29 @@ pub(crate) fn capture(
 /// follow a link outside the repository. Actual files use the same safe reader.
 #[cfg(unix)]
 fn adr_paths(repo: &Repository, directory: &str) -> Result<Vec<String>, RepoError> {
+    if crate::vfs::is_hosted() {
+        if directory.is_empty()
+            || std::path::Path::new(directory)
+                .components()
+                .any(|part| !matches!(part, std::path::Component::Normal(_)))
+        {
+            return Err(unavailable(
+                "ADR namespace must be repository-relative without traversal",
+            ));
+        }
+        let entries = match super::source_directory(&repo.root.join(directory)) {
+            Ok(entries) => entries,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(vec![]),
+            Err(e) => return Err(unavailable(format!("cannot enumerate ADR namespace: {e}"))),
+        };
+        let mut paths: Vec<_> = entries
+            .into_iter()
+            .filter(|p| p.extension() == Some("md"))
+            .map(|p| repo.relative(&p))
+            .collect();
+        paths.sort();
+        return Ok(paths);
+    }
     use rustix::fs::{Dir, Mode, OFlags, open, openat};
     let flags =
         OFlags::RDONLY | OFlags::DIRECTORY | OFlags::NOFOLLOW | OFlags::NONBLOCK | OFlags::CLOEXEC;
@@ -287,11 +306,7 @@ fn capture_sas(repo: &Repository, one: &Loaded) -> Result<BTreeMap<String, Vec<u
             "SAS source must be repository-relative without traversal",
         ));
     }
-    let current = crate::progress_viewer::source::read(
-        repo.root.as_std_path(),
-        source.as_std_path(),
-        usize::MAX - 1,
-    );
+    let current = crate::vfs::read_anchored(repo.root.as_std_path(), source.as_std_path());
     let bytes = match current {
         Ok(bytes) if openwarrant_compiler::sha256_hex(&bytes) == pin.sha256 => bytes,
         _ if repo.source_inventory.is_some() => candidate_revision_bytes(repo, revision)?,
@@ -374,4 +389,44 @@ fn candidate_revision_bytes(
         "candidate {anchor} does not retain SAS {} at sha256:{} in its ancestors",
         revision.version, revision.sha256
     )))
+}
+
+#[cfg(test)]
+mod hosted_tests {
+    #[test]
+    fn adr_namespace_comes_from_the_supplied_basis() {
+        let root = camino::Utf8PathBuf::from(format!(
+            "/hosted-context-{}",
+            openwarrant_core::WarUuid::mint()
+        ));
+        let tree = std::rc::Rc::new(crate::vfs::Tree::new(
+            root.clone(),
+            [
+                (
+                    "openwarrant.toml".into(),
+                    include_bytes!(
+                        "../../../../conformance/fixtures/inbox/repository/openwarrant.toml"
+                    )
+                    .to_vec(),
+                ),
+                (
+                    "docs/adr/atoms/source.md".into(),
+                    b"# Exact decision source\n".to_vec(),
+                ),
+                ("docs/adr/atoms/ignored.txt".into(), b"not an ADR".to_vec()),
+            ]
+            .into_iter()
+            .collect(),
+            Default::default(),
+        ));
+        crate::vfs::hosted(tree, || {
+            let repo = super::Repository::open(root).unwrap();
+            assert_eq!(
+                super::adr_paths(&repo, "docs/adr/atoms").unwrap(),
+                vec!["docs/adr/atoms/source.md"]
+            );
+            assert!(super::adr_paths(&repo, "docs/missing").unwrap().is_empty());
+            assert!(super::adr_paths(&repo, "../outside").is_err());
+        });
+    }
 }
