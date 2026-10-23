@@ -1032,8 +1032,22 @@ pub mod source {
             let index = Self(dir);
             match fs::metadata(&source) {
                 Ok(meta) if meta.is_file() => {
-                    fs::copy(source, index.0.join("index"))
+                    let modified = meta
+                        .modified()
+                        .map_err(|e| format!("cannot read Git index timestamp: {e}"))?;
+                    let copy = index.0.join("index");
+                    fs::copy(source, &copy)
                         .map_err(|e| format!("cannot copy Git index for observation: {e}"))?;
+                    // Git uses the index timestamp to decide whether matching
+                    // stat data may hide a same-size edit. A newer copy can
+                    // incorrectly turn that racy entry into a trusted one.
+                    fs::OpenOptions::new()
+                        .write(true)
+                        .open(&copy)
+                        .and_then(|file| {
+                            file.set_times(fs::FileTimes::new().set_modified(modified))
+                        })
+                        .map_err(|e| format!("cannot preserve Git index timestamp: {e}"))?;
                 }
                 Ok(_) => return Err("Git index is not a regular file".to_owned()),
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}

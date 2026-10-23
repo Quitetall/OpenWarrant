@@ -1,0 +1,3 @@
+# Checklist
+
+- [x] Add deterministic racy-index controls and preserve source index timestamp in each private copy (i-a975) — done by agent://codex, 2026-10-23: Controlled native-Git/API probe and deterministic racy-index regression demonstrated both hidden same-size edits and false changes before repair. Private copies now preserve source index mtime and return unavailable on timestamp errors. Both cached and uncached modes pass, real index bytes/mtime unchanged. Combined532 library/358 integration controls pass;4 existing ignored; strict Clippy,fmt,licenses and generated checks pass. No assurance or human acceptance claimed.

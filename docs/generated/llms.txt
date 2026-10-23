@@ -1498,7 +1498,7 @@
 
 ## docs/tickets/t-2a254/manifest.toml
 > Prevent gate reruns from invalidating the evidence read by their own child checks
-- t-2a254 · ticket · open · Preserve prior gate streams while a new gate is running · docs/tickets/t-2a254/manifest.toml:1
+- t-2a254 · ticket · done · Preserve prior gate streams while a new gate is running · docs/tickets/t-2a254/manifest.toml:1
 
 ## docs/tickets/t-2c94/manifest.toml
 > 69-current: 'OW-WAR-0073's signature stands' passes if the dry run fails
@@ -1579,6 +1579,10 @@
 ## docs/tickets/t-4948f/manifest.toml
 > Correct stale additive agent-guidance installation instructions (OW68/S08)
 - t-4948f · ticket · done · Correct stale additive agent-guidance installation instructions (OW68/S08) · docs/tickets/t-4948f/manifest.toml:1
+
+## docs/tickets/t-49c5a/manifest.toml
+> Prevent private index copies from hiding same-size edits or inventing source changes
+- t-49c5a · ticket · done · Keep private Git index copies faithful to source timestamps · docs/tickets/t-49c5a/manifest.toml:1
 
 ## docs/tickets/t-4c3f/manifest.toml
 > 59-webui-lan: the bound-only check reads every listener on the machine, so a parallel battery holding the same port on 127.0.0.1 fails it
