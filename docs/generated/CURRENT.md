@@ -18235,6 +18235,25 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0084/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/legacy.rs | `crates/openwarrant-core/src/document/legacy.rs` | verified |
+| D-002 | crates/openwarrant-core/src/document/legacy/codec.rs | `crates/openwarrant-core/src/document/legacy/codec.rs` | verified |
+| D-003 | crates/openwarrant-core/tests/document_legacy.rs | `crates/openwarrant-core/tests/document_legacy.rs` | verified |
+| D-004 | crates/openwarrant-core/examples/sdk_probe/legacy.rs | `crates/openwarrant-core/examples/sdk_probe/legacy.rs` | verified |
+| D-005 | conformance/sdk/legacy/README.md | `conformance/sdk/legacy/README.md` | verified |
+| D-006 | conformance/sdk/legacy/check_observations.py | `conformance/sdk/legacy/check_observations.py` | verified |
+| D-007 | docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md | `docs/warrants/OW-WAR-0084/implementation/current-preservation-notes.md` | verified |
+| D-008 | docs/warrants/OW-WAR-0084/implementation/progress.json | `docs/warrants/OW-WAR-0084/implementation/progress.json` | verified |
+| D-009 | docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json | `docs/warrants/OW-WAR-0084/implementation/current-preservation/cli-observation.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log | `docs/warrants/OW-WAR-0084/implementation/current-preservation/codec-probe.log` | verified |
+| D-011 | docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log | `docs/warrants/OW-WAR-0084/implementation/current-preservation/library-tests.log` | verified |
+| D-012 | docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log | `docs/warrants/OW-WAR-0084/implementation/current-preservation/observer.log` | verified |
+| D-013 | docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl | `docs/warrants/OW-WAR-0084/implementation/current-preservation/sdk-wire.jsonl` | verified |
+| D-014 | docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json | `docs/warrants/OW-WAR-0084/implementation/current-preservation/source-observation.json` | verified |
+
 #### OW-WAR-0123 — A child cites the exact revision of its parent, and a moved parent is a finding
 
 [manifest](../../docs/warrants/OW-WAR-0123/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0123/authorization.toml) · profile `delivery` · rung `draft` · currency `current`

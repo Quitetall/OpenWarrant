@@ -68,12 +68,12 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 91 |
+| artifact digests verify | 90 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
 | residual risks have sufficient authority | 57 |
-| required deliverables exist | 46 |
+| required deliverables exist | 45 |
 | runtime receipts match the basis | 2 |
 
 ## Requirements (SAS §106, §34.3)
@@ -231,7 +231,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0081` Inspect packet integrity and prove offline provider packages | draft | unknown | 3 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0082` Prove provider context budgets and cache invalidation | draft | unknown | 3 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0083` Evaluate supplied work and assurance records | draft | unknown | 3 | 0 of 3 | every required obligation is dispositioned |
-| `OW-WAR-0084` Preserve legacy history and explicit successor lineage | draft | unknown | 4 | 0 of 3 | required deliverables exist |
+| `OW-WAR-0084` Preserve legacy history and explicit successor lineage | draft | unknown | 4 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0085` Prove Phase 1 SDK, CLI and adapted skill scope | draft | unknown | 9 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0086` Integrate SDK with LAMU and a second minimal consumer | draft | unknown | 6 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0087` Expose document and record primitives through CLI | draft | unknown | 8 | 0 of 3 | required deliverables exist |
