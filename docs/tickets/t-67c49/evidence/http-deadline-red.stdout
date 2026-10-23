@@ -1,0 +1,18 @@
+
+running 1 test
+test webui::tests::a_read_returning_after_the_deadline_is_a_timeout ... FAILED
+
+failures:
+
+---- webui::tests::a_read_returning_after_the_deadline_is_a_timeout stdout ----
+
+thread 'webui::tests::a_read_returning_after_the_deadline_is_a_timeout' (548801) panicked at crates/openwarrant-cli/src/webui/mod.rs:2137:13:
+("400 Bad Request", "incomplete request")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    webui::tests::a_read_returning_after_the_deadline_is_a_timeout
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 549 filtered out; finished in 0.05s
+

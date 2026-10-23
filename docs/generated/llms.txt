@@ -1696,6 +1696,10 @@
 > M8: war host, the standalone half of Liminal hosting
 - t-67b5f · ticket · done · M8: war host, the standalone half of Liminal hosting · docs/tickets/t-67b5f/manifest.toml:1
 
+## docs/tickets/t-67c49/manifest.toml
+> Retry interrupted reads and classify elapsed request deadlines as408 without enlarging bounds
+- t-67c49 · ticket · done · Preserve HTTP request deadlines across interrupted and late reads · docs/tickets/t-67c49/manifest.toml:1
+
 ## docs/tickets/t-67ed/manifest.toml
 > Make the ticket loop the documented default everywhere
 - t-67ed · ticket · done · Make the ticket loop the documented default everywhere · docs/tickets/t-67ed/manifest.toml:1

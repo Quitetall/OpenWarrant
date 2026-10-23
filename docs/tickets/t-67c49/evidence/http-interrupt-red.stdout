@@ -1,0 +1,18 @@
+
+running 1 test
+test webui::tests::interrupted_reads_resume_without_changing_the_request ... FAILED
+
+failures:
+
+---- webui::tests::interrupted_reads_resume_without_changing_the_request stdout ----
+
+thread 'webui::tests::interrupted_reads_resume_without_changing_the_request' (530650) panicked at crates/openwarrant-cli/src/webui/mod.rs:2108:18:
+an interrupted read is retried within the same deadline: ("400 Bad Request", "incomplete request")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    webui::tests::interrupted_reads_resume_without_changing_the_request
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 548 filtered out; finished in 0.00s
+
