@@ -43,6 +43,9 @@ import jira_arm  # noqa: E402
 
 STUDY = Path(os.environ.get("ADOPTION_STUDY_ROOT", "/mnt/4tb/tmp/openwarrant-adoption"))
 KEEP = Path(os.environ.get("ADOPTION_KEEP_ROOT", "/mnt/4tb/artifacts/OpenWarrant/keep/adoption"))
+# Where cells' working trees live while they run. Default under STUDY; ADOPTION_RUNS_ROOT=/dev/shm/...
+# puts them in memory, away from a contended disk (Beads' embedded database syncs on every write).
+RUNS = Path(os.environ.get("ADOPTION_RUNS_ROOT", str(STUDY / "runs")))
 HOME = Path.home()
 
 PINS = {
@@ -57,7 +60,7 @@ PINS = {
 OW_REPO = Path(os.environ.get("ADOPTION_OW_REPO", "/mnt/4tb/OpenWarrant"))
 PLUGIN_FILES = (".claude-plugin", ".claude/skills", ".claude/hooks", ".mcp.json")
 DEFAULT_MODEL = "claude-sonnet-5-5"
-SESSION_TURNS = 80          # a session's turn cap
+SESSION_TURNS = 25          # a session's turn cap (80 in the pilot; tightened so overhead costs something)
 INTERRUPT_TURNS = 5         # relay session 2 is cut here, mid-item: the next session must resume it
 SESSION_TIMEOUT = 45 * 60   # wall clock per session
 SESSION_BUDGET_USD = 8.0    # --max-budget-usd per session (API-equivalent)
@@ -362,6 +365,17 @@ def _inside_git(action: str, arg: str | None) -> dict:
     raise SystemExit(f"unknown git action {action}")
 
 
+def _inside_answers(repo: str, arm: str) -> dict:
+    env = {**os.environ, **arms.SEED_ENV, "STUDY_WAR": "/opt/study/bin/war", "STUDY_BD": "/opt/study/bin/bd",
+           "OPENWARRANT_ACTOR": "owner", "BEADS_ACTOR": "owner"}
+    delivered = arms.deliver_answers(arm, Path.cwd(), load_backlog(repo), env)
+    g = ["git", "-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false"]
+    subprocess.run([*g, "add", "-A"], capture_output=True, timeout=300)
+    subprocess.run([*g, "commit", "-q", "--no-verify", "-m", "owner: answers to open questions"],
+                   capture_output=True, timeout=300, env={**env, "GIT_AUTHOR_NAME": "owner", "GIT_COMMITTER_NAME": "owner"})
+    return {"answered": delivered}
+
+
 def _inside_tracker(repo: str, arm: str) -> dict:
     env_tools = {"STUDY_WAR": "/opt/study/bin/war", "STUDY_BD": "/opt/study/bin/bd"}
     return arms.tracker(arm, Path.cwd(), load_backlog(repo), env_tools)
@@ -519,6 +533,15 @@ def read_tracker(sb: Sandbox, cwd: str, repo: str, arm: str, target: str = "targ
     return sb.inside(["_tracker", repo, arm], cwd, timeout=300, target=target)
 
 
+def deliver(sb: "Sandbox", cwd: str, repo: str, arm: str) -> dict:
+    """The owner's answers to open questions, in the arm's own channel; Jira's from the host."""
+    if not any(i.get("question") for i in load_backlog(repo)["item"]):
+        return {"answered": []}
+    if arm == "jira":
+        return {"answered": arms.deliver_answers("jira", Path("."), load_backlog(repo), jira_env(sb.cell))}
+    return sb.inside(["_answers", repo, arm], cwd, timeout=300)
+
+
 def jira_label(cell: Path) -> str:
     import hashlib
     return "study-" + hashlib.sha256(str(cell).encode()).hexdigest()[:12]
@@ -545,7 +568,7 @@ def observe(sb: Sandbox, sdir: Path, cwd: str, repo: str, arm: str, target: str 
 
 
 def cell_dir(run_id: str, c: dict) -> Path:
-    return STUDY / "runs" / run_id / c["scenario"] / c["repo"] / c["arm"] / c.get("item", "-") / f"r{c['rep']}"
+    return RUNS / run_id / c["scenario"] / c["repo"] / c["arm"] / c.get("item", "-") / f"r{c['rep']}"
 
 
 def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
@@ -580,6 +603,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
         idx = backlog["order"].index(c["item"])
         seed_repo(c["repo"], c["arm"], cell / "repo", backlog["order"][:idx], extra)
         item = next(i for i in backlog["item"] if i["id"] == c["item"])
+        result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         prompt = PROMPTS["directed"].format(id=item["id"], title=item["title"])
         m = run_session(sb, cell / "s01", f"{sb.WORK}/repo", prompt, agent, model, SESSION_TURNS,
                         {**fixture_env, "STUDY_TARGET": item["id"]}, arm=c["arm"])
@@ -617,6 +641,9 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
             moved = bool(stat.get("shortstat")) or obs["tracker"] != prev_tracker or bool(newly)
             prev_pass, prev_tracker = obs["pass"], obs["tracker"]
             stalled = 0 if moved else stalled + 1
+            if s == 1:
+                result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
+                prev_tracker = read_tracker(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
             if all(prev_pass.get(i["id"]) for i in backlog["item"]) or stalled >= 2:
                 break
         result.update({
@@ -630,6 +657,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
     elif c["scenario"] == "parallel":
         k = c["k"]
         seed_repo(c["repo"], c["arm"], cell / "repo", [], extra)
+        result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         sb.inside(["_git", "worktrees", str(k)], f"{sb.WORK}/repo")
         finished: list[tuple[float, int, dict]] = []
         lock = threading.Lock()
@@ -670,7 +698,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
 
 def keep_cell(run_id: str, c: dict, cell: Path) -> None:
     """Raw evidence to the keep store; the working trees and build output are deleted."""
-    dest = KEEP / run_id / cell.relative_to(STUDY / "runs" / run_id)
+    dest = KEEP / run_id / cell.relative_to(RUNS / run_id)
     if (cell / "repo").exists():
         Sandbox(cell, c["repo"]).inside(["_git", "bundle", "/work/repo.bundle"], "/work/repo")
     dest.mkdir(parents=True, exist_ok=True)
@@ -733,7 +761,7 @@ def cmd_execute(args) -> None:
         problems.append(check_auth())
     if problems:
         raise SystemExit("not ready:\n  " + "\n  ".join(problems))
-    run_root = STUDY / "runs" / args.run_id
+    run_root = RUNS / args.run_id
     run_root.mkdir(parents=True, exist_ok=True)
     (run_root / "run.json").write_text(json.dumps({
         "run_id": args.run_id, "agent": args.agent, "model": args.model, "pins": PINS,
@@ -984,6 +1012,7 @@ def main() -> None:
     # inside the sandbox only
     g = sub.add_parser("_grade"); g.add_argument("repo")
     t = sub.add_parser("_tracker"); t.add_argument("repo"); t.add_argument("arm")
+    an = sub.add_parser("_answers"); an.add_argument("repo"); an.add_argument("arm")
     gi = sub.add_parser("_git"); gi.add_argument("action"); gi.add_argument("arg", nargs="?")
     args = ap.parse_args()
 
@@ -1014,6 +1043,8 @@ def main() -> None:
         cmd_report(args)
     elif args.cmd == "_grade":
         print(json.dumps(_inside_grade(args.repo)))
+    elif args.cmd == "_answers":
+        print(json.dumps(_inside_answers(args.repo, args.arm)))
     elif args.cmd == "_tracker":
         print(json.dumps(_inside_tracker(args.repo, args.arm)))
     elif args.cmd == "_git":

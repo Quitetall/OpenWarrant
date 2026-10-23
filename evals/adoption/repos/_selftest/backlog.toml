@@ -27,3 +27,7 @@ notes = ""
 depends_on = ["S1"]
 check = ["python3", "-B", "{hidden}/check.py"]
 timeout_secs = 30
+
+[item.question]
+asked = "Should farewell say 'bye' or 'goodbye'?"
+answer = "'bye', lowercase, as in greet."
