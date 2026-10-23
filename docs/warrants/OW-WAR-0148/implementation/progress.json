@@ -1,0 +1,26 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0148",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "74b112866a13bc2eef501f0798db10a535f926e98bdeaa14fb803b6144bcd243",
+  "summary": "Historical audit observed seven comparisons: stderr and exit codes match; four stdout comparisons differ through OW71 runtime-receipt applicability. Owner explicitly permits the bounded planned applicability changes; original observations and signed records remain unchanged. Pre-M1 check-generated timed out; scale/release-budget proof remains unobserved. Work remains in progress and unverified.",
+  "notes": "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/build-identities.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/check-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/check.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/next.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/status.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/owner-direction.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/functional-ci-excerpt.log",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/functional-ci-observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/shared-preparation-ci-excerpt.log"
+  ],
+  "next_steps": [
+    "Carry the owner-selected bounded applicability exception into the governed clarification; preserve other byte-comparison requirements and original observations.",
+    "Finish remaining functional, historical scale/budget and source-bound gate evidence without changing preserved records.",
+    "Independent review and human acceptance remain separate."
+  ]
+}

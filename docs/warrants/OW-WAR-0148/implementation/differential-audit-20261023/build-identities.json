@@ -1,0 +1,36 @@
+{
+  "pre": {
+    "head": "d21710454011b204a69c7a2f6364431bb4a55775",
+    "argv": [
+      "cargo",
+      "build",
+      "--locked",
+      "-p",
+      "openwarrant-cli",
+      "--bin",
+      "war"
+    ],
+    "build_cache": "/mnt/4tb/build/cargo/88/90cee7b8403e5a/history/d21710454011b204a69c7a2f6364431bb4a55775",
+    "exit_code": 0,
+    "source_clean_after": true,
+    "binary_sha256": "d1fd8a212ebf75a5b2b88d7dd028615713fbcb1be5d718ea81d5dce37d11cbca",
+    "version": "war 1.0.0-alpha.2 (unreleased, commit d21710454011, debug)"
+  },
+  "post": {
+    "head": "a616c84c99a671446fed9d6472163ac8e00b0979",
+    "argv": [
+      "cargo",
+      "build",
+      "--locked",
+      "-p",
+      "openwarrant-cli",
+      "--bin",
+      "war"
+    ],
+    "build_cache": "/mnt/4tb/build/cargo/88/90cee7b8403e5a/history/a616c84c99a671446fed9d6472163ac8e00b0979",
+    "exit_code": 0,
+    "source_clean_after": true,
+    "binary_sha256": "8be33d7ed0ca27c2ab62ae4bfc8050a2c462415febfeeea344adde7478bc3c7e",
+    "version": "war 1.0.0-alpha.2 (unreleased, commit a616c84c99a6, debug)"
+  }
+}

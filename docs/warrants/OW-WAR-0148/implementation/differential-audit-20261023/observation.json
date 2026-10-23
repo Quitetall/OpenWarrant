@@ -1,0 +1,227 @@
+{
+  "schema": "oh.war/differential-audit/v1",
+  "pre_commit": "d21710454011b204a69c7a2f6364431bb4a55775",
+  "post_commit": "a616c84c99a671446fed9d6472163ac8e00b0979",
+  "corpus_commit": "d21710454011b204a69c7a2f6364431bb4a55775",
+  "comparisons": {
+    "check": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "check"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "041f0cf243d216e2a7691ef560d528708b3764208e89dddcb869bbe284745bd9",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "check"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "9f3f3d57934fb106a0c7c168c093c0199a338d68531d7e92f6da9f6683f95be5",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": false,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "check-json": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "check",
+          "--json"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "48d053a8eccd10b4aff8c0546528ce6537f48b926f668fee5931010dfda29cee",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "check",
+          "--json"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "fa255bf284569cc7a6033e16be56004ea1c8f4e67b6c63aec957428f9175308c",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": false,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "status-json": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "status",
+          "--json"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "ba91ed4fa16d4496cd6c6d5200a0e717703a70c68e58be62cd63ee27702aa1f1",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "status",
+          "--json"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "dff3b408a5a2a1629f165a8064f79f3bc3f30f1c7cf9b0b0a367b5dd2435f216",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": false,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "next": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "next"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "d81f335cf67673620d44592400ba8d4e188b985f56944c5121f1d8fb1b4d9e12",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "next"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "52253e548fde723f7b49530dc3cdcb7deaf9db15235e12cf97aea70ac1bf286b",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": false,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "console-json": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "console",
+          "--json"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "352eeaa38247da23cabb55e69dfda2970118e0683000b6c40ba15fb6a0035250",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "console",
+          "--json"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "352eeaa38247da23cabb55e69dfda2970118e0683000b6c40ba15fb6a0035250",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "sign-list": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "sign",
+          "--list"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "c37e6f51d789a1e78604156110a378612c88bc1ecb812b73b010a8e0f8d618f8",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "sign",
+          "--list"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "c37e6f51d789a1e78604156110a378612c88bc1ecb812b73b010a8e0f8d618f8",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "pins": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "pins",
+          "--resolved-only"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "167aeca377546e3d715f8a52aa1d693448b4760e8f994ea9e90a371ac3e4d3cc",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-isolated-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023",
+          "pins",
+          "--resolved-only"
+        ],
+        "exit_code": 0,
+        "stdout_sha256": "167aeca377546e3d715f8a52aa1d693448b4760e8f994ea9e90a371ac3e4d3cc",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    }
+  },
+  "unknown": {
+    "check-generated": {
+      "state": "UNKNOWN",
+      "reason": "Pre-M1 command exceeded its 120-second execution deadline. Initial observer did not retain partial stream; no completed comparison claimed."
+    }
+  },
+  "different_stdout": [
+    "check",
+    "check-json",
+    "status-json",
+    "next"
+  ],
+  "all_completed_stderr_equal": true,
+  "all_completed_exit_codes_equal": true,
+  "exceptions_applied": [],
+  "synthetic_1000_observed": false,
+  "release_budget_observed": false,
+  "qualification_established": false,
+  "raw_evidence_root": "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023",
+  "cache_control": "Initial shared-cache post build linked stale pre-M1 core metadata and failed. Both exact revisions then built clean in stable per-revision caches; no historical source modified."
+}
