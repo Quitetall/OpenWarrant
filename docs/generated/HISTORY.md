@@ -21474,6 +21474,31 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0079/atoms/60-assurance.md ends -->
 
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | docs/integrations/selection.md | `docs/integrations/selection.md` | verified |
+| D-002 | conformance/integration/selection/README.md | `conformance/integration/selection/README.md` | verified |
+| D-003 | conformance/integration/selection/check_observations.py | `conformance/integration/selection/check_observations.py` | verified |
+| D-004 | conformance/integration/selection/run.py | `conformance/integration/selection/run.py` | verified |
+| D-005 | docs/warrants/OW-WAR-0079/implementation/notes.md | `docs/warrants/OW-WAR-0079/implementation/notes.md` | verified |
+| D-006 | docs/warrants/OW-WAR-0079/implementation/progress.json | `docs/warrants/OW-WAR-0079/implementation/progress.json` | verified |
+| D-007 | docs/warrants/OW-WAR-0079/implementation/selection-observation.json | `docs/warrants/OW-WAR-0079/implementation/selection-observation.json` | verified |
+| D-008 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/README.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/README.md` | verified |
+| D-009 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/identity.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/identity.json` | verified |
+| D-010 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/1cde1190bf9d4264990932998585509c/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/1cde1190bf9d4264990932998585509c/task.md` | verified |
+| D-011 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/20803501a9ec431ab9532565617f65ff/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/20803501a9ec431ab9532565617f65ff/task.md` | verified |
+| D-012 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/2a6d348be0504208bb99d3d9604a8f42/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/2a6d348be0504208bb99d3d9604a8f42/task.md` | verified |
+| D-013 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/404ebb00a07e4204a0e703b33aeb6b29/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/404ebb00a07e4204a0e703b33aeb6b29/task.md` | verified |
+| D-014 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/60fa2d28dfc44ce0b56c40ffc8a96e92/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/60fa2d28dfc44ce0b56c40ffc8a96e92/task.md` | verified |
+| D-015 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/9b8f539ec1cc4541aa65e246a82a1bb6/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/9b8f539ec1cc4541aa65e246a82a1bb6/task.md` | verified |
+| D-016 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/bc764c475d504572b16855c7f3da7f1a/task.md | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/inputs/bc764c475d504572b16855c7f3da7f1a/task.md` | verified |
+| D-017 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/native-selection.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/native-selection.json` | verified |
+| D-018 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/producer-identity.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/producer-identity.json` | verified |
+| D-019 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/summary.json | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/summary.json` | verified |
+| D-020 | docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/wire.jsonl` | verified |
+
 ### OW-WAR-0080 — Prove provider master context and task projections
 
 [manifest](../../docs/warrants/OW-WAR-0080/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0080/authorization.toml) · profile `delivery` · rung `draft` · currency `current`

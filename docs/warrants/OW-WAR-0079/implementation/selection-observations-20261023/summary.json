@@ -1,0 +1,132 @@
+{
+  "kind": "actual-fresh-selection-observations",
+  "binary_sha256": {
+    "/mnt/4tb/artifacts/OpenWarrant/keep/integration-output-retention-20261023/consumer-tool/war": "3eb13f9522a43d44115b4027aefdefaecbcff6e2e9556526e2cee91a12add76b",
+    "/mnt/4tb/artifacts/OpenWarrant/keep/ow79-evidence-20261023/producer-tool/compile_package": "b906c9db54b9124538cf4df405852c240bfb3c3382ac65b79bd0d29e068c9b16"
+  },
+  "compiler_claim": "lamu-openwarrant@2572894f28ce76c2c7e6c6c9ae6be51a7f400fa1",
+  "cases": [
+    {
+      "case": "required-unknown",
+      "source": "inputs/2a6d348be0504208bb99d3d9604a8f42/task.md",
+      "source_sha256": "acd71ab2626dd5d3944020377a3cc428b6a7c3ad5d1c33805b1f0189ee296b14",
+      "exit_code": 0,
+      "refused": false,
+      "qualification_established": false,
+      "package_sha256": "cf660c54bacf48a27a7e8a1959eaee6f1aa65b92f8f1ffc89895fec4747d4f47",
+      "selected_units": [
+        "context",
+        "definition",
+        "extra",
+        "outcome",
+        "scope"
+      ],
+      "repeat_identical": true,
+      "wire_start": 0,
+      "wire_end": 92263
+    },
+    {
+      "case": "optional-unknown",
+      "source": "inputs/60fa2d28dfc44ce0b56c40ffc8a96e92/task.md",
+      "source_sha256": "8718281ebf27531d30aa39ea077abcb74e3c0f3ac79b199a7237b8fc8db389e0",
+      "exit_code": 0,
+      "refused": false,
+      "qualification_established": false,
+      "package_sha256": "e2c1f45af918a3a294d63408cfbbb2e6feab02e744b3ba040ae8adbddd8a180e",
+      "selected_units": [
+        "context",
+        "outcome",
+        "scope"
+      ],
+      "repeat_identical": true,
+      "wire_start": 92263,
+      "wire_end": 172822
+    },
+    {
+      "case": "known-false-wins",
+      "source": "inputs/9b8f539ec1cc4541aa65e246a82a1bb6/task.md",
+      "source_sha256": "ee27ef46bf5fc4488ac3f0b1091ab1f6d27e0560c6dbad86055adb78ef06092a",
+      "exit_code": 0,
+      "refused": false,
+      "qualification_established": false,
+      "package_sha256": "c9b17e470f762f99081d8c336f8585d371b9d0bb1d1b48dbbac9aace0da55269",
+      "selected_units": [
+        "context",
+        "outcome",
+        "scope"
+      ],
+      "repeat_identical": true,
+      "wire_start": 172822,
+      "wire_end": 252084
+    },
+    {
+      "case": "changed-source",
+      "source": "inputs/404ebb00a07e4204a0e703b33aeb6b29/task.md",
+      "source_sha256": "da282399bde2bd02a19fd91e82967df302f81057bdc1163ac9e68f4ebb92c5ae",
+      "exit_code": 0,
+      "refused": false,
+      "qualification_established": false,
+      "package_sha256": "6c7a3ecd2c9283c63386728c11b4be0285448162343f7256ef440409e6307fca",
+      "selected_units": [
+        "context",
+        "definition",
+        "extra",
+        "outcome",
+        "scope"
+      ],
+      "repeat_identical": true,
+      "wire_start": 252084,
+      "wire_end": 346012
+    },
+    {
+      "case": "bounded-cycle",
+      "source": "inputs/bc764c475d504572b16855c7f3da7f1a/task.md",
+      "source_sha256": "1ce3c107e0c78f199f596e6591b71dd108c6cdf2a5bd98b1719801fa21ca48de",
+      "exit_code": 0,
+      "refused": false,
+      "qualification_established": false,
+      "package_sha256": "b8d93bf8c839b5eee5ace109f56dbaa93ac83bac00463cb7830a4fd18c9feda0",
+      "selected_units": [
+        "context",
+        "definition",
+        "extra",
+        "outcome",
+        "scope"
+      ],
+      "repeat_identical": true,
+      "wire_start": 346012,
+      "wire_end": 443613
+    },
+    {
+      "case": "required-missing",
+      "source": "inputs/1cde1190bf9d4264990932998585509c/task.md",
+      "source_sha256": "0a5ed369dbf44c5a59ee55c307c45007d34caead5b53a24b9be9e7561aa949cf",
+      "exit_code": 1,
+      "refused": true,
+      "qualification_established": false,
+      "stderr": "[{\"code\":\"applicability-unknown\",\"source_path\":\"task.md\",\"unit\":\"\",\"pointer\":\"needed\",\"severity\":\"warning\",\"message\":\"Missing scope input; applicability remains unknown\",\"details\":{\"missing_inputs\":[\"path\",\"stage\"]}},{\"code\":\"target-missing\",\"source_path\":\"task.md\",\"unit\":\"\",\"pointer\":\"needed\",\"severity\":\"error\",\"message\":\"Unit is absent\",\"details\":{}}]\n",
+      "required_refusal": "target-missing",
+      "wire_start": 443613,
+      "wire_end": 447464
+    },
+    {
+      "case": "selected-conflict",
+      "source": "inputs/20803501a9ec431ab9532565617f65ff/task.md",
+      "source_sha256": "635eba12de54c42a33a95773f7d4f8d95775d4e412f936e4cd8d2daa78cfb93a",
+      "exit_code": 1,
+      "refused": true,
+      "qualification_established": false,
+      "stderr": "[{\"code\":\"applicability-unknown\",\"source_path\":\"task.md\",\"unit\":\"\",\"pointer\":\"needed\",\"severity\":\"warning\",\"message\":\"Missing scope input; applicability remains unknown\",\"details\":{\"missing_inputs\":[\"path\",\"stage\"]}},{\"code\":\"binding-conflict\",\"source_path\":\"task.md\",\"unit\":\"extra\",\"pointer\":\"\",\"severity\":\"error\",\"message\":\"Selected units explicitly conflict\",\"details\":{}}]\n",
+      "required_refusal": "binding-conflict",
+      "wire_start": 447464,
+      "wire_end": 451494
+    }
+  ],
+  "wire_sha256": "fa8b9a182d47ceaa2e6216094444b7611d7d5b9429431bb76e9dee179977358c",
+  "qualification_established": false,
+  "limitations": [
+    "One captured document per compiler-example invocation",
+    "Cross-source routing/access controls are exercised separately by native selection tests",
+    "Linux execution only; no trusted access service or human acceptance"
+  ]
+}

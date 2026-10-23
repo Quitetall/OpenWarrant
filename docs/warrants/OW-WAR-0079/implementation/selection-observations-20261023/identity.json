@@ -1,0 +1,15 @@
+{
+  "observed_source_head": "94fb25303b1cf0f99ccdf1045a5e77e952382d6f",
+  "source_status": "?? conformance/integration/selection/README.md\n?? conformance/integration/selection/check_observations.py\n?? docs/warrants/OW-WAR-0079/implementation/selection-observations-20261023/\n",
+  "sdk_cli_sha256": "3eb13f9522a43d44115b4027aefdefaecbcff6e2e9556526e2cee91a12add76b",
+  "sdk_cli_version": "war 1.0.0-alpha.5 (unreleased, commit 5158db6de287, dirty, debug)",
+  "source_sha256": {
+    "conformance/integration/selection/check_observations.py": "552cd702e3d934f74414ff6707c7d9ceb9fc665486f190d7d2463cab74aee192",
+    "conformance/integration/selection/run.py": "89ad719e828fdf5bb8bb2a18560edca103a814e91dfc7c1065b7eb5cebc33037",
+    "docs/integrations/selection.md": "7d86247ca0ce3789b9f8515f30151e69ef54c26c3d751a27da7cc66e430ab88f",
+    "crates/openwarrant-core/src/document/author.rs": "0cb660ab5ff841a3b8bb9027be559727b32b1cb5623af9b03bc055a92f8f0225",
+    "crates/openwarrant-core/src/document/packet.rs": "3fe5b6108f2ea07b56f171736f1fe45e489cbe103e8b8ce6e70c92d5392283b8",
+    "crates/openwarrant-core/src/document/source.rs": "9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8"
+  },
+  "qualification_established": false
+}
