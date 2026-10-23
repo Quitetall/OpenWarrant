@@ -12,7 +12,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 - **Current by construction.** A Warrant is current unless an authorized Warrant declares `supersedes` → it, or its resolution is annulled. Currency is derived from those relations, never written.
 - **Fully expanded.** Every current Warrant's atoms appear below verbatim, in role order. Nothing is paraphrased.
 - **Replaced subjects are one line.** 1 replaced subject(s) appear under *Replaced* as lineage and nothing else; their text is in the history, when this repository keeps one.
-- **Records as of 2026-10-20** — the latest recorded event. 144 current Warrant(s).
+- **Records as of 2026-10-23** — the latest recorded event. 144 current Warrant(s).
 
 ## In force
 
@@ -23823,6 +23823,16 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-058 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json` | verified |
 | D-059 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json` | verified |
 | D-060 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl` | verified |
+| D-061 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md` | verified |
+| D-062 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json` | verified |
+| D-063 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json` | verified |
+| D-064 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json` | verified |
+| D-065 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr` | verified |
+| D-066 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json` | verified |
+| D-067 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr` | verified |
+| D-068 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout` | verified |
+| D-069 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json` | verified |
+| D-070 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl` | verified |
 
 #### OW-WAR-0078 — Validate condition syntax and prove provider evaluation integration
 

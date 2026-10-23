@@ -1,0 +1,16 @@
+   Compiling serde_core v1.0.228
+   Compiling serde v1.0.228
+   Compiling serde_spanned v1.1.2
+   Compiling serde_json v1.0.149
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling uuid v1.23.3
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling toml_edit v0.22.27
+   Compiling serde_jcs v0.2.0
+   Compiling toml v0.8.23
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow77-evidence-20261023/crates/openwarrant-core)
+   Compiling lamu-openwarrant v0.1.0 (/mnt/4tb/tmp/openwarrant-ow77-current-provider-20261023/lamu-rs/lamu-openwarrant)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 10.24s
+     Running tests/source.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/source-becabc31d051c68e)

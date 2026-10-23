@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-20.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-23.
 
 ## Lineage
 
@@ -43,6 +43,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-16 | 49 | authorization.recorded 21, question.answered 9, sync.receipt_attached 7, verification.recorded 12 |
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
 | 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
+| 2026-10-23 | 1 | sync.receipt_attached 1 |
 
 ## Roadmap revisions
 
@@ -20996,6 +20997,16 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-058 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/source-inputs.json` | verified |
 | D-059 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/summary.json` | verified |
 | D-060 | docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/source-observations-20261023/wire.jsonl` | verified |
+| D-061 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/README.md` | verified |
+| D-062 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/cli-identity.json` | verified |
+| D-063 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/controls.json` | verified |
+| D-064 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.json` | verified |
+| D-065 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-metadata.stderr` | verified |
+| D-066 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-observation.json` | verified |
+| D-067 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stderr` | verified |
+| D-068 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/provider-tests.stdout` | verified |
+| D-069 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/summary.json` | verified |
+| D-070 | docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0077/implementation/current-source-observations-20261023/wire.jsonl` | verified |
 
 ### OW-WAR-0078 — Validate condition syntax and prove provider evaluation integration
 
