@@ -1,0 +1,28 @@
+{
+  "head": "f188483d9841892f7fad20213e0c17e50fc8a903",
+  "working_status": " M conformance/sdk/conditions/README.md\n?? conformance/sdk/conditions/check_observations.py\n?? docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/\n",
+  "rustc": "rustc 1.97.1 (8bab26f4f 2026-07-14)\nbinary: rustc\ncommit-hash: 8bab26f4f68e0e26f0bb7960be334d5b520ea452\ncommit-date: 2026-07-14\nhost: x86_64-unknown-linux-gnu\nrelease: 1.97.1\nLLVM version: 22.1.6",
+  "cli_build_identity": {
+    "exit_code": 0,
+    "elapsed_seconds": 39.88523277400236,
+    "source_head": "c7e46541f7bbcbda465a19b23e344a62e7ce1102",
+    "source_status": "",
+    "binary_sha256": "ddf33424ab40b93d45c2ea1f98b081e642f4d9c61a601367bc2764a79b824c10",
+    "reported_version": "war 1.0.0-alpha.5 (unreleased, commit c7e46541f7bb, debug)",
+    "source_sha256": {
+      "crates/openwarrant-core/src/document/source.rs": "9e57f766d83b41748efd7fa570d66da44330a8d8473d1d761cab5ebe69b9e3e8",
+      "crates/openwarrant-cli/src/sdk.rs": "5a383412234ef5183dff7d29f5fef6318c9704c2bd32dca0835ff9d2277db07e",
+      "crates/openwarrant-cli/src/gate_cmd.rs": "8475de4035ced1025247bfcb622f4dba305fe3aaf2b9b8920c1845ac153275d5",
+      "crates/openwarrant-cli/src/verify.rs": "820acb242467551e390f72a7fce3953d5b242ceeb59dd7ce2c19dbddcd25d4de",
+      "crates/openwarrant-cli/src/verify/record.rs": "81aa030e0d4961d0b45fbe78a11d2456dec6fdd0228484847d4cf70c9de25f4b",
+      "Cargo.lock": "7218cbaa55df90da589412f81932e3b5d4d4369a534e6f6e2319fcdaf9e71b3d"
+    }
+  },
+  "source_sha256": {
+    "crates/openwarrant-core/src/document/condition.rs": "522442c2b96374382603659454412ea865b5310487c556a189d0025af4048f25",
+    "conformance/sdk/conditions/check_observations.py": "994dce6c25f2cb7dd6923b2bb6dcd15793723f3655f8741677b61184f7467bf0",
+    "conformance/sdk/conditions/cases.json": "1501edad637d72699584629bb2f1ac6c1f6f342d2e75f5a466bafdf4a5611ce9",
+    "conformance/integration/conditions/run.py": "60e282d41d860d0a9a890a18eaa3bfa867e7227235da3c593e162cdc26442b72"
+  },
+  "qualification_established": false
+}

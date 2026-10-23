@@ -1,0 +1,8 @@
+
+running 3 tests
+test limits_count_entries_across_fields_and_utf8_bytes_without_cloning ... ok
+test condition_syntax_accepts_f4_fields_and_refuses_unknown_operators ... ok
+test malformed_conditions_never_become_unknown_applicability ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

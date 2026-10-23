@@ -24049,6 +24049,43 @@ The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask ga
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0078/atoms/60-assurance.md ends -->
 
+##### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/condition.rs | `crates/openwarrant-core/src/document/condition.rs` | verified |
+| D-002 | conformance/sdk/conditions/README.md | `conformance/sdk/conditions/README.md` | verified |
+| D-003 | conformance/sdk/conditions/all-fields.toml | `conformance/sdk/conditions/all-fields.toml` | verified |
+| D-004 | conformance/sdk/conditions/cases.json | `conformance/sdk/conditions/cases.json` | verified |
+| D-005 | conformance/sdk/conditions/check_observations.py | `conformance/sdk/conditions/check_observations.py` | verified |
+| D-006 | conformance/sdk/conditions/embedded-double-star.toml | `conformance/sdk/conditions/embedded-double-star.toml` | verified |
+| D-007 | conformance/sdk/conditions/empty-list.toml | `conformance/sdk/conditions/empty-list.toml` | verified |
+| D-008 | conformance/sdk/conditions/empty-table.toml | `conformance/sdk/conditions/empty-table.toml` | verified |
+| D-009 | conformance/sdk/conditions/traversal.toml | `conformance/sdk/conditions/traversal.toml` | verified |
+| D-010 | conformance/sdk/conditions/unicode-path.toml | `conformance/sdk/conditions/unicode-path.toml` | verified |
+| D-011 | conformance/sdk/conditions/unknown-operator.toml | `conformance/sdk/conditions/unknown-operator.toml` | verified |
+| D-012 | conformance/sdk/conditions/wrong-type.toml | `conformance/sdk/conditions/wrong-type.toml` | verified |
+| D-013 | conformance/integration/conditions/run.py | `conformance/integration/conditions/run.py` | verified |
+| D-014 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/README.md | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/README.md` | verified |
+| D-015 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stderr` | verified |
+| D-016 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stdout | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/core.stdout` | verified |
+| D-017 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.json` | verified |
+| D-018 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-metadata.stderr` | verified |
+| D-019 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-observation.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-observation.json` | verified |
+| D-020 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stderr` | verified |
+| D-021 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stdout | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/current-provider-tests.stdout` | verified |
+| D-022 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/identity.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/identity.json` | verified |
+| D-023 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stderr | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stderr` | verified |
+| D-024 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stdout | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/probe.stdout` | verified |
+| D-025 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/published-provider-observation.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/published-provider-observation.json` | verified |
+| D-026 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/results.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/results.json` | verified |
+| D-027 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/summary.json | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/summary.json` | verified |
+| D-028 | docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0078/implementation/condition-observations-20261023/wire.jsonl` | verified |
+| D-029 | docs/warrants/OW-WAR-0078/implementation/conditions-observation.json | `docs/warrants/OW-WAR-0078/implementation/conditions-observation.json` | verified |
+| D-030 | docs/warrants/OW-WAR-0078/implementation/notes.md | `docs/warrants/OW-WAR-0078/implementation/notes.md` | verified |
+| D-031 | docs/warrants/OW-WAR-0078/implementation/progress.json | `docs/warrants/OW-WAR-0078/implementation/progress.json` | verified |
+| D-032 | docs/warrants/OW-WAR-0078/implementation/source-compatibility-observation.json | `docs/warrants/OW-WAR-0078/implementation/source-compatibility-observation.json` | verified |
+
 #### OW-WAR-0079 — Prove provider context selection and dependency closure
 
 [manifest](../../docs/warrants/OW-WAR-0079/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0079/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
