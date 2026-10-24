@@ -4,10 +4,11 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "2085ae428d25e2ffe68dc89153f6b8d33b9fb972",
-  "summary": "Existing scoped implementation exercised: 6 feature controls plus positive corpus pass (7/0 total). Eight closure requirements remain unestablished.",
-  "notes": "docs/warrants/OW-WAR-0144/implementation/scoped-controls-20261012/README.md",
+  "summary": "Strengthened the public retention plant: collision refusal preserves the synthetic Warrant regular-file snapshot; an identical retained archive is reused without replacement. Fresh candidate tool passes seven feature controls plus positive corpus (8/0); two fixture mutations are detected. Eight formal closure requirements remain UNKNOWN; no independent completion or resolution.",
+  "notes": "docs/warrants/OW-WAR-0144/implementation/retention-audit-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0144/implementation/scoped-controls-20261012/observation.json"
+    "docs/warrants/OW-WAR-0144/implementation/scoped-controls-20261012/observation.json",
+    "docs/warrants/OW-WAR-0144/implementation/retention-audit-20261024/observation.json"
   ],
   "next_steps": [
     "Reconcile later delivery ownership without rewriting signed history.",

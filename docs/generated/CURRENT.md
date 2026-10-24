@@ -10108,7 +10108,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-028 | preset: decision, basis | `crates/openwarrant-cli/templates/presets/decision/20-basis.md` | verified |
 | D-029 | preset: decision, the decision atom | `crates/openwarrant-cli/templates/presets/decision/30-decision.md` | verified |
 | D-030 | preset: decision, assurance | `crates/openwarrant-cli/templates/presets/decision/60-assurance.md` | verified |
-| D-031 | new.rs: --preset, the TODO skeleton retired | `crates/openwarrant-cli/src/new.rs` | verified |
+| D-031 | new.rs: --preset, the TODO skeleton retired | `crates/openwarrant-cli/src/new.rs` | drift |
 | D-032 | lib.rs: the flag | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-033 | CONTEXT.md: the terms | `CONTEXT.md` | verified |
 | D-034 | README.md points at CURRENT.md | `README.md` | verified |
@@ -11740,7 +11740,7 @@ journal event ambiguous, and today nothing refuses it.
 | D-001 | The corpus identity rules | `crates/openwarrant-cli/src/identity_check.rs` | drift |
 | D-002 | war check runs the identity rules | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-003 | war blut names the stage by UUID | `crates/openwarrant-cli/src/blut.rs` | verified |
-| D-004 | The identity plants | `conformance/plants.d/51-identity.sh` | verified |
+| D-004 | The identity plants | `conformance/plants.d/51-identity.sh` | drift |
 
 #### OW-WAR-0120 — Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants
 
@@ -18620,7 +18620,7 @@ that by forcing every child to follow its parent's latest revision.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The parent citation check: revision exists, number and digest agree, moved parent, unknown history | `crates/openwarrant-cli/src/check.rs` | drift |
-| D-002 | war new --parent: the exact citation, written from the parent's authorization | `crates/openwarrant-cli/src/new.rs` | verified |
+| D-002 | war new --parent: the exact citation, written from the parent's authorization | `crates/openwarrant-cli/src/new.rs` | drift |
 | D-003 | The --parent flag on war new | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The parent revision plants | `conformance/plants.d/58-parent-revision.sh` | verified |
 
@@ -38677,7 +38677,7 @@ a verify that passes for another reason would pass the obligation.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | authorize keeps a superseded authorization beside it | `crates/openwarrant-cli/src/authorize.rs` | verified |
-| D-002 | The retention plants | `conformance/plants.d/49-authorization-retained.sh` | verified |
+| D-002 | The retention plants | `conformance/plants.d/49-authorization-retained.sh` | drift |
 | D-003 | Where a superseded authorization is kept | `docs/SIGNING.md` | verified |
 
 ### OW-PHASE-10 — Contractor Work Order profile
@@ -39088,7 +39088,7 @@ through `resolve`, which refuses an agent by kind whatever
 | D-003 | the delivery profile as data | `profiles/delivery.toml` | verified |
 | D-004 | the decision profile as data | `profiles/decision.toml` | verified |
 | D-005 | the contractor profile | `profiles/contractor.toml` | verified |
-| D-006 | war new --profile contractor | `crates/openwarrant-cli/src/new.rs` | verified |
+| D-006 | war new --profile contractor | `crates/openwarrant-cli/src/new.rs` | drift |
 | D-007 | the walked contractor example | `docs/EXAMPLES/04-contractor.md` | verified |
 | D-008 | docs/PROFILES.md | `docs/PROFILES.md` | drift |
 | D-009 | the plants | `conformance/plants.d/56-contractor.sh` | verified |

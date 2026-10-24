@@ -1,0 +1,7 @@
+{
+  "adr_uuid": "01a16dde-b9f3-72f0-81ad-4e6c5f19cff3",
+  "warrant_uuid": "01a16dd1-bddc-75e1-b5ad-3be262fafba0",
+  "allocator": "uuidgen --time-v7",
+  "status": "proposed",
+  "scope": "synthetic fixture only; no architecture choice accepted"
+}

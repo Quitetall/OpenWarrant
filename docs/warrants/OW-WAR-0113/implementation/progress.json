@@ -1,19 +1,23 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0113",
-  "work_state": "completed",
+  "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "9c65bbb9f05ee484d08ea1c6441f4e4b80b6ecb041bd5bee0923dfc871165177",
-  "summary": "Implementation complete, unverified, under the owner-selected bounded refusal criterion. All 40 declared files match protected CI source; currency, master/history, judged actions, presets, optional headings and extension controls are observed. Public malformed bare roles refuse as manifest.invalid; projection-rule unit controls retain atom.role-unprojected. No signed amendment, independent assurance or legacy resolution claimed.",
-  "notes": "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/README.md",
+  "summary": "Decision-preset and rationale-check defects fixed, unverified. Proposed ADRs now have distinct identities outside the Warrant and bind correctly; quoted titles/paths serialize safely. Check parses rationale, retains valid unknowns and rejects invalid states. Three CLI controls, 10 scaffold units, eight existing check tests and Clippy pass; corpus check has zero errors. Exact-head CI and qualification remain pending. Earlier owner-selected bounded refusal criterion and historical evidence are unchanged.",
+  "notes": "docs/warrants/OW-WAR-0113/implementation/decision-preset-audit-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/source-observation.json",
     "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/ci-excerpt.log",
     "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/unit-excerpt.log",
-    "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/owner-direction.json"
+    "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/owner-direction.json",
+    "docs/warrants/OW-WAR-0113/implementation/decision-preset-audit-20261024/README.md",
+    "docs/warrants/OW-WAR-0113/implementation/decision-preset-audit-20261024/observation.json",
+    "docs/warrants/OW-WAR-0113/implementation/decision-preset-audit-20261024/fix-observation.json"
   ],
   "next_steps": [
-    "Carry the owner-selected bounded criterion through governed amendment/acceptance before claiming signed-criterion compliance.",
-    "Independent review and human acceptance remain separate; historical authority and verification records stay unchanged."
+    "Run exact-head protected CI and inspect the corrected decision/rationale controls.",
+    "Retain prior bounded refusal direction and reconcile historical delivery/authority separately.",
+    "Independent review and secure acceptance remain separate."
   ]
 }

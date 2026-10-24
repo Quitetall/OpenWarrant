@@ -1,0 +1,43 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== identity (OW-WAR-0119) ==
+ok    the clean program passes           exit 0, identity rules ran
+ok    clean program: no duplicate-uuid   no error identity.duplicate-uuid
+ok    clean program: no atom-mismatch    no error identity.atom-mismatch
+ok    clean program: no changed          no error identity.changed
+ok    clean program: no alias-ref        no error identity.alias-ref
+ok    clean program: no adr-not-v7       no error identity.adr-not-v7
+ok    corpus: no duplicate-uuid error    no error identity.duplicate-uuid
+ok    corpus: no atom-mismatch error     no error identity.atom-mismatch
+ok    corpus: no changed error           no error identity.changed
+ok    corpus: no alias-ref error         no error identity.alias-ref
+ok    corpus: no adr-not-v7 error        no error identity.adr-not-v7
+ok    a copied Warrant keeps its UUID    error identity.duplicate-uuid (exit 2)
+ok    two ADRs with one adr_uuid         error identity.duplicate-uuid (exit 2)
+ok    two ADRs, two adr_uuids            no error identity.duplicate-uuid
+ok    an atom names another Warrant      error identity.atom-mismatch (exit 2)
+ok    the atom restored                  no error identity.atom-mismatch
+ok    a committed UUID replaced          error identity.changed (exit 2)
+ok    no git repository: unknown         unknown identity.changed (exit 2)
+ok    no git repository: never a pass    no pass identity.changed
+ok    git object read failed: unknown    unknown identity.changed (exit 2)
+FAIL  git object read failed: no pass    1 pass identity.changed time(s)
+ok    historical UUID absent: unknown    unknown identity.changed (exit 2)
+FAIL  historical UUID absent: no pass    1 pass identity.changed time(s)
+ok    an uncommitted Warrant is new      pass identity.changed (exit 0)
+ok    an uncommitted Warrant: no change  no error identity.changed
+ok    [[supersedes]] by alias            error identity.alias-ref (exit 2)
+ok    [[supersedes]] by UUID             no error identity.alias-ref
+ok    [[parents]] by alias               error identity.alias-ref (exit 2)
+ok    [[parents]] by UUID                no error identity.alias-ref
+ok    an ADR governs by alias            warn identity.alias-ref (exit 0)
+ok    an ADR governs by alias: no error  no error identity.alias-ref
+ok    corpus: alias-form governs listed  6 ADR(s) warned
+ok    blut names the stage by UUID       war://01a021a6-0dfd-7e45-b33b-749b95409cd1
+ok    a v4 manifest UUID                 error manifest.invalid (exit 2)
+ok    corpus: adr-not-v7 one by one      13 v4 ADR(s), once each, no v7
+ok    no ADR identity rewritten          git diff over docs/adr/ is empty
+
+35 passed, 2 failed

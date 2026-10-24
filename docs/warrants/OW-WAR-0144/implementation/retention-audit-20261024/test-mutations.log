@@ -1,0 +1,14 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== authorization retention (OW-WAR-0144) ==
+ok    a dry run keeps nothing            the Warrant directory is byte-identical
+FAIL  a colliding kept name refuses      exit 2: ERROR authorize.retire-collision         /mnt/4tb/tmp/openwarrant-ow144-controls-20261024/tmp.pSkD8PhlPm/docs/warrants/AR-WAR-0001/authorization.9e9732ae.toml exists with other bytes than the authorization it would keep (sha256:9e9732ae554bd3fa2637301c358a2f14b8e25fbce9dfbe6a59bebcd622fc4776); nothing is overwritten and nothing is recorded|
+ok    revision 1 is kept beside revision 2 authorization.9e9732ae.toml, same bytes
+ok    the revision-1 envelope verifies   attest.subject-archived
+ok    without it, the envelope drifts    attest.subject-drift names authorization.toml
+ok    the kept file is not a record      check clean; no authorization pending
+FAIL  an identical kept copy is reused   exit 0: existing retained file replaced or changed
+
+6 passed, 2 failed
