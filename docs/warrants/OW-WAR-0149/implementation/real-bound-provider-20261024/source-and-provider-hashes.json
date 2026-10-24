@@ -1,0 +1,6 @@
+{
+  "/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/conformance/fixtures/runtime-capture/katana_real_local.py": "422e1859dc79f606f92f529a767fdfdd03699a25c9e4a9ce0c1a392e0c771bd0",
+  "/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli/tests/runtime_capture/real_local_model.rs": "105f94f6a89df4fe6025d0cbb78cca811f33ca45c7e27fb573f1ecc732b8c9b4",
+  "/home/brianklam/.cargo/bin/katana": "8c557f95a5b6ed10f44a1d197c943e1cce914fca3e09e45c6fec43aa36c364f4",
+  "/home/brianklam/Projects/OpenWarrant/docs/runtime-evidence/katana-sdk-roundtrip-20261010/katana-verifier.original": "55d85e3483d456cd9f03b1628570d0512892bb6425685288e6885a6fcb616f4f"
+}

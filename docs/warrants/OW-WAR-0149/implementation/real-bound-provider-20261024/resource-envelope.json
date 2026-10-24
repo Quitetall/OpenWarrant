@@ -1,0 +1,12 @@
+{
+  "memory_max": "24G",
+  "cpu_quota": "200%",
+  "service_lifetime_secs": 600,
+  "context_tokens": 8192,
+  "agent_wall_secs": 150,
+  "agent_turns": 4,
+  "agent_tools": 4,
+  "cloud_allowed": false,
+  "spend": "unknown, no paid route",
+  "purpose": "separate actual recorded dispatch/native receipt experiment"
+}
