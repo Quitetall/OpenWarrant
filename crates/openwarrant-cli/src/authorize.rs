@@ -660,11 +660,10 @@ pub fn ingest(
 
 /// [`ingest`], or the same judgment with the write withheld.
 ///
-/// Every refusal above the record write runs in both modes, so a
-/// `DryRun` report names exactly what the real ingest would refuse. The one
-/// difference is at the write: `DryRun` reports `authorize.would-record` and
-/// returns; nothing under the Warrant directory is touched and no journal
-/// line is appended.
+/// Validation, including retained-file collisions, runs in both modes.
+/// `DryRun` reports `authorize.would-record` only after those checks; it does
+/// not create a retained copy, change a Warrant file or append a journal line.
+/// Later storage failures or concurrent changes can still prevent recording.
 pub fn ingest_with(
     repo: &Repository,
     alias: &str,
@@ -1048,6 +1047,13 @@ pub fn ingest_with(
         deliverable_set_digest: Some(current_set_digest.clone()),
         owned,
     };
+    // OW-WAR-0144 / §34.4: keep replaced authorization bytes for their
+    // attestations. Preview the same collision that recording would refuse;
+    // DryRun may inspect the prior bytes, but must never create the archive.
+    if let Some(refused) = retain_superseded(&authorization_path, mode) {
+        report.push(refused);
+        return Ok(report);
+    }
     if mode == crate::sign::IngestMode::DryRun {
         report.push(Diagnostic::pass(
             "authorize.would-record",
@@ -1058,14 +1064,6 @@ pub fn ingest_with(
                 record.owned.len()
             ),
         ));
-        return Ok(report);
-    }
-    // OW-WAR-0144: a revision after authorization replaces this file, and
-    // every attestation over the revision it replaces names these bytes.
-    // Keep them beside it, as a retired response is kept (§34.4: supersede,
-    // never erase), where `attest --verify` finds them by digest.
-    if let Some(refused) = retain_superseded(&authorization_path) {
-        report.push(refused);
         return Ok(report);
     }
     if let Err(refused) = write_toml(&authorization_path, &record, &authorization_before)? {
@@ -1196,16 +1194,35 @@ pub fn authorizes_current_contract(record: &AuthorizationRecord, current_digest:
         && record.revision.authorization.is_some()
 }
 
-/// Copy an existing `authorization.toml` to `authorization.<digest8>.toml`
-/// beside it before it is replaced. An identical copy already there is left
-/// alone; a different file under that name refuses the act before anything
-/// is written (`authorize.retire-collision`), never overwritten.
-fn retain_superseded(path: &Utf8Path) -> Option<Diagnostic> {
+/// Check an existing authorization's retained name in both modes. Recording
+/// copies its bytes there before replacement; preview never creates a copy.
+/// An identical regular file is left alone; different bytes or a non-regular
+/// node refuse the act (`authorize.retire-collision`), never overwritten.
+fn retain_superseded(path: &Utf8Path, mode: crate::sign::IngestMode) -> Option<Diagnostic> {
     let Ok(bytes) = fs::read(path) else {
         return None; // nothing authorized yet: nothing to keep
     };
     let digest = openwarrant_compiler::sha256_hex(&bytes);
     let kept = path.with_file_name(format!("authorization.{}.toml", &digest[..8]));
+    // Inspect the container before opening it: reading a FIFO would wait for
+    // a writer, and a symlink is not the retained record this path must hold.
+    match fs::symlink_metadata(&kept) {
+        Ok(metadata) if !metadata.is_file() => {
+            return Some(Diagnostic::error(
+                "authorize.retire-collision",
+                kept.to_string(),
+                format!("{kept} is not a regular file; nothing is overwritten or recorded"),
+            ));
+        }
+        Err(error) if error.kind() != std::io::ErrorKind::NotFound => {
+            return Some(Diagnostic::unknown(
+                "authorize.retire-unavailable",
+                kept.to_string(),
+                format!("could not inspect {kept}: {error}; nothing recorded"),
+            ));
+        }
+        _ => {}
+    }
     match fs::read(&kept) {
         Ok(existing) if existing == bytes => None,
         Ok(_) => Some(Diagnostic::error(
@@ -1216,6 +1233,12 @@ fn retain_superseded(path: &Utf8Path) -> Option<Diagnostic> {
                  (sha256:{digest}); nothing is overwritten and nothing is recorded"
             ),
         )),
+        Err(error) if error.kind() != std::io::ErrorKind::NotFound => Some(Diagnostic::unknown(
+            "authorize.retire-unavailable",
+            kept.to_string(),
+            format!("could not read {kept}: {error}; nothing recorded"),
+        )),
+        Err(_) if mode == crate::sign::IngestMode::DryRun => None,
         Err(_) => crate::compile::atomic::write(&kept, &bytes)
             .err()
             .map(|refused| refused.diagnostic()),

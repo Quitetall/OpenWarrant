@@ -1,0 +1,209 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "resolve.dry_run",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "runtime-basis.matches",
+      "file": null,
+      "message": "OW-WAR-0144: every current runtime stage has a matching receipt"
+    },
+    {
+      "severity": "warn",
+      "rule": "resolution.deliverable-moved",
+      "file": "docs/warrants/OW-WAR-0144/deliverables.toml",
+      "message": "OW-WAR-0144: D-001 → crates/openwarrant-cli/src/authorize.rs no longer carries the bytes this Warrant pinned; OW-WAR-0112/D-005 (authorized 2026-10-16T22:37:16Z) governs that path now. Requirement 3 stays unmet as written, and nothing here is drift: no resolution binds this pin, so `war admin pins --refresh --alias OW-WAR-0144` records the bytes as they stand and the resolution then says what was delivered under whose authority (OW-ADR-0021)",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "pass",
+      "rule": "resolution.requirement-met",
+      "file": null,
+      "message": "OW-WAR-0144: §56.1 exact authorized Contract Revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "resolution.requirement-met",
+      "file": null,
+      "message": "OW-WAR-0144: §56.1 required deliverables exist"
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 artifact digests verify — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 every required obligation is dispositioned — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 every required gate has admissible result — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 no required unknown remains — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 no blocker remains — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "pass",
+      "rule": "resolution.requirement-met",
+      "file": null,
+      "message": "OW-WAR-0144: §56.1 deviations are dispositioned"
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 required judgments exist — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 independence requirements are met — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "unknown",
+      "rule": "resolution.requirement-unmet",
+      "file": "docs/warrants/OW-WAR-0144/manifest.toml",
+      "message": "OW-WAR-0144: §56.1 residual risks have sufficient authority — not established",
+      "remedy": {
+        "kind": "informational",
+        "argv": [
+          "war",
+          "sign",
+          "resolve",
+          "OW-WAR-0144",
+          "--dry-run"
+        ],
+        "purpose": "see every §56.1 requirement by name and which are unmet, without recording anything"
+      }
+    },
+    {
+      "severity": "pass",
+      "rule": "resolution.requirement-met",
+      "file": null,
+      "message": "OW-WAR-0144: §56.1 runtime receipts match the basis"
+    },
+    {
+      "severity": "pass",
+      "rule": "resolution.requirement-met",
+      "file": null,
+      "message": "OW-WAR-0144: §56.1 resolver holds the role"
+    }
+  ],
+  "notes": [
+    "8 of 13 §56.1 requirements are unmet, so OW-WAR-0144 cannot be resolved. That is the correct outcome, not a defect: closing a Warrant while independence is absent and no authorization record exists would manufacture the false completion this system exists to prevent.",
+    "§38.6: whether OW-WAR-0144 would resolve satisfied is UNKNOWN — at least one declared obligation has no admissible verification. Unknown is neither failure nor pass (Law 15)."
+  ],
+  "counts": {
+    "pass": 6,
+    "warn": 1,
+    "unknown": 8,
+    "error": 0,
+    "worst": "unknown"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

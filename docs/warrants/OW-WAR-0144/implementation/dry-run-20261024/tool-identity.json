@@ -1,0 +1,11 @@
+{
+  "source_parent": "b59c3399f1ad2df09f836b79bf103cb724db9acd",
+  "dirty_source": true,
+  "version": "war 1.0.0-alpha.5 (unreleased, commit b59c3399f1ad, dirty, debug)",
+  "binary_sha256": "7b0fdbbd9dadcb2d3f8e6e8cd58b6f8f9413941befb2c4c74d55236e2cb1a46b",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/authorize.rs": "f082d3d85bb50a4754856d14645843b77b6dfb1bdf659605f81e608883655f4e",
+    "conformance/plants.d/49-authorization-retained.sh": "014c6030d00cdce311798c60e32402ffdf28f4c26f133a9b4dfe830bac9f6cac"
+  },
+  "doc_only_update": "ingest and retention API comments clarify storage/race limits; no further runtime logic change"
+}

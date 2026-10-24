@@ -75,6 +75,14 @@ fi
 AR_KEPT="$AR_W/authorization.${AR_R1:0:8}.toml"
 printf 'not the authorization\n' > "$AR_KEPT"
 AR_BEFORE=$(ar_dir)
+AR_OUT=$("$WAR" --root "$PLANT_ROOT" sign AR-WAR-0001 --as "Plant Signer" --dry-run 2>&1); AR_STATUS=$?
+if [[ $AR_STATUS -ne 0 ]] && grep -q 'authorize.retire-collision' <<<"$AR_OUT" \
+    && ! grep -q 'authorize.would-record' <<<"$AR_OUT" \
+    && [[ "$(ar_dir)" == "$AR_BEFORE" ]]; then
+    ar_ok "dry run sees the kept-name collision" "authorize.retire-collision, Warrant files unchanged"
+else
+    ar_fail "dry run sees the kept-name collision" "exit $AR_STATUS: $(grep -E 'authorize\.(retire-collision|would-record)' <<<"$AR_OUT" | head -2 | tr '\n' '|')"
+fi
 AR_OUT=$(ar_sign); AR_STATUS=$?
 if [[ $AR_STATUS -ne 0 ]] && grep -q 'authorize.retire-collision' <<<"$AR_OUT" \
     && [[ "$(sha256sum "$AR_W/authorization.toml" | cut -c1-64)" == "$AR_R1" ]] \
@@ -85,6 +93,35 @@ else
 fi
 command rm -f "$AR_KEPT"
 command rm -f "$PLANT_ROOT"/docs/authority/responses/AR-WAR-0001.draft.toml
+
+# A retained TOML record must not be read as a pipe. Keep this invocation
+# bounded even against the broken reader, and leave the planted node intact.
+mkfifo "$AR_KEPT"
+AR_BEFORE=$(ar_dir)
+AR_OUT=$(python3 - "$WAR" "$PLANT_ROOT" <<'AR_BOUNDED'
+import subprocess, sys
+try:
+    result = subprocess.run(
+        [sys.argv[1], "--root", sys.argv[2], "sign", "AR-WAR-0001",
+         "--as", "Plant Signer", "--dry-run"],
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=5,
+    )
+except subprocess.TimeoutExpired:
+    print("retained-path preview exceeded its five-second observation bound")
+    sys.exit(124)
+sys.stdout.buffer.write(result.stdout)
+sys.exit(result.returncode)
+AR_BOUNDED
+); AR_STATUS=$?
+if [[ $AR_STATUS -eq 2 && -p "$AR_KEPT" ]] \
+    && grep -q 'authorize.retire-collision' <<<"$AR_OUT" \
+    && grep -q 'regular file' <<<"$AR_OUT" \
+    && [[ "$(ar_dir)" == "$AR_BEFORE" ]]; then
+    ar_ok "a retained pipe is refused unread" "authorize.retire-collision; pipe and Warrant files unchanged"
+else
+    ar_fail "a retained pipe is refused unread" "exit $AR_STATUS: $(head -2 <<<"$AR_OUT" | tr '\n' '|')"
+fi
+command rm -f "$AR_KEPT"
 
 # OBL-001: revision 2 recorded, revision 1 kept beside it byte for byte.
 AR_OUT=$(ar_sign); AR_STATUS=$?
