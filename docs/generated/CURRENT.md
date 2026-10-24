@@ -2895,10 +2895,10 @@ No independent dispositions are asserted. This is implementation evidence only.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | Reused telemetry repair implementation | `crates/openwarrant-cli/src/telemetry.rs` | not_content_addressed |
-| D-002 | Public telemetry integrity regressions | `crates/openwarrant-cli/tests/telemetry_integrity_cli.rs` | verified |
+| D-002 | Public telemetry integrity regressions | `crates/openwarrant-cli/tests/telemetry_integrity_cli.rs` | drift |
 | D-003 | Existing OW39 provenance retaining the prior digest | `docs/warrants/OW-WAR-0039/deliverables.toml` | verified |
 | D-004 | Existing OW41 provenance and original baseline identity | `docs/warrants/OW-WAR-0041/deliverables.toml` | verified |
-| D-005 | Retained observation trail with this follow-up link | `docs/warrants/OW-WAR-0041/implementation/notes.md` | verified |
+| D-005 | Retained observation trail with this follow-up link | `docs/warrants/OW-WAR-0041/implementation/notes.md` | drift |
 | D-006 | Original diagnostic invocation and output identities | `docs/warrants/OW-WAR-0041/implementation/observation.json` | verified |
 | D-007 | Original diagnostic output, not a current accepted baseline | `docs/warrants/OW-WAR-0041/implementation/current-measurement.json` | verified |
 | D-008 | Retained historical successful regression output | `docs/warrants/OW-WAR-0041/implementation/regression.log` | verified |
@@ -35665,7 +35665,7 @@ this level requires. The author does not record them.
 | D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | drift |
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | verified |
 | D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
-| D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | verified |
+| D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | drift |
 | D-018 | The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only) | `docs/agents/legacy-warrant-workflow.md` | drift |
 
 #### OW-WAR-0137 — Teams: review assignment and a queue shared by more than one person

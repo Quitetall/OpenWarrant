@@ -1,0 +1,7 @@
+{
+  "binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow83-evidence-20261023/consumer-tool/war",
+  "version": "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)",
+  "sha256": "a39cdbbc9c8855a4573c5349955b03f858720809eec02287a0cdc836e1f6b0a9",
+  "source": "ada90ce194f146fce52df154745c65d9e2c86df4",
+  "boundary": "Nine relevant setup/telemetry/template/plant files are byte-identical to this sealed tool source and to the named protected CI source. This is not a complete current-release execution."
+}

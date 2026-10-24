@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0122",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "285861a8c5717c7e44f224586d94e79a12b4eeba2e4d2c9c917436e20cfdc3d0",
+  "summary": "Implementation complete, unverified: corrected stale grammar source pointers with exact-revision links and stated existing stages applicability. All 49 registered grammar controls plus the positive corpus passed after public regeneration; the original stale-projection failure is retained. Only D-001 delivery provenance was updated through war deliver. Parser/schema/SAS rules and signed atoms unchanged.",
+  "notes": "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/README.md",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/delivery.json",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/grammar-plants-after-compile.log",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/grammar-plants.log",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/initial-corpus-observation.json",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/source-comparison.json",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/source-pointers.json",
+    "docs/warrants/OW-WAR-0122/implementation/grammar-audit-20261024/tool-identity.json"
+  ],
+  "next_steps": [
+    "Run protected CI on the exact published head.",
+    "Independent document review, verification, historical delivery reconciliation and human acceptance remain separate."
+  ]
+}
