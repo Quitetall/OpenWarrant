@@ -1,15 +1,39 @@
 # Adopting OpenWarrant in a repository with history
 
-`QUICKSTART.md` starts from an empty directory. This page starts from a
-repository that already has commits — perhaps thousands — and no Warrants.
-The path is the same `war init`; what differs is that the result says
-truthfully where governed work begins, and claims nothing about what came
-before (OW-WAR-0124).
+This page starts from a repository that already has commits — perhaps
+thousands — and has not been set up with OpenWarrant (OW-WAR-0124).
+Choose routine ticket tracking below, or the optional governed setup in
+section 1. The signing steps later on this page belong to governed setup.
 
-Every step is one command. The human steps are marked **HUMAN**; everything
-else an agent may run.
+## Routine work: track a change without signing
 
-## 1. Initialize, recording the baseline
+From the existing repository:
+
+```bash
+war init --namespace ACME --name "Acme"
+war create "First tracked change" --item "Implement and test the change"
+war view prime
+```
+
+Plain `war init` asks no questions and uses the vibe preset. This path needs
+no SSH key, signer registration or SAS approval. The commands create records;
+your connected agent performs the work. They do not award verification.
+Existing repository access restrictions and explicit verified-start requirements
+still apply to the work they cover.
+
+Use [the ticket loop](TICKETS.md) to claim and finish the work. If the project is
+already initialized, use its existing setup and start with `war create`.
+[The quickstart](../QUICKSTART.md) also covers prompt-only Warrant records and
+later sign-off. A ticket enters the authority layer only through explicit
+promotion; ordinary implementation does not require that step.
+
+## 1. Optional governed setup: record the baseline
+
+The remaining steps create the SAS, authority examples and first Warrant for
+sign-off. Use this setup instead of the routine initialization above when you
+want that scaffold from the start. Human steps are marked **HUMAN**;
+everything else an agent may run. The baseline records where tracking begins
+and claims nothing about what came before.
 
 ```bash
 cd your-repository
@@ -82,7 +106,7 @@ records each decision's bytes at that commit and fabricates no proof of
 completion. A corpus somewhere else is not found; point `war migrate
 --corpus` at it yourself.
 
-## 4. Who signs
+## 4. Who signs in governed setup
 
 ```bash
 cp docs/authority/roles.toml.example docs/authority/roles.toml               # HUMAN: your name, your roles

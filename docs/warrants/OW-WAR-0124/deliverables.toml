@@ -137,16 +137,17 @@ provenance_required = false
 obligation_refs = ["OBL-003", "OBL-004"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "unrecorded"
-contract_digest = "4bb6019c224e39155fb82110058065b89ead8a91e220a286d4a98a87b9c3b895"
-tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 6a583563b5f1, debug)"
+producer = "agent://codex"
+producing_attempt = "codex:01a09789-2a93-77e2-8a16-54dfc13c0a89/ow124-adoption-20261024"
+contract_digest = "c08603d7452c7b629128e27bc87d32004b0cc1475f26f649537185f63f1c59de"
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
 creation_method = "authored"
-content_digest = "sha256:b4446de90be83d86c00eb61218e653de902a6d5c121842fcf33f425e90807891"
+content_digest = "sha256:ed0c4a41b6de249ed807289fa0ea369a1b88981b87f04aadc79142e32eb9b77b"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository-lifetime"
 source_holder = "git"
+input_digests = ["sha256:b4446de90be83d86c00eb61218e653de902a6d5c121842fcf33f425e90807891", "sha256:4c9f480db9d163a726a26c15292b7767a23edd04da79d86c325b218218ee8fdc", "sha256:ac6ab1b5afd7f32a5b42bb8da3ee71e72e852875a3957ea39ad861085ca323c4", "sha256:5d441c05178af7b90c28db9faef6a77f5c9534847f6e27f49071da9982818fd5"]
 
 [[deliverable]]
 id = "D-008"
