@@ -1,0 +1,626 @@
+{
+  "schema": "oh.war/historical-section-observation/v1",
+  "source_commit": "9c3c9150264f8b023e67e1035760521aeb518e58",
+  "sas_sha256": "321413359168c176faaddefc1a7057d66059d5de8d98d20feeca995c7f89a1bc",
+  "raw_report": "/mnt/4tb/artifacts/OpenWarrant/keep/ow125-sections-20261024/historical-check.json",
+  "raw_report_sha256": "140e0fcb386fdadfe6f119f05b650a2e541d951425a84408c6f681123ea2c4ff",
+  "whole_report_counts": {
+    "pass": 1623,
+    "warn": 179,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "exit_code": 0,
+  "original_references": [
+    {
+      "path": "docs/warrants/OW-WAR-0001/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0002/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0003/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0004/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0005/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0007/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0008/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0009/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0016/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0017/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0018/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43.5"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0031/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-59"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0043/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-96.2"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0046/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-46.3"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0047/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-43"
+    },
+    {
+      "path": "docs/warrants/OW-WAR-0071/amendments/AM-001.yaml",
+      "reference": "sas://WAR-SAS-101"
+    }
+  ],
+  "original_reference_count": 16,
+  "later_44_8_references": 27,
+  "all_43_reference_and_currency_checks_passed": true,
+  "scope_note": "Original OW-WAR-0071 section101 citation is actually pinned to1.0.0. Other original citations compare0.1.0-draft.1 to1.1.0. The separate public diff checks every original cited parent section unchanged across0.1.0-draft.1 and1.1.0, without editing pins.",
+  "original_parent_sections": [
+    "101",
+    "43",
+    "46",
+    "59",
+    "96"
+  ],
+  "changed_parent_sections_0_1_to_1_1": [
+    "106",
+    "28",
+    "37",
+    "47",
+    "56",
+    "6",
+    "82",
+    "94",
+    "98",
+    "preamble"
+  ],
+  "diff_exit_code": 2,
+  "diff_boundary": "Older candidate removes newer requirement rows, so diff exits2; this is retained, not called an all-pass candidate. Its separate complete section difference list has no added/removed units and no changed originally cited section.",
+  "tracked_source_unchanged": true,
+  "section_diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0001: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0001: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0002: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0002: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0003: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0003: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0004: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0004: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0005: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0005: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0007: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0007: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0008: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0008: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0009: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0009: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0016: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0016: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0017: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0017: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0018: sas://WAR-SAS-43.5 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0018: sas://WAR-SAS-43.5 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0031: sas://WAR-SAS-59 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0031: sas://WAR-SAS-59 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0043: sas://WAR-SAS-96.2 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0043: sas://WAR-SAS-96.2 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0046: sas://WAR-SAS-46.3 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0046: sas://WAR-SAS-46.3 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0047: sas://WAR-SAS-43 names a section of SAS 0.1.0-draft.1"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0047: sas://WAR-SAS-43 is unchanged between SAS 0.1.0-draft.1 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0071: sas://WAR-SAS-101 names a section of SAS 1.0.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0071: sas://WAR-SAS-101 is unchanged between SAS 1.0.0 and SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0112: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0112: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0113: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0113: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0114: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0114: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0115: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0115: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0116: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0116: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0117: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0117: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0118: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0118: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0119: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0119: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0120: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0120: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0121: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0121: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0122: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0122: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0123: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0123: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0124: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0124: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0125: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0125: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0127: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0127: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0129: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0129: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0130: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0130: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0131: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0131: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0132: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0132: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0133: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0133: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0134: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0134: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0135: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0135: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0136: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0136: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0137: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0137: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0138: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0138: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0139: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0139: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-ref",
+      "file": null,
+      "message": "OW-WAR-0140: sas://WAR-SAS-44.8 names a section of SAS 1.1.0"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.section-current",
+      "file": null,
+      "message": "OW-WAR-0140: sas://WAR-SAS-44.8 is cited at SAS 1.1.0, the latest accepted revision"
+    }
+  ],
+  "qualification_established": false
+}
