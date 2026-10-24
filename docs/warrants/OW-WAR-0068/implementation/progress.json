@@ -4,8 +4,8 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808",
-  "summary": "Simple war tickets/war migrate chat cues restored; selected workflows avoid a redundant router load. Shared guidance requires independent evidence plus secure human acceptance for Verified claims. Skill validator and existing defect control pass. Three requested skill-driven eval tasks and recorded first runs are still absent; generic fixture baselines do not prove them.",
-  "notes": "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/README.md",
+  "summary": "Corrected loop passes the original twelve-task baseline and five source-bound skill cases on exact-source hosted run 40088204346. Actual prototype packets, glossary selection, task/supplemental context accounting, scoped dependencies and refusal behavior are observed. Separate byte-identical measured skill baseline adopted; original baseline unchanged. Eight CLI controls and Clippy pass. Review/map examples, owner first-run review and independent qualification remain pending; implementation is unverified.",
+  "notes": "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/README.md",
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/eval-inventory.json",
@@ -13,11 +13,19 @@
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/record-observation.json",
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/skills-check.log",
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/skills-control.log",
-    "docs/warrants/OW-WAR-0068/implementation/frontier-integrity.md"
+    "docs/warrants/OW-WAR-0068/implementation/frontier-integrity.md",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/README.md",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/hosted-40080431918.json",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/stage-scope-red.json",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/stage-scope-green.json",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/dispatch-bypass-red.json",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/service-prototype-tests.log",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/hosted-real-packet-observation.json",
+    "evals/skills/baseline-provenance.json"
   ],
   "next_steps": [
-    "Implement genuine grill/spec/tickets fixture evaluation with identified skill sources and durable outputs, not renamed generic tasks.",
-    "Record shaping, glossary, breakdown, review and map examples through supported tools.",
-    "Owner first-run review, model/harness effectiveness and independent qualification remain separate."
+    "Record remaining review/map examples through supported tools and inspect their bounded outputs.",
+    "Owner reviews first recorded skill runs; real model/harness effectiveness remains unmeasured.",
+    "Independent qualification and secure human acceptance remain separate; resolve the legacy Bonsai scope binding through governed revision before requesting native evidence."
   ]
 }

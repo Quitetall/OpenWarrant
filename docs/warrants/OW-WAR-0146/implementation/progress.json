@@ -4,13 +4,16 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "b9d942667c5ffb1363c8e00a256392b4af1ce0ca",
-  "summary": "7 feature controls pass in the combined 19/0 fixture run; nine closure requirements remain unestablished.",
-  "notes": "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/README.md",
+  "summary": "Implementation remains incomplete: a public bundle reproduction observes a one-byte excerpt limit rendering three bytes after a UTF-8 boundary cut. Original ASCII controls and protected CI pass, but do not cover this defect. Full raw digest and truncated flag remain correct. Qualification and historical closure gaps remain separate.",
+  "notes": "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/observation.json"
+    "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/observation.json",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/README.md",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/observation.json"
   ],
   "next_steps": [
-    "Establish admissible exact-candidate gate evidence and independently assessed obligations.",
-    "Reconcile every named closure requirement before requesting authorized acceptance."
+    "Fix the rendered UTF-8 byte bound without changing raw digests or treating an absent capture as empty output.",
+    "Run multibyte, invalid-byte, ASCII and zero-limit regressions plus existing bundle controls.",
+    "Reconcile delivery records, independent assessment and authorized acceptance separately from implementation."
   ]
 }

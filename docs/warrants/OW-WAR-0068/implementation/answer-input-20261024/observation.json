@@ -1,0 +1,30 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "observed_at": "2026-10-24T07:48:36.610300+00:00",
+  "warrant": "OW-WAR-0068",
+  "scope": "eval task answers reach plan/request.json unchanged",
+  "red": {
+    "exit": 101,
+    "failure": "expected exact answer, observed Null"
+  },
+  "green": {
+    "exit": 0,
+    "passed": 2,
+    "failed": 0
+  },
+  "logs": {
+    "answers-red.log": "137ecdae1f795f890b9237d422212e74f0e375fc30038d3e90eed135d3e2a81a",
+    "answers-red2.log": "add451a777b6b73d6d5b624636ff72998401ba17962238c7a7f45cb11f376b80",
+    "answers-red3.log": "2719913b7ede2b5cde87808ce7e5a3eedbf94bb5820a6856299c2eda6105b492",
+    "answers-green.log": "ddb91cd95d12f9c6d2d7a64556765066e3ea28aedb1159067bd73c1594d38e58"
+  },
+  "qualification_granted": false,
+  "clippy_exit": 0,
+  "initial_record_check": {
+    "exit": 2,
+    "pass": 2050,
+    "warn": 426,
+    "error": 4,
+    "reason": "Source edits require regenerated corpus/master/history projections; no authored record refusal."
+  }
+}

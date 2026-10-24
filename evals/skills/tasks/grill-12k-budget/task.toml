@@ -1,0 +1,11 @@
+schema = "oh.war/eval-task/v1"
+sentence = "An export note records the supplied format answer."
+kind = "code"
+expected_gate = "software.repo.war-check@1.0.0"
+max_tokens = 12000
+max_wall_secs = 120
+expected = "over_budget"
+context = [".claude/skills/war-grill/SKILL.md", ".claude/skills/openwarrant/SKILL.md", "CONTEXT.md"]
+
+[answers]
+Q-001 = "Markdown"

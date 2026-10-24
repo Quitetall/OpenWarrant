@@ -1,0 +1,67 @@
+{
+  "source_commit": "28eb95ba852563c46ec9ba2b6eacae19de383a03",
+  "ci_run": 40081484415,
+  "observed": [
+    {
+      "task": "grill",
+      "dispatch": {
+        "exit_code": 2,
+        "name": "dispatch",
+        "rule": "dispatch.unauthorized",
+        "verdict": "not_ready"
+      },
+      "perform": {
+        "exit_code": 0,
+        "name": "perform",
+        "verdict": "performed"
+      },
+      "reported_score": "would_satisfy"
+    },
+    {
+      "task": "grill-12k-budget",
+      "dispatch": {
+        "exit_code": 2,
+        "name": "dispatch",
+        "rule": "dispatch.unauthorized",
+        "verdict": "not_ready"
+      },
+      "perform": {
+        "exit_code": 0,
+        "name": "perform",
+        "verdict": "performed"
+      },
+      "reported_score": "over_budget"
+    },
+    {
+      "task": "spec",
+      "dispatch": {
+        "exit_code": 2,
+        "name": "dispatch",
+        "rule": "dispatch.unauthorized",
+        "verdict": "not_ready"
+      },
+      "perform": {
+        "exit_code": 0,
+        "name": "perform",
+        "verdict": "performed"
+      },
+      "reported_score": "would_satisfy"
+    },
+    {
+      "task": "tickets",
+      "dispatch": {
+        "exit_code": 2,
+        "name": "dispatch",
+        "rule": "dispatch.unauthorized",
+        "verdict": "not_ready"
+      },
+      "perform": {
+        "exit_code": 0,
+        "name": "perform",
+        "verdict": "performed"
+      },
+      "reported_score": "partial"
+    }
+  ],
+  "baseline_adopted": false
+}

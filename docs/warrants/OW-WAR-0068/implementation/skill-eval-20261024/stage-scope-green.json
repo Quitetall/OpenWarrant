@@ -1,0 +1,26 @@
+{
+  "scope": "drafter proposal interface using exact hosted request/context",
+  "first_obligations": [
+    "OBL-001"
+  ],
+  "second_obligations": [
+    "OBL-002"
+  ],
+  "depends_on": [
+    "M1"
+  ],
+  "bounded_api_and_caller_scopes": true,
+  "full_eval": "pending new hosted capture",
+  "performer_interface": {
+    "refs": [
+      [
+        "OBL-001"
+      ],
+      [
+        "OBL-002"
+      ]
+    ],
+    "api_present": true,
+    "caller_present": false
+  }
+}

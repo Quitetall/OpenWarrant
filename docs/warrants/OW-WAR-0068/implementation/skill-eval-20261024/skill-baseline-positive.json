@@ -1,0 +1,49 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "eval.verify",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "grill: would_satisfy both times; tokens 16733 → 16733"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "grill-12k-budget: over_budget both times; tokens 16738 → 16738"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "grill-unanswered: needs_input both times; tokens 2807 → 2807"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "spec: would_satisfy both times; tokens 19119 → 19119"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "tickets: partial both times; tokens 17633 → 17633"
+    }
+  ],
+  "notes": [
+    "baseline fixture-agent.py (1 needs_input, 1 over_budget, 1 partial, 2 would_satisfy, 5 as expected) vs result fixture-agent.py (1 needs_input, 1 over_budget, 1 partial, 2 would_satisfy, 5 as expected)"
+  ],
+  "counts": {
+    "pass": 5,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is partial; `war check` does not establish execution readiness or run gates)",
+  "exit_code": 0
+}

@@ -1,0 +1,28 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+error: this `if` statement can be collapsed
+   --> crates/openwarrant-cli/src/eval.rs:872:9
+    |
+872 | /         if let Some(dir) = asked.get("dir").and_then(serde_json::Value::as_str) {
+873 | |             if let Some(request) = read_json(&scratch.root.join(dir).join("request.json")) {
+874 | |                 r.tokens.request =
+875 | |                     openwarrant_core::tokens::estimate(request.to_string().len() as u64)
+...   |
+878 | |         }
+    | |_________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#collapsible_if
+    = note: `-D clippy::collapsible-if` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[allow(clippy::collapsible_if)]`
+help: collapse nested if block
+    |
+872 ~         if let Some(dir) = asked.get("dir").and_then(serde_json::Value::as_str)
+873 ~             && let Some(request) = read_json(&scratch.root.join(dir).join("request.json")) {
+874 |                 r.tokens.request =
+875 |                     openwarrant_core::tokens::estimate(request.to_string().len() as u64)
+876 |                         + context_tokens;
+877 ~             }
+    |
+
+error: could not compile `openwarrant-cli` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `openwarrant-cli` (lib test) due to 1 previous error
