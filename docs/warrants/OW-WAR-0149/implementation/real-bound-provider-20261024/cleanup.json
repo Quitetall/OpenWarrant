@@ -1,0 +1,9 @@
+{
+  "owned_service_stopped": true,
+  "main_pid": 0,
+  "socket_absent": true,
+  "file_holders": [],
+  "scratch_archived_hash_checked_removed": true,
+  "foreign_services_changed": false,
+  "goal_paused": true
+}

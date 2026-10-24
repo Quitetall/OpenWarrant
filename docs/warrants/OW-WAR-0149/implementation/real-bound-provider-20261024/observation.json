@@ -21,5 +21,6 @@
   "real_runs_passed": 3,
   "real_runs_failed": 2,
   "native_budget_refusal_defect_open": true,
-  "retained_evidence": "/mnt/4tb/artifacts/OpenWarrant/keep/native-bound-20261024"
+  "retained_evidence": "/mnt/4tb/artifacts/OpenWarrant/keep/native-bound-20261024",
+  "cleanup_record": "cleanup.json"
 }
