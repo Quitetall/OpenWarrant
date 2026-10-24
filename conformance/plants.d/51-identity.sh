@@ -136,7 +136,36 @@ cp -r "$PLANT_ROOT" "$ID_TMP/nogit" && command rm -rf "$ID_TMP/nogit/.git"
 ID_OUT=$(id_check "$ID_TMP/nogit"); ID_STATUS=$?
 id_expect "no git repository: unknown" "$ID_STATUS" 2 "$ID_OUT" unknown identity.changed "not inside a git repository"
 id_none "no git repository: never a pass" "$ID_OUT" pass identity.changed
+
+# Git may find HEAD but fail while reading its objects. That is still an
+# unasked identity comparison, not a clean comparison of zero manifests.
+mkdir -p "$ID_TMP/broken-git"
+ID_REAL_GIT=$(command -v git)
+cat > "$ID_TMP/broken-git/git" <<'BROKEN_GIT'
+#!/usr/bin/env bash
+if [[ "$1" == cat-file && "$2" == --batch ]]; then
+    exit 1
+fi
+exec "$ID_REAL_GIT" "$@"
+BROKEN_GIT
+chmod +x "$ID_TMP/broken-git/git"
+ID_OUT=$(PATH="$ID_TMP/broken-git:$PATH" ID_REAL_GIT="$ID_REAL_GIT" id_check); ID_STATUS=$?
+id_expect "git object read failed: unknown" "$ID_STATUS" 2 "$ID_OUT" unknown identity.changed "git cat-file"
+id_none "git object read failed: no pass" "$ID_OUT" pass identity.changed
 corpus_reset "$PLANT_ROOT"
+
+# A readable blob with no historical UUID is also unknown. Commit only inside
+# this disposable fixture, then restore its original baseline after the check.
+ID_BASELINE=$(git -C "$PLANT_ROOT" rev-parse HEAD)
+cp "$ID_W/manifest.toml" "$ID_TMP/current-manifest.toml"
+printf '# No historical identity is available.\n' > "$ID_W/manifest.toml"
+git -C "$PLANT_ROOT" add "$ID_W/manifest.toml"
+git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "plant missing historical identity"
+cp "$ID_TMP/current-manifest.toml" "$ID_W/manifest.toml"
+ID_OUT=$(id_check); ID_STATUS=$?
+id_expect "historical UUID absent: unknown" "$ID_STATUS" 2 "$ID_OUT" unknown identity.changed "no committed identity"
+id_none "historical UUID absent: no pass" "$ID_OUT" pass identity.changed
+git -C "$PLANT_ROOT" reset --hard "$ID_BASELINE" >/dev/null
 
 "$WAR" --root "$PLANT_ROOT" new "A Warrant nobody has committed" >/dev/null 2>&1
 ID_OUT=$(id_check); ID_STATUS=$?

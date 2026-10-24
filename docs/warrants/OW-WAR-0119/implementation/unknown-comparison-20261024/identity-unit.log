@@ -1,0 +1,17 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.36s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 9 tests
+test check::identity_check::tests::a_v4_adr_uuid_is_reported_one_by_one_and_a_v7_one_is_not ... ok
+test check::identity_check::tests::two_adrs_with_one_uuid_are_refused_and_distinct_ones_pass ... ok
+test check::identity_check::tests::an_adr_governing_by_alias_is_a_warning_naming_the_uuid ... ok
+test check::identity_check::tests::with_no_git_repository_the_change_is_unknown_not_passed ... ok
+test check::identity_check::tests::an_alias_is_refused_where_an_identity_is_required ... ok
+test check::identity_check::tests::a_copied_warrant_shares_its_uuid_and_is_refused_by_name ... ok
+test check::identity_check::tests::an_uncommitted_warrant_has_nothing_to_compare_and_passes ... ok
+test check::identity_check::tests::an_atom_naming_another_warrant_is_refused_and_restored_passes ... ok
+test check::identity_check::tests::a_committed_uuid_that_changes_is_refused_naming_both ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 541 filtered out; finished in 0.93s
+

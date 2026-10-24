@@ -1,0 +1,122 @@
+{
+  "historical_source": "5408b60f56c4ccecb5c74407ec8d5e33a9466ef9",
+  "original_population": [
+    {
+      "path": "docs/adr/atoms/OW-ADR-0001-canonical-json-implementation.md",
+      "adr_uuid": "01a01927-8855-7046-9876-ef13ae754180",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0002-frontmatter-subset.md",
+      "adr_uuid": "01a01928-d309-72ee-8550-33779fc3d2a3",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0003-structured-atom-subset.md",
+      "adr_uuid": "01a01bde-3277-7196-9d60-40e98711eeb8",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0004-partial-authorization-and-coverage.md",
+      "adr_uuid": "01a01be9-5fd5-79c3-ad31-7fa722f3d0b1",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0005-local-gates-are-candidates.md",
+      "adr_uuid": "60fb5c27-78ce-440b-8a5e-125a57f38bb2",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0006-two-gate-vocabularies.md",
+      "adr_uuid": "cffb01bd-2bbe-4b27-9994-043cccf6f228",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0007-91-2-residue-narrowing.md",
+      "adr_uuid": "2156d5d9-8674-4d79-a58a-280287c558d6",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0008-91-2-residue-against-the-text.md",
+      "adr_uuid": "e5f4eed0-08f1-4d39-b8e7-4cb413a0ed5b",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0009-openwarrant-bonsai-authority-seam.md",
+      "adr_uuid": "3db11337-26e7-43f9-89f8-d84ead364568",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0010-machine-scope-and-evidence-binding.md",
+      "adr_uuid": "7f9b3a70-0850-471c-9fa6-a93fb6a2d4c2",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0011-enforcement-rollout-and-github-policy.md",
+      "adr_uuid": "e7c79d03-c74f-49c4-affe-7cd9dde16a89",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0012-correction-act.md",
+      "adr_uuid": "2e497de8-3ffd-489c-88ad-b2e34fd98ee0",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0013-draft-proposal-v2.md",
+      "adr_uuid": "6f0d3c8e-4b1a-4d2e-9c7f-0a1b2c3d4e5f",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0014-async-runtime-for-mcp-transport.md",
+      "adr_uuid": "9b2f6a41-7d3e-4c58-a1f0-5e8c2d7b3a19",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0015-attestation-envelope.md",
+      "adr_uuid": "c4d1e8f2-3a5b-4c6d-9e7f-1a2b3c4d5e6f",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0016-sas-1-0-0.md",
+      "adr_uuid": "5e0c7b3a-2d91-4f46-b8a7-6c1d9e2f4a53",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0017-relicense-apache-2-0.md",
+      "adr_uuid": "7a3d9c1e-5b28-4f0a-9e64-2c8b1d7f3a90",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0018-adopt-oh-war-inbox-v1-as.md",
+      "adr_uuid": "01a09762-3fa3-7bf2-bfdc-c86af426c679",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0019-sas-1-1-0-batch-act-and-renderings.md",
+      "adr_uuid": "01a0983e-4a11-7c62-9f3d-6b2e8c5d4071",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md",
+      "adr_uuid": "01a0983e-4a12-7b41-8d57-9c1f6e2a4073",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0021-pin-ownership.md",
+      "adr_uuid": "01a0ca4b-0458-79f2-b7f1-77302bb98192",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0022-current-by-relation.md",
+      "adr_uuid": "01a0cc14-ce2f-7628-8a3a-ff64a526cd91",
+      "unchanged": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0023-roadmap-is-a-record.md",
+      "adr_uuid": "01a0cd26-1b7a-73ba-a8d7-052a823a068e",
+      "unchanged": true
+    }
+  ],
+  "current_adr_count": 37,
+  "working_tree_adr_diff_empty": true
+}

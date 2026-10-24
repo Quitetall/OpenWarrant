@@ -1,0 +1,8 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 1 test
+test blut::tests::the_stage_identity_is_the_uuid_and_never_the_alias ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 549 filtered out; finished in 0.00s
+
