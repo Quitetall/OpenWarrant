@@ -1,0 +1,10 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 13.29s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 2 tests
+test telemetry_integrity_cli::derived_report_uses_exact_historical_sources_and_discloses_ratios ... ok
+test telemetry_integrity_cli::unobserved_eligibility_is_not_measured_zero ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 360 filtered out; finished in 0.29s
+
