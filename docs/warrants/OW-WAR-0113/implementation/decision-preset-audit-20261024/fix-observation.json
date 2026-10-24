@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "observed_at": "2026-10-24T13:07:56.800681+00:00",
+  "warrant": "OW-WAR-0113",
+  "cli_tests": 3,
+  "scaffold_unit_tests": 10,
+  "existing_check_cli_tests": 8,
+  "clippy_exit": 0,
+  "corpus": {
+    "pass": 1978,
+    "warn": 429,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "rationale_records_parsed": 88,
+  "source_hashes": {
+    "crates/openwarrant-cli/src/new.rs": "1cb1ea4b44f7888b6da4f9a4fb54e1f9c9c8c7bdee4f601d9215f8ca51540b0d",
+    "crates/openwarrant-cli/src/check.rs": "151617bb6c9124432b6b541d58e4db63bf49f5476be9fc43bbbcef6e751df1d3",
+    "crates/openwarrant-cli/tests/decision_scaffold_cli.rs": "30066e9019c888f79cf6ca7a4b1accbdcb68d562bfb420a3b384351f9e79d865"
+  },
+  "independent_disposition": false,
+  "human_acceptance": false,
+  "signed_atoms_changed": false
+}

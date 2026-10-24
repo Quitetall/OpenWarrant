@@ -1,0 +1,43 @@
+{
+  "schema": "oh.war/two-axis-review-observation/v1",
+  "example_for": "OW-WAR-0068",
+  "reviewed_warrant": "OW-WAR-0113",
+  "base": "08ae6c2084399f22ea64a86bfafc0d018f3fbfb9",
+  "candidate": "fd80d261bb763cd9292aa91c9902a53ce58180a2",
+  "performer": "agent://codex",
+  "independent": false,
+  "source_sha256": {
+    "crates/openwarrant-cli/src/new.rs": "1cb1ea4b44f7888b6da4f9a4fb54e1f9c9c8c7bdee4f601d9215f8ca51540b0d",
+    "crates/openwarrant-cli/src/check.rs": "151617bb6c9124432b6b541d58e4db63bf49f5476be9fc43bbbcef6e751df1d3",
+    "crates/openwarrant-cli/tests/decision_scaffold_cli.rs": "30066e9019c888f79cf6ca7a4b1accbdcb68d562bfb420a3b384351f9e79d865",
+    "crates/openwarrant-cli/tests/all.rs": "f85189d0b4a86b3522572ad0f0cc6d12501478b88e997d07acd5d7d41d202b4f"
+  },
+  "standards": {
+    "status": "PASS",
+    "scope": "Bounded performer inspection of the decision scaffold and rationale validation diff only; no independent disposition.",
+    "actionable_findings": [],
+    "evidence": "../../../OW-WAR-0113/implementation/decision-preset-audit-20261024/"
+  },
+  "obligations": {
+    "status": "UNKNOWN",
+    "execution": "NOT RUN",
+    "reason": "Independent model review was not requested; performer cannot supply its own independent verdict.",
+    "request": {
+      "path": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-map-review-20261024/w113-verification-request.json",
+      "sha256": "883b27a544dae8c5813accb239fdeadd43133c768040c05dcda68cfe294cf242",
+      "schema": "oh.war/verification-request/v2",
+      "exit_code": 0,
+      "obligations": [
+        "OBL-001",
+        "OBL-002",
+        "OBL-003",
+        "OBL-004"
+      ],
+      "current_new_and_check_hashes_match": true
+    },
+    "response": null
+  },
+  "qualification": "not established",
+  "human_acceptance": "not recorded",
+  "protected_ci": "pending at observation"
+}

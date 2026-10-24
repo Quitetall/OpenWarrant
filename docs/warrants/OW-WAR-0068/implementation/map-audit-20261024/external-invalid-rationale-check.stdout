@@ -1,0 +1,144 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "check",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "software.repo.war-check@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "warn",
+      "rule": "independence.undeclared",
+      "file": "openwarrant.toml",
+      "message": "no independence is declared for this repository, so §46.3's minimums cannot be evaluated for any Warrant. Absent is not the same as none — `none` reads as examined and absent, absent reads as unexamined"
+    },
+    {
+      "severity": "warn",
+      "rule": "authority.unprotected",
+      "file": "openwarrant.toml",
+      "message": "no protected authority store is configured (`[authority] store`). docs/authority/roles.toml, docs/authority/allowed_signers and the policy keys that decide whether work may close ([independence], allow_automated_resolution, require_user_presence, verifier_argv) are working-tree files the performer can write; review of them is the control (THREAT_MODEL row 6, docs/AUTHENTICATION.md)"
+    },
+    {
+      "severity": "pass",
+      "rule": "manifest.valid",
+      "file": null,
+      "message": "MX-WAR-0002: manifest and composition are well-formed"
+    },
+    {
+      "severity": "pass",
+      "rule": "capability.not-applicable",
+      "file": null,
+      "message": "MX-WAR-0002: profile decision does not select `stages` (the milestone graph and §56.1 requirement 12's runtime receipts): not applicable, not passed (OW-ADR-0031)"
+    },
+    {
+      "severity": "pass",
+      "rule": "journal.append-only",
+      "file": null,
+      "message": "MX-WAR-0002: 1 event(s), 0 backfilled, extends the committed journal"
+    },
+    {
+      "severity": "pass",
+      "rule": "gate.resolved",
+      "file": null,
+      "message": "MX-WAR-0002: 1 cited gate(s) resolve to a bindable definition"
+    },
+    {
+      "severity": "pass",
+      "rule": "obligations.valid",
+      "file": null,
+      "message": "MX-WAR-0002: 1 obligation(s), each with a bounded scope and evidence"
+    },
+    {
+      "severity": "pass",
+      "rule": "composition.acyclic",
+      "file": null,
+      "message": "parent graph is acyclic across 1 Warrant(s)"
+    },
+    {
+      "severity": "pass",
+      "rule": "adr.parsed",
+      "file": null,
+      "message": "1 ADR(s) parsed"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.duplicate-uuid",
+      "file": null,
+      "message": "2 Warrant UUID(s), each naming one Warrant"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.duplicate-uuid",
+      "file": null,
+      "message": "1 ADR UUID(s), each naming one ADR"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.atom-mismatch",
+      "file": null,
+      "message": "MX-WAR-0002: 3 atom(s) name this Warrant's UUID"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.changed",
+      "file": null,
+      "message": "nothing is committed yet, so every manifest UUID is new"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.alias-ref",
+      "file": null,
+      "message": "0 parent and supersedes reference(s), each by UUID"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.adr-not-v7",
+      "file": null,
+      "message": "all 1 ADR UUID(s) are UUIDv7"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas-normative.section-labels",
+      "file": null,
+      "message": "no unsupported numbered SAS heading hides or mislabels a normative body statement"
+    },
+    {
+      "severity": "warn",
+      "rule": "sas.unrecorded",
+      "file": "docs/sas",
+      "message": "no SAS revision is recorded; the document is pinned by prose only. `war sign sas propose <version>` records one",
+      "remedy": {
+        "kind": "human",
+        "argv": [
+          "war",
+          "sign",
+          "sas",
+          "propose",
+          "<version>"
+        ],
+        "purpose": "as the diagnostic says"
+      }
+    }
+  ],
+  "notes": [
+    "1 of 1 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed",
+    "contract digest covers 8 of 17 §28.5 elements — missing: deliverables, capabilities, autonomy, resources, gates, obligations, rollback, amendment_policy, assurance_requirements",
+    "gate execution — `war evidence gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run",
+    "Preflight readiness (§32.7) — 'well-formed' is a claim about the record only",
+    "bound-atom resolution — `ref =` atoms cannot be fetched offline",
+    "Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared",
+    "generated-view drift — pass --generated to compare committed projections"
+  ],
+  "counts": {
+    "pass": 15,
+    "warn": 3,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is partial; `war check` does not establish execution readiness or run gates)",
+  "exit_code": 0
+}
