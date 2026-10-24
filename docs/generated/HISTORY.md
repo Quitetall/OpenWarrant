@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-23.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-24.
 
 ## Lineage
 
@@ -44,6 +44,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
 | 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
 | 2026-10-23 | 2 | sync.receipt_attached 2 |
+| 2026-10-24 | 2 | attestation.recorded 1, authorization.recorded 1 |
 
 ## Roadmap revisions
 
@@ -40226,7 +40227,7 @@ verifier conclude a gate printed nothing wrong.
 
 [manifest](../../docs/warrants/OW-WAR-0147/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0147/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 1 (`ac363e740af7f39c75b97f953bca3423cfb9bb2004965075f0a26644b507733b`), Basis SAS 1.3.0.
+Contract revision 2 (`ca6bab4d2fc18ac8f7308f7db81d16d90fe0a1de1a693202cd1babbef10b0540`), Basis SAS 1.3.0.
 
 #### Intent — [docs/warrants/OW-WAR-0147/atoms/10-intent.md](../../docs/warrants/OW-WAR-0147/atoms/10-intent.md)
 
