@@ -4,10 +4,11 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "3c450a68a29aaace21e661395ca428c8ae1ea029",
-  "summary": "Extended the existing canonical IR roundtrip to include every currently optional section and a required-identity refusal. All 80 compiler and 25 archive integration tests passed. Legacy exporter completeness and protocol/adoption qualification remain unestablished.",
-  "notes": "docs/warrants/OW-WAR-0030/implementation/codec-preservation-20261011/README.md",
+  "summary": "IR codec preservation remains bounded to populated sections. Legacy export failure paths now emit one JSON error, including --force, while preserving human output and exit codes byte-for-byte. Two new controls and all 13 JSON-response tests pass, with Clippy/fmt clean. Full content-bearing export/import, history preservation and explicit archive-format adoption remain incomplete; no qualification is claimed.",
+  "notes": "docs/warrants/OW-WAR-0030/implementation/export-json-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0030/implementation/codec-preservation-20261011/observation.json"
+    "docs/warrants/OW-WAR-0030/implementation/codec-preservation-20261011/observation.json",
+    "docs/warrants/OW-WAR-0030/implementation/export-json-20261024/observation.json"
   ],
   "next_steps": [
     "Complete full required-content export/import under an approved versioned protocol while preserving the historical envelope and digest.",

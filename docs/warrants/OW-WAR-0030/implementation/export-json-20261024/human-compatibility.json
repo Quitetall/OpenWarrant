@@ -1,0 +1,20 @@
+{
+  "baseline_binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow130-scope-20261024/war",
+  "candidate_binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow30-export-json-20261024/war",
+  "cases": [
+    {
+      "force": false,
+      "exit": 1,
+      "human_stdout_sha256": "d8084f9f67600b926ce95caafc07788ee25e50e3cdfdf7ba7d779617b9f04cee",
+      "human_stderr_sha256": "8ea79f794e5c651ec3b48dd30079f1d0af358932ac0e17fed2158249d0ac4d5c",
+      "byte_identical_to_before": true
+    },
+    {
+      "force": true,
+      "exit": 2,
+      "human_stdout_sha256": "5fa9e250ee3a6ad5b6cd9caaacebcfe179e5764f6b8cc1582e266f184888f0ae",
+      "human_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "byte_identical_to_before": true
+    }
+  ]
+}
