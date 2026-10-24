@@ -1,0 +1,35 @@
+{
+  "schema": "oh.war/skill-eval-inventory/v1",
+  "task_ids": [
+    "code-01-changelog",
+    "code-02-receipt",
+    "code-03-pins",
+    "code-04-json",
+    "doc-01-tokenizer",
+    "doc-02-threat",
+    "doc-03-adr",
+    "doc-04-example",
+    "run-01-echo",
+    "run-02-timeout",
+    "run-03-submit",
+    "run-04-battery"
+  ],
+  "baseline_task_ids": [
+    "code-01-changelog",
+    "code-02-receipt",
+    "code-03-pins",
+    "code-04-json",
+    "doc-01-tokenizer",
+    "doc-02-threat",
+    "doc-03-adr",
+    "doc-04-example",
+    "run-01-echo",
+    "run-02-timeout",
+    "run-03-submit",
+    "run-04-battery"
+  ],
+  "skill_specific_task_ids": [],
+  "fixture_agent": "evals/fixtures/fixture-agent.sh",
+  "observation": "The fixture drafter reads namespace and returns a committed proposal. No skill-selection/context input is read. Existing 12 tasks do not establish grill/spec/tickets process conformance or model effectiveness.",
+  "remaining": "Add real skill-driven fixture tasks and durable first-run artifacts; preserve the original baseline; owner first-run review remains separate."
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/command-observation/v1",
+  "initial_execution_guard_seconds": 120,
+  "initial_exit_code": 124,
+  "initial_report": "UNKNOWN: no completed report",
+  "capture_execution_guard_seconds": 600,
+  "capture_exit_code": 0,
+  "capture_counts": {
+    "pass": 2054,
+    "warn": 425,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "raw_capture": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-skills-20261024/record-check-capture.json",
+  "raw_capture_sha256": "465c3547bc3aa978fd7de035c3acd5b630909b8896d1d2f1cc53f7a5ed78b899",
+  "captured_process_observation": "During the live capture, war was observed in D (disk sleep), with a private ow-git-read index scratch descriptor. Host IO pressure sample avg10 was83.39%. No unrelated workload was stopped.",
+  "boundary": "The longer guard captures record integrity only, not a performance-budget pass. No threshold or checker was weakened."
+}

@@ -1,0 +1,15 @@
+   Compiling xtask v1.0.0 (/mnt/4tb/tmp/openwarrant-ow68-routing-20261024/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.24s
+     Running unittests src/bin/scale-budget.rs (/mnt/4tb/build/cargo/b9/bee57bfa8ef5f8/debug/deps/scale_budget-8f9f5cf452a14f97)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (/mnt/4tb/build/cargo/b9/bee57bfa8ef5f8/debug/deps/xtask-c4c7fc2d5fd4fddb)
+
+running 1 test
+test tests::skill_rules_catch_each_defect_and_pass_the_shipped_file ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
