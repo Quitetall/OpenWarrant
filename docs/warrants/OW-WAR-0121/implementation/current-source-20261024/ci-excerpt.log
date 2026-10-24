@@ -1,0 +1,23 @@
+gate	cargo xtask gate	2026-10-23T22:50:54.0582388Z == storage (OW-WAR-0121) ==
+gate	cargo xtask gate	2026-10-23T22:50:54.2283296Z ok    a clean program has no stray temp  storage.stray-temp silent
+gate	cargo xtask gate	2026-10-23T22:50:54.2652361Z ok    crash in sign: no partial record   authorization.toml absent, temp .authorization.toml.181037.0f4a78c52.war-tmp
+gate	cargo xtask gate	2026-10-23T22:50:54.3080986Z ok    the stopped sign is named          storage.stray-temp → docs/warrants/ST-WAR-0001/authorization.toml
+gate	cargo xtask gate	2026-10-23T22:50:54.3451057Z ok    no temp file, no stray-temp        storage.stray-temp silent
+gate	cargo xtask gate	2026-10-23T22:50:54.4113590Z ok    control: the edit moves the views  6 generated file(s) change
+gate	cargo xtask gate	2026-10-23T22:50:54.4460905Z ok    crash in compile: views byte-identical every file under docs/ unchanged; one temp .WAR.md.181104.19d4f7a90.war-tmp
+gate	cargo xtask gate	2026-10-23T22:50:54.5121716Z ok    the stopped compile is named       storage.stray-temp → docs/warrants/ST-WAR-0001/generated/WAR.md; committed views intact
+gate	cargo xtask gate	2026-10-23T22:50:54.5943572Z ok    no partial generated file          every generated JSON parses; check --generated names no truncation
+gate	cargo xtask gate	2026-10-23T22:50:59.6414029Z ok    a moved record is not overwritten  storage.prestate-moved (exit 2); the plant's bytes stand
+gate	cargo xtask gate	2026-10-23T22:50:59.8936481Z ok    an unmoved record is written       authorize.recorded through the same pause
+gate	cargo xtask gate	2026-10-23T22:51:00.0420433Z ok    an unlinked record is written      authorize.recorded
+gate	cargo xtask gate	2026-10-23T22:51:00.0971549Z ok    a symlinked record is refused      storage.symlink-target (exit 2); the linked file untouched
+gate	cargo xtask gate	2026-10-23T22:51:00.1402614Z ok    a symlinked view is refused        storage.symlink-target (exit 1); the linked file untouched
+gate	cargo xtask gate	2026-10-23T22:51:00.2670892Z ok    a torn tail is named               work.journal-torn at offset 1444, not work.journal-malformed
+gate	cargo xtask gate	2026-10-23T22:51:00.2687996Z ok    war truncates nothing              the torn bytes are still there after check
+gate	cargo xtask gate	2026-10-23T22:51:00.2873484Z ok    a writer on a torn journal         refused naming work.journal-torn
+gate	cargo xtask gate	2026-10-23T22:51:00.3376949Z ok    the named truncation repairs it    3 event(s) kept; check exit 0 as before
+gate	cargo xtask gate	2026-10-23T22:51:00.3854453Z ok    a bad middle line is not torn      work.journal-malformed, not work.journal-torn
+gate	cargo xtask gate	2026-10-23T22:51:00.4312158Z ok    a terminated bad tail is not torn  work.journal-malformed, not work.journal-torn
+gate	cargo xtask gate	2026-10-23T22:51:00.4503783Z ok    no fs::write in the routed writers six files, non-test code
+gate	cargo xtask gate	2026-10-23T22:51:00.4789969Z ok    a planted fs::write is caught      resolution_cmd.rs:828 
+gate	cargo xtask gate	2026-10-23T22:51:00.4790340Z UNKNOWN release build has no fault hook  no release binary newer than atomic.rs; not counted

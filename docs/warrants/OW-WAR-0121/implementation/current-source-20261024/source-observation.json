@@ -1,0 +1,61 @@
+{
+  "ci_head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "ci_run": 40033704288,
+  "files": [
+    {
+      "path": "crates/openwarrant-cli/src/atomic.rs",
+      "sha256": "dfd7850e791cf252bef658eeda478a684e0fc7b97fa5c217c3cfee7228a1819c",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/authorize.rs",
+      "sha256": "db7cee5f9ca164dbdbaa5da8803c4dad0b63251cf982abe4506baeb5419328d9",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/resolution_cmd.rs",
+      "sha256": "7d8ecaeed97ab1e4572a0fdce26749ec3eb22b05dbad178de258d7cb87bb0e86",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/verify.rs",
+      "sha256": "820acb242467551e390f72a7fce3953d5b242ceeb59dd7ce2c19dbddcd25d4de",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/gate_cmd.rs",
+      "sha256": "8475de4035ced1025247bfcb622f4dba305fe3aaf2b9b8920c1845ac153275d5",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/compile.rs",
+      "sha256": "ed85354219a9fa3770e7938dee709321bb835d9605c55818d7273799ef0feeae",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/sign.rs",
+      "sha256": "86582d80ab6ca9132f18a384b8f76f85a12494c1c077645971a77e8705721ee1",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/journal_cmd.rs",
+      "sha256": "7f3365fb51aee6fb4cd9cc42f74a6e227283564b183472afdb3560f18a5ae8ee",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "sha256": "f72258c1c80f14bbb105ea9f03661a71e87bd82ae756ed07ce3d047e630dc4ca",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "docs/STORAGE.md",
+      "sha256": "6fee1ee5101c88b656fa0d781306f0fa585a5a96b9424a86312442bd9354b035",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "conformance/plants.d/53-storage.sh",
+      "sha256": "0b2c59f77ef3adaa4d17b03c4d955cb2acc03e9080d482a53dfcb2ab1d437224",
+      "identical_to_protected_ci": true
+    }
+  ]
+}
