@@ -1,0 +1,36 @@
+gate	cargo xtask gate	2026-10-23T22:59:44.4774694Z == current by relation, the master document, judged acts, presets (OW-WAR-0113) ==
+gate	cargo xtask gate	2026-10-23T22:59:44.5329971Z ok: dry-run exit 1: refused
+gate	cargo xtask gate	2026-10-23T22:59:44.5330290Z ok: dry-run exit 0: accepted
+gate	cargo xtask gate	2026-10-23T22:59:44.5330510Z ok: dry-run exit 0: refused
+gate	cargo xtask gate	2026-10-23T22:59:44.5330725Z ok: dry-run exit 0: refused
+gate	cargo xtask gate	2026-10-23T22:59:44.5367585Z ok    signature assertion controls       failed command and missing report refused; successful report accepted
+gate	cargo xtask gate	2026-10-23T22:59:44.7993364Z ok    an unauthorized successor          CU-WAR-0001 still current; the relation is not in force
+gate	cargo xtask gate	2026-10-23T22:59:44.9785683Z ok    currency derived from the relation CU-WAR-0001 superseded by CU-WAR-0002, no field written
+gate	cargo xtask gate	2026-10-23T22:59:45.0441533Z ok    a written currency is refused      rejected by relations.currency-authored (CU-WAR-0001: the manifest writes .currency = "superseded")
+gate	cargo xtask gate	2026-10-23T22:59:45.1034906Z ok    a supersedes cycle is refused      rejected by relations.currency-cycle (CU-WAR-0001 → CU-WAR-0002 → CU-WAR-0001)
+gate	cargo xtask gate	2026-10-23T22:59:48.8722744Z ok    OW-WAR-0073 reads superseded       derived from OW-WAR-0112; no field in its manifest
+gate	cargo xtask gate	2026-10-23T23:00:08.8607240Z ok    OW-WAR-0073's signature stands     successful report; no authorize.no-amendment; contract 691f51ce…
+gate	cargo xtask gate	2026-10-23T23:00:08.8681487Z ok    a replaced subject is one line     CU-WAR-0001 once, as lineage; none of its text
+gate	cargo xtask gate	2026-10-23T23:00:08.9592390Z ok    history off writes no history      no HISTORY.md, nothing compared
+gate	cargo xtask gate	2026-10-23T23:00:08.9619636Z ok    a failing check is not 'no history' war exited 1: refused
+gate	cargo xtask gate	2026-10-23T23:00:09.0513892Z ok    a hand edit to CURRENT.md is drift rejected by generated.drift (CURRENT.md)
+gate	cargo xtask gate	2026-10-23T23:00:09.1344842Z ok    the history holds what was replaced CU-WAR-0001's intent verbatim, and its lineage
+gate	cargo xtask gate	2026-10-23T23:00:09.2227075Z ok    a hand edit to HISTORY.md is drift rejected by generated.drift (HISTORY.md)
+gate	cargo xtask gate	2026-10-23T23:00:09.5088178Z ok    CURRENT.md on this corpus          every current atom verbatim; 0073 one lineage line
+gate	cargo xtask gate	2026-10-23T23:00:09.5107686Z ok    the verbatim test can fail         a body CURRENT.md lacks is not found
+gate	cargo xtask gate	2026-10-23T23:00:21.4037025Z ok    this corpus's CURRENT.md is fresh  generated.drift passes
+gate	cargo xtask gate	2026-10-23T23:00:21.4351189Z ok    three documents point at CURRENT.md README, QUICKSTART, TUI: read it first
+gate	cargo xtask gate	2026-10-23T23:00:21.4581088Z ok    AGENTS.md starts an agent at prime war view prime first; CURRENT.md not first
+gate	cargo xtask gate	2026-10-23T23:00:21.4622314Z ok    the app's Help lists it first      CURRENT.md before every other document
+gate	cargo xtask gate	2026-10-23T23:00:21.5734634Z ok    every signing act is judged        the refusable one last, its rule beside the command
+gate	cargo xtask gate	2026-10-23T23:00:21.5766471Z ok    war next writes nothing            tree unchanged, no draft left, no key named
+gate	cargo xtask gate	2026-10-23T23:00:21.6599922Z ok    CURRENT.md carries the verdict     CU-WAR-0002: would refuse, by rule
+gate	cargo xtask gate	2026-10-23T23:00:21.6779793Z ok    a preset writes typed atoms        five roles, each heading asks its question
+gate	cargo xtask gate	2026-10-23T23:00:21.6982137Z ok    war new without a preset           names feature, fix, decision; no TODO
+gate	cargo xtask gate	2026-10-23T23:00:21.7260445Z ok    an unknown preset is refused       rejected by new.unknown-preset (feature, fix, decision)
+gate	cargo xtask gate	2026-10-23T23:00:21.7518146Z ok    a preset's profile is its own      rejected by new.preset-profile (decision)
+gate	cargo xtask gate	2026-10-23T23:00:21.7885055Z ok    an unanswered heading warns a draft rejected by WARN atom.preset-unanswered (CU-WAR-0003.*Problem)
+gate	cargo xtask gate	2026-10-23T23:00:21.8286511Z ok    an answered atom is not named      10-intent.md passes; 20-basis.md still asks
+gate	cargo xtask gate	2026-10-23T23:00:21.9502916Z ok    an unanswered heading, once signed rejected by ERROR atom.preset-unanswered (CU-WAR-0003.*Problem)
+gate	cargo xtask gate	2026-10-23T23:00:22.0915887Z ok    an extension role renders          x.review accepted; verbatim under CU-WAR-0003's Extensions
+gate	cargo xtask gate	2026-10-23T23:00:22.1514773Z ok    a bare unknown role is refused     rejected by ERROR manifest.invalid (declares role "review")
