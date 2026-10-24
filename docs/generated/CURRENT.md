@@ -38677,7 +38677,7 @@ a verify that passes for another reason would pass the obligation.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | authorize keeps a superseded authorization beside it | `crates/openwarrant-cli/src/authorize.rs` | verified |
-| D-002 | The retention plants | `conformance/plants.d/49-authorization-retained.sh` | verified |
+| D-002 | The retention plants | `conformance/plants.d/49-authorization-retained.sh` | drift |
 | D-003 | Where a superseded authorization is kept | `docs/SIGNING.md` | verified |
 
 ### OW-PHASE-10 — Contractor Work Order profile
