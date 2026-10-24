@@ -1,0 +1,22 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5.12s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 1 test
+test decision_scaffold_cli::decision_scaffold_preserves_quoted_titles_and_configured_adr_paths ... FAILED
+
+failures:
+
+---- decision_scaffold_cli::decision_scaffold_preserves_quoted_titles_and_configured_adr_paths stdout ----
+
+thread 'decision_scaffold_cli::decision_scaffold_preserves_quoted_titles_and_configured_adr_paths' (2891908) panicked at crates/openwarrant-cli/tests/decision_scaffold_cli.rs:113:81:
+called `Result::unwrap()` on an `Err` value: Error { message: "unexpected key or value, expected newline, `#`", input: Some("# A Warrant is the contract for ONE bounded intervention inside a program,\n# and it traces to that program's SAS through [[implements]] and [[roadmap]].\n# Starting a program? Write its SAS instead (SAS §6.10; docs/DEFINITIONS.md).\nschema = \"oh.war/manifest/v1\"\nuuid = \"01a16df2-7d6b-71e6-9357-58d389de7c99\"\nlocal_alias = \"IX-WAR-0005\"\n\n# Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.\nenterprise_id = \"\"\n\ntitle = \"Choose \"short\" cache retention\"\nprofile = \"decision\"\nassurance_level = \"basic\"\n\n# [[implements]]\n# ref = \"sas://WAR-SAS-RQ-000\"\n# contribution = \"partial\"\n\n[[atoms]]\nordinal = 10\nrole = \"intent\"\npath = \"atoms/10-intent.md\"\nrequired = true\n\n[[atoms]]\nordinal = 20\nrole = \"basis\"\npath = \"atoms/20-basis.md\"\nrequired = true\n\n[[atoms]]\nordinal = 30\nrole = \"adr\"\npath = \"../../decision \"drafts\"/atoms/IX-ADR-u01a16df27d6b71e6935758d4a7a6a469.md\"\nrequired = true\n\n[[atoms]]\nordinal = 60\nrole = \"assurance\"\npath = \"atoms/60-assurance.md\"\nrequired = true\n\n"), keys: [], span: Some(438..438) }
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    decision_scaffold_cli::decision_scaffold_preserves_quoted_titles_and_configured_adr_paths
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 370 filtered out; finished in 0.02s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

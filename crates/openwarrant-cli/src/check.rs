@@ -1520,6 +1520,35 @@ fn check_one(
     push_not_applicable(&alias, validated, caps, report);
     use openwarrant_core::Capability as C;
 
+    if caps.has(C::Structure) {
+        // A declared unknown is valid record data, not an answered question.
+        // Reuse the same parser as status/authorization rather than silently
+        // ignoring an invalid sidecar or inventing another vocabulary.
+        match repo.load_rationale(&one.dir) {
+            Ok(Some(assumptions)) => {
+                let states = assumptions
+                    .iter()
+                    .map(|a| format!("{}={}", a.id, a.epistemic_status.as_str()))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                report.push(Diagnostic::pass("rationale.parsed", format!(
+                    "{alias}: {} assumption record(s) parsed; {states}; epistemic states retained, not resolved by this structural check",
+                    assumptions.len()
+                )));
+            }
+            Ok(None) => {}
+            Err(error @ RepoError::Io { .. }) => report.push(Diagnostic::unknown(
+                "rationale.unavailable",
+                repo.relative(&one.dir.join("rationale.toml")),
+                error.to_string(),
+            )),
+            Err(error) => report.push(Diagnostic::error(
+                "rationale.invalid",
+                repo.relative(&one.dir.join("rationale.toml")),
+                error.to_string(),
+            )),
+        }
+    }
     if caps.has(C::Resolution) {
         check_deliverable_digests(repo, one, &alias, ownership, report);
     }

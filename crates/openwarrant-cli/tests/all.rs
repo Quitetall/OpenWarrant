@@ -20,6 +20,8 @@ mod checks_cli;
 mod context_apply_cli;
 #[path = "context_cli.rs"]
 mod context_cli;
+#[path = "decision_scaffold_cli.rs"]
+mod decision_scaffold_cli;
 #[path = "delivery_provenance_cli.rs"]
 mod delivery_provenance_cli;
 #[path = "diff_target.rs"]
