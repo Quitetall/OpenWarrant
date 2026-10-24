@@ -1,0 +1,24 @@
+{
+  "asked": {
+    "n": 1000,
+    "resolved": 500
+  },
+  "authorized_by_batch": 749,
+  "by_phase": {
+    "authorized": 249,
+    "draft": 251,
+    "resolved": 500
+  },
+  "counted_by": "war status --json",
+  "fixture": "every record is synthetic; the signer, performer and verifier are throwaway names",
+  "gate": "gate://synth.fixture-bytes@1.1.0 (fixture: sha256sum --check synth/SHA256SUMS; inputs synth/**)",
+  "generator": "tools/scale/synth-corpus.sh",
+  "implementation_log_bytes": 1461,
+  "resolve_with": "response",
+  "resolved": 500,
+  "schema": "openwarrant.scale/synth-counts/v1",
+  "seconds": 721,
+  "war": "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/m1-generator-tool/war",
+  "war_check_exit": 0,
+  "warrants": 1000
+}

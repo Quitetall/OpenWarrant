@@ -1,0 +1,36 @@
+{
+  "schema": "oh.war/projection-difference-observation/v1",
+  "observed_at": "2026-10-24T03:28:21.739615+00:00",
+  "source_commit": "d21710454011b204a69c7a2f6364431bb4a55775",
+  "post_tool_sha256": "68d2d769a849663dd444971959bf253cca8648a75b41d6eb6578f8debd680ebb",
+  "json_structural_differences": [
+    {
+      "path": "/warrants/66/checks/not_applicable",
+      "pre": null,
+      "post": [
+        "runtime receipts match the basis"
+      ]
+    },
+    {
+      "path": "/warrants/66/unmet",
+      "pre": [
+        "required deliverables exist",
+        "artifact digests verify",
+        "every required gate has admissible result",
+        "no required unknown remains",
+        "no blocker remains",
+        "runtime receipts match the basis"
+      ],
+      "post": [
+        "required deliverables exist",
+        "artifact digests verify",
+        "every required gate has admissible result",
+        "no required unknown remains",
+        "no blocker remains"
+      ]
+    }
+  ],
+  "html_other_bytes_unchanged": true,
+  "markdown_diff": "--- pre/CORPUS_STATUS.md\n+++ post/CORPUS_STATUS.md\n@@ -74,7 +74,7 @@\n | exact authorized Contract Revision | 20 |\n | every required obligation is dispositioned | 5 |\n | independence requirements are met | 5 |\n-| runtime receipts match the basis | 3 |\n+| runtime receipts match the basis | 2 |\n \n ## Requirements (SAS \u00a7106, \u00a734.3)\n \n",
+  "interpretation": "Generated-view drift follows OW-WAR-0071 applicability changes. Original frozen generated-check exit 0 versus 2 is retained, not byte equality. Public compilation occurred only after all frozen reads in a disposable clone. No signed records changed; no qualification established."
+}
