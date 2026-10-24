@@ -1,6 +1,6 @@
 # Skill adaptation provenance
 
-Local adaptation revision: sdk-cli-rc3-3 (2026-09-16).
+Local adaptation revision: routing-cues-20261024 (2026-10-24).
 Upstream: mattpocock/skills, MIT; full immutable revision
 `3cca18b368ae95cdbdebbff572ccafa662551015`.
 [License and copyright notice](LICENSE.mattpocock) travels with this suite.
@@ -30,3 +30,9 @@ M9 update (2026-10-07): every skill leads with "ordinary coding needs no
 Warrant and no ticket", the ticket loop has its own reference, and rules that
 belong to a Warrant with a sign-off step live in references titled for it.
 Upstream revision and attribution remain unchanged.
+
+Routing update: simple `war tickets` and `war migrate` chat cues remain distinct
+from CLI command groups. A selected workflow does not reload the router. Verified
+claims require independent evidence and secure human acceptance of the exact
+result under the applicable baseline. These changes have source/validator checks;
+model-routing quality and the broader OW68 eval scope are not claimed complete.

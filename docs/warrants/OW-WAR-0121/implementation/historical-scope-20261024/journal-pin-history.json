@@ -1,0 +1,12 @@
+{
+  "deliverable_id": "D-008",
+  "path": "crates/openwarrant-cli/src/journal_cmd.rs",
+  "recorded_digest": "c7edc8460f6e69b29196f8731a417e84daecb770184f0d07b0989f6f4c294631",
+  "matching_source_versions": [
+    {
+      "commit": "5253cb8500ea66cdd89c27f995f8562146a2540b",
+      "old_diagnostic_present": true,
+      "new_diagnostic_present": false
+    }
+  ]
+}

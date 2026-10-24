@@ -1,0 +1,5 @@
+    Blocking waiting for file lock on package cache
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.54s
+     Running `target/debug/xtask skills`
+   SKILL.md: frontmatter present, 8 reference(s) all linked and present
+   no em-dash in any agent-facing document

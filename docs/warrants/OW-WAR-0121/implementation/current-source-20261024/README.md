@@ -15,14 +15,15 @@ complete debug/release fault-hook region is unchanged from that source. This
 supports the unchanged compilation guard without pretending the older runtime
 observation is a new current release execution.
 
-## Remaining contract discrepancy
+## Diagnostic versions — corrected interpretation
 
-OBL-004 names `journal.torn-tail` and `journal.malformed`. The current tool and
-plant report `work.journal-torn` and `work.journal-malformed`. The scoped behavior
-is observed, but literal rule-name agreement is not established. W113's separate
-owner choice does not waive W121's signed criterion. A governed clarification
-must identify the supported names before claiming the exact obligation met.
+OBL-004 names `journal.torn-tail` and `journal.malformed`. Today's tool and
+plant report `work.journal-torn` and `work.journal-malformed`. The historical
+replay and recorded journal pin confirm the original names before the later
+FORMAT-1.0 rename. The previous recommendation to amend W121 solely for this
+rename was too strong; see [the historical scope correction](../historical-scope-20261024/README.md).
 
-Implementation remains in progress for this reconciliation. No authored signed
-atom, deliverable pin, authority record, independent disposition or resolution
-was edited. Existing closure gaps remain; the performer cannot clear them.
+The observations above remain specific to current-source CI. Implementation is
+reported complete, unverified, with versioned evidence for the original behavior.
+No authored signed atom, deliverable pin, authority record, independent disposition
+or resolution was edited. Existing closure gaps remain separate.

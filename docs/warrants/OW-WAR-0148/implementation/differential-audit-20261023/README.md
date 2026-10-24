@@ -1,8 +1,20 @@
 # W148 differential audit — owner direction recorded
 
-W148 is not complete. Its work order and OBL-001 require identical output before
-M1 and after M2, except the named state-disagreement fix. M2 also requires types
-without `stages` to report runtime-receipt checks as not applicable, never passed.
+Implementation is reported complete under the owner's chosen applicability
+behavior, unverified. W148 is not resolved or qualified. Its original work order
+and OBL-001 require identical output before M1 and after M2, except the named
+state-disagreement fix. M2 also requires types without `stages` to report runtime
+receipts as not applicable, never passed. The owner explicitly chose to permit
+those applicability changes; adopting that direction in the signed criterion is
+still a separate governed act.
+
+The [full historical follow-up](full-scale/README.md) now retains all eight
+comparisons and the passing original scale budget. Real-corpus differences,
+including derived-view drift and the generated-check exit change, are preserved.
+This report does not call those bytes equal or declare the original signed
+obligation satisfied. Implementation completion does not award assurance.
+
+## Initial audit observations
 
 The exact historical commits were rebuilt without source changes using Rust
 1.97.1. The [observation](observation.json) retains the identities and raw-stream
@@ -17,8 +29,9 @@ All seven observed stderr streams and exit codes match. Console JSON, signing
 list and resolved pins are byte-identical.
 
 Pre-M1 `check --generated` exceeded the 120-second command deadline: UNKNOWN,
-not a successful comparison. The 1,000-Warrant corpus and release budget have
-not been reproduced by this audit. No exception was applied automatically.
+not a successful comparison. At this initial stage, the 1,000-Warrant corpus
+and release budget had not yet been reproduced. The full-scale follow-up now
+records them. No exception was applied automatically to these raw observations.
 
 ## Owner direction — bounded clarification
 
@@ -35,7 +48,7 @@ from unmet lists. It does not turn an absent check into a pass. The original
 state-disagreement exception and every other byte-comparison requirement remain.
 
 The original observations above remain unchanged: the outputs were not equal.
-This clarification does not waive the unobserved command, scale budget,
+This clarification does not waive missing observations, the scale budget,
 functional controls, independent assessment or human acceptance. Signed atoms
 and historical records are unchanged. The changed criterion must be represented
 in any governed successor/amendment before claiming the signed obligation met.
@@ -81,7 +94,8 @@ streams, claim byte equality, activate an amendment or establish assurance.
 The signing list, console JSON and resolved pins remained byte-identical.
 
 These timings describe this frozen repository, not the required 1,000-Warrant
-budget. The synthetic corpus and its unchanged budget gate remain unfinished.
+budget. The synthetic corpus and unchanged budget gate were subsequently
+completed in the linked full-scale follow-up; earlier observations stay intact.
 
 ## Separate standalone JSON diagnostic
 
@@ -97,6 +111,7 @@ This is a diagnostic variant with `--json`, not the exact human-output
 `check --generated` command required by OBL-001. Earlier timeouts remain. The
 clone also differs in Git layout, local origin and absent ignored build outputs;
 these observations do not establish the timeout's cause. No extra compatibility
-exception is assumed: determine whether fresh-rendered view changes are limited
-to the chosen applicability change before judging them. Raw reports remain in
-the durable artifact directory named by the audit.
+exception was assumed in this diagnostic. The later full-scale follow-up bounds
+the fresh-rendered view differences to the chosen applicability change and
+records the exact human-output command comparison. Raw reports remain in the
+durable artifact directory named by the audit.

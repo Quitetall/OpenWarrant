@@ -1,0 +1,8 @@
+{
+  "source_commit": "d21710454011b204a69c7a2f6364431bb4a55775",
+  "atomic_sha256": "ddd3e448f2045f1fc5ce1c570a52196388af2a41e9737cc70013095049b16526",
+  "source_timestamp_preserved_from": "/mnt/4tb/tmp/openwarrant-ow148-pre-20261023/crates/openwarrant-cli/src/atomic.rs",
+  "binary_timestamps_modified": false,
+  "release_binary_newer_than_atomic_source": true,
+  "scope": "Original namespace before FORMAT-1.0 rename; isolated registered storage controls only, not whole release qualification."
+}
