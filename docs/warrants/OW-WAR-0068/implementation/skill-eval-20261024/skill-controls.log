@@ -1,0 +1,28 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.75s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 5 tests
+test eval_subject_cli::eval_context_refuses_paths_outside_the_repository_or_missing_sources ... ok
+test eval_subject_cli::interview_answers_reach_the_recorded_draft_request_as_data ... ok
+test eval_subject_cli::context_inputs_reach_the_agent_with_exact_sources ... ok
+test eval_subject_cli::document_evaluation_reviews_the_final_gate_evidence ... ok
+test eval_subject_cli::skill_fixtures_preserve_answers_and_refuse_false_completion ... FAILED
+
+failures:
+
+---- eval_subject_cli::skill_fixtures_preserve_answers_and_refuse_false_completion stdout ----
+
+thread 'eval_subject_cli::skill_fixtures_preserve_answers_and_refuse_false_completion' (2326020) panicked at crates/openwarrant-cli/tests/eval_subject_cli.rs:396:9:
+assertion `left == right` failed: {"as_expected":false,"expected":"refused","expected_gate":"software.repo.war-check@1.0.0","expected_gate_cited":false,"id":"grill-unanswered","kind":"code","max_tokens":20000,"notes":["context source: .claude/skills/war-grill/SKILL.md sha256:6eaf653f936c6fdf1824e3d2373860fedf000f4c5120141b042591179cc30a30","context source: .claude/skills/openwarrant/SKILL.md sha256:bd26ae767ec4828e9a835675c1bb22108f8e7282c6cae30dcd6bc0023a072c54","context source: CONTEXT.md sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8","scratch kept at /mnt/4tb/tmp/openwarrant-ow68-eval-runtime-20261024/war-eval-2326023-2-409204574-grill-unanswered","§74.4 steps 5–6 (human review) waived by the harness inside the scratch program","plan.apply produced no alias: "],"obligations_established":0,"obligations_total":0,"refusals":[],"requirements_unmet":[],"requirements_unmet_by_the_loop":[],"score":"errored","sentence":"An export note records the supplied format answer.","steps":[{"exit_code":0,"name":"plan.apply","verdict":"well_formed"}],"tokens":{"bundle":0,"dispatch":0,"method":"oh.war/token-estimate/bytes-div-4/v1","request":0,"stable":true,"total":0}}
+  left: String("errored")
+ right: "refused"
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    eval_subject_cli::skill_fixtures_preserve_answers_and_refuse_false_completion
+
+test result: FAILED. 4 passed; 1 failed; 0 ignored; 0 measured; 361 filtered out; finished in 6.34s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

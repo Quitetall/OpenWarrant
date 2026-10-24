@@ -1,0 +1,14 @@
+gate	cargo xtask gate	2026-10-24T07:41:18.0016762Z == the isolated battery gate (OW-WAR-0145) ==
+gate	cargo xtask gate	2026-10-24T07:41:18.2104212Z ok: clone index prepared once; caller index unchanged; clone removed
+gate	cargo xtask gate	2026-10-24T07:41:18.2104656Z ok: failed refresh refuses before battery; caller preserved; clone removed
+gate	cargo xtask gate	2026-10-24T07:41:18.2156010Z ok    clone-index preparation controls   prepared once; caller untouched; failed preparation refuses and cleans up
+gate	cargo xtask gate	2026-10-24T07:41:18.3394107Z ok    the battery gate is askable        ran and passed
+gate	cargo xtask gate	2026-10-24T07:41:18.3394556Z ok    the working tree is untouched      files, index, HEAD and the uncommitted edit identical
+gate	cargo xtask gate	2026-10-24T07:41:18.3411511Z ok    the clone is removed               nothing left under the temp directory
+gate	cargo xtask gate	2026-10-24T07:41:18.3520278Z ok    it tests HEAD, not the working tree committed bytes, tested commit fc8e3b196a248d1cd9d5b1a81444a7586be320f0
+gate	cargo xtask gate	2026-10-24T07:41:18.4490511Z ok    a failing battery fails the gate   verdict fail
+gate	cargo xtask gate	2026-10-24T07:41:18.4548957Z ok    a nested battery refuses           exit 2, refused-nested, no clone made
+gate	cargo xtask gate	2026-10-24T07:41:22.4117274Z ok    1.1.0 registered, 1.0.0 untouched  1.1.0 non-mutating; 1.0.0 still mutating
+gate	cargo xtask gate	2026-10-24T07:41:22.4276720Z ok    1.0.0 is byte-identical            sha256:467b90edd95a, as before 4c99de1c
+gate	cargo xtask gate	2026-10-24T07:41:22.4298818Z ok    a changed 1.0.0 is seen            one byte more is a different digest
+gate	cargo xtask gate	2026-10-24T07:41:22.4499908Z ok    war check reports no error         1890 pass · 425 warn · 0 unknown · 0 error

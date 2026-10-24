@@ -1,0 +1,18 @@
+{
+  "title": "Describe bounded retry behavior",
+  "outcome": "A retry policy states the settled limits and the refusal case.",
+  "scope": "One policy draft; no runtime changes or architectural acceptance.",
+  "method_marker": "Draft one reviewable outcome",
+  "requirements": [
+    "- Retry transient transport failures at most three times.",
+    "- Never retry a permission refusal.",
+    "- Keep the existing request and response contracts unchanged."
+  ],
+  "targets": [
+    "RETRY_POLICY.md"
+  ],
+  "stages": [
+    "Draft the bounded retry policy"
+  ],
+  "skill": "spec"
+}

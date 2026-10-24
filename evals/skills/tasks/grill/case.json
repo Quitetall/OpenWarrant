@@ -1,0 +1,17 @@
+{
+  "title": "Record the export format decision",
+  "outcome": "An export note records the supplied format answer.",
+  "scope": "One export note, with no implementation or authority change.",
+  "method_marker": "Persist answers",
+  "requirements": [
+    "- Record Q-001 verbatim; do not invent an answer.",
+    "- Stop drafting if its material answer is absent."
+  ],
+  "targets": [
+    "EXPORT.md"
+  ],
+  "stages": [
+    "Write the answered export note"
+  ],
+  "skill": "grill"
+}

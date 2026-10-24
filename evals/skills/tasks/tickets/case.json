@@ -1,0 +1,20 @@
+{
+  "title": "Add a transport contract and caller",
+  "outcome": "A transport contract precedes its dependent caller.",
+  "scope": "One contract and one caller; the fixture intentionally delivers the first stage only.",
+  "method_marker": "Record only real prerequisite edges",
+  "requirements": [
+    "- Write API.md with the transport contract.",
+    "- Write CLIENT.md only after that contract is available.",
+    "- A missing required caller must leave the Warrant unsatisfied."
+  ],
+  "targets": [
+    "API.md",
+    "CLIENT.md"
+  ],
+  "stages": [
+    "Prepare the transport contract",
+    "Integrate the caller"
+  ],
+  "skill": "tickets"
+}

@@ -27,11 +27,25 @@ the recorded `plan/request.json` retains its text. Answers are data, not shell
 commands or authority grants. Existing tasks with no answers keep their behavior.
 Their request token estimate includes any recorded answers.
 
+An optional `context` array lists repository-relative UTF-8 files. The harness
+rejects parent paths, absolute paths, missing sources and symlinks that resolve
+outside the repository. It writes exact bodies and SHA-256 source hashes to
+`.openwarrant/eval-context.json` in the scratch program. `EVAL_CONTEXT_FILE`
+points the drafter and performer to that packet. Result notes retain source
+paths and hashes; `--keep` retains the packet. Each delivery is added to the
+corresponding request or Dispatch input estimate. This selection is not a
+sandbox against a process that can mutate the repository.
+
+The separate [skill fixtures](../evals/skills/README.md) exercise interview,
+specification and dependent-stage transport through this interface. Their
+baseline is separate from the original twelve-task baseline.
+
 ## The ladder
 
 | rung | meaning |
 |---|---|
 | `would_satisfy` | §38.6 `would_resolve_satisfied` under the blind verifier, AND every requirement the loop controls holds |
+| `needs_input` | drafting saved interview questions and awaits answers; no Warrant was created |
 | `partial` | the loop ran to the end; something it controls is unmet (a deliverable, a digest, a gate result, independence) |
 | `over_budget` | request + Dispatch + bundle estimate exceeded `max_tokens` |
 | `refused` | a named refusal stopped the loop (`plan.drafter-wrote-files`, `dispatch.over-budget`, `verify.inadmissible`, …) — the tool did its job |

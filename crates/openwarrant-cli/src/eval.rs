@@ -60,6 +60,9 @@ pub struct Task {
     /// Supplied interview answers, forwarded verbatim to the draft request.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub answers: BTreeMap<String, String>,
+    /// Repository-relative documents delivered alongside each agent input.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub context: Vec<String>,
 }
 
 fn default_expected() -> String {
@@ -76,6 +79,8 @@ pub enum Score {
     WouldSatisfy,
     /// The loop ran to the end; something is unestablished.
     Partial,
+    /// Drafting saved questions and awaits input; no Warrant was created.
+    NeedsInput,
     /// The loop's estimated tokens exceeded the task's `max_tokens`.
     OverBudget,
     /// A named refusal stopped the loop (the tool did its job).
@@ -90,6 +95,7 @@ impl Score {
         match self {
             Self::WouldSatisfy => "would_satisfy",
             Self::Partial => "partial",
+            Self::NeedsInput => "needs_input",
             Self::OverBudget => "over_budget",
             Self::Refused => "refused",
             Self::Errored => "errored",
@@ -391,6 +397,10 @@ impl Scratch {
             .current_dir(&self.root)
             .env("PATH", self.path_env())
             .env("EVAL_TASK_DIR", &self.task_dir)
+            .env(
+                "EVAL_CONTEXT_FILE",
+                self.root.join(".openwarrant/eval-context.json"),
+            )
             .stdin(Stdio::null())
             .output()
             .map_err(|e| RepoError::Message(format!("cannot run war {}: {e}", args.join(" "))))?;
@@ -611,6 +621,63 @@ fn read_json(path: &Utf8Path) -> Option<serde_json::Value> {
     serde_json::from_str(&std::fs::read_to_string(path).ok()?).ok()
 }
 
+/// Assemble explicit sources without changing the frozen draft request format.
+fn prepare_context(
+    repo: &Repository,
+    task: &Task,
+    scratch: &Scratch,
+    notes: &mut Vec<String>,
+) -> Result<u64, RepoError> {
+    if task.context.is_empty() {
+        return Ok(0);
+    }
+    let root = std::fs::canonicalize(&repo.root)
+        .map_err(|e| RepoError::Message(format!("eval.context-invalid: repository root: {e}")))?;
+    let mut documents = Vec::new();
+    for path in &task.context {
+        if path.is_empty()
+            || !std::path::Path::new(path)
+                .components()
+                .all(|c| matches!(c, std::path::Component::Normal(_)))
+        {
+            return Err(RepoError::Message(format!(
+                "eval.context-invalid: {path:?} must be a repository-relative file"
+            )));
+        }
+        let source = std::fs::canonicalize(repo.root.join(path))
+            .map_err(|e| RepoError::Message(format!("eval.context-invalid: {path}: {e}")))?;
+        if !source.starts_with(&root) {
+            return Err(RepoError::Message(format!(
+                "eval.context-invalid: {path} resolves outside the repository"
+            )));
+        }
+        let body = std::fs::read_to_string(&source)
+            .map_err(|e| RepoError::Message(format!("eval.context-invalid: {path}: {e}")))?;
+        let sha256 = format!(
+            "sha256:{}",
+            openwarrant_compiler::sha256_hex(body.as_bytes())
+        );
+        notes.push(format!("context source: {path} {sha256}"));
+        documents.push(serde_json::json!({"path": path, "sha256": sha256, "body": body}));
+    }
+    let packet = serde_json::to_vec_pretty(&serde_json::json!({
+        "schema": "oh.war/eval-context/v1", "documents": documents
+    }))
+    .map_err(|e| RepoError::Message(format!("cannot serialize eval context: {e}")))?;
+    let path = scratch.root.join(".openwarrant/eval-context.json");
+    std::fs::create_dir_all(path.parent().expect("context parent")).map_err(|source| {
+        RepoError::Io {
+            context: format!("could not create context directory for {path}"),
+            source,
+        }
+    })?;
+    std::fs::write(&path, &packet).map_err(|source| RepoError::Io {
+        context: format!("could not write {path}"),
+        source,
+    })?;
+    Ok(openwarrant_core::tokens::estimate(packet.len() as u64))
+}
+
 fn first_stage(warrant_dir: &Utf8Path, kind: &str) -> Option<String> {
     let text = std::fs::read_to_string(warrant_dir.join("atoms/45-milestones.yaml")).ok()?;
     let graph = openwarrant_core::milestones::parse(&text).ok()?;
@@ -657,6 +724,10 @@ fn perform(
         .current_dir(&scratch.root)
         .env("PATH", scratch.path_env())
         .env("EVAL_TASK_DIR", &scratch.task_dir)
+        .env(
+            "EVAL_CONTEXT_FILE",
+            scratch.root.join(".openwarrant/eval-context.json"),
+        )
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
@@ -723,6 +794,7 @@ fn perform(
 }
 
 fn run_task(
+    repo: &Repository,
     id: &str,
     task_dir: &Utf8Path,
     task: &Task,
@@ -768,6 +840,7 @@ fn run_task(
     };
 
     let scratch = make_scratch(id, task_dir, drafter, verifier, keep)?;
+    let context_tokens = prepare_context(repo, task, &scratch, &mut r.notes)?;
     if keep {
         r.notes.push(format!("scratch kept at {}", scratch.root));
     }
@@ -791,6 +864,31 @@ fn run_task(
     }
     let plan = scratch.war(&args.iter().map(String::as_str).collect::<Vec<_>>())?;
     r.steps.push(plan.step("plan.apply"));
+    if let Some(asked) = plan.result.as_ref().filter(|v| {
+        v.get("schema").and_then(serde_json::Value::as_str)
+            == Some(crate::plan::INTAKE_QUESTIONS_SCHEMA)
+    }) {
+        let request = asked
+            .get("dir")
+            .and_then(serde_json::Value::as_str)
+            .and_then(|dir| read_json(&scratch.root.join(dir).join("request.json")))
+            .ok_or_else(|| {
+                RepoError::Message(
+                    "eval.interview-record-missing: cannot measure the saved request".to_owned(),
+                )
+            })?;
+        r.tokens.request =
+            openwarrant_core::tokens::estimate(request.to_string().len() as u64) + context_tokens;
+        r.tokens.total = r.tokens.request;
+        r.score = if r.tokens.total > task.max_tokens {
+            Score::OverBudget
+        } else {
+            Score::NeedsInput
+        };
+        r.notes.push(format!("interview awaiting input: {asked}"));
+        let t = finish(&mut r, started);
+        return Ok((r, t));
+    }
     // Precedence at every step: a named refusal scores `refused`; any other
     // failure falls through to `errored` (a crash is not the tool doing its
     // job, even when a refusal diagnostic sits beside it).
@@ -823,7 +921,8 @@ fn run_task(
     let warrant_dir = scratch.root.join("docs/warrants").join(&alias);
     r.expected_gate_cited = cites_gate(&warrant_dir, &task.expected_gate);
     if let Some(req) = read_json(&warrant_dir.join("plan/request.json")) {
-        r.tokens.request = openwarrant_core::tokens::estimate(req.to_string().len() as u64);
+        r.tokens.request =
+            openwarrant_core::tokens::estimate(req.to_string().len() as u64) + context_tokens;
     }
 
     // 2. Check.
@@ -857,6 +956,7 @@ fn run_task(
         .and_then(|t| t.get("estimated_tokens"))
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
+    r.tokens.dispatch += context_tokens;
     let _ = std::fs::remove_file(&dispatch_path);
 
     // 4–7. Perform, compile, record evidence, verify blind. The order differs
@@ -1052,7 +1152,7 @@ pub fn run(
     let mut results = Vec::new();
     let mut timings = Vec::new();
     for (id, dir, task) in &tasks {
-        let (r, t) = run_task(id, dir, task, &drafter, &verifier, opts.keep)?;
+        let (r, t) = run_task(repo, id, dir, task, &drafter, &verifier, opts.keep)?;
         let line = format!(
             "{id} [{}]: {} (expected {}); {}/{} obligations established; {} tokens of {}; {:.1}s",
             r.kind,
@@ -1302,6 +1402,7 @@ mod tests {
         for s in [
             Score::WouldSatisfy,
             Score::Partial,
+            Score::NeedsInput,
             Score::OverBudget,
             Score::Refused,
             Score::Errored,

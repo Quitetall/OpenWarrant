@@ -1,0 +1,17 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "warrant": "OW-WAR-0146",
+  "case": "one-byte tail cap over two-byte UTF-8 \u00e9",
+  "cap_bytes": 1,
+  "source_capture_bytes": 2,
+  "rendered_text_bytes": 3,
+  "text": "\ufffd",
+  "captured": true,
+  "truncated": true,
+  "whole_file_sha256": "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c",
+  "reproduced_bound_violation": true,
+  "original_archive": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-eval-20261024/runtime-archives/skills-second-grill.tar.gz",
+  "original_archive_sha256": "e9d5e00bf0532ab50732ce474d9ce737e65dc67ce172c0be6b0392c4e0cc4941",
+  "tool_sha256": "9385ae2cb0c4098057145851fe5315a6be9bba8dc1ed55bb1a8576dc5e7278b8",
+  "qualification_granted": false
+}
