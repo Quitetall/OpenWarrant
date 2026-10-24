@@ -328,6 +328,19 @@ fn derived_report_uses_exact_historical_sources_and_discloses_ratios() {
             .join("../../conformance/fixtures/inbox/repository"),
         &root,
     );
+    // A source declaration exists, but this fixture runs no attack or gate.
+    // A source-derived count must not claim independent execution evidence.
+    let assurance = root.join("docs/warrants/IX-WAR-0003/atoms/60-assurance.md");
+    let source = std::fs::read_to_string(&assurance).unwrap();
+    assert!(source.contains("## Residual Risk"));
+    std::fs::write(
+        &assurance,
+        source.replace(
+            "## Residual Risk",
+            "**Executed attacks:**\n- A declared attack with no execution receipt.\n\n## Residual Risk",
+        ),
+    )
+    .unwrap();
     let git = |args: &[&str]| {
         let result = Command::new("git")
             .args(args)
@@ -395,6 +408,12 @@ fn derived_report_uses_exact_historical_sources_and_discloses_ratios() {
     let baseline = &report["result"]["baseline"];
     assert_eq!(baseline["schema"], "oh.war/telemetry-baseline/v2");
     assert_eq!(baseline["commit"], commit);
+    let attacks = &baseline["measures"]["adequacy counterexamples"];
+    assert_eq!(attacks["value"], 1);
+    assert!(
+        attacks["method"].as_str().unwrap().contains("declared"),
+        "parsed source declarations must be distinguished from execution evidence: {attacks}"
+    );
     let ratio = &baseline["derived"]["untracked-work rate"]["ratio"];
     assert_eq!(
         (ratio["numerator"].as_u64(), ratio["denominator"].as_u64()),

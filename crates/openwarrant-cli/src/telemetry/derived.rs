@@ -48,6 +48,11 @@ pub fn take(repo: &Repository, candidate: &str) -> Result<Baseline, RepoError> {
     let commits = text.lines().count() as u64;
     let mut baseline = take_with_candidates(captured, commit, Some(candidates))?;
     baseline.schema = "oh.war/telemetry-baseline/v2".into();
+    if let Some(Measure::Taken { method, .. }) =
+        baseline.measures.get_mut("adequacy counterexamples")
+    {
+        *method = "declared executed-attack entries in committed assurance atoms; parsing them does not establish execution or independent verification".into();
+    }
     let dirs = captured.warrant_dirs()?;
     let mut loaded = Vec::new();
     for dir in &dirs {
