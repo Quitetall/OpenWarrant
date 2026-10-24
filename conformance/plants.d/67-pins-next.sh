@@ -110,14 +110,14 @@ unset -f nx_cpu_ms
 # Refusal: once the item is claimed it is no longer offered.
 "$WAR" --root "$PLANT_ROOT" create "Plant ticket" --item "Ready plant item" >/dev/null 2>&1
 NX_HUMAN=$("$WAR" --root "$PLANT_ROOT" next 2>/dev/null)
-NX_CLAIM_AT=$(grep -n -m1 '^ready .*war claim t-' <<<"$NX_HUMAN" | cut -d: -f1)
+NX_CLAIM_AT=$(grep -n -m1 '^ready .*war start t-' <<<"$NX_HUMAN" | cut -d: -f1)
 NX_SIGN_AT=$(grep -n -m1 '^HUMAN ' <<<"$NX_HUMAN" | cut -d: -f1)
 nx_ready_first() { python3 -c '
 import sys, json
 v = json.load(sys.stdin)["result"]
 r = v.get("ready", [])
 ok = any(x["text"] == "Ready plant item" for x in r)
-ok = ok and all(x["actor"] == "agent" and x["command"].startswith("war claim ") and "war sign" not in x["command"] for x in r)
+ok = ok and all(x["actor"] == "agent" and x["command"].startswith("war start ") and "war sign" not in x["command"] for x in r)
 humans = [a for a in v["actions"] if a["actor"] == "human"]
 ok = ok and humans and all(a["command"].startswith("war sign") and a.get("judged") for a in humans)
 sys.exit(0 if ok else 1)'; }
@@ -140,7 +140,10 @@ print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Ready plant
 nx_not_offered() {
     local out
     out=$("$1" --root "$PLANT_ROOT" next 2>/dev/null) || return 1
-    ! grep -qF "war claim $2" <<<"$out"
+    # `war next` offers a Warrant by `war start <ticket>`; the plant ticket's
+    # one item is claimed, so its Warrant is no longer offered at all.
+    grep -q '^ready ' <<<"$out" || grep -q 'nothing tracked is ready' <<<"$out" || return 1
+    ! grep -qF "war start ${2%%/*}" <<<"$out"
 }
 if [[ -n $NX_ITEM ]] && nx_not_offered "$WAR" "$NX_ITEM"; then
     printf 'ok    %-34s a claimed item is no longer offered\n' "next refuses a claimed ticket item"
