@@ -710,6 +710,18 @@ impl Repository {
             context: format!("could not read {manifest_path}"),
             source,
         })?;
+        if let Some(unknown) =
+            compat::newer_manifest(&manifest_bytes, &self.relative(&manifest_path))
+        {
+            let mut report = Report::default();
+            report.push(unknown);
+            return Ok(Loaded {
+                dir: dir.to_owned(),
+                basis: None,
+                validated: None,
+                report,
+            });
+        }
         let manifest_text = String::from_utf8_lossy(&manifest_bytes).into_owned();
         let manifest: Manifest =
             toml::from_str(&manifest_text).map_err(|source| RepoError::ManifestParse {

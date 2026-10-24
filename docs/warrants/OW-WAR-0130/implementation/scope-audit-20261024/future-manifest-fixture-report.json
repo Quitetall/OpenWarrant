@@ -1,0 +1,275 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "check",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "gate.registered",
+      "file": null,
+      "message": "software.repo.war-check@1.0.0: local candidate, qualified against its declared fault model"
+    },
+    {
+      "severity": "warn",
+      "rule": "independence.undeclared",
+      "file": "openwarrant.toml",
+      "message": "no independence is declared for this repository, so §46.3's minimums cannot be evaluated for any Warrant. Absent is not the same as none — `none` reads as examined and absent, absent reads as unexamined"
+    },
+    {
+      "severity": "warn",
+      "rule": "authority.unprotected",
+      "file": "openwarrant.toml",
+      "message": "no protected authority store is configured (`[authority] store`). docs/authority/roles.toml, docs/authority/allowed_signers and the policy keys that decide whether work may close ([independence], allow_automated_resolution, require_user_presence, verifier_argv) are working-tree files the performer can write; review of them is the control (THREAT_MODEL row 6, docs/AUTHENTICATION.md)"
+    },
+    {
+      "severity": "unknown",
+      "rule": "compat.newer-record",
+      "file": "docs/warrants/IV-WAR-0001/manifest.toml",
+      "message": "written as oh.war/manifest/v9; this war (1.0.0-alpha.5) reads manifest up to v1. Its fields are not interpreted and no Compilation Basis is produced; use a war that knows this major"
+    },
+    {
+      "severity": "pass",
+      "rule": "manifest.valid",
+      "file": null,
+      "message": "IV-WAR-0002: manifest and composition are well-formed"
+    },
+    {
+      "severity": "pass",
+      "rule": "journal.append-only",
+      "file": null,
+      "message": "IV-WAR-0002: 1 event(s), 0 backfilled, extends the committed journal"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/10-intent.md",
+      "message": "IV-WAR-0002: atom atoms/10-intent.md — the preset's required heading `Problem` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/10-intent.md",
+      "message": "IV-WAR-0002: atom atoms/10-intent.md — the preset's required heading `Desired Outcome` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/20-basis.md",
+      "message": "IV-WAR-0002: atom atoms/20-basis.md — the preset's required heading `Requirements` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/20-basis.md",
+      "message": "IV-WAR-0002: atom atoms/20-basis.md — the preset's required heading `Assumptions` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/40-work-order.md",
+      "message": "IV-WAR-0002: atom atoms/40-work-order.md — the preset's required heading `Scope` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/40-work-order.md",
+      "message": "IV-WAR-0002: atom atoms/40-work-order.md — the preset's required heading `Deliverables` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/40-work-order.md",
+      "message": "IV-WAR-0002: atom atoms/40-work-order.md — the preset's required heading `Frozen Surfaces` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/40-work-order.md",
+      "message": "IV-WAR-0002: atom atoms/40-work-order.md — the preset's required heading `Autonomy and Escalation` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/60-assurance.md",
+      "message": "IV-WAR-0002: atom atoms/60-assurance.md — the preset's required heading `Acceptance Obligations` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0002/atoms/60-assurance.md",
+      "message": "IV-WAR-0002: atom atoms/60-assurance.md — the preset's required heading `Gate Adequacy` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "pass",
+      "rule": "milestones.valid",
+      "file": null,
+      "message": "IV-WAR-0002: 1 milestone(s), 1 stage(s), acyclic with no dangling refs"
+    },
+    {
+      "severity": "pass",
+      "rule": "obligations.valid",
+      "file": null,
+      "message": "IV-WAR-0002: 0 obligation(s), each with a bounded scope and evidence"
+    },
+    {
+      "severity": "pass",
+      "rule": "manifest.valid",
+      "file": null,
+      "message": "IV-WAR-0003: manifest and composition are well-formed"
+    },
+    {
+      "severity": "pass",
+      "rule": "journal.append-only",
+      "file": null,
+      "message": "IV-WAR-0003: 1 event(s), 0 backfilled, extends the committed journal"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/10-intent.md",
+      "message": "IV-WAR-0003: atom atoms/10-intent.md — the preset's required heading `Problem` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/10-intent.md",
+      "message": "IV-WAR-0003: atom atoms/10-intent.md — the preset's required heading `Desired Outcome` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/20-basis.md",
+      "message": "IV-WAR-0003: atom atoms/20-basis.md — the preset's required heading `Requirements` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/20-basis.md",
+      "message": "IV-WAR-0003: atom atoms/20-basis.md — the preset's required heading `Assumptions` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/40-work-order.md",
+      "message": "IV-WAR-0003: atom atoms/40-work-order.md — the preset's required heading `Scope` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/40-work-order.md",
+      "message": "IV-WAR-0003: atom atoms/40-work-order.md — the preset's required heading `Deliverables` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/40-work-order.md",
+      "message": "IV-WAR-0003: atom atoms/40-work-order.md — the preset's required heading `Frozen Surfaces` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/40-work-order.md",
+      "message": "IV-WAR-0003: atom atoms/40-work-order.md — the preset's required heading `Autonomy and Escalation` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/60-assurance.md",
+      "message": "IV-WAR-0003: atom atoms/60-assurance.md — the preset's required heading `Acceptance Obligations` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "warn",
+      "rule": "atom.preset-unanswered",
+      "file": "docs/warrants/IV-WAR-0003/atoms/60-assurance.md",
+      "message": "IV-WAR-0003: atom atoms/60-assurance.md — the preset's required heading `Gate Adequacy` is unanswered: its body is only the preset's comment. Answer it before asking for authorization; a draft may be unfinished"
+    },
+    {
+      "severity": "pass",
+      "rule": "milestones.valid",
+      "file": null,
+      "message": "IV-WAR-0003: 1 milestone(s), 1 stage(s), acyclic with no dangling refs"
+    },
+    {
+      "severity": "pass",
+      "rule": "obligations.valid",
+      "file": null,
+      "message": "IV-WAR-0003: 0 obligation(s), each with a bounded scope and evidence"
+    },
+    {
+      "severity": "pass",
+      "rule": "composition.acyclic",
+      "file": null,
+      "message": "parent graph is acyclic across 2 Warrant(s)"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.duplicate-uuid",
+      "file": null,
+      "message": "2 Warrant UUID(s), each naming one Warrant"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.atom-mismatch",
+      "file": null,
+      "message": "IV-WAR-0002: 4 atom(s) name this Warrant's UUID"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.atom-mismatch",
+      "file": null,
+      "message": "IV-WAR-0003: 4 atom(s) name this Warrant's UUID"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.changed",
+      "file": null,
+      "message": "2 committed manifest UUID(s) unchanged since HEAD, 0 new"
+    },
+    {
+      "severity": "pass",
+      "rule": "identity.alias-ref",
+      "file": null,
+      "message": "0 parent and supersedes reference(s), each by UUID"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas-normative.section-labels",
+      "file": null,
+      "message": "no unsupported numbered SAS heading hides or mislabels a normative body statement"
+    },
+    {
+      "severity": "warn",
+      "rule": "sas.unrecorded",
+      "file": "docs/sas",
+      "message": "no SAS revision is recorded; the document is pinned by prose only. `war sign sas propose <version>` records one",
+      "remedy": {
+        "kind": "human",
+        "argv": [
+          "war",
+          "sign",
+          "sas",
+          "propose",
+          "<version>"
+        ],
+        "purpose": "as the diagnostic says"
+      }
+    }
+  ],
+  "notes": [
+    "contract digest covers 8 of 17 §28.5 elements — missing: deliverables, capabilities, autonomy, resources, gates, obligations, rollback, amendment_policy, assurance_requirements",
+    "gate execution — `war evidence gate --run` executes a registered gate (§44), but `war check` does not invoke it, so nothing here is evidence that a Warrant's acceptance gates were run",
+    "Preflight readiness (§32.7) — 'well-formed' is a claim about the record only",
+    "bound-atom resolution — `ref =` atoms cannot be fetched offline",
+    "Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared",
+    "generated-view drift — pass --generated to compare committed projections"
+  ],
+  "counts": {
+    "pass": 16,
+    "warn": 23,
+    "unknown": 1,
+    "error": 0,
+    "worst": "unknown"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

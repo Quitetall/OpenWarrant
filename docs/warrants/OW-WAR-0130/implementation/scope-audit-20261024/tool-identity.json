@@ -1,0 +1,14 @@
+{
+  "binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow130-scope-20261024/war",
+  "sha256": "845f38eacea6ead1330563abec7145e16cd6088ee8ef2a29c45a29b8e08620a1",
+  "version": "war 1.0.0-alpha.5 (unreleased, commit 4a9f0b808875, dirty, debug)",
+  "parent": "4a9f0b8088756aa933eff08079de35b18f83a768",
+  "dirty_source": true,
+  "source_sha256": {
+    "crates/openwarrant-cli/src/repo.rs": "2e223f91df918eddbd21bf4ef954fb0d1c989bdb8f1beafff1a12cea53a0dc75",
+    "crates/openwarrant-cli/src/compat.rs": "842095661d57ad19003c1ee9c632ebdaaf259893fa3e8f8a5e8f53afa0b03598",
+    "conformance/plants.d/69-idempotency.sh": "81ce26aa65aa3ccfb08c9439425ac71f816062e55724d75e7eedef58a0ef7552"
+  },
+  "final_plant_sha256": "822d207282c79869d12f90e254d88746ea39ad811e58db6aace9b8e9c5666193",
+  "compiled_rust_matches_final": true
+}
