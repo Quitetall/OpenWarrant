@@ -1,0 +1,35 @@
+{
+  "schema": "oh.war/historical-generator-build/v1",
+  "source_revision": "01e447ea67717c30349bdb479b3fdfca2f55cd1d",
+  "qualification_established": false,
+  "purpose": "Build the post-M1/pre-M2 tool to create legacy-format scale fixtures using the unchanged public generator.",
+  "checkout": {
+    "argv": [
+      "git",
+      "worktree",
+      "add",
+      "--detach",
+      "/mnt/4tb/tmp/openwarrant-ow148-m1-20261023",
+      "01e447ea67717c30349bdb479b3fdfca2f55cd1d"
+    ],
+    "exit_code": 0
+  },
+  "build": {
+    "argv": [
+      "cargo",
+      "build",
+      "--locked",
+      "--release",
+      "-p",
+      "openwarrant-cli",
+      "--bin",
+      "war"
+    ],
+    "exit_code": 0
+  },
+  "source_clean_after": true,
+  "binary_sha256": "3a1ba891335f4a103a0e2daca7392905992232f66d92c5d68e14638c77e12ac2",
+  "version": "war 1.0.0-alpha.2 (unreleased, commit 01e447ea6771)",
+  "build_cache": "/mnt/4tb/build/cargo/88/90cee7b8403e5a/history/01e447ea67717c30349bdb479b3fdfca2f55cd1d",
+  "build_jobs": 2
+}

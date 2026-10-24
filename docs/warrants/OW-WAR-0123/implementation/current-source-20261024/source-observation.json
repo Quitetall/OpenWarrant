@@ -1,0 +1,41 @@
+{
+  "ci_head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "ci_run": 40033704288,
+  "files": [
+    {
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "sha256": "f72258c1c80f14bbb105ea9f03661a71e87bd82ae756ed07ce3d047e630dc4ca",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/new.rs",
+      "sha256": "b79b95aed068355047c4dd7157a97bbf012dd7aedcd3c787d771bdbc5a3a03d8",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/lib.rs",
+      "sha256": "16b7cc80584b28a3ad50045553255a2b84f9e69fe8bcc9ec3df1482ef1ede18a",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/contract_history.rs",
+      "sha256": "5af3467b864037f06263e9803a1657a4bea32eaa25c96879a7a8ec8ebb702b26",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "crates/openwarrant-core/src/manifest.rs",
+      "sha256": "6c34aca06049ca5e2fc2f1bf4868d6fe120c5f34e78d1941e057c37d4499f410",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "conformance/plants.d/00-corpus.sh",
+      "sha256": "4638148b9158f93a8bf6ea423da4cfb89b7924423cab7d215e68c80a714a74ce",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "conformance/plants.d/58-parent-revision.sh",
+      "sha256": "e0a3f1e224799eabd8b2e4d0fe6884450e3ee42f24a2fe15dc27e67e9d24e175",
+      "identical_to_protected_ci": true
+    }
+  ]
+}

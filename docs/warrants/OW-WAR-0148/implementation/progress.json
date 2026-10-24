@@ -4,7 +4,7 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "74b112866a13bc2eef501f0798db10a535f926e98bdeaa14fb803b6144bcd243",
-  "summary": "Debug and release historical audits completed seven paired command comparisons: same stderr and exit codes, four stdout differences with identical applicability diff bodies. Both release check-generated commands exceeded 120 seconds and remain UNKNOWN. Owner permits the bounded planned applicability changes; signed records and original observations stay unchanged. The 1,000-Warrant corpus and release budget remain unfinished. No completion or assurance claimed.",
+  "summary": "All eight historical command pairs completed on 1,000 synthetic Warrants, including 500 resolved: stdout, stderr and exits match exactly, with clean source. All eight also completed on the standalone real corpus; its differences are bounded to the owner-selected OW-WAR-0071 applicability change and three derived generated views. Earlier timeouts are retained. The unchanged five-run release budget also passed: applicability true, 1,000 Warrants, 500 resolved, all nine medians within limits, source unchanged. The initial profile-inference gap is retained. Signed criterion adoption, independent review and human acceptance remain separate; no assurance claimed.",
   "notes": "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/build-identities.json",
@@ -26,12 +26,18 @@
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/status-json.diff",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/generated-json.diff",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/observation.json",
-    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/pre-capture.json"
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/pre-capture.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/README.md",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/counts.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/generator-build.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/projection-differences.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/real-corpus-observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/initial-budget.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/budget.json"
   ],
   "next_steps": [
-    "Carry the owner-selected bounded applicability exception into the governed clarification; preserve other byte-comparison requirements and original observations.",
-    "Complete the exact human-output generated-check comparison and bound the separately observed JSON projection-drift effects; do not substitute the diagnostic variant.",
-    "Finish remaining functional, historical scale/budget and source-bound gate evidence without changing preserved records.",
-    "Independent review and human acceptance remain separate."
+    "Represent the owner-selected bounded applicability clarification in a governed successor/amendment before claiming the signed obligation met.",
+    "Independent assessment and human acceptance remain separate."
   ]
 }

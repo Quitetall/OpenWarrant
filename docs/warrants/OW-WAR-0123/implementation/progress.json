@@ -1,0 +1,18 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0123",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "0f0e07390b13b95fafab14f5a40db8066c92e4d991800d4479eef09cd5af2418",
+  "summary": "Implementation complete, unverified: protected-CI observations cover all six bounded parent-revision obligations, including nonexistent/mismatched revisions, older exact citations, shallow-history UNKNOWN, stale-parent refusal, exact child creation and no-write refusals. All seven relevant files match checked source. Signed manifests and historical records unchanged.",
+  "notes": "docs/warrants/OW-WAR-0123/implementation/current-source-20261024/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0123/implementation/current-source-20261024/README.md",
+    "docs/warrants/OW-WAR-0123/implementation/current-source-20261024/ci-excerpt.log",
+    "docs/warrants/OW-WAR-0123/implementation/current-source-20261024/source-observation.json"
+  ],
+  "next_steps": [
+    "Independent assessment and human acceptance remain separate.",
+    "No claim is made for cross-repository parents."
+  ]
+}

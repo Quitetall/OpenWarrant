@@ -1,0 +1,20 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0121",
+  "work_state": "in-progress",
+  "reported_by": "agent://codex",
+  "revision": "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424",
+  "summary": "Current storage source matches protected-CI source for crash, prestate, symlink, journal and writer-inventory controls. The earlier exact clean release-hook observation is preserved; current CI release-hook result remains UNKNOWN. OBL-004 literal diagnostic names differ from the current work.* names and need governed reconciliation. No independent acceptance or resolution claimed.",
+  "notes": "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/README.md",
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/ci-excerpt.log",
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/fault-hook-source.json",
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/source-observation.json"
+  ],
+  "next_steps": [
+    "Prepare governed reconciliation of journal.torn-tail/journal.malformed versus current work.journal-torn/work.journal-malformed; do not rewrite signed atoms.",
+    "Preserve the earlier exact release observation and current CI UNKNOWN distinctly.",
+    "Independent verification, provenance gaps and human acceptance remain separate."
+  ]
+}
