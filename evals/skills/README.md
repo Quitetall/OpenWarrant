@@ -42,7 +42,10 @@ hashes, tool identity and the retained request/proposal/output records belong
 with a recorded run. Baseline comparison is a regression check; it does not
 qualify a skill or replace the owner's review of its first run.
 
-The first checked baseline is pending at this implementation checkpoint.
+The checked baseline is the byte-identical result of hosted run 40088204346.
+Its source, executable and archive hashes are in `baseline-provenance.json`.
+Actual runner paths in its notes are historical observations; use the retained
+archives for replay. It is a fixture regression baseline, not qualification.
 
 The scheduled/manual `eval` workflow captures these five cases, their tool
 identity and scratch archives. `retain-run.py` preserves actual input/output

@@ -63,6 +63,8 @@ jobs:
           fi
           python3 evals/skills/retain-run.py evals/results/ci-skills.json "$TMPDIR"
           exit "$status"
+      - name: Compare skill fixture baseline
+        run: ./target/debug/war eval verify evals/results/ci-skills.json --baseline evals/skills/baseline.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         if: always()
         with:

@@ -1,0 +1,38 @@
+{
+  "ci_run": 40088204346,
+  "source_commit": "64603ffda27907bd90fb30856a54b25ca1986b73",
+  "original_expected_cases": 12,
+  "skill_expected_cases": 5,
+  "packets": [
+    {
+      "task": "grill",
+      "stage_tokens": 1999,
+      "combined_stage_tokens": 4750,
+      "stage_budget": 8000,
+      "glossary_selected": true
+    },
+    {
+      "task": "grill-12k-budget",
+      "stage_tokens": 1999,
+      "combined_stage_tokens": 4750,
+      "stage_budget": 8000,
+      "glossary_selected": true
+    },
+    {
+      "task": "spec",
+      "stage_tokens": 2055,
+      "combined_stage_tokens": 5939,
+      "stage_budget": 8000,
+      "glossary_selected": true
+    },
+    {
+      "task": "tickets",
+      "stage_tokens": 2222,
+      "combined_stage_tokens": 5006,
+      "stage_budget": 8000,
+      "glossary_selected": true
+    }
+  ],
+  "baseline_eligible": "fixture regression baseline only",
+  "qualification_granted": false
+}

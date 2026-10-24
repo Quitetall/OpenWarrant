@@ -1,16 +1,17 @@
 # W68 skill transport evaluation
 
-Current status: implementation in progress, unverified. Artifact review found
-that eval continued after a refused Dispatch and passed null to its performer.
-The earlier hosted green scores are preserved as insufficient evidence, not
-adopted as a baseline. The corrected loop requests explicit prototype Dispatches
-and service runs, retains and validates actual packets/context, and stops before
-performing after a failed dispatch or combined stage-budget overrun. Eight
-public CLI controls and warnings-denied Clippy pass. A complete updated suite
-recording remains pending; local recording guards expired under host IO load.
+Current status: the corrected loop and measured skill baseline are implemented,
+unverified. Hosted run 40088204346 at `64603ffda27907bd90fb30856a54b25ca1986b73`
+passed the unchanged original twelve-task baseline and all five skill cases.
+Every performing case retained a real Dispatch, positive task-context account,
+and selected glossary; combined context stayed within the stage budget. The
+byte-identical observed skill result is now the separate regression baseline.
+Eight public CLI controls and Clippy pass. Review/map examples, the owner's
+first-run review and independent qualification remain separate pending work.
 
-The earlier local execution timeouts remain UNKNOWN. No signature, independent
-qualification or legacy resolution is claimed by these fixture observations.
+Earlier false-positive hosted scores and local observation timeouts remain
+preserved. They were not promoted into this baseline. No signature or legacy
+resolution is claimed by these fixture observations.
 
 The eval interface now accepts explicit repository-relative context sources.
 It assembles exact UTF-8 bodies and SHA-256 hashes into a packet for the drafter
@@ -140,3 +141,27 @@ All eight CLI controls pass after both fixes; final Clippy passes. The complete
 local recording did not finish before its guard, so full-suite recording and
 baseline adoption still await exact-source hosted execution. Original generic
 fixture definitions and baseline bytes remain unchanged.
+
+## Corrected measured baseline
+
+[Hosted run 40088204346](https://github.com/Quitetall/OpenWarrant/actions/runs/40088204346)
+passed all twelve original tasks against their unchanged baseline and all five
+skill cases. Its source commit and executable version match. Every downloaded
+archive matches the uploaded hash. Packet inspection confirms actual task
+context estimates of 1,999 to 2,222 tokens, plus explicitly counted supplemental
+context, all below the unchanged 8,000-token stage budgets.
+
+The actual skill result was copied byte-for-byte to
+[the new baseline](../../../../../evals/skills/baseline.json). Its source,
+executable and archive hashes are in
+[the provenance record](../../../../../evals/skills/baseline-provenance.json).
+The original generic baseline is unchanged. The public comparator accepts the
+observed result and refuses a mutated failure with `eval.regressed`, exit 2.
+
+Readable actual outputs: [answered export](examples/grill/EXPORT.md),
+[retry policy](examples/spec/RETRY_POLICY.md),
+[transport contract](examples/tickets/API.md), and
+[dependent milestones](examples/tickets/milestones.yaml).
+The caller file remains absent and its result partial. The scripted verifier's
+verdict counts are fixture data, not independent review. Model quality and
+human review have not been measured.
