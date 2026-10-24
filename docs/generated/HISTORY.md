@@ -30788,7 +30788,7 @@ breaking the corpus.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The grammar of the SAS 1.1.0 atom format: standard and tool conformance, divergences, proposed SAS text | `docs/GRAMMAR.md` | drift |
+| D-001 | The grammar of the SAS 1.1.0 atom format: standard and tool conformance, divergences, proposed SAS text | `docs/GRAMMAR.md` | verified |
 | D-002 | atom.header: the atom header checked against its manifest entry | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-003 | The grammar plants: header, reader, positive controls, drift control | `conformance/plants.d/57-grammar.sh` | verified |
 | D-004 | The dispatch-bundle test fixture writes a well-formed atom header (AM-001) | `crates/openwarrant-cli/tests/dispatch_bundle_cli.rs` | verified |

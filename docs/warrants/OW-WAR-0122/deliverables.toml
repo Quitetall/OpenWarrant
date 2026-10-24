@@ -16,13 +16,13 @@ provenance_required = true
 obligation_refs = ["OBL-003", "OBL-004"]
 
 [deliverable.provenance]
-producer = "claude"
-producing_attempt = "OW-WAR-0122/attempt-1"
-contract_digest = "1536f6976b35901761b3dd9baa0d2594125ec29e84d9040d8800989912120195"
-input_digests = []
-tool_or_runtime_identity = "war 1.0.0-alpha.2 (unreleased, commit 80b27882dc0f, debug)"
+producer = "agent://codex"
+producing_attempt = "codex:01a09789-2a93-77e2-8a16-54dfc13c0a89/ow122-grammar-20261024"
+contract_digest = "285861a8c5717c7e44f224586d94e79a12b4eeba2e4d2c9c917436e20cfdc3d0"
+input_digests = ["sha256:43d0219a2a872e49018eeb317e545bb78964fa09ab8e2e2b94a8ab4fc4595f9b", "sha256:f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78", "sha256:f72258c1c80f14bbb105ea9f03661a71e87bd82ae756ed07ce3d047e630dc4ca", "sha256:b79b95aed068355047c4dd7157a97bbf012dd7aedcd3c787d771bdbc5a3a03d8", "sha256:12fd0f41eb2b5eb145dd6d96c4421a458120cda68e0ded95761f3e00f07f750d", "sha256:a98391170c8c4abd5c2a2bbd44826630927a242c898ba735053ded049790597b", "sha256:9bb9924b79c5d571be59ad2abd9cd0c6760cb0c30b64eed2bbe42d1eab050c83", "sha256:d9f605338b14816a640e7dafaaee9deb2ebf5a1c617798ef83fd6e75166eec32", "sha256:4a5d6619ea8be7ca9ca38730fc06827f6593f9bafbeb46786795ddf5ea369b43", "sha256:6c34aca06049ca5e2fc2f1bf4868d6fe120c5f34e78d1941e057c37d4499f410"]
+tool_or_runtime_identity = "war 1.0.0-alpha.5 (unreleased, commit ada90ce194f1, debug)"
 creation_method = "authored"
-content_digest = "sha256:43d0219a2a872e49018eeb317e545bb78964fa09ab8e2e2b94a8ab4fc4595f9b"
+content_digest = "sha256:9fe135e60484d6c8990899e3c7e776f34447d51cd71a5c7bb79d3e18a51ee08f"
 media_type = "text/markdown"
 classification = "internal"
 retention = "repository"
