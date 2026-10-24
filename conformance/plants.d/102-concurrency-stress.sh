@@ -28,6 +28,20 @@ ST_WAR="$REPO_ROOT/${WAR#./}"
 st_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 st_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 st_war() { local at="$1"; shift; env -u OPENWARRANT_ACTOR -u SSH_AUTH_SOCK -u SSH_AGENT_PID "$ST_WAR" --root "$at" "$@" </dev/null; }
+# The ready items, one `t-x/i-y` a line, from `war view ready`'s JSON (its text
+# is one line per Warrant): st_ready <checkout> <actor> [<text regex>].
+st_ready() {
+    st_war "$1" --json ready --as "$2" 2>/dev/null | python3 -c '
+import json, re, sys
+pat = sys.argv[1]
+try:
+    rows = json.load(sys.stdin)["result"]["ready"]
+except Exception:
+    rows = []
+for r in rows:
+    if r.get("item") and (not pat or re.search(pat, r.get("text", ""))):
+        print(r["ticket"] + "/" + r["item"])' "${3:-}"
+}
 st_commit() { git -C "$1" add -A >/dev/null 2>&1 && git -C "$1" -c user.email=plant@invalid -c user.name=plant commit -qm "$2" >/dev/null 2>&1; }
 
 # ---- setup ----------------------------------------------------------------
@@ -55,7 +69,7 @@ for c in c1 c2; do
     git clone -q "$ST_TMP/bare.git" "$ST_TMP/$c" || { printf 'PLANT SETUP FAILED: clone %s\n' "$c" >&2; exit 9; }
     ST_AT+=("$ST_TMP/$c")
 done
-ST_ALL=$(st_war "$ST_ROOT" ready 2>/dev/null | awk '$1 ~ /^t-/ && $0 ~ /Item [0-9]/ {print $1}' | sort)
+ST_ALL=$(st_ready "$ST_ROOT" plant-setup 'Item [0-9]' | sort)
 [[ $(wc -l <<<"$ST_ALL") -eq 100 ]] || { printf 'PLANT SETUP FAILED: %s items ready, not 100\n' "$(wc -l <<<"$ST_ALL")" >&2; exit 9; }
 printf '%s\n' "$ST_ALL" > "$ST_TMP/pool"
 
@@ -67,7 +81,7 @@ st_agent() {
     local at="$1" me="$2" log="$ST_TMP/log/$2" tried=" " next err rc
     : >"$log.won"; : >"$log.lost"; : >"$log.bad"
     while :; do
-        next=$(st_war "$at" ready --as "$me" 2>/dev/null | awk '$1 ~ /^t-/ {print $1}' \
+        next=$(st_ready "$at" "$me" \
             | grep -F -x -f "$ST_TMP/pool" | while read -r id; do
                 [[ "$tried" == *" $id "* ]] || echo "$id"
             done | head -4 | shuf -n 1)

@@ -1123,24 +1123,8 @@ fn sorted_refs<'a>(mut tickets: Vec<&'a Ticket>, claims: &Claims) -> Vec<&'a Tic
     tickets
 }
 
-/// A prime line's longest text, in characters: a description's first
-/// paragraph, a note. What is cut is one `war view prime <ticket>` away.
-const PRIME_TEXT: usize = 280;
-
 /// How many tickets done before the recent window `prime` names one by one.
 const PRIME_DONE_EARLIER: usize = 10;
-
-/// `text` on one line, cut at a word to at most `max` characters with an
-/// ellipsis when anything was cut.
-fn clip(text: &str, max: usize) -> String {
-    let one: String = text.split_whitespace().collect::<Vec<_>>().join(" ");
-    if one.chars().count() <= max {
-        return one;
-    }
-    let cut: String = one.chars().take(max).collect();
-    let at = cut.rfind(' ').filter(|&i| i > max / 2).unwrap_or(cut.len());
-    format!("{}…", cut[..at].trim_end())
-}
 
 /// `war view prime [<ticket>]`: what an arriving agent (or person) reads first.
 /// Open tickets with only their remaining items, who holds which claim, recent
@@ -1180,12 +1164,11 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         recent.len() + old.len()
     ));
     md.push_str(
-        "How to work: `war next` lists what can start now; `war claim <id>` takes one; do it; \
-         `war done <id> --note \"what you did\"` ticks it. Leave anything the next person needs \
-         with `war note <warrant> \"...\"`. No step needs a signature or anyone's approval.\n\
-         To load what a task needs, run `war context <id>` with a Warrant, an item, a record id \
-         or a file path: its records, cited by id, within a byte budget. \
-         `docs/generated/llms.txt` lists every id with a one-line summary.\n",
+        "How to work: run `war start` in the same command as your first look at the code; it \
+         takes the next ready Warrant and prints only what it needs. Close it in the same command \
+         as your last test run: `<your tests> && war done --note \"what you did\"`. \
+         `war view prime <id>` shows one Warrant in full. No step needs a signature or anyone's \
+         approval.\n",
     );
     // OW-WAR-0148 M17: the file ledger, when this repository keeps one.
     let ledger_dir = crate::ledger::Config::read(&store.root)
@@ -1201,130 +1184,53 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         ));
     }
 
-    let mut held: Vec<String> = Vec::new();
-    for (name, c) in &claims {
-        let Some(c) = c else {
-            held.push(format!("- `{name}` — unreadable lock"));
-            continue;
-        };
-        let title = all
-            .iter()
-            .find(|t| t.id() == c.ticket)
-            .map(|t| match &c.item {
-                Some(i) => t
-                    .item(i)
-                    .map_or_else(|| t.manifest.title.clone(), |x| x.text.clone()),
-                None => format!("{} (whole Warrant)", t.manifest.title),
-            })
-            .unwrap_or_default();
-        let stale = if c.lease_expired(now) {
-            " — its lease ran out: `war claim` takes it"
-        } else if c.age(now) > store.ttl_secs {
-            " — stale: `war claim --steal` may take it"
-        } else {
-            ""
-        };
-        held.push(format!(
-            "- {} — {title} — {}, {} ago{stale}",
-            c.target(),
-            c.actor,
-            ago(c.age(now))
-        ));
-    }
-    if !held.is_empty() {
-        md.push_str("\n## Claimed now\n\n");
-        md.push_str(&held.join("\n"));
-        md.push('\n');
-    }
-
-    md.push_str("\n## Open\n");
+    // One line per open Warrant, linking to it: its items, description and
+    // notes are `war view prime <id>` (or `war start <id>`) away, read only
+    // for the one being worked.
+    md.push_str("\n## Open\n\n");
     if open.is_empty() {
-        md.push_str("\nNothing open. `war create \"...\"` starts a Warrant.\n");
+        md.push_str("Nothing open. `war create \"...\"` starts a Warrant.\n");
     }
     for t in &open {
-        let (d, n) = t.checklist.progress();
-        md.push_str(&format!(
-            "\n### {} — {}\n\n{} · {d}/{n} done · priority {}\n",
-            t.id(),
-            t.manifest.title,
-            state_of(t, &claims).as_str(),
-            t.manifest.priority
-        ));
-        let body = description(&t.intent);
-        if let Some(first) = body.split("\n\n").next().filter(|p| !p.trim().is_empty()) {
-            md.push('\n');
-            md.push_str(&clip(first.trim(), PRIME_TEXT));
-            md.push('\n');
-        }
-        let checks = super::ladder::checks_of(t);
-        let remaining: Vec<String> = t
-            .checklist
-            .items
-            .iter()
-            .filter(|i| !i.done)
-            .map(|i| open_item_line(store, &all, t, i, &claims, now, &checks))
-            .collect();
-        if remaining.is_empty() {
-            md.push_str("\nNo items yet: the Warrant is the work.\n");
-        } else {
-            md.push_str("\nRemaining:\n\n");
-            md.push_str(&remaining.concat());
-        }
-        let ns = notes(&t.intent);
-        if let Some(last) = ns.last() {
-            md.push_str("\nRecent notes:\n\n");
-            md.push_str(&format!("- {}\n", clip(last, PRIME_TEXT)));
-            if ns.len() > 1 {
-                md.push_str(&format!(
-                    "- ({} earlier: `war view prime {}`)\n",
-                    ns.len() - 1,
-                    t.id()
-                ));
-            }
+        md.push_str(&overview_line(store, &all, t, &claims, now));
+    }
+    // A claim on something no open Warrant holds (an unreadable lock, or a
+    // Warrant done meanwhile) is still named, once.
+    for (name, c) in &claims {
+        let shown = c
+            .as_ref()
+            .is_some_and(|c| open.iter().any(|t| t.id() == c.ticket));
+        if !shown {
+            md.push_str(&match c {
+                Some(c) => format!(
+                    "- {} — claimed by {}, {} ago\n",
+                    c.target(),
+                    c.actor,
+                    ago(c.age(now))
+                ),
+                None => format!("- `{name}` — unreadable lock\n"),
+            });
         }
     }
 
-    if !recent.is_empty() {
-        md.push_str(&format!(
-            "\n## Done in the last {} days\n",
-            store.compact_days
-        ));
-        for t in &recent {
-            let (_, n) = t.checklist.progress();
-            md.push_str(&format!(
-                "\n- **{} — {}** (done {}, {n} item(s))",
-                t.id(),
-                t.manifest.title,
-                done_on(t).map(|d| d.to_string()).unwrap_or_default()
-            ));
-            if let Some(last) = notes(&t.intent).last() {
-                md.push_str(&format!("\n  last note: {}", clip(last, PRIME_TEXT)));
-            }
-            md.push('\n');
-        }
-    }
-    if !old.is_empty() {
-        md.push_str("\n## Done earlier\n\n");
-        // The most recently done first, then only how many more: the whole
-        // list is `war view tickets --state done`.
-        let mut shown = old.clone();
+    // Done work as ids: `war view tickets --state done` lists it all.
+    if !recent.is_empty() || !old.is_empty() {
+        let mut shown: Vec<&Ticket> = recent.iter().chain(old.iter()).copied().collect();
         shown.sort_by_key(|t| std::cmp::Reverse(done_on(t)));
-        let more = shown.len().saturating_sub(PRIME_DONE_EARLIER);
+        let total = shown.len();
         shown.truncate(PRIME_DONE_EARLIER);
-        for t in &shown {
-            let (_, n) = t.checklist.progress();
-            md.push_str(&format!(
-                "- {} — {} ({}, {n} item(s))\n",
-                t.id(),
-                t.manifest.title,
-                done_on(t).map_or_else(|| "done".to_owned(), |d| format!("done {d}"))
-            ));
-        }
-        if more > 0 {
-            md.push_str(&format!(
-                "- and {more} more: `war view tickets --state done`\n"
-            ));
-        }
+        md.push_str(&format!(
+            "\n## Done\n\n{total} done, latest first: {}{}\n",
+            shown.iter().map(|t| t.id()).collect::<Vec<_>>().join(", "),
+            if total > shown.len() {
+                format!(
+                    ", and {} more (`war view tickets --state done`)",
+                    total - shown.len()
+                )
+            } else {
+                String::new()
+            }
+        ));
     }
     let rows: Vec<Row> = open.iter().map(|t| row(store, t, &claims)).collect();
     Ok(Outcome::ok(
@@ -1378,7 +1284,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
             t.id()
         ));
     }
-    let ns = notes(&t.intent);
+    let ns = all_notes(t);
     if !ns.is_empty() {
         md.push_str("\n## Notes\n\n");
         for n in &ns {
@@ -1386,7 +1292,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         }
     }
     md.push_str(&format!(
-        "\n`war context {}` loads this Warrant with the records it relates to; `war context <item>` loads one item.\n",
+        "\n`war start {}` claims it and prints what its work needs.\n",
         t.id()
     ));
     Outcome::ok(
@@ -1394,6 +1300,184 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         serde_json::json!({
             "schema": "oh.war/ticket-prime/v1",
             "ticket": row(store, t, claims),
+            "markdown": md,
+        }),
+    )
+}
+
+/// Every note on `t`, oldest first: those in its intent (`war note` on a
+/// directory ticket) and its journal's (`work.note_added` on a Format 1.0
+/// one).
+fn all_notes(t: &Ticket) -> Vec<String> {
+    let mut ns = notes(&t.intent);
+    if t.format {
+        ns.extend(journal_notes(t));
+    }
+    ns
+}
+
+/// `war view prime`'s line for one open Warrant: what it is, how far along,
+/// and what stands in its way. Nothing of its text.
+fn overview_line(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u64) -> String {
+    let (d, n) = t.checklist.progress();
+    let mut line = format!(
+        "- {} — {} · {d}/{n} done · p{}",
+        t.id(),
+        t.manifest.title,
+        t.manifest.priority
+    );
+    let mut holders: Vec<String> = claims
+        .values()
+        .flatten()
+        .filter(|c| c.ticket == t.id())
+        .map(|c| {
+            let lapsed = if c.lease_expired(now) {
+                ", lease ran out"
+            } else if c.age(now) > store.ttl_secs {
+                ", stale"
+            } else {
+                ""
+            };
+            format!("{} ({} ago{lapsed})", c.actor, ago(c.age(now)))
+        })
+        .collect();
+    holders.dedup();
+    if !holders.is_empty() {
+        line.push_str(&format!(" · claimed by {}", holders.join(", ")));
+    }
+    // It waits only when nothing of it can start: every open item waits.
+    let open: Vec<&openwarrant_core::ticket::Item> =
+        t.checklist.items.iter().filter(|i| !i.done).collect();
+    let mut waits: Vec<String> = open.iter().flat_map(|i| open_blockers(all, t, i)).collect();
+    waits.sort();
+    waits.dedup();
+    if !open.is_empty() && open.iter().all(|i| !open_blockers(all, t, i).is_empty()) {
+        line.push_str(&format!(" · waits on {}", waits.join(", ")));
+    }
+    line.push('\n');
+    line
+}
+
+/// An open item in a brief: its text and id, and only what changes how it is
+/// done (what it waits on, the least its tick must reach). Who holds it is
+/// the brief's first line, not repeated per item.
+fn brief_item_line(
+    store: &Store,
+    all: &[Ticket],
+    t: &Ticket,
+    item: &openwarrant_core::ticket::Item,
+    checks: &Checks,
+) -> String {
+    let mut extra = Vec::new();
+    let waiting = open_blockers(all, t, item);
+    if !waiting.is_empty() {
+        extra.push(format!("waits on {}", waiting.join(", ")));
+    }
+    if let Some(n) = minimum_note(store, t, item, checks) {
+        extra.push(n);
+    }
+    format!(
+        "- [ ] {}{}{}\n",
+        item.text,
+        item.id
+            .as_ref()
+            .map(|i| format!(" ({i})"))
+            .unwrap_or_default(),
+        if extra.is_empty() {
+            String::new()
+        } else {
+            format!(" — {}", extra.join("; "))
+        }
+    )
+}
+
+/// `war start`'s brief: one Warrant and only what its work needs, in the
+/// words its author wrote: the description whole, the open items, every
+/// note (an answer or a handoff is never cut), what it depends on by id and
+/// title, and the one command that closes it. No TOML, digests, done items
+/// or other Warrants.
+pub fn brief(store: &Store, all: &[Ticket], t: &Ticket, actor: &str) -> Outcome {
+    let (d, n) = t.checklist.progress();
+    let checks = super::ladder::checks_of(t);
+    let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
+    md.push_str(&format!(
+        "claimed by {actor} · {d}/{n} done · priority {}\n",
+        t.manifest.priority
+    ));
+    let body = description(&t.intent);
+    if !body.is_empty() {
+        md.push('\n');
+        md.push_str(&body);
+        md.push('\n');
+    }
+    let open: Vec<&openwarrant_core::ticket::Item> =
+        t.checklist.items.iter().filter(|i| !i.done).collect();
+    if !open.is_empty() {
+        md.push_str("\n## To do\n\n");
+        for i in &open {
+            md.push_str(&brief_item_line(store, all, t, i, &checks));
+        }
+    }
+    let ns = all_notes(t);
+    if !ns.is_empty() {
+        md.push_str("\n## Notes\n\n");
+        for n in &ns {
+            md.push_str(&format!("- {n}\n"));
+        }
+    }
+    // What it depends on, by id and title: its notes are `war view prime
+    // <id>` away, read only when the work needs them.
+    let mut deps: Vec<String> = t
+        .depends_on
+        .iter()
+        .chain(t.checklist.items.iter().flat_map(|i| i.after.iter()))
+        .map(|b| b.record_id(t.id()))
+        .filter(|id| !id.starts_with(&format!("{}/", t.id())))
+        .collect();
+    deps.sort();
+    deps.dedup();
+    let dep_rows: Vec<serde_json::Value> = deps
+        .iter()
+        .map(|id| {
+            let (tid, _) = openwarrant_core::ticket::split_record_id(id);
+            let other = all.iter().find(|x| x.id() == tid);
+            serde_json::json!({
+                "id": id,
+                "title": other.map(|x| x.manifest.title.clone()),
+                "done": other.map(Ticket::is_done),
+            })
+        })
+        .collect();
+    if !deps.is_empty() {
+        md.push_str("\n## Depends on\n\n");
+        for r in &dep_rows {
+            md.push_str(&format!(
+                "- {} — {}{}\n",
+                r["id"].as_str().unwrap_or_default(),
+                r["title"].as_str().unwrap_or("(not found)"),
+                if r["done"] == serde_json::json!(true) {
+                    " (done)"
+                } else {
+                    ""
+                }
+            ));
+        }
+        md.push_str("\n`war view prime <id>` shows one of them in full.\n");
+    }
+    md.push_str(&format!(
+        "\nClose it in the same command as your last test run: \
+         `<your tests> && war done {} --note \"what you did\"`\n",
+        t.id()
+    ));
+    Outcome::ok(
+        md.trim_end().to_owned(),
+        serde_json::json!({
+            "schema": "oh.war/ticket-start/v1",
+            "ticket": t.id(),
+            "title": t.manifest.title,
+            "items": open.iter().map(|i| serde_json::json!({"id": i.id, "text": i.text})).collect::<Vec<_>>(),
+            "notes": ns,
+            "depends_on": dep_rows,
             "markdown": md,
         }),
     )

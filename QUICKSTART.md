@@ -23,10 +23,9 @@ spellings included; they all still work.
 Then work it — no signature, no human step, each command well under a second:
 
 ```bash
-war next                       # what can start now
-war claim t-3f2a/i-9c01        # take an item (refused, by name, if someone holds it)
-war done t-3f2a/i-9c01 --note "what you did"
-war view prime                 # what the next agent reads first
+war start                      # take the next ready ticket; prints only what its work needs
+war done --note "what you did" # close the ticket you hold: every item, in one call
+war view prime                 # what is open, one line each
 ```
 
 `docs/TICKETS.md` has the whole loop. The rest of this page is the governed

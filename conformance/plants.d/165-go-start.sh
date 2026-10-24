@@ -53,7 +53,7 @@ git -C "$GS_ROOT" add -A >/dev/null 2>&1
 git -C "$GS_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "three Warrants" >/dev/null 2>&1
 
 GS_BEFORE=$(gs_snapshot)
-GS_OUT=$(gsw --json start "$GS_T" --print 2>/dev/null); GS_RC=$?
+GS_OUT=$(gsw --json start --worktree "$GS_T" --print 2>/dev/null); GS_RC=$?
 GS_WT=$(gs_field "$GS_OUT" 'v["result"]["worktree"]')
 GS_SETTINGS=$(python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); print(s["permissions"]["allow"], s["env"]["OPENWARRANT_ACTOR"])' \
     "$GS_WT/.claude/settings.local.json" 2>/dev/null)
@@ -83,7 +83,7 @@ if [[ -z "$GS_IN" && "$GS_OUTSIDE" == *'"permissionDecision":"deny"'* && "$GS_OU
 else
     gs_fail "the guard keeps to declared paths" "src: '$GS_IN'; docs: '$GS_OUTSIDE'"
 fi
-GS_E_WT=$(gs_field "$(gsw --json start "$GS_E" --print 2>/dev/null)" 'v["result"]["worktree"]')
+GS_E_WT=$(gs_field "$(gsw --json start --worktree "$GS_E" --print 2>/dev/null)" 'v["result"]["worktree"]')
 GS_E_EDIT=$(gs_guard "$GS_E_WT" docs/notes.md)
 GS_ROOT_EDIT=$(gs_guard "$GS_ROOT" docs/notes.md)
 if [[ -n "$GS_E_WT" && -z "$GS_E_EDIT" && -z "$GS_ROOT_EDIT" ]]; then
@@ -94,7 +94,7 @@ fi
 
 # `declared`: shown, not written.
 printf '\n[go]\nallowed_acts = "declared"\n' >> "$GS_ROOT/openwarrant.toml"
-GS_D_OUT=$(gsw start "$GS_D" --print 2>/dev/null)
+GS_D_OUT=$(gsw start --worktree "$GS_D" --print 2>/dev/null)
 GS_D_WT="$GS_ROOT/.openwarrant/worktrees/${GS_D%/*}--${GS_D#*/}"
 if [[ -d "$GS_D_WT" && ! -e "$GS_D_WT/.claude/settings.local.json" && ! -e "$GS_D_WT/.openwarrant/session.json" ]] \
     && grep -q '^declared paths: src/\*\*$' <<<"$GS_D_OUT"; then
@@ -105,7 +105,7 @@ fi
 
 # Not committed: refused, and no worktree.
 GS_U=$(gs_new "Not committed yet" -i "Later")
-GS_U_OUT=$(gsw --json start "$GS_U" --print 2>/dev/null); GS_U_RC=$?
+GS_U_OUT=$(gsw --json start --worktree "$GS_U" --print 2>/dev/null); GS_U_RC=$?
 GS_U_RULE=$(gs_field "$GS_U_OUT" '",".join(d["rule"] for d in v["diagnostics"] if d["severity"] == "error")')
 if [[ $GS_U_RC -eq 2 && "$GS_U_RULE" == "go.start-uncommitted" && ! -e "$GS_ROOT/.openwarrant/worktrees/${GS_U%/*}--${GS_U#*/}" ]]; then
     gs_ok "an uncommitted Warrant is refused" "go.start-uncommitted, and no worktree was made"

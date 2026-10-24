@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 90 |
+| artifact digests verify | 91 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -215,7 +215,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0065` Research memo: which tokenizer approximation OpenWarrant uses for §33.7 budgets | draft | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0066` Run: the conformance battery as a service stage | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0067` Release 1.0: the seven acts that close the plan, deferred to the owner's signature | draft | unknown | 1 | 0 of 3 | required deliverables exist |
-| `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | unknown | 1 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0068` Skills: a strict superset of the Pocock set over the deterministic core | draft | unknown | 1 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0069` The board, the hotline, and the harness: one system from master record to running agents | draft | unknown | 1 | 0 of 3 | required deliverables exist |
 | `OW-WAR-0070` Add `war inbox` to list Warrants awaiting a human act | draft | unknown | 0 | 0 of 2 | required deliverables exist |
 | `OW-WAR-0071` SAS 1.1.0: the batch act, and the dashboard as a rendering of the record | draft | unknown | 1 | — | required deliverables exist |

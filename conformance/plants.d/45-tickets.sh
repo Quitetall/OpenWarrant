@@ -256,8 +256,9 @@ tk_agree_worker() {
         [[ -n "$t" && -n "$f" && -n "$w" ]] || { echo "setup no-id" >>"$TK_AG/$k"; continue; }
         tkw claim "$t/$f" --as "ag-$k" >/dev/null 2>&1 || { echo "setup claim exit $?" >>"$TK_AG/$k"; continue; }
         tkw done "$t/$f" --as "ag-$k" >/dev/null 2>&1 || { echo "setup done exit $?" >>"$TK_AG/$k"; continue; }
-        o=$(tkw ready --as "ag-$k" 2>/dev/null) || { echo "setup ready exit $?" >>"$TK_AG/$k"; continue; }
-        grep -q "^$t/$w " <<<"$o" || { echo "disagree $t/$w not ready after done" >>"$TK_AG/$k"; continue; }
+        o=$(tkj ready --as "ag-$k" 2>/dev/null) || { echo "setup ready exit $?" >>"$TK_AG/$k"; continue; }
+        tk_in "$(tk_field "$o" '",".join(r["ticket"]+"/"+str(r["item"]) for r in v["result"]["ready"])')" "$t/$w" \
+            || { echo "disagree $t/$w not ready after done" >>"$TK_AG/$k"; continue; }
         o=$(tkw claim "$t/$w" --as "ag-$k" 2>&1 >/dev/null) || { echo "disagree $t/$w ready, claim refused: $o" >>"$TK_AG/$k"; continue; }
         echo "agreed" >>"$TK_AG/$k"
     done
@@ -278,21 +279,21 @@ else
 fi
 
 # ---------------------------------------------------------------- OBL-007 --
-# `war prime`: undone items only, notes, and old done tickets compacted.
+# `war prime`: one line per open ticket, done work by id; `war prime <ticket>`
+# its undone items and notes (AM-001: the overview names no item or note).
 tkw note "$TK5" "Chose concrete over timber: the site floods." >/dev/null 2>&1
 TK_OUT=$(tkj create "An old finished job" --item "Old work")
 TK6=$(tk_field "$TK_OUT" 'v["result"]["id"]')
 sed -i 's/^- \[ \] Old work (\(i-[0-9a-f]*\))$/- [x] Old work (\1) — done by alice, 2020-01-01/' "$PLANT_ROOT/docs/tickets/$TK6/atoms/15-checklist.md"
 TK_PRIME=$(tkw prime 2>/dev/null)
 TK_PRIME_ONE=$(tkw prime "$TK5" 2>/dev/null)
-TK_OLD=$(awk '/^## Done earlier/{f=1} f' <<<"$TK_PRIME" | grep -c "$TK6")
-TK_RECENT=$(awk '/^## Done in the last/{f=1} /^## Done earlier/{f=0} f' <<<"$TK_PRIME" | grep -c "$TK")
-if grep -q "^- \[ \] Walls ($TK5_W)" <<<"$TK_PRIME" && ! grep -q "Foundation" <<<"$TK_PRIME" \
-    && ! grep -q '^- \[x\]' <<<"$TK_PRIME" && grep -q "concrete over timber" <<<"$TK_PRIME" \
-    && [[ $TK_OLD -eq 1 && $TK_RECENT -ge 1 ]] \
-    && grep -q "^- $TK6 — An old finished job (done 2020-01-01, 1 item(s))$" <<<"$TK_PRIME" \
+TK_DONE_LINE=$(grep -E '^[0-9]+ done, latest first: ' <<<"$TK_PRIME")
+if grep -q "^- $TK5 — .* · [0-9]*/[0-9]* done" <<<"$TK_PRIME" && ! grep -q '^- \[' <<<"$TK_PRIME" \
+    && ! grep -q "Walls\|Foundation\|concrete over timber" <<<"$TK_PRIME" \
+    && grep -q "$TK6" <<<"$TK_DONE_LINE" && grep -q "$TK" <<<"$TK_DONE_LINE" \
+    && grep -q "^- \[ \] Walls ($TK5_W)" <<<"$TK_PRIME_ONE" && grep -q "concrete over timber" <<<"$TK_PRIME_ONE" \
     && grep -q "1 item(s) done" <<<"$TK_PRIME_ONE" && ! grep -q Foundation <<<"$TK_PRIME_ONE"; then
-    tk_ok "prime: undone items, old done compacted" "remaining items and notes; $TK6 (2020) is one line; $TK recent"
+    tk_ok "prime: undone items, old done compacted" "one line per ticket, no item or note text; prime $TK5: remaining items and the note; done by id"
 else
     tk_fail "prime: undone items, old done compacted" "$(head -c 600 <<<"$TK_PRIME")"
 fi

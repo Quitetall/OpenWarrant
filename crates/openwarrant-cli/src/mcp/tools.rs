@@ -98,6 +98,16 @@ pub struct ClaimParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+pub struct StartParams {
+    /// A Warrant or item to take; omit for the next ready Warrant (or the one you already hold).
+    #[serde(default)]
+    pub target: Option<String>,
+    /// Who is acting; defaults to the repository's configured performer.
+    #[serde(default)]
+    pub actor: Option<String>,
+}
+
+#[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct HeartbeatParams {
     /// One claimed item or ticket; omit to renew every claim the actor holds.
     #[serde(default)]
@@ -109,9 +119,10 @@ pub struct HeartbeatParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 pub struct DoneParams {
-    /// The claimed item (or a Warrant with nothing left open).
-    pub target: String,
-    /// What was done, written on the item's line for the next reader.
+    /// The Warrant (closes every open item at once) or one item; omit for the one Warrant you hold.
+    #[serde(default)]
+    pub target: Option<String>,
+    /// What was done, for the next reader: one note on the Warrant, or on the item's line.
     #[serde(default)]
     pub note: Option<String>,
     /// Write only if the target is still at this revision (from `war_show`'s
@@ -1098,7 +1109,7 @@ impl WarServer {
 
     #[tool(
         name = "war_prime",
-        description = "Read this first (`war view prime`): open Warrants with their remaining items, who holds which claim, recent notes, done work compacted. Markdown in result.markdown. Read-only.",
+        description = "What is open (`war view prime`): one line per open Warrant (progress, who holds it, what it waits on) and done work by id; give a Warrant to read it in full. `war_start` takes the next one. Markdown in result.markdown. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
@@ -1209,6 +1220,17 @@ impl WarServer {
     }
 
     #[tool(
+        name = "war_start",
+        description = "Take the next ready Warrant and get only what its work needs (`war start`): claims it whole and returns its description, open items, every note, what it depends on, and the call that closes it. Holding one already, it returns that one again. Markdown in result.markdown.",
+        annotations(read_only_hint = false)
+    )]
+    fn war_start(&self, Parameters(p): Parameters<StartParams>) -> ToolResult {
+        self.ticket("start", p.actor.as_deref(), |s| {
+            crate::ticket::start_cmd(s, p.target.as_deref())
+        })
+    }
+
+    #[tool(
         name = "war_heartbeat",
         description = "Renew the lease on your claims (`war admin heartbeat`), or on the one named, so no other agent reclaims them while you work. Every call of the Warrant loop's tools renews them too; a claim whose lease runs out is taken by a plain claim.",
         annotations(read_only_hint = false)
@@ -1221,18 +1243,19 @@ impl WarServer {
 
     #[tool(
         name = "war_done",
-        description = "Finish a claimed item (`war done`): ticks its checkbox in the Warrant's checklist with who, when and an optional note, journals it, releases the claim.",
+        description = "Close the Warrant you hold (`war done`): every open item ticked in one write, or none, with an optional note, journalled, the claim released. Give an item to tick only that one.",
         annotations(read_only_hint = false)
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
         self.ticket("done", p.actor.as_deref(), |s| {
-            crate::ticket::done_with(
-                s,
-                &p.target,
-                p.note.as_deref(),
-                p.if_rev.as_deref(),
-                p.check,
-            )
+            let target = match p.target.clone() {
+                Some(t) => t,
+                None => match crate::ticket::held_target(s)? {
+                    Ok(t) => t,
+                    Err(refusal) => return Ok(refusal),
+                },
+            };
+            crate::ticket::done_with(s, &target, p.note.as_deref(), p.if_rev.as_deref(), p.check)
         })
     }
 

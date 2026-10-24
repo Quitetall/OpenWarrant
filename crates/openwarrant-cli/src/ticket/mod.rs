@@ -156,6 +156,11 @@ pub struct Policy {
     /// before it collapses to one line.
     #[serde(default)]
     pub compact_after_days: Option<u64>,
+    /// Opt in to `war view prime --session` (the plugin's SessionStart hook):
+    /// the agent's session starts with the Warrant it holds, or the overview,
+    /// already in front of it. Off by default: then the hook adds nothing.
+    #[serde(default)]
+    pub session_start: Option<bool>,
 }
 
 /// `[tickets] claim_lease_minutes` in whole seconds; a negative or
@@ -392,6 +397,9 @@ pub struct Store {
     /// M11: `[claims] remote`, the git remote claims are published to.
     pub remote: Option<String>,
     pub compact_days: u64,
+    /// `[tickets] session_start`: whether `war view prime --session` says
+    /// anything (opt-in; default off).
+    pub session_start: bool,
     pub definition: ProfileDefinition,
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
     /// `[project] performer`. A name for coordination; it authorizes nothing.
@@ -494,6 +502,7 @@ impl Store {
             ),
             remote: claims_policy.remote.filter(|r| !r.trim().is_empty()),
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
+            session_start: policy.session_start.unwrap_or(false),
             definition,
             actor,
             project: repo.config.project.name.clone(),
@@ -2436,6 +2445,45 @@ fn rank_rows(store: &Store, tickets: &[Ticket], claims: &Claims, now: u64, rows:
     }
 }
 
+/// The ready set as text: one line per Warrant, in the order its first ready
+/// row has, with how many of its items can start and the command that takes
+/// it. Item text is `war start`'s to print, for the one Warrant taken.
+#[must_use]
+pub fn ready_lines(rows: &[ReadyRow]) -> String {
+    let mut order: Vec<&str> = Vec::new();
+    let mut by: BTreeMap<&str, Vec<&ReadyRow>> = BTreeMap::new();
+    for r in rows {
+        if !by.contains_key(r.ticket.as_str()) {
+            order.push(&r.ticket);
+        }
+        by.entry(&r.ticket).or_default().push(r);
+    }
+    let mut out = String::new();
+    for id in order {
+        let rs = &by[id];
+        let first = rs[0];
+        let what = if rs.len() == 1 && first.item.is_none() && first.line.is_none() {
+            "the Warrant is the work".to_owned()
+        } else {
+            format!("{} ready", rs.len())
+        };
+        out.push_str(&format!(
+            "{id:<10} p{}  {}  ({what})  `war start {id}`",
+            first.priority, first.title
+        ));
+        if let Some(c) = rs.iter().find_map(|r| r.expired_claim.as_ref()) {
+            out.push_str(&format!("  [lease ran out: {} held it]", c.actor));
+        } else if let Some(c) = rs.iter().find_map(|r| r.stale_claim.as_ref()) {
+            out.push_str(&format!(
+                "  [stale claim: {}; `war claim --steal`]",
+                c.actor
+            ));
+        }
+        out.push('\n');
+    }
+    out
+}
+
 /// `war view ready`.
 pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
     ready_for(store, None)
@@ -2467,40 +2515,8 @@ pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Out
             );
         }
     }
-    let line_of = |r: &ReadyRow| -> String {
-        let mut human = String::new();
-        let what = match (&r.item, r.line) {
-            (Some(_), _) => r.text.clone(),
-            (None, Some(line)) => format!(
-                "{} (line {line}, no id yet: `war claim {}` names it)",
-                r.text, r.ticket
-            ),
-            (None, None) => format!("{} (no items: the Warrant is the work)", r.text),
-        };
-        human.push_str(&format!("{:<16} p{}  {what}", r.target(), r.priority));
-        // M10: an item that is its Warrant's title (an imported issue's one
-        // item) is not named twice.
-        if (r.item.is_some() || r.line.is_some()) && r.text != r.title {
-            human.push_str(&format!("  — {}", r.title));
-        }
-        if let Some(c) = &r.stale_claim {
-            human.push_str(&format!(
-                "  [stale claim: {} since {}; `war claim --steal`]",
-                c.actor, c.since
-            ));
-        }
-        if let Some(c) = &r.expired_claim {
-            human.push_str(&format!(
-                "  [lease ran out: {} held it since {}; `war claim` takes it]",
-                c.actor, c.since
-            ));
-        }
-        human.push('\n');
-        human
-    };
     if human_too {
-        // One line per row, made across threads on the disk, in row order.
-        human.extend(crate::vfs::map_ordered(&rows, 1024, line_of));
+        human.push_str(&ready_lines(&rows));
     }
     let result = if json_too {
         serde_json::json!({"schema": "oh.war/ticket-ready/v1", "ready": &rows})
@@ -2866,27 +2882,10 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             from.lease_until.as_deref().unwrap_or("?")
         ));
     }
-    // A whole ticket with items open is done item by item: `war done <ticket>`
-    // is refused (`ticket.items-open`) until the last is ticked, so the hint
-    // names the next open item instead (t-87fb, t-8a2c).
-    let next_open = if item.is_none() {
-        t.checklist
-            .items
-            .iter()
-            .find(|i| !i.done)
-            .and_then(|i| i.id.clone())
-    } else {
-        None
-    };
-    match &next_open {
-        Some(next) => human.push_str(&format!(
-            "\nnext: `war done {}/{next} --note \"...\"` (the Warrant is done when its last item is)",
-            t.id()
-        )),
-        None => human.push_str(&format!(
-            "\nwhen it is done: `war done {what} --note \"...\"`"
-        )),
-    }
+    // A whole ticket is closed in one call, every open item at once.
+    human.push_str(&format!(
+        "\nwhen it is done: `war done {what} --note \"...\"`"
+    ));
     let mut result = serde_json::json!({
         "schema": "oh.war/ticket-claim/v1",
         "target": what,
@@ -2898,6 +2897,158 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
         result["reclaimed_from"] = serde_json::json!(from);
     }
     Ok(Outcome::ok(human, result))
+}
+
+/// The Warrants `store.actor` holds a live claim on (whole or on an item),
+/// by id, in id order.
+fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
+    let now = now_secs();
+    let mut ids: Vec<String> = store
+        .claims()?
+        .values()
+        .flatten()
+        .filter(|c| c.actor == store.actor && !c.lease_expired(now))
+        .map(|c| c.ticket.clone())
+        .collect();
+    ids.sort();
+    ids.dedup();
+    Ok(ids)
+}
+
+/// What `war done` with no id closes: the one Warrant this actor holds.
+/// `Err` is the refusal when it holds none, or more than one.
+pub fn held_target(store: &Store) -> Result<Result<String, Outcome>, RepoError> {
+    let held = held_by_me(store)?;
+    Ok(match held.as_slice() {
+        [one] => Ok(one.clone()),
+        [] => Err(Outcome::refused(
+            "ticket.nothing-held",
+            String::new(),
+            format!(
+                "{} holds no Warrant: `war start` takes the next ready one",
+                store.actor
+            ),
+        )),
+        many => Err(Outcome::refused(
+            "ticket.several-held",
+            String::new(),
+            format!(
+                "{} holds {}; name one: `war done <id>`",
+                store.actor,
+                many.join(", ")
+            ),
+        )),
+    })
+}
+
+/// How an agent spends the fewest turns on tracked work: taking it with its
+/// first look at the code, and closing it with its last test run.
+pub const LOOP_HINT: &str = "Run `war start` in the same command as your first look at the code: \
+     it takes the next ready Warrant and prints only what it needs. Close it in the same command as \
+     your last test run: `<your tests> && war done --note \"what you did\"`.";
+
+/// `war view prime --session`: what a harness shows an agent as its session
+/// starts, when `[tickets] session_start = true`. Holding a Warrant, its
+/// brief (a resumed session needs no call to find its work); else the
+/// overview and [`LOOP_HINT`]; nothing when no tracked work is open, so an
+/// ordinary session carries nothing. Not enabled, it says nothing at all.
+pub fn session_start(store: &Store) -> Result<Outcome, RepoError> {
+    if !store.session_start {
+        return Ok(Outcome::ok(
+            String::new(),
+            serde_json::json!({"schema": "oh.war/ticket-session/v1", "enabled": false}),
+        ));
+    }
+    let held = held_by_me(store)?;
+    let (tickets, _) = store.load_all()?;
+    if let Some(id) = held.first() {
+        let _ = store.renew_held(None);
+        if let Ok(Target::Ticket(n) | Target::Item(n, _)) = resolve(&tickets, id) {
+            let brief = render::brief(store, &tickets, &tickets[n], &store.actor);
+            return Ok(Outcome::ok(
+                format!(
+                    "OpenWarrant: you hold {id}; carry on with it (no `war start` needed).\n\n{}",
+                    brief.human
+                ),
+                brief.result,
+            ));
+        }
+    }
+    if !tickets.iter().any(|t| !t.is_done()) {
+        return Ok(Outcome::ok(
+            String::new(),
+            serde_json::json!({"schema": "oh.war/ticket-session/v1", "open": 0}),
+        ));
+    }
+    let overview = render::prime(store, None)?;
+    Ok(Outcome::ok(
+        format!("{}\n\n{LOOP_HINT}", overview.human),
+        overview.result,
+    ))
+}
+
+/// `war start [<id>]`: claim work and print only what it needs, in one call.
+/// With an id, that Warrant (or item). Without one: the Warrant this actor
+/// already holds, so an interrupted session resumes where it was; else the
+/// first ready Warrant in FORMAT-1.0 §11.5's order that it can claim whole.
+/// The answer is [`render::brief`]: no context packet, no other Warrant.
+pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoError> {
+    let chosen = if let Some(q) = query {
+        let claimed = claim_cmd(store, q, false)?;
+        if claimed.is_refused() {
+            return Ok(claimed);
+        }
+        q.split('/').next().unwrap_or(q).to_owned()
+    } else {
+        let held = held_by_me(store)?;
+        if let Some(first) = held.first() {
+            // Renew it, and say it is a resumption.
+            let _ = store.renew_held(None);
+            first.clone()
+        } else {
+            let (tickets, _) = store.load_all()?;
+            let rows = ready_rows(store, &tickets)?;
+            let mut order: Vec<String> = Vec::new();
+            for r in &rows {
+                if !order.contains(&r.ticket) {
+                    order.push(r.ticket.clone());
+                }
+            }
+            let mut taken = None;
+            for id in &order {
+                let claimed = claim_cmd(store, id, false)?;
+                if !claimed.is_refused() {
+                    taken = Some(id.clone());
+                    break;
+                }
+            }
+            let Some(id) = taken else {
+                let idle = if tickets.iter().any(|t| !t.is_done()) {
+                    "nothing tracked is ready; work freely. Every open item is claimed or waiting \
+                     (`war view prime`)"
+                } else {
+                    "nothing tracked; work freely. To track work (optional): `war create \"what \
+                     this work does\"`"
+                };
+                return Ok(Outcome::ok(
+                    idle,
+                    serde_json::json!({"schema": "oh.war/ticket-start/v1", "ticket": null}),
+                ));
+            };
+            id
+        }
+    };
+    let (tickets, _) = store.load_all()?;
+    let index = match resolve(&tickets, &chosen) {
+        Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
+        Err(d) => return Ok(Outcome::from_diagnostic(d)),
+    };
+    Ok(render::brief(
+        store,
+        &tickets,
+        &tickets[index],
+        &store.actor,
+    ))
 }
 
 /// `war admin release <item|ticket>`: give a claim back without finishing.
@@ -3731,36 +3882,18 @@ fn finish(
         return Ok(refusal);
     }
 
-    // A whole ticket: done only when nothing remains, or when it has no items
-    // (the ticket was the one item, and is ticked as one).
+    // A whole ticket: done in one call. With items open, every one is judged
+    // as `war done <item>` judges it and all are ticked in one write, or none
+    // is (`finish_ticket`). With no items, the ticket is the one item.
     if item_id.is_none() {
-        let open: Vec<String> = t
-            .checklist
-            .items
-            .iter()
-            .filter(|i| !i.done)
-            .map(|i| {
-                i.id.clone()
-                    .unwrap_or_else(|| format!("line {}", i.line + 1))
-            })
-            .collect();
         if t.is_done() {
             return Ok(Outcome::ok(
                 format!("{what} is already done"),
                 serde_json::json!({"schema": "oh.war/ticket-done/v1", "target": what, "already_done": true, "ticket_state": "done"}),
             ));
         }
-        if !open.is_empty() {
-            return Ok(Outcome::refused(
-                "ticket.items-open",
-                store.rel(&t.checklist_path),
-                format!(
-                    "{what} still has {} open item(s): {}. Finish each (`war done <item>`); the \
-                     Warrant reads done when the last one is",
-                    open.len(),
-                    open.join(", ")
-                ),
-            ));
+        if t.checklist.items.iter().any(|i| !i.done) {
+            return finish_ticket(store, &tickets, index, note, if_rev, how);
         }
     }
     if let Some(id) = &item_id {
@@ -4059,6 +4192,262 @@ fn finish(
     if let Some(r) = &round {
         for w in ladder::signal_warnings(r) {
             out.report.push(w);
+        }
+    }
+    Ok(out)
+}
+
+/// `war done <ticket>` with items open: every open item ticked in one write,
+/// or none. Each is judged first as `war done <item>` judges it: held by this
+/// actor (or the whole ticket is; under the vibe preset, or with `--if-rev`,
+/// an unheld ticket is claimed whole first), not waiting on anything, its
+/// checks passing (`on: done`, or every one with `--check`) and its tick at
+/// the least its item must reach. Each item gets its own `work.item_done`
+/// (estimates learn from them); a note is one ticket note, not a copy per
+/// line.
+fn finish_ticket(
+    store: &Store,
+    tickets: &[Ticket],
+    index: usize,
+    note: Option<String>,
+    if_rev: Option<&str>,
+    how: How,
+) -> Result<Outcome, RepoError> {
+    let reload = |t: &Ticket| {
+        store
+            .load(&t.dir)
+            .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))
+    };
+    let mut t = tickets[index].clone();
+    // Lines a human added without an id are named first, as `war claim`
+    // names them, so every item ticked is named in the journal.
+    if t.checklist.items.iter().any(|i| !i.done && i.id.is_none()) {
+        if let Err(refusal) = rewrite(&t.checklist_path, |text| Ok(named_in(&t, text)))? {
+            return Ok(*refusal);
+        }
+        t = reload(&t)?;
+    }
+    let what = t.id().to_owned();
+    let open: Vec<String> = t
+        .checklist
+        .items
+        .iter()
+        .filter(|i| !i.done)
+        .filter_map(|i| i.id.clone())
+        .collect();
+    let item_what = |id: &str| format!("{what}/{id}");
+
+    // The claim: every open item held by this actor, by its own claim or the
+    // whole ticket's.
+    let mut auto_claimed = None;
+    if let Some(refusal) = open
+        .iter()
+        .find_map(|id| may_finish(store, &t, Some(id), &item_what(id)).err())
+    {
+        let unclaimed = refusal
+            .report
+            .diagnostics
+            .iter()
+            .any(|d| d.rule == "ticket.not-claimed");
+        let based = if_rev.is_some() && matches!(how, How::Claimed);
+        if !(unclaimed && (store.preset == Some(crate::preset::Preset::Vibe) || based)) {
+            return Ok(*refusal);
+        }
+        let claimed = claim_cmd(store, &what, false)?;
+        if claimed.is_refused() {
+            return Ok(claimed);
+        }
+        auto_claimed = Some(claimed.result.get("claim").cloned().unwrap_or_default());
+    }
+    // What the items wait on.
+    for id in &open {
+        let it = t.item(id).expect("open item");
+        let waiting = open_blockers(tickets, &t, it);
+        if !waiting.is_empty() {
+            return Ok(Outcome::refused(
+                "ticket.blocked",
+                store.rel(&t.checklist_path),
+                format!(
+                    "{} waits on {}; nothing was ticked",
+                    item_what(id),
+                    waiting.join(", ")
+                ),
+            ));
+        }
+    }
+    // Each item's checks and least tick, before anything is written.
+    let checks = ladder::checks_of(&t);
+    let checking = matches!(how, How::Check);
+    let judged_here = matches!(how, How::Claimed | How::Check);
+    let mut whole_round = match how {
+        How::Ran(round) => Some(round),
+        How::Claimed | How::Check => None,
+    };
+    if checking {
+        match ladder::check_for_tick(store, &t, None, &checks, &what)? {
+            Ok(round) => whole_round = Some(round),
+            Err(refusal) => return Ok(*refusal),
+        }
+    }
+    let mut ticks_of: Vec<(String, Option<ladder::CheckRound>)> = Vec::new();
+    for id in &open {
+        let mut round = whole_round.clone();
+        if t.format && judged_here {
+            match checks::on_done(store, &t, id, checking)? {
+                None => {}
+                Some(Ok(r)) => round = Some(r),
+                Some(Err(refusal)) => return Ok(*refusal),
+            }
+        }
+        let reach = if round.is_some() {
+            Level::Observed
+        } else {
+            Level::Claimed
+        };
+        if let Some(refusal) =
+            ladder::below_minimum(store, &t, &checks, Some(id), &item_what(id), reach)
+        {
+            return Ok(refusal);
+        }
+        ticks_of.push((id.clone(), round));
+    }
+    // Checks may have run for a while: the claim must still be this agent's.
+    if ticks_of.iter().any(|(_, r)| r.is_some())
+        && let Some(refusal) = open
+            .iter()
+            .find_map(|id| may_finish(store, &t, Some(id), &item_what(id)).err())
+    {
+        return Ok(*refusal);
+    }
+    // M11: with a claims remote, the remote must still give the claim to
+    // this agent.
+    let mut remote_held = None;
+    if let Some(remote_name) = store.remote.as_deref() {
+        let lock = store.lock_of(t.id(), None);
+        match store.remote_holds_mine(remote_name, &lock, &what, "nothing was ticked") {
+            Ok(commit) => remote_held = commit.map(|c| (remote_name.to_owned(), lock, c)),
+            Err(refusal) => return Ok(*refusal),
+        }
+    }
+    let now = now_secs();
+    let date = date_of(now);
+    let actor = store.actor.clone();
+    let written = rewrite(&t.checklist_path, |text| {
+        let c = checklist_in(&t, text);
+        let mut next = text.to_owned();
+        for (id, round) in &ticks_of {
+            let Some(it) = c.item(id).filter(|it| !it.done) else {
+                return Err(Box::new(Outcome::refused(
+                    "ticket.unknown",
+                    String::new(),
+                    format!("{id} was edited or ticked meanwhile; nothing was written"),
+                )));
+            };
+            let reach = if round.is_some() {
+                Level::Observed
+            } else {
+                Level::Claimed
+            };
+            let line = it
+                .ticked(&actor, &ticks::with_level(&date, reach), None)
+                .render();
+            next = ticket::replace_line(&next, it.line, &line);
+        }
+        Ok((next, ()))
+    })?;
+    if let Err(refusal) = written {
+        return Ok(*refusal);
+    }
+    let t = reload(&t)?;
+    let on = date_of(now);
+    for (id, round) in &ticks_of {
+        let mut payload = serde_json::json!({"item": id, "target": item_what(id), "on": on});
+        if let Some(r) = round {
+            payload["level"] = serde_json::json!(Level::Observed.as_str());
+            payload["runs"] = serde_json::to_value(&r.runs).unwrap_or_default();
+            payload["commit"] = serde_json::json!(r.commit);
+            payload["run"] = serde_json::json!(r.run);
+        }
+        store.journal(&t, event::ITEM_DONE, &payload)?;
+    }
+    if let Some(n) = &note {
+        let noted = self::note(store, &what, n, None)?;
+        if noted.is_refused() {
+            return Ok(noted);
+        }
+    }
+    // The claims are spent.
+    let mut remote_warnings = Vec::new();
+    if let Some((remote_name, lock, commit)) = &remote_held {
+        remote_warnings.extend(store.retire_remote(remote_name, lock, commit));
+    }
+    for id in &open {
+        let lock = store.lock_of(t.id(), Some(id));
+        remote_warnings.extend(store.retire_published(&lock));
+        let _ = claim::release(&lock, &store.actor);
+    }
+    let whole = store.lock_of(t.id(), None);
+    if remote_held.as_ref().is_none_or(|(_, l, _)| *l != whole) {
+        remote_warnings.extend(store.retire_published(&whole));
+    }
+    let _ = claim::release(&whole, &store.actor);
+    let t = reload(&t)?;
+    let claims = store.claims()?;
+    let state = state_of(&t, &claims);
+    let (d, n) = t.checklist.progress();
+    let mut human = format!("done {what}  ({d}/{n})");
+    if auto_claimed.is_some() {
+        human = format!("claimed {what} first\n{human}");
+    }
+    let observed: Vec<&str> = ticks_of
+        .iter()
+        .filter(|(_, r)| r.is_some())
+        .map(|(id, _)| id.as_str())
+        .collect();
+    if observed.is_empty() {
+        human.push_str("\nticked as claimed: nothing was checked");
+    } else {
+        human.push_str(&format!("\nticked at observed: {}", observed.join(", ")));
+    }
+    let mut issue_report = None;
+    let mut unknown = None;
+    if state == TicketState::Done
+        && let Some(number) = t.manifest.issue
+    {
+        let (report, line, diag) = issue_writeback(store, &t, number)?;
+        human.push('\n');
+        human.push_str(&line);
+        issue_report = Some(report);
+        unknown = diag;
+    }
+    let mut result = serde_json::json!({
+        "schema": "oh.war/ticket-done/v1",
+        "ticket": t.id(),
+        "item": serde_json::Value::Null,
+        "items": open,
+        "note": note,
+        "progress": {"done": d, "total": n},
+        "ticket_state": state,
+        "level": if observed.len() == ticks_of.len() { Level::Observed.as_str() } else { Level::Claimed.as_str() },
+    });
+    if let Some(c) = auto_claimed {
+        result["auto_claimed"] = c;
+    }
+    if let Some(r) = issue_report {
+        result["issue"] = r;
+    }
+    let mut out = Outcome::ok(human, result);
+    if let Some(d) = unknown {
+        out.report.push(d);
+    }
+    for w in remote_warnings {
+        out.report.push(w);
+    }
+    for (_, r) in &ticks_of {
+        if let Some(r) = r {
+            for w in ladder::signal_warnings(r) {
+                out.report.push(w);
+            }
         }
     }
     Ok(out)

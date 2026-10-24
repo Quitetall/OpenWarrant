@@ -760,23 +760,30 @@ enum DailyCommand {
         #[arg(long, value_name = "RFC3339")]
         at: Option<String>,
     },
-    /// Start a Warrant's work in a worktree of its own, with its settings.
+    /// Take the next ready Warrant and print only what its work needs.
     ///
-    /// Claims the item (or a Warrant with no items, or an agent stage
-    /// `<alias>/<stage>`), makes it a git worktree on `war-go/<node>`,
-    /// writes the session's harness settings inside that worktree only (the
-    /// Warrant's declared tools, paths and commands; `[go] allowed_acts`),
-    /// and starts the configured harness there. `--print` shows the command
-    /// and the context instead. Started again, it resumes the same worktree.
+    /// Claims it whole and prints its brief: the description, the open
+    /// items, every note, what it depends on, and the command that closes it
+    /// (`war done <id> --note "..."`). Holding one already, it prints that
+    /// one again (a session resumes where it was). With an id, that Warrant.
+    ///
+    /// `--worktree` instead makes the node a git worktree on `war-go/<node>`
+    /// with the session's harness settings (the Warrant's declared tools,
+    /// paths and commands; `[go] allowed_acts`) and starts the configured
+    /// harness there; `--print` shows that command instead.
     Start {
-        /// The node: `t-...`, `t-.../i-...`, `i-...`, or `<alias>/<stage>`.
+        /// The Warrant or item (`t-...`, `t-.../i-...`, `i-...`); with
+        /// `--worktree`, also an agent stage `<alias>/<stage>`.
         #[arg(value_name = "ID")]
-        id: String,
-        /// Print the command and the context; start nothing.
+        id: Option<String>,
+        /// Start the node in a worktree of its own and launch the harness.
         #[arg(long)]
+        worktree: bool,
+        /// With `--worktree`: print the command and the context; start nothing.
+        #[arg(long, requires = "worktree")]
         print: bool,
-        /// The commit the worktree starts from (default HEAD).
-        #[arg(long, value_name = "REV")]
+        /// With `--worktree`: the commit the worktree starts from (default HEAD).
+        #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -800,14 +807,16 @@ enum DailyCommand {
         #[arg(long, value_name = "RFC3339", hide = true)]
         at: Option<String>,
     },
-    /// Tick an item done in its Warrant's checklist and release the claim.
+    /// Close a Warrant, or tick one item, and release the claim.
     ///
-    /// A Warrant reads done when every item is. A plain tick is `claimed`;
-    /// `--check` runs the item's tests and ticks at `observed`.
+    /// A Warrant id ticks every open item in one write, or none (each judged
+    /// as an item's done is); with no id, the one Warrant you hold. A plain
+    /// tick is `claimed`; `--check` runs the tests and ticks at `observed`.
     Done {
-        /// An item id (or a Warrant with no items left open).
-        target: String,
-        /// What was done, for the next reader; written on the item's line.
+        /// A Warrant or item id; omitted, the one Warrant you hold.
+        target: Option<String>,
+        /// What was done, for the next reader: on the item's line, or one
+        /// note on the Warrant when it closes the whole.
         #[arg(long)]
         note: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
@@ -1837,12 +1846,18 @@ enum ViewCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// What an arriving agent or person reads first: open Warrants with their
-    /// remaining items, who holds what, recent notes, done work compacted.
+    /// What is open: one line per open Warrant (progress, who holds it,
+    /// what it waits on) and done work by id; one Warrant in full with an id.
     Prime {
         /// One Warrant in full instead.
         #[arg(value_name = "WARRANT")]
         ticket: Option<String>,
+        /// What a harness puts in front of an agent when its session starts
+        /// (the plugin's SessionStart hook): the brief of the Warrant this
+        /// actor holds, so a resumed session needs no call; else the overview
+        /// and how to take the next; nothing when no tracked work is open.
+        #[arg(long, conflicts_with = "ticket")]
+        session: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -3457,6 +3472,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         } => {
             answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let target = match target {
+                Some(t) => t,
+                None => match ticket::held_target(&store)? {
+                    Ok(t) => t,
+                    Err(refusal) => return Ok(ticket_answer(mode, "done", &refusal)),
+                },
+            };
             let mut outcome =
                 ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
             // OW-WAR-0148 M17: in the ledger's agent mode, done asks for the
@@ -3974,14 +3996,30 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         }
         DailyCommand::Start {
             id,
+            worktree,
             print,
             base,
             actor,
         } => {
-            let repository = ctx.open_repo()?;
-            let opts = go::start::Options { actor, print, base };
-            let (report, result, human) = go::start::run(&repository, &id, &opts)?;
-            Ok(go_answer(mode, "start", &report, result, &human))
+            if worktree {
+                let Some(id) = id else {
+                    let refusal = ticket::Outcome::refused(
+                        "start.worktree-needs-id",
+                        String::new(),
+                        "`war start --worktree` needs the node to start (`t-...`, `<alias>/<stage>`)",
+                    );
+                    return Ok(ticket_answer(mode, "start", &refusal));
+                };
+                let repository = ctx.open_repo()?;
+                let opts = go::start::Options { actor, print, base };
+                let (report, result, human) = go::start::run(&repository, &id, &opts)?;
+                return Ok(go_answer(mode, "start", &report, result, &human));
+            }
+            ticket::cache::permit();
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::start_cmd(&store, id.as_deref())?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "start", &outcome))
         }
         DailyCommand::Next { at } => {
             answer_at(at.as_deref())?;
@@ -6131,9 +6169,14 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         }
         ViewCommand::Prime {
             ticket: target,
+            session,
             actor,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            if session {
+                let outcome = ticket::session_start(&store)?;
+                return Ok(ticket_answer(mode, "prime", &outcome));
+            }
             let mut outcome = ticket::prime(&store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it
             // follows is newer than this binary (a WARN, on stderr in
