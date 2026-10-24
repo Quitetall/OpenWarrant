@@ -1,0 +1,115 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "sas",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "sas.sections",
+      "file": null,
+      "message": "candidate split into 124 section(s); joined sha256:aad5256cb59e3e589313b7e2d5b48360ad8c85cf1c1d65d21f9260e692dfe8e5 is the candidate's own sha256"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section preamble changed"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 6 changed"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 28 changed (in 28.4)"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 37 changed"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 47 changed (in 47.1, 47.2)"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 56 changed (in 56.2)"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 82 changed (in 82.2)"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 94 changed"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 98 changed"
+    },
+    {
+      "severity": "pass",
+      "rule": "sas.diff.section-changed",
+      "file": null,
+      "message": "section 106 changed"
+    },
+    {
+      "severity": "error",
+      "rule": "sas.diff.removed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow125-sections-20261024/SAS-0.1.0-draft.1.md",
+      "message": "WAR-SAS-RQ-036 — revision removes requirement WAR-SAS-RQ-036. §34.1 identifiers are stable and §34.4 step 4 preserves a requirement that turned out to be wrong: a row is added or retitled, never removed or renumbered. Supersede it through a Warrant (§34.2), not by editing the index"
+    },
+    {
+      "severity": "error",
+      "rule": "sas.diff.removed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow125-sections-20261024/SAS-0.1.0-draft.1.md",
+      "message": "WAR-SAS-RQ-037 — revision removes requirement WAR-SAS-RQ-037. §34.1 identifiers are stable and §34.4 step 4 preserves a requirement that turned out to be wrong: a row is added or retitled, never removed or renumbered. Supersede it through a Warrant (§34.2), not by editing the index"
+    },
+    {
+      "severity": "error",
+      "rule": "sas.diff.removed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow125-sections-20261024/SAS-0.1.0-draft.1.md",
+      "message": "WAR-SAS-RQ-046 — revision removes requirement WAR-SAS-RQ-046. §34.1 identifiers are stable and §34.4 step 4 preserves a requirement that turned out to be wrong: a row is added or retitled, never removed or renumbered. Supersede it through a Warrant (§34.2), not by editing the index"
+    },
+    {
+      "severity": "error",
+      "rule": "sas.diff.removed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow125-sections-20261024/SAS-0.1.0-draft.1.md",
+      "message": "WAR-SAS-RQ-077 — revision removes requirement WAR-SAS-RQ-077. §34.1 identifiers are stable and §34.4 step 4 preserves a requirement that turned out to be wrong: a row is added or retitled, never removed or renumbered. Supersede it through a Warrant (§34.2), not by editing the index"
+    },
+    {
+      "severity": "error",
+      "rule": "sas.diff.removed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow125-sections-20261024/SAS-0.1.0-draft.1.md",
+      "message": "WAR-SAS-RQ-085 — revision removes requirement WAR-SAS-RQ-085. §34.1 identifiers are stable and §34.4 step 4 preserves a requirement that turned out to be wrong: a row is added or retitled, never removed or renumbered. Supersede it through a Warrant (§34.2), not by editing the index"
+    }
+  ],
+  "notes": [
+    "0 added, 5 removed, 0 retitled; architecture-changing: true"
+  ],
+  "counts": {
+    "pass": 11,
+    "warn": 0,
+    "unknown": 0,
+    "error": 5,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

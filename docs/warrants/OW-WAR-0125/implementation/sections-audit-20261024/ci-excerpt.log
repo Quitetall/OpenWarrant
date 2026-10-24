@@ -1,0 +1,29 @@
+gate	cargo xtask gate	2026-10-23T22:51:40.5595623Z ok    lossless split of 0.1.0-draft.1    joined sha256:aad5256cb59e = revision record
+gate	cargo xtask gate	2026-10-23T22:51:40.6825360Z ok    lossless split of 0.1.0-draft.2    joined sha256:daa1c89a3ca0 = revision record
+gate	cargo xtask gate	2026-10-23T22:51:40.7977194Z ok    lossless split of 0.1.0-draft.3    joined sha256:742dfd066b8d = revision record
+gate	cargo xtask gate	2026-10-23T22:51:40.9077579Z ok    lossless split of 1.0.0            joined sha256:b7105f528305 = revision record
+gate	cargo xtask gate	2026-10-23T22:51:41.0107969Z ok    lossless split of 1.1.0            joined sha256:321413359168 = revision record
+gate	cargo xtask gate	2026-10-23T22:51:41.1114284Z ok    lossless split of 1.1.1            joined sha256:230e2829d80d = revision record
+gate	cargo xtask gate	2026-10-23T22:51:41.1945858Z ok    lossless split of 1.2.0            joined sha256:85f5e7eff8de = revision record
+gate	cargo xtask gate	2026-10-23T22:51:41.2476191Z ok    lossless split of 1.3.0            joined sha256:97c69198140b = revision record
+gate	cargo xtask gate	2026-10-23T22:51:41.2815949Z ok    one byte more is not revision 1.1.0 the join names its own digest, not the pin
+gate	cargo xtask gate	2026-10-23T22:51:41.3300852Z ok    a fenced ## 999. is not a section  §105 changed; no section 999
+gate	cargo xtask gate	2026-10-23T22:51:41.3591620Z ok    an unfenced ## 999. is a section   rejected as new by sas.diff.section-added
+gate	cargo xtask gate	2026-10-23T22:51:41.3893438Z ok    the document against itself        no section named
+gate	cargo xtask gate	2026-10-23T22:51:41.4388523Z ok    one word in §62.3                 section 62 named (in 62.3), and no other
+gate	cargo xtask gate	2026-10-23T22:51:41.4680295Z ok    a §106 row removed                rejected by sas.diff.removed (WAR-SAS-RQ-001)
+gate	cargo xtask gate	2026-10-23T22:51:45.2787799Z ok    existing section citations resolve 102 of 102 pass sas.section-ref
+gate	cargo xtask gate	2026-10-23T22:51:45.2788409Z ok    existing section citations report currency 100 current, 2 stale (warned), of 102
+gate	cargo xtask gate	2026-10-23T22:51:48.2402356Z ok    sas://WAR-SAS-999 cites nothing    rejected by ERROR sas.section-ref (has no section 999)
+gate	cargo xtask gate	2026-10-23T22:51:48.8914501Z ok    sas://WAR-SAS-43.9 cites nothing   rejected by ERROR sas.section-ref (has no subsection 43.9)
+gate	cargo xtask gate	2026-10-23T22:51:49.5365369Z ok    a malformed section citation       rejected by ERROR sas.section-ref (is not a section reference)
+gate	cargo xtask gate	2026-10-23T22:51:50.2033331Z ok    a cited section that changed       rejected by WARN sas.section-current (sas://WAR-SAS-98 changed between SAS 0.1.0-draft.1.*SAS 1.3.0)
+gate	cargo xtask gate	2026-10-23T22:51:50.2113176Z ok    the section index names its source sha256:97c69198140b, revision 1.3.0
+gate	cargo xtask gate	2026-10-23T22:52:02.3968765Z ok    a hand-edited SECTIONS.json is drift rejected by ERROR sas-sections.drift (SECTIONS.json)
+gate	cargo xtask gate	2026-10-23T22:52:14.5792968Z ok    a hand-edited SECTIONS.md is drift rejected by ERROR sas-sections.drift (SECTIONS.md)
+gate	cargo xtask gate	2026-10-23T22:52:19.7084312Z ok    a shallow clone cannot say         UNKNOWN sas.section-current (sas://WAR-SAS-43.5, shallow)
+gate	cargo xtask gate	2026-10-23T22:52:19.7176453Z ok    OBL-006 OW-ADR-0028 is a proposal  status proposed; governs OW-WAR-0125; §105 text marked
+gate	cargo xtask gate	2026-10-23T22:52:19.7282351Z ok    OBL-006 an accepted ADR is seen    a copy with status accepted is reported
+gate	cargo xtask gate	2026-10-23T22:52:19.7479974Z ok    OBL-006 the SAS at delivery is 1.1.0 9c3c9150: sha256:321413359168 = revision 1.1.0, not 1.1.1
+gate	cargo xtask gate	2026-10-23T22:52:19.7522658Z ok    OBL-006 no deliverable is the SAS  10 deliverable(s); none is docs/sas/WAR_Software_Architecture_Specification.md
+gate	cargo xtask gate	2026-10-23T22:52:19.7559630Z ok    OBL-006 a SAS deliverable is seen  a planted D-999 naming the SAS is reported
