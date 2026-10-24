@@ -324,6 +324,7 @@ fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {
     let mut compared = 0usize;
     let mut new = 0usize;
     let mut moved = 0usize;
+    let mut unasked = false;
     // Every committed manifest in one `git cat-file --batch`, not one `git
     // show` per Warrant: 1,000 spawns were a third of `war check --generated`
     // at 1,000 Warrants (OW-WAR-0120's budget, t-f815).
@@ -352,6 +353,7 @@ fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {
                 continue;
             }
             Err(e) => {
+                unasked = true;
                 report.push(Diagnostic::unknown(
                     "identity.changed",
                     rel,
@@ -364,6 +366,7 @@ fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {
             .ok()
             .and_then(|t| t.get("uuid").and_then(|v| v.as_str()).map(str::to_owned));
         let Some(before) = before else {
+            unasked = true;
             report.push(Diagnostic::unknown(
                 "identity.changed",
                 rel,
@@ -390,7 +393,7 @@ fn changed(repo: &Repository, checked: &[Loaded], report: &mut Report) {
             ));
         }
     }
-    if moved == 0 {
+    if moved == 0 && !unasked {
         report.push(Diagnostic::pass(
             "identity.changed",
             format!("{compared} committed manifest UUID(s) unchanged since HEAD, {new} new"),

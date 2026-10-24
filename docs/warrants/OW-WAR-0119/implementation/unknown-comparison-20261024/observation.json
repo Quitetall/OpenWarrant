@@ -1,0 +1,47 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0119",
+  "performer": "agent://codex",
+  "independent": false,
+  "parent": "08ae6c2084399f22ea64a86bfafc0d018f3fbfb9",
+  "source_patch": "/mnt/4tb/artifacts/OpenWarrant/keep/ow119-audit-20261024/source.patch",
+  "source_patch_sha256": "aa7aefa82a2e0af50b4e559dac41981025e4cb95ca71342aa7cae81fa6192c4f",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/identity_check.rs": "a3755048cce7b86206abd6031323617883cc12a61e802c1448fb18e2d080325b",
+    "conformance/plants.d/51-identity.sh": "c2704cce922d3efac863199ba3e51099cc1bd99a84167354e06c1f2f05ba8f7c"
+  },
+  "red": {
+    "pass": 34,
+    "fail": 1,
+    "intended_failure": "Git object read could not establish identity but the same rule also emitted PASS"
+  },
+  "expanded_red": {
+    "pass": 35,
+    "fail": 2,
+    "intended_failures": [
+      "Git object-read failure emitted PASS beside UNKNOWN",
+      "Historical UUID missing emitted PASS beside UNKNOWN"
+    ]
+  },
+  "green": {
+    "pass": 37,
+    "fail": 0,
+    "feature_controls": 36,
+    "positive_corpus": 1
+  },
+  "library_tests": {
+    "identity": 9,
+    "blut_stage_identity": 1,
+    "fail": 0
+  },
+  "quality": {
+    "clippy_all_targets_warnings_denied": true,
+    "fmt": true,
+    "bash_syntax": true
+  },
+  "historical_adr_identities_preserved": 23,
+  "current_adr_population": 37,
+  "independent_dispositions_received": false,
+  "closure_unknowns": 8,
+  "qualification": false
+}

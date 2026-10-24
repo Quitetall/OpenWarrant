@@ -11740,7 +11740,7 @@ journal event ambiguous, and today nothing refuses it.
 | D-001 | The corpus identity rules | `crates/openwarrant-cli/src/identity_check.rs` | drift |
 | D-002 | war check runs the identity rules | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-003 | war blut names the stage by UUID | `crates/openwarrant-cli/src/blut.rs` | verified |
-| D-004 | The identity plants | `conformance/plants.d/51-identity.sh` | verified |
+| D-004 | The identity plants | `conformance/plants.d/51-identity.sh` | drift |
 
 #### OW-WAR-0120 — Retention: compact journals, archive resolved Warrants, and hold a budget at 1,000 Warrants
 
