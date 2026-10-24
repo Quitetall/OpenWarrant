@@ -1,0 +1,11 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/openwarrant_core-9ba2e14670f5bd0c)
+
+running 4 tests
+test manifest::tests::a_working_form_profile_is_refused_as_a_warrant ... ok
+test role::tests::a_working_form_names_its_roles_and_is_known_as_one ... ok
+test role::tests::a_working_form_is_refused_on_every_malformation ... ok
+test role::tests::a_working_form_declares_its_fields_and_nothing_else_may ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 646 filtered out; finished in 0.00s
+

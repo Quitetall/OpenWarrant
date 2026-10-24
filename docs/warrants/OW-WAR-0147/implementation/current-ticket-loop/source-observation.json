@@ -1,0 +1,35 @@
+{
+  "schema": "oh.war/ticket-source-observation/v1",
+  "source_commit": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "host": "Linux",
+  "current_population": {
+    "warrants_in_projection": 145,
+    "ticket_directories": 142
+  },
+  "source_sha256": {
+    "profiles/ticket.toml": "c613a01623148c88594453c1ca1fcc9a4bce6d52a0ea45de9bb52baff7bf30e2",
+    "crates/openwarrant-core/src/ticket.rs": "012cecdc368a0c0a7e046dfb69d2c9f85f0bcf60cb1d4c301f1854d19d3eec77",
+    "crates/openwarrant-core/src/role.rs": "4a5d6619ea8be7ca9ca38730fc06827f6593f9bafbeb46786795ddf5ea369b43",
+    "crates/openwarrant-core/src/manifest.rs": "6c34aca06049ca5e2fc2f1bf4868d6fe120c5f34e78d1941e057c37d4499f410",
+    "crates/openwarrant-cli/src/ticket/mod.rs": "2f3ea476dfec5ce34b35e36f603c8862156877ff68ba09ffbc2625484f3ec862",
+    "crates/openwarrant-cli/src/ticket/claim.rs": "17b2b5b301a029a1490310bbe3b81c7242d9c5706bdb0077d505314fd27c7e64",
+    "crates/openwarrant-cli/src/ticket/render.rs": "1498da257281971b299b594840aebf4f334032f58fe7d421731e367c08b57602",
+    "crates/openwarrant-cli/tests/tickets_cli.rs": "1bdf523472c76d917f0c35c35ccc59fe04d25de5f6fe540e31e2f3516cded9ed",
+    "conformance/plants.d/45-tickets.sh": "4c493743aec7664b3463aa30fa041122839670541edf024d0665ddfac380abd8"
+  },
+  "test_counts": {
+    "cli": 6,
+    "claims": 4,
+    "core-ticket": 14,
+    "working-form": 4
+  },
+  "plant_controls_including_positive_corpus": 20,
+  "timed_commands": 11,
+  "observed_latency_ms": {
+    "min": 24,
+    "max": 273
+  },
+  "scope": "Current working-tree ticket implementation under the later record kernel; historical diagnostics and recorded old timings remain unchanged.",
+  "qualification_established": false,
+  "independent_verdict_obtained": false
+}

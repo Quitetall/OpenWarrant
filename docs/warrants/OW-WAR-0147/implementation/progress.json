@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0147",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "4bb05f52143f3f22f77f2e99052c7b070c6b3732462313ca6cea26999501dbb3",
+  "summary": "Current ticket loop implementation complete, unverified. Six live CLI/MCP tests, four concurrent-claim tests, 14 parser tests, four working-form tests and all 20 plant controls pass. Eleven commands take 24\u2013273 ms on the captured Linux checkout; no human-time or assurance claim.",
+  "notes": "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/claims.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/cli.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/core-ticket.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/observation.json",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/plant.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/source-observation.json",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/working-form.log"
+  ],
+  "next_steps": [
+    "Reconcile historical delivery and judgment records without changing original observations.",
+    "Obtain applicable independent assessment, admissible registered gate evidence and human acceptance before legacy resolution."
+  ]
+}

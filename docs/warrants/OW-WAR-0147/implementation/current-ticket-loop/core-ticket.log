@@ -1,0 +1,22 @@
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow147-completion-20261023/crates/openwarrant-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 9.20s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/openwarrant_core-9ba2e14670f5bd0c)
+
+running 14 tests
+test ticket::tests::a_due_date_is_a_calendar_date ... ok
+test ticket::tests::a_manifest_key_is_set_in_place_and_nothing_else_moves ... ok
+test ticket::tests::cross_ticket_blockers_parse ... ok
+test ticket::tests::a_manifest_is_validated_against_the_profile_roles ... ok
+test ticket::tests::crlf_and_a_missing_final_newline_survive_a_write ... ok
+test ticket::tests::ids_are_well_formed_and_lengthen_as_the_repository_grows ... ok
+test ticket::tests::an_unnamed_line_is_named_in_place ... ok
+test ticket::tests::rendering_an_unchanged_item_gives_back_its_line ... ok
+test ticket::tests::every_fault_is_named_with_its_line ... ok
+test ticket::tests::an_appended_item_follows_the_last_task_and_moves_nothing ... ok
+test ticket::tests::the_kernel_reads_items_blockers_and_links_as_relations ... ok
+test ticket::tests::items_are_read_in_file_order_with_their_parts ... ok
+test ticket::tests::ticking_one_item_changes_only_its_line_byte_for_byte ... ok
+test ticket::tests::new_fields_are_absent_unless_set_and_validated_when_set ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 636 filtered out; finished in 0.00s
+
