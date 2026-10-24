@@ -74,9 +74,11 @@ The baseline is configuration, not an authority record. It says:
   first Warrant's Basis (`ACME-WAR-0001/atoms/20-basis.md`) names the
   baseline and says exactly this. Past commits are history in their actual
   state; no Warrant authorized them.
-- **No file from before it is pinned.** `war pins` lists only paths a
-  resolved Warrant delivered; a file committed before adoption is owned by
-  no Warrant (§37.5) until an authorized Warrant declares it.
+- **Adoption does not pin old files.** `war admin pins` lists declared
+  deliveries with each Warrant's state; `--resolved-only` selects pins held
+  by a resolution. The initial adopt Warrant declares none of the files
+  committed before the baseline. A later authorized Warrant can declare an
+  existing file for new work (§37.5); that does not verify its past versions.
 - **Untracked work counts from it.** `war telemetry` lists commits after
   the baseline whose subject cites no Warrant in this repository's
   namespace (`ACME-WAR-NNNN`, or a `war://` reference), and names the
