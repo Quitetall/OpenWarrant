@@ -1,0 +1,42 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0144",
+  "performer": "agent://codex",
+  "independent": false,
+  "base": "08ae6c2084399f22ea64a86bfafc0d018f3fbfb9",
+  "candidate_patch": "/mnt/4tb/artifacts/OpenWarrant/keep/ow144-retention-20261024/candidate.patch",
+  "candidate_patch_sha256": "4ed96400341d83e021823b4a23bfaadbbe889808c38e330eccdd3676de59f04c",
+  "source_sha256": {
+    "conformance/plants.d/49-authorization-retained.sh": "b635c3b7053fc2b7796c7fa2795fbab22fa47fe75db5340bdcca331d4024cc95",
+    "crates/openwarrant-cli/src/authorize.rs": "db7cee5f9ca164dbdbaa5da8803c4dad0b63251cf982abe4506baeb5419328d9",
+    "docs/SIGNING.md": "de5546cbd2eb69261c91aaffb19e42fe3f58e06f436e56384725aff055b0d684"
+  },
+  "checks": {
+    "current_candidate_tool": {
+      "pass": 8,
+      "fail": 0,
+      "feature_controls": 7,
+      "positive_corpus": 1
+    },
+    "test_only_mutations": {
+      "pass": 6,
+      "fail": 2,
+      "exit": 1,
+      "expected_failures": [
+        "collision refusal plus unrelated Warrant file creation",
+        "byte-identical retained file replacement"
+      ]
+    },
+    "setup_failure": {
+      "path": "/mnt/4tb/artifacts/OpenWarrant/keep/ow144-retention-20261024/controls.log",
+      "cause": "The private clone contained the changed plant while its generated progress still described the old artifact digest; five generated drift errors. Public compilation of the private fixture and a private fixture commit corrected its projections without changing contracts or delivery pins."
+    }
+  },
+  "limits": [
+    "Collision snapshot compares regular-file names and bytes below the synthetic Warrant, not every file in the repository.",
+    "Fixture-only mutations test the assertions; they do not demonstrate those production defects.",
+    "Initial and mutation observations use the earlier sealed tool whose only source differences are new.rs and check.rs; final passing controls use a fresh current-branch build.",
+    "Eight closure requirements remain UNKNOWN; no independent disposition, authorization, repin or resolution was created."
+  ],
+  "qualification": false
+}

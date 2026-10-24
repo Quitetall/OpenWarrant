@@ -77,8 +77,9 @@ printf 'not the authorization\n' > "$AR_KEPT"
 AR_BEFORE=$(ar_dir)
 AR_OUT=$(ar_sign); AR_STATUS=$?
 if [[ $AR_STATUS -ne 0 ]] && grep -q 'authorize.retire-collision' <<<"$AR_OUT" \
-    && [[ "$(sha256sum "$AR_W/authorization.toml" | cut -c1-64)" == "$AR_R1" ]]; then
-    ar_ok "a colliding kept name refuses" "authorize.retire-collision, revision 1 untouched"
+    && [[ "$(sha256sum "$AR_W/authorization.toml" | cut -c1-64)" == "$AR_R1" ]] \
+    && [[ "$(ar_dir)" == "$AR_BEFORE" ]]; then
+    ar_ok "a colliding kept name refuses" "authorize.retire-collision, entire Warrant directory unchanged"
 else
     ar_fail "a colliding kept name refuses" "exit $AR_STATUS: $(grep -E '^(ERROR|PASS authorize)' <<<"$AR_OUT" | head -2 | tr '\n' '|')"
 fi
@@ -117,6 +118,25 @@ if ! grep -q '^ERROR' <<<"$AR_CHECK" && ! grep -q 'AR-WAR-0001 .*authorize' <<<"
     ar_ok "the kept file is not a record" "check clean; no authorization pending"
 else
     ar_fail "the kept file is not a record" "$(grep -E '^ERROR' <<<"$AR_CHECK" | head -2 | tr '\n' '|') $(grep 'AR-WAR-0001' <<<"$AR_LIST" | head -1)"
+fi
+
+# Also exercise the other existing-file branch on a third fixture revision.
+# A hard link distinguishes leaving the existing file alone from replacing it
+# with identical bytes. Revision 2 above still tests automatic archive creation.
+AR_R2=$(sha256sum "$AR_W/authorization.toml" | cut -c1-64)
+AR_KEPT_R2="$AR_W/authorization.${AR_R2:0:8}.toml"
+command cp "$AR_W/authorization.toml" "$AR_KEPT_R2"
+command ln "$AR_KEPT_R2" "$AR_TMP/existing-kept"
+printf '\nThird revision exercises an identical retained copy.\n' >> "$AR_W/atoms/10-intent.md"
+sed 's/id: "AM-001"/id: "AM-002"/' "$AR_W/amendments/AM-001.yaml" > "$AR_W/amendments/AM-002.yaml"
+"$WAR" --root "$PLANT_ROOT" compile >/dev/null 2>&1
+AR_OUT=$(ar_sign); AR_STATUS=$?
+if [[ $AR_STATUS -eq 0 && "$AR_KEPT_R2" -ef "$AR_TMP/existing-kept" ]] \
+    && [[ "$(sha256sum "$AR_KEPT_R2" | cut -c1-64)" == "$AR_R2" ]] \
+    && grep -q 'revision = 3' "$AR_W/authorization.toml"; then
+    ar_ok "an identical kept copy is reused" "same file and bytes, revision 3 permitted"
+else
+    ar_fail "an identical kept copy is reused" "exit $AR_STATUS: existing retained file replaced or changed"
 fi
 
 ssh-agent -k >/dev/null 2>&1 || true
