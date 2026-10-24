@@ -21,7 +21,9 @@ in the initial audit. The original five-run performance run returned exit 0: all
 were within their unchanged limits and the source stayed clean. Its raw report
 cannot infer release profile from the sealed filename, so budget applicability
 is false. The build receipt establishes the release build; a second unchanged
-run from a recognized release path is pending to remove this reporting gap.
+run from a recognized release path returned exit 0 with applicability true.
+It measured 1,000 Warrants including 500 resolved; all nine medians are within
+the original limits and the source remained unchanged. Both raw reports remain.
 Independent assessment and human acceptance are separate.
 
 Full raw streams, generated before/after files and diffs remain under

@@ -1,0 +1,12 @@
+gate	cargo xtask gate	2026-10-23T22:50:44.4757583Z == retention and the scale budget (OW-WAR-0120) ==
+gate	cargo xtask gate	2026-10-23T22:50:48.0156189Z ok    the synthetic program checks clean synth-corpus.sh exit 0, war check exit 0
+gate	cargo xtask gate	2026-10-23T22:50:48.1932148Z ok    war status counts 6 resolved, 6 not and 6 resolution records on disk
+gate	cargo xtask gate	2026-10-23T22:50:48.2106991Z ok    a non-empty --out is refused       exit 2, its contents untouched
+gate	cargo xtask gate	2026-10-23T22:50:50.4718259Z ok    the real budget passes at N=12     every row within, exit 0
+gate	cargo xtask gate	2026-10-23T22:50:52.6947023Z ok    a 1 ms budget names every command  exit 1, each row OVER BUDGET by name
+gate	cargo xtask gate	2026-10-23T22:50:53.7437690Z ok    a failing command is unknown       check,check-generated,next,status,compile unknown, exit 1
+gate	cargo xtask gate	2026-10-23T22:50:53.8001489Z ok    the repository tree is unchanged   git status --porcelain identical
+gate	cargo xtask gate	2026-10-23T22:50:53.8157038Z ok    the 1,000 record is a release record 1000 Warrants, >=500 resolved, by war status
+gate	cargo xtask gate	2026-10-23T22:50:53.8304532Z ok    RETENTION.md matches the record    every budget row, and the verdict
+gate	cargo xtask gate	2026-10-23T22:50:53.8580924Z ok    a doctored budget row is refused   check named
+gate	cargo xtask gate	2026-10-23T22:50:53.8808840Z ok    a brief against the record is refused the brief's verdict named

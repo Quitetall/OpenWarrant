@@ -4,7 +4,7 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "74b112866a13bc2eef501f0798db10a535f926e98bdeaa14fb803b6144bcd243",
-  "summary": "All eight historical command pairs completed on 1,000 synthetic Warrants, including 500 resolved: stdout, stderr and exits match exactly, with clean source. All eight also completed on the standalone real corpus; its differences are bounded to the owner-selected OW-WAR-0071 applicability change and three derived generated views. Earlier timeouts are retained. All nine original performance medians were within limits; the report cannot infer release profile from the sealed filename, so a repeat from a recognized release path is running. Signed criterion adoption, independent review and human acceptance remain separate; no assurance claimed.",
+  "summary": "All eight historical command pairs completed on 1,000 synthetic Warrants, including 500 resolved: stdout, stderr and exits match exactly, with clean source. All eight also completed on the standalone real corpus; its differences are bounded to the owner-selected OW-WAR-0071 applicability change and three derived generated views. Earlier timeouts are retained. The unchanged five-run release budget also passed: applicability true, 1,000 Warrants, 500 resolved, all nine medians within limits, source unchanged. The initial profile-inference gap is retained. Signed criterion adoption, independent review and human acceptance remain separate; no assurance claimed.",
   "notes": "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/build-identities.json",
@@ -33,10 +33,10 @@
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/observation.json",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/projection-differences.json",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/real-corpus-observation.json",
-    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/initial-budget.json"
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/initial-budget.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/budget.json"
   ],
   "next_steps": [
-    "Complete the unchanged release performance budget and retain build/corpus applicability evidence.",
     "Represent the owner-selected bounded applicability clarification in a governed successor/amendment before claiming the signed obligation met.",
     "Independent assessment and human acceptance remain separate."
   ]
