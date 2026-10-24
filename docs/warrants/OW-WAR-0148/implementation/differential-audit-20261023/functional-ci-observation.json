@@ -1,0 +1,62 @@
+{
+  "schema": "oh.war/functional-ci-observation/v1",
+  "run": 40033704288,
+  "job": 120688228332,
+  "url": "https://github.com/Quitetall/OpenWarrant/actions/runs/40033704288/job/120688228332",
+  "checked_head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "full_log_sha256": "e91dbe4e0e53447a6b0bfde9cec8f254c1bbb17b8689ca61e530be0a1bff383e",
+  "full_log_retained_at": "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/parent-ci-complete.log",
+  "gate_result": "success",
+  "plant_summary": {
+    "passed": 1711,
+    "failed": 0
+  },
+  "plants": [
+    {
+      "path": "conformance/plants.d/72-model.sh",
+      "sha256": "7f30752da2f4a42fdd1a8be82982bb490983e48d123bdd1349d1519b9db00a14",
+      "matches_checked_commit": true
+    },
+    {
+      "path": "conformance/plants.d/73-capabilities.sh",
+      "sha256": "2a82f999a6a971e65fb8289855498fded87c07c3c224d40a922e53c6c0dbf20b",
+      "matches_checked_commit": true
+    },
+    {
+      "path": "conformance/plants.d/74-records.sh",
+      "sha256": "fc1d3a617d534b438d67d18054e47e9ea3c7432eeab002fa6139f663024e0be0",
+      "matches_checked_commit": true
+    },
+    {
+      "path": "conformance/plants.d/75-states.sh",
+      "sha256": "901a1326280c103764841ccdc61e1c19c91de1310080e26d329b885609504c87",
+      "matches_checked_commit": true
+    },
+    {
+      "path": "conformance/plants.d/76-ticket-features.sh",
+      "sha256": "2f3232c76e5685c35c293c14f84503bc616018c95fc22cb98663bb80eb75598e",
+      "matches_checked_commit": true
+    },
+    {
+      "path": "conformance/plants.d/77-typed-demo.sh",
+      "sha256": "bb6de342a04062ee4f6463d0b34a68641001e03546ac72febb24f7446bd51d51",
+      "matches_checked_commit": true
+    }
+  ],
+  "scope": "Observed functional controls for OBL-002 through OBL-011, plus the doctored-output refusal in OBL-001. Does not prove historical differential equality or scale budgets.",
+  "source_diff_since_checked_head": [
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/README.md",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/claims.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/cli.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/core-ticket.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/observation.json",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/plant.log",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/source-observation.json",
+    "docs/warrants/OW-WAR-0147/implementation/current-ticket-loop/working-form.log",
+    "docs/warrants/OW-WAR-0147/implementation/progress.json",
+    "docs/warrants/generated/CORPUS_STATUS.html",
+    "docs/warrants/generated/CORPUS_STATUS.json"
+  ],
+  "current_corpus_requalified": false,
+  "independent_disposition_created": false
+}

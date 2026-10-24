@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/owner-direction-observation/v1",
+  "warrant": "OW-WAR-0148",
+  "source": "direct user reply in this chat",
+  "question": "W148 promises identical old output, but its planned type rules now mark runtime receipts not applicable for decision Warrants with no execution stages. Which requirement should govern?",
+  "answer": "Explicitly allow these applicability changes (Recommended)",
+  "permitted_exception": "Planned profile capability applicability changes, individually identified and bounded; absent runtime checks remain not applicable, not passed.",
+  "observed_case": "OW-WAR-0071: capability.not-applicable diagnostic and derived count; runtime receipts in not_applicable instead of unmet.",
+  "other_comparison_requirements_retained": true,
+  "original_observations_retained": true,
+  "signature_created": false,
+  "signed_atoms_changed": false,
+  "assurance_established": false
+}

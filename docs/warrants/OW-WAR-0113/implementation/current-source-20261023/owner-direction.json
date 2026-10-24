@@ -1,0 +1,11 @@
+{
+  "schema": "oh.war/owner-direction-observation/v1",
+  "source": "direct user reply in this chat",
+  "observed_at": "2026-10-24T00:12:04.448581+00:00",
+  "warrant": "OW-WAR-0113",
+  "answer": "Accept either bounded refusal (Recommended)",
+  "bounded_criterion": "The malformed unrendered bare-role control may refuse with manifest.invalid or atom.role-unprojected; rejection and absence of silently lost text remain required. Namespaced extension and projection guard controls remain required.",
+  "signature_created": false,
+  "signed_atoms_changed": false,
+  "authority_or_assurance_granted": false
+}

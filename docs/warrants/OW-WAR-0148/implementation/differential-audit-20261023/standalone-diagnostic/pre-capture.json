@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/historical-output-capture/v1",
+  "argv": [
+    "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+    "--root",
+    "/mnt/4tb/tmp/openwarrant-ow148-standalone-20261023",
+    "--json",
+    "check",
+    "--generated"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 247.54346904400154,
+  "completed": true,
+  "stdout_sha256": "3a14a55ba197cf6a225632b0857ab588874932b4e14c6b7177108de1c37bf588",
+  "source_clean_after": true,
+  "purpose": "Capture historical output only. The 600s capture guard is not an acceptance or release-budget threshold. Earlier10s/120s UNKNOWN observations remain retained.",
+  "release_budget_changed": false,
+  "qualification_established": false
+}

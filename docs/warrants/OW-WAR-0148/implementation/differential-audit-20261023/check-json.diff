@@ -1,0 +1,24 @@
+--- pre
++++ post
+@@ -6430,6 +6430,12 @@
+       "rule": "manifest.valid",
+       "file": null,
+       "message": "OW-WAR-0071: manifest and composition are well-formed"
++    },
++    {
++      "severity": "pass",
++      "rule": "capability.not-applicable",
++      "file": null,
++      "message": "OW-WAR-0071: profile decision does not select `stages` (the milestone graph and §56.1 requirement 12's runtime receipts): not applicable, not passed (OW-ADR-0031)"
+     },
+     {
+       "severity": "pass",
+@@ -16457,7 +16463,7 @@
+     "generated-view drift — pass --generated to compare committed projections"
+   ],
+   "counts": {
+-    "pass": 1854,
++    "pass": 1855,
+     "warn": 390,
+     "unknown": 0,
+     "error": 0,

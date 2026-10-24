@@ -1,0 +1,19 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0113",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "9c65bbb9f05ee484d08ea1c6441f4e4b80b6ecb041bd5bee0923dfc871165177",
+  "summary": "Implementation complete, unverified, under the owner-selected bounded refusal criterion. All 40 declared files match protected CI source; currency, master/history, judged actions, presets, optional headings and extension controls are observed. Public malformed bare roles refuse as manifest.invalid; projection-rule unit controls retain atom.role-unprojected. No signed amendment, independent assurance or legacy resolution claimed.",
+  "notes": "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/source-observation.json",
+    "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/ci-excerpt.log",
+    "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/unit-excerpt.log",
+    "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/owner-direction.json"
+  ],
+  "next_steps": [
+    "Carry the owner-selected bounded criterion through governed amendment/acceptance before claiming signed-criterion compliance.",
+    "Independent review and human acceptance remain separate; historical authority and verification records stay unchanged."
+  ]
+}
