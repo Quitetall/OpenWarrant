@@ -1,0 +1,6 @@
+gate	cargo xtask gate	2026-10-23T22:31:36.6344812Z test init::guided::tests::an_existing_authority_file_is_never_written_again ... ok
+gate	cargo xtask gate	2026-10-23T22:31:36.6346018Z test init::guided::tests::canned_answers_walk_to_done_and_every_write_is_from_a_typed_answer ... ok
+gate	cargo xtask gate	2026-10-23T22:31:36.6348467Z test init::guided::tests::the_agent_is_a_performer_and_nothing_else ... ok
+gate	cargo xtask gate	2026-10-23T22:31:36.6348874Z test init::guided::tests::the_first_step_follows_the_tree_not_a_state_file ... ok
+gate	cargo xtask gate	2026-10-23T22:31:36.6350016Z test init::guided::tests::with_history_the_step_after_program_is_baseline ... ok
+gate	cargo xtask gate	2026-10-23T22:31:36.6350519Z test init::guided::tests::without_history_baseline_is_skipped ... ok
