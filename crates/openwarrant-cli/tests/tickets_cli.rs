@@ -184,6 +184,9 @@ fn start_takes_the_next_warrant_and_prints_only_it() {
         &[
             "create",
             "First job",
+            // Next by priority, not by a tie-break on random ids (§11.5).
+            "--priority",
+            "1",
             "--body",
             "Why the first job matters.",
             "--item",
@@ -223,7 +226,7 @@ fn start_takes_the_next_warrant_and_prints_only_it() {
         assert!(brief.contains(want), "missing {want:?}: {brief}");
     }
     assert!(
-        brief.contains(&format!("`war done {first} --note")),
+        brief.contains(&format!("&& war done {first} --note")),
         "{brief}"
     );
     // Only this Warrant: nothing of the other.
@@ -310,6 +313,53 @@ fn done_on_a_ticket_ticks_every_item_or_none() {
     assert_eq!(
         shown["result"]["ticket"]["done"], 0,
         "nothing ticked: {shown}"
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// `war view prime --session` is opt-in: without `[tickets] session_start`
+/// it prints nothing, so the plugin's SessionStart hook adds nothing. Enabled,
+/// it shows the open Warrants and how to take one; holding one, its brief.
+#[test]
+fn the_session_start_view_is_opt_in() {
+    let root = scratch("session");
+    let id = json(
+        &root,
+        &[
+            "create",
+            "Job",
+            "--body",
+            "What the job is.",
+            "--item",
+            "one",
+        ],
+    )["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let text = |args: &[&str]| String::from_utf8_lossy(&war(&root, args).stdout).into_owned();
+    // Off (the default): nothing at all.
+    assert_eq!(
+        text(&["view", "prime", "--session", "--as", "ann"]).trim(),
+        ""
+    );
+    let config = root.join("openwarrant.toml");
+    let mut toml = std::fs::read_to_string(&config).unwrap();
+    toml.push_str("\n[tickets]\nsession_start = true\n");
+    std::fs::write(&config, toml).unwrap();
+    // On, nothing held: the overview and how to take the next.
+    let open = text(&["view", "prime", "--session", "--as", "ann"]);
+    assert!(
+        open.contains(&format!("- {id} — Job")) && open.contains("war start"),
+        "{open}"
+    );
+    assert!(!open.contains("What the job is."), "{open}");
+    // On, holding it: its brief, and no call needed to find it.
+    assert_eq!(json(&root, &["start", "--as", "ann"])["exit_code"], 0);
+    let held = text(&["view", "prime", "--session", "--as", "ann"]);
+    assert!(
+        held.contains(&format!("you hold {id}")) && held.contains("What the job is."),
+        "{held}"
     );
     let _ = std::fs::remove_dir_all(&root);
 }

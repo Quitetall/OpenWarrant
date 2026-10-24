@@ -156,6 +156,11 @@ pub struct Policy {
     /// before it collapses to one line.
     #[serde(default)]
     pub compact_after_days: Option<u64>,
+    /// Opt in to `war view prime --session` (the plugin's SessionStart hook):
+    /// the agent's session starts with the Warrant it holds, or the overview,
+    /// already in front of it. Off by default: then the hook adds nothing.
+    #[serde(default)]
+    pub session_start: Option<bool>,
 }
 
 /// `[tickets] claim_lease_minutes` in whole seconds; a negative or
@@ -392,6 +397,9 @@ pub struct Store {
     /// M11: `[claims] remote`, the git remote claims are published to.
     pub remote: Option<String>,
     pub compact_days: u64,
+    /// `[tickets] session_start`: whether `war view prime --session` says
+    /// anything (opt-in; default off).
+    pub session_start: bool,
     pub definition: ProfileDefinition,
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
     /// `[project] performer`. A name for coordination; it authorizes nothing.
@@ -494,6 +502,7 @@ impl Store {
             ),
             remote: claims_policy.remote.filter(|r| !r.trim().is_empty()),
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
+            session_start: policy.session_start.unwrap_or(false),
             definition,
             actor,
             project: repo.config.project.name.clone(),
@@ -2930,6 +2939,52 @@ pub fn held_target(store: &Store) -> Result<Result<String, Outcome>, RepoError> 
             ),
         )),
     })
+}
+
+/// How an agent spends the fewest turns on tracked work: taking it with its
+/// first look at the code, and closing it with its last test run.
+pub const LOOP_HINT: &str = "Run `war start` in the same command as your first look at the code: \
+     it takes the next ready Warrant and prints only what it needs. Close it in the same command as \
+     your last test run: `<your tests> && war done --note \"what you did\"`.";
+
+/// `war view prime --session`: what a harness shows an agent as its session
+/// starts, when `[tickets] session_start = true`. Holding a Warrant, its
+/// brief (a resumed session needs no call to find its work); else the
+/// overview and [`LOOP_HINT`]; nothing when no tracked work is open, so an
+/// ordinary session carries nothing. Not enabled, it says nothing at all.
+pub fn session_start(store: &Store) -> Result<Outcome, RepoError> {
+    if !store.session_start {
+        return Ok(Outcome::ok(
+            String::new(),
+            serde_json::json!({"schema": "oh.war/ticket-session/v1", "enabled": false}),
+        ));
+    }
+    let held = held_by_me(store)?;
+    let (tickets, _) = store.load_all()?;
+    if let Some(id) = held.first() {
+        let _ = store.renew_held(None);
+        if let Ok(Target::Ticket(n) | Target::Item(n, _)) = resolve(&tickets, id) {
+            let brief = render::brief(store, &tickets, &tickets[n], &store.actor);
+            return Ok(Outcome::ok(
+                format!(
+                    "OpenWarrant: you hold {id}; carry on with it (no `war start` needed).\n\n{}",
+                    brief.human
+                ),
+                brief.result,
+            ));
+        }
+    }
+    if !tickets.iter().any(|t| !t.is_done()) {
+        return Ok(Outcome::ok(
+            String::new(),
+            serde_json::json!({"schema": "oh.war/ticket-session/v1", "open": 0}),
+        ));
+    }
+    let overview = render::prime(store, None)?;
+    Ok(Outcome::ok(
+        format!("{}\n\n{LOOP_HINT}", overview.human),
+        overview.result,
+    ))
 }
 
 /// `war start [<id>]`: claim work and print only what it needs, in one call.

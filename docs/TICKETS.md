@@ -447,10 +447,15 @@ and nothing is written. To read the proposal first, use
 
 ## For agents
 
-Start every session with `war start`. It claims the next ready ticket (or
-prints the one you already hold) and gives only what its work needs: the
-description, the open items, every note, and what it depends on. Do the work,
-then `war done --note "..."` closes it in one call. `war view prime` lists what
+Start every session with `war start`, in the same command as your first look
+at the code (`war start && ls`). It claims the next ready ticket (or prints the
+one you already hold) and gives only what its work needs: the description, the
+open items, every note, and what it depends on. Do the work, then close it in
+the same command as your last test run: `make test && war done --note "..."`,
+which closes it only if the tests pass. Run alone, both work the same; the
+chain only saves the turns. With `[tickets] session_start = true` the plugin's
+SessionStart hook puts the ticket you hold (or the open list) in front of the
+agent before its first turn. `war view prime` lists what
 is open, one line per ticket, and `war view prime <id>` shows one in full.
 Leave what the next agent needs to know with `war note`. Do not ask the human
 to sign anything during this loop; nothing in it needs a signature.
@@ -480,6 +485,7 @@ All optional, in `openwarrant.toml`:
 dir = "docs/tickets"                        # where tickets live
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
+session_start = false                       # true: the plugin's SessionStart hook shows the agent its held Warrant, or the overview
 
 [claims]
 claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands

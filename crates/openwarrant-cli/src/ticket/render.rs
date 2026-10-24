@@ -1164,9 +1164,11 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
         recent.len() + old.len()
     ));
     md.push_str(
-        "How to work: `war start` takes the next ready Warrant and prints only what it needs; \
-         do it; `war done <id> --note \"what you did\"` closes it. `war view prime <id>` shows \
-         one Warrant in full. No step needs a signature or anyone's approval.\n",
+        "How to work: run `war start` in the same command as your first look at the code; it \
+         takes the next ready Warrant and prints only what it needs. Close it in the same command \
+         as your last test run: `<your tests> && war done --note \"what you did\"`. \
+         `war view prime <id>` shows one Warrant in full. No step needs a signature or anyone's \
+         approval.\n",
     );
     // OW-WAR-0148 M17: the file ledger, when this repository keeps one.
     let ledger_dir = crate::ledger::Config::read(&store.root)
@@ -1463,7 +1465,8 @@ pub fn brief(store: &Store, all: &[Ticket], t: &Ticket, actor: &str) -> Outcome 
         md.push_str("\n`war view prime <id>` shows one of them in full.\n");
     }
     md.push_str(&format!(
-        "\nWhen finished: `war done {} --note \"what you did\"`\n",
+        "\nClose it in the same command as your last test run: \
+         `<your tests> && war done {} --note \"what you did\"`\n",
         t.id()
     ));
     Outcome::ok(

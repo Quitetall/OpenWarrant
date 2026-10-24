@@ -33,6 +33,15 @@ Notable changes to OpenWarrant. Format loosely follows
   - The managed block, the AGENTS.md template, the plugin's skills, the MCP
     instructions and the docs teach `war start` / `war done`. Plant 186 holds
     prime, ready and start to a byte budget.
+  - Fewer turns for the same work: the instructions say to run `war start`
+    with the first look at the code and to close with the last test run
+    (`<tests> && war done --note "..."`, which closes only when they pass).
+    Run alone, both work as before, as do `war claim <item>` and
+    `war done <item>`.
+  - Opt-in, `[tickets] session_start = true`: the plugin's SessionStart hook
+    runs `war view prime --session`, which shows the agent the Warrant it
+    holds (a resumed session needs no call to find it), or the open list and
+    how to take the next. Unset, it prints nothing and the hook adds nothing.
 
 ## [1.0.0-alpha.5] — 2026-10-20
 

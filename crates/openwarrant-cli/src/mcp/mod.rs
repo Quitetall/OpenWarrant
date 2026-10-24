@@ -33,8 +33,9 @@ use crate::repo::{RepoError, Repository};
 pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. Ordinary work needs none of \
 this: edit, build and test as you would in any repository; no Warrant, ticket or signature is \
 needed to write code. These tools help when you want to track or plan work. Tickets: \
-`war_start` takes the next ready Warrant and returns only what its work needs; `war_done` \
-closes it; `war_prime` lists what is open, one line each. `war_create`, `war_add` and `war_note` \
+`war_start` takes the next ready Warrant and returns only what its work needs (call it in the \
+same turn as your first look at the code); `war_done` closes it (in the same turn as your last \
+test run); `war_prime` lists what is open, one line each. `war_create`, `war_add` and `war_note` \
 keep a ticket current. No ticket step needs a signature. Warrants are optional work plans; a Warrant whose type has a \
 sign-off step is approved by a person. This server cannot authorize, resolve, verify, accept a \
 SAS, correct a delivered file, or sign anything, and no tool records a signed response: those \

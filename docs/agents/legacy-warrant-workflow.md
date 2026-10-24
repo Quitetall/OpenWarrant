@@ -17,16 +17,19 @@ Use them when they help, or when the person you work with asks for them.
 ## Tracking work with tickets (optional)
 
 ```bash
-war start                                  # take the next ready Warrant; prints only what its work needs
+war start && ls                            # take the next ready Warrant with your first look at the code
 # do the work
-war done --note "what you did"             # closes the Warrant you hold: every item, in one call
+make test && war done --note "what you did"   # close it with your last test run: every item, one call
 war view prime                             # what is open, one line each (`war view prime <id>`: one in full)
 war note <ticket> "a decision, a dead end, a link"   # context for the next agent
 war create "What this work accomplishes" --item "..."   # new work; `war add <ticket> "..."` extends one
 ```
 
 No step in this loop needs a signature or anyone's approval: a ticket is done
-when its boxes are ticked. `war start` claims the Warrant whole, so a second
+when its boxes are ticked. Taking the work with your first look at the code
+and closing it with your last test run costs no turn of its own; `war start`
+and `war done` run alone just as well, and so do the item-level
+`war claim <item>` and `war done <item>`. `war start` claims the Warrant whole, so a second
 agent gets the next one instead; started again, it prints the one you hold. When several
 agents share the repository, give each one a name with `--as <name>` (or
 `OPENWARRANT_ACTOR`). Over MCP the same loop is `war_start`, `war_done`,
@@ -175,8 +178,8 @@ sign-off, not your work.
 <!-- openwarrant:begin -->
 <!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->
 Ordinary coding needs no Warrant and no ticket: work here as in any repository.
-Tracked work, when there is some: `war start` takes the next ready Warrant and prints
-only what it needs; `war done <id> --note "what you did"` closes it.
-`war view prime` lists what is open, one line each.
+Tracked work, when there is some: run `war start` with your first look at the code (it
+takes the next ready Warrant and prints only what it needs), and close it with your last
+test run: `<your tests> && war done --note "what you did"`. `war view prime` lists all.
 <!-- openwarrant agents-md: written by war 1.0.0-alpha.5 -->
 <!-- openwarrant:end -->

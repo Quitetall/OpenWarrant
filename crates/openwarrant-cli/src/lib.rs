@@ -1846,12 +1846,18 @@ enum ViewCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// What an arriving agent or person reads first: open Warrants with their
-    /// remaining items, who holds what, recent notes, done work compacted.
+    /// What is open: one line per open Warrant (progress, who holds it,
+    /// what it waits on) and done work by id; one Warrant in full with an id.
     Prime {
         /// One Warrant in full instead.
         #[arg(value_name = "WARRANT")]
         ticket: Option<String>,
+        /// What a harness puts in front of an agent when its session starts
+        /// (the plugin's SessionStart hook): the brief of the Warrant this
+        /// actor holds, so a resumed session needs no call; else the overview
+        /// and how to take the next; nothing when no tracked work is open.
+        #[arg(long, conflicts_with = "ticket")]
+        session: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -6163,9 +6169,14 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         }
         ViewCommand::Prime {
             ticket: target,
+            session,
             actor,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            if session {
+                let outcome = ticket::session_start(&store)?;
+                return Ok(ticket_answer(mode, "prime", &outcome));
+            }
             let mut outcome = ticket::prime(&store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it
             // follows is newer than this binary (a WARN, on stderr in
