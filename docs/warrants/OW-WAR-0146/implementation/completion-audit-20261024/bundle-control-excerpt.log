@@ -1,0 +1,8 @@
+2026-10-24T13:00:42.3198741Z == bundled gate output (OW-WAR-0146) ==
+2026-10-24T13:00:48.6595423Z ok    the gate's stdout is in the bundle captured, text is the file's, digest 595e7e438f74ece2395c27e406ca511c01d03b3c42e66c89b8a27b0affdfcdc0
+2026-10-24T13:00:49.2119199Z ok    a long output is cut, not re-digested truncated at 64 bytes, whole-file digest
+2026-10-24T13:00:49.7294671Z ok    a missing output is not silence    captured false, no text
+2026-10-24T13:00:50.2434768Z ok    no digest recorded, no mismatch    the receipt records none; the field is absent
+2026-10-24T13:00:52.2346693Z ok    one digest, and the verifier ingests one bundle file after two runs; verify.recorded
+2026-10-24T13:00:53.2774276Z ok    the response is kept apart         verifications/responses/, and war inbox reads the Warrant
+2026-10-24T13:00:53.3203204Z ok    beside the records, it is refused  response schema is not a verification record (exit 2)

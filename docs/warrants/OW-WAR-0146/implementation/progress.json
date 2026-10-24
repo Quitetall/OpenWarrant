@@ -1,20 +1,21 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0146",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
   "revision": "b9d942667c5ffb1363c8e00a256392b4af1ce0ca",
-  "summary": "Rendered UTF-8 tail bound fix implemented, unverified. A public CLI red/green regression and stdout/stderr matrix pass, preserving raw hashes, capture absence and deterministic bytes. Two CLI controls, 11 existing bundle tests and all-target Clippy pass. Exact-head full CI, delivery reconciliation and independent qualification remain pending.",
-  "notes": "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/README.md",
+  "summary": "Implementation complete, unverified. The exact UTF-8 capture fix candidate passed all 14 protected gate steps and 1711 plants with zero failures, then merged to main via PR351. Original bundle-output controls and additional stdout/stderr boundary matrix are retained; raw hashes, capture absence and deterministic output remain intact. Formal delivery reconciliation, independent qualification and human resolution remain separate.",
+  "notes": "docs/warrants/OW-WAR-0146/implementation/completion-audit-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/observation.json",
     "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/README.md",
     "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/observation.json",
     "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/README.md",
-    "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/observation.json"
+    "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/observation.json",
+    "docs/warrants/OW-WAR-0146/implementation/completion-audit-20261024/observation.json"
   ],
   "next_steps": [
-    "Run exact-head protected CI and inspect registered bundle-output controls.",
-    "Reconcile historical delivery records; independent assessment and secure human acceptance remain separate."
+    "Reconcile historical delivery records without rewriting signed history.",
+    "Obtain admissible independent qualification and secure human acceptance for formal resolution."
   ]
 }

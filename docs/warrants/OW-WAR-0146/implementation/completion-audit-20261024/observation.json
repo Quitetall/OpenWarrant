@@ -1,0 +1,38 @@
+{
+  "schema": "oh.war/implementation-completion-observation/v1",
+  "warrant": "OW-WAR-0146",
+  "performer": "agent://codex",
+  "implementation_complete": true,
+  "independent": false,
+  "verified": false,
+  "source": "8606def37781037aa3741e8108b1d06bfb708445",
+  "protected_run": 40094082209,
+  "gate_job": 120872585376,
+  "gate_conclusion": "success",
+  "gate_steps": 14,
+  "plants": {
+    "pass": 1711,
+    "fail": 0
+  },
+  "merge_commit": "e2d1d76fb14aff0deb8a1351188c292a37f12a15",
+  "source_manifest": [
+    {
+      "path": "crates/openwarrant-cli/src/bundle.rs",
+      "sha256": "7894a63c2da41fcaa39258a4d2a4365af0dcad280001dd872cd435ffafa5f2f1",
+      "matches_tested_candidate": true
+    },
+    {
+      "path": "conformance/plants.d/47-bundle-output.sh",
+      "sha256": "ce072510418c7216590737c71f6b55be8fbde7ece4a7d7d25e3f8131e3f1f3b4",
+      "matches_tested_candidate": true
+    },
+    {
+      "path": "crates/openwarrant-cli/tests/verification_subject_cli.rs",
+      "sha256": "673a1b33afade1b6c03f84fb1cac2b642350e27ef1294bacb27f5663a23b7085",
+      "matches_tested_candidate": true
+    }
+  ],
+  "raw_log": "/mnt/4tb/artifacts/OpenWarrant/keep/ow146-stream-20261024/ci-40094082209.log",
+  "raw_log_sha256": "ade56c08fb4d892bd6b12298f4300e3b196b1cde8f8b23cf06b3edd388e1c60a",
+  "qualification": "not established; canonical admissible evidence, independent dispositions, ownership reconciliation and human resolution remain separate"
+}
