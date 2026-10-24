@@ -1,0 +1,12 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow147-completion-20261023/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 20.52s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/88/90cee7b8403e5a/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 4 tests
+test ticket::claim::tests::the_common_dir_is_found_from_every_worktree ... ok
+test ticket::claim::tests::a_renewal_that_lands_first_beats_a_reclaim ... ok
+test ticket::claim::tests::a_stale_claim_is_stolen_once_and_a_fresh_one_is_not_clobbered ... ok
+test ticket::claim::tests::of_concurrent_claims_exactly_one_wins ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 546 filtered out; finished in 0.85s
+

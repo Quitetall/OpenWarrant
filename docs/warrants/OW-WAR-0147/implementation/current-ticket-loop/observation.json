@@ -1,0 +1,91 @@
+{
+  "schema": "oh.war/ticket-loop-observation/v1",
+  "head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "host": "Linux",
+  "checks": [
+    {
+      "name": "build",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--bin",
+        "war"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 44.79444902901014
+    },
+    {
+      "name": "cli",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--test",
+        "all",
+        "tickets_cli::"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 6.025959023012547
+    },
+    {
+      "name": "claims",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--lib",
+        "ticket::claim::tests::"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 21.407780503010144
+    },
+    {
+      "name": "core-ticket",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "openwarrant-core",
+        "--lib",
+        "ticket::tests::"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 9.232379006993142
+    },
+    {
+      "name": "working-form",
+      "argv": [
+        "cargo",
+        "test",
+        "--locked",
+        "-p",
+        "openwarrant-core",
+        "--lib",
+        "working_form"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 0.06387925700983033
+    },
+    {
+      "name": "plant",
+      "argv": [
+        "bash",
+        "-c",
+        "source conformance/lib.sh; run_plant_files conformance/plants.d/45-tickets.sh; printf \"\n%s passed, %s failed\n\" \"$PASSED\" \"$FAILED\"; [[ \"$PASSED\" -gt 1 && \"$FAILED\" -eq 0 ]]"
+      ],
+      "exit_code": 0,
+      "elapsed_seconds": 24.90657636699325
+    }
+  ],
+  "source_clean_after": true,
+  "passed": true,
+  "qualification_established": false
+}

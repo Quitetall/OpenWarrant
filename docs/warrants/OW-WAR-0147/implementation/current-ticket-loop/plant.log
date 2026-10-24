@@ -1,0 +1,26 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== tickets (OW-WAR-0147) ==
+ok    create→ready→claim→done, unsigned t-70b8 done; nothing signed, the signing queue unchanged (1)
+ok    a held item refuses a second claim bob refused, naming alice and since when
+ok    done refuses unclaimed and unknown someone else's, unclaimed, unknown: three refusals, nothing ticked
+ok    done by the holder releases it     carol's lock held, then gone after done; war tickets: 'alice@t-d898/i-3937,carol@t-d898/i-ad9f' -> 'alice@t-d898/i-3937'; one line ticked
+ok    concurrent claims: exactly one wins 8 processes, 1 claim, 1 journal event
+ok    a stale claim is stolen, journalled past the TTL: refused, then --steal took it from alice; fresh: refused
+ok    a hand-edited checklist is honoured reordered, reworded, added: read as written; done moved 2 lines (its own, the new id)
+ok    blockers keep items out of ready   same ticket (walls on foundation, roof on walls), another ticket's item (trim on t-f0fe/i-467d), a whole ticket (grout on t-81df, second coat on t-f0fe): out of ready and claim refused while open; ready and taken once done, the item behind still out; an unknown t-x/i-y refused
+ok    done→claim never refuses, 200x   8 workers × 25: every unblocked item listed by ready and taken by claim
+ok    prime: undone items, old done compacted remaining items and notes; t-0eff6d (2020) is one line; t-70b8 recent
+ok    check: an unsigned ticket is sound exit 0; no ticket finding about authorization, evidence or verification
+ok    check: a malformed checklist is named malformed box, duplicate id, two unknown blockers; in the corpus check too
+ok    a Warrant naming profile ticket    refused: a working form is not a Warrant of the contract corpus
+ok    every malformed working form refused the shipped profile passes; 8 variants refused by check and by ready, each by name: no core role, compiler-produced, foreign, duplicate, unknown form, core_roles without form, acceptance role, core profile with a form
+ok    the loop over war mcp              claim, a second agent refused by name, done, prime
+ok    war mcp: still no authority tool   41 tools, 27 refused names absent; war_sign and war_verify_ingest refused as unknown, nothing signed
+ok    promote drafts a Warrant, opt-in   t-70b8 → TK-WAR-0002, a draft awaiting its human; twice refused
+ok    --draft: the drafter's items, or none no drafter: refused, nothing created; a drafter: its two deliverables
+ok    each ticket command < 2 s here      create=88ms ready=63ms claim=24ms done=89ms add=84ms note=87ms prime=27ms prime=25ms show=28ms tickets=273ms check=29ms
+
+20 passed, 0 failed
