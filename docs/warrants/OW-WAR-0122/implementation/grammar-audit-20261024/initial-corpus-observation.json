@@ -1,0 +1,58 @@
+{
+  "schema": "oh.war/command-observation/v1",
+  "raw_artifact": "/mnt/4tb/artifacts/OpenWarrant/keep/ow122-grammar-20261024/initial-corpus-check.json",
+  "sha256": "80e7dd7aa03bd3e2c5ce85a153629f4ae761b38d64dacfc6b3d7f35581ae94a3",
+  "counts": {
+    "pass": 2050,
+    "warn": 423,
+    "unknown": 0,
+    "error": 4,
+    "worst": "error"
+  },
+  "exit_code": 2,
+  "errors": [
+    {
+      "severity": "error",
+      "rule": "corpus-status.drift",
+      "file": "docs/warrants/generated/CORPUS_STATUS.json",
+      "message": "the committed CORPUS_STATUS.json differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
+    },
+    {
+      "severity": "error",
+      "rule": "corpus-status.drift",
+      "file": "docs/warrants/generated/CORPUS_STATUS.html",
+      "message": "the committed CORPUS_STATUS.html differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
+    },
+    {
+      "severity": "error",
+      "rule": "generated.drift",
+      "file": "docs/generated/CURRENT.md",
+      "message": "the committed CURRENT.md differs from a fresh compilation; it was edited by hand or its sources changed without recompiling",
+      "remedy": {
+        "kind": "auto",
+        "argv": [
+          "war",
+          "admin",
+          "compile"
+        ],
+        "purpose": "regenerate every projection from its source and commit the result"
+      }
+    },
+    {
+      "severity": "error",
+      "rule": "generated.drift",
+      "file": "docs/generated/HISTORY.md",
+      "message": "the committed HISTORY.md differs from a fresh compilation; it was edited by hand or its sources changed without recompiling",
+      "remedy": {
+        "kind": "auto",
+        "argv": [
+          "war",
+          "admin",
+          "compile"
+        ],
+        "purpose": "regenerate every projection from its source and commit the result"
+      }
+    }
+  ],
+  "boundary": "Only the initial error findings are copied here. Full unedited report remains at the named durable artifact, including all passes and warnings."
+}

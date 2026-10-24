@@ -1,0 +1,56 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== the document grammar (OW-WAR-0122) ==
+ok    G-H0 an untouched scaffold         accepted, no atom.header
+ok    G-H1 header role changed           rejected by atom.header (header's `role` is "intent", but the manifest's role is "basis")
+ok    G-H2 header warrant_uuid changed   rejected by atom.header (header's `warrant_uuid` is "01a0d04c-5ee5-7ba2-9dc3-b9c50dcc6ba1", but the manifest's `uuid` is "01a16c06-1182-7488-9940-6d7a4ea747b6")
+ok    G-H3 header order changed          rejected by atom.header (header's `order` is "21", but the manifest's ordinal is "20")
+ok    G-H4 header schema removed         rejected by atom.header (the header has no `schema`)
+ok    G-J1 an unknown jurisdiction       rejected by atom.unknown-jurisdiction (declares jurisdiction "whatever")
+ok    G-J2 intent declared bound         rejected by atom.jurisdiction-mismatch (has role `intent`, which §16.1 places under `authored`)
+ok    G-J3 no jurisdiction at all        accepted, no atom.header
+ok    G-R1 an anchor                     rejected by atom.frontmatter (a YAML anchor is not supported)
+ok    G-R2 an alias                      rejected by atom.frontmatter (a YAML alias is not supported)
+ok    G-R3 a tag                         rejected by atom.frontmatter (a YAML tag is not supported)
+ok    G-R4 a flow sequence               rejected by atom.frontmatter (a flow sequence is not supported)
+ok    G-R5 a flow mapping                rejected by atom.frontmatter (a flow mapping is not supported)
+ok    G-R6 a block scalar                rejected by atom.frontmatter (a block scalar is not supported)
+ok    G-R7 a folded scalar               rejected by atom.frontmatter (a folded block scalar is not supported)
+ok    G-R8 a duplicate key               rejected by atom.frontmatter (duplicate key "classification")
+ok    G-R9 no opening fence              rejected by atom.frontmatter (does not begin with a `---` frontmatter fence)
+ok    G-R10 §62 example verbatim        rejected by atom.frontmatter (line 8: an indented (nested) mapping is not supported)
+ok    G-P1 §62 example minus holder     read; only atom.header, for warrant_uuid
+ok    G-P2 §62 example, own uuid        accepted, no atom.frontmatter
+ok    G-P3 a namespaced key              passes; the IR digest binds its bytes
+ok    G-M1 a duplicate ordinal           rejected by manifest.invalid (duplicate atom ordinal 10)
+ok    G-M2 a declared atom is missing    rejected by atom.missing (declared at ordinal 20)
+ok    G-M3 an unknown manifest key       accepted, no manifest.invalid
+ok    G-M4 an unknown required role      rejected by manifest.invalid (declares role "hypothesis")
+ok    G-M5 unknown optional plain role   rejected by manifest.invalid (declares role "hypothesis")
+ok    G-M6 a namespaced role, required   rejected by manifest.invalid (declares role "x.review")
+ok    G-M7 §16.1 role name decisions    rejected by manifest.invalid (declares role "decisions")
+ok    G-M8 a namespaced role, optional   accepted, and in the IR
+ok    G-M9 an atom bound by ref          rejected by atom.bound-unresolvable (cannot be resolved offline)
+ok    G-S1 an anchor in milestones       rejected by milestones.invalid (a YAML anchor is not supported)
+ok    G-S2 a mapping nested too deep     rejected by milestones.invalid (a mapping nested below a sequence item)
+ok    G-S3 duplicate key in milestones   rejected by milestones.invalid (duplicate key "schema")
+ok    G-S4 canonical JSON milestones     rejected by milestones.invalid (line 1: expected `key: value`)
+ok    G-B1 a heading, selected by text   accepted, no dispatch.section-missing
+ok    G-B2 a heading inside a fence      rejected by dispatch.section-missing (has no section "Fenced")
+ok    G-B3 a heading in another case     rejected by dispatch.section-missing (has no section "deliverables")
+ok    G-O1 an obligation with no scope   rejected by obligations.invalid ("OBL-001" declares no scope)
+ok    G-O2 obligation with no evidence   rejected by obligations.invalid ("OBL-001" declares no evidence)
+ok    G-O3 a duplicate obligation id     rejected by obligations.invalid (duplicate obligation id "OBL-001")
+ok    G-O4 a hyphen for the em dash      accepted, no obligations.invalid
+ok    G-G1 a gate not in the registry    rejected by gate.unresolved (gate://no.such.gate@9.9.9, which is not in the registry)
+ok    G-G2 §105 gate URI form           rejected by gate.unresolved (malformed gate URI "gate://software.repo.war-check/1.0.0")
+ok    G-D5 every standard cell quotes    46 row(s), each standard cell quotes or says unspecified
+ok    G-D6 the quotation control refuses a bare cell is reported: line 216: a namespaced role, required
+ok    G-D1 the document cites no drift   11 rule id(s), every one produced
+ok    G-D2 the drift control refuses     a planted citation is reported
+ok    G-D3 every divergence proposes     14 divergence(s), each with a proposed SAS text
+ok    G-D4 the proposal control refuses  a divergence without one is reported
+
+50 passed, 0 failed
