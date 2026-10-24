@@ -57,6 +57,9 @@ pub struct Task {
     /// The rung this task is expected to reach with the fixture drafter.
     #[serde(default = "default_expected")]
     pub expected: String,
+    /// Supplied interview answers, forwarded verbatim to the draft request.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub answers: BTreeMap<String, String>,
 }
 
 fn default_expected() -> String {
@@ -775,7 +778,18 @@ fn run_task(
         "§74.4 steps 5–6 (human review) waived by the harness inside the scratch program"
             .to_owned(),
     );
-    let plan = scratch.war(&["plan", &task.sentence, "--draft", "--apply", "--reviewed"])?;
+    let mut args = vec![
+        "plan".to_owned(),
+        task.sentence.clone(),
+        "--draft".to_owned(),
+        "--apply".to_owned(),
+        "--reviewed".to_owned(),
+    ];
+    for (id, answer) in &task.answers {
+        args.push("--answer".to_owned());
+        args.push(format!("{id}={answer}"));
+    }
+    let plan = scratch.war(&args.iter().map(String::as_str).collect::<Vec<_>>())?;
     r.steps.push(plan.step("plan.apply"));
     // Precedence at every step: a named refusal scores `refused`; any other
     // failure falls through to `errored` (a crash is not the tool doing its

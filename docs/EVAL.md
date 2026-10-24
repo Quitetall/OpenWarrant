@@ -21,6 +21,12 @@ scaffold before anything runs — gate definitions, mostly).
 Twelve tasks ship: four per kind, their sentences drawn from Warrants this
 repository actually resolved.
 
+Tasks may include an `[answers]` table mapping interview question IDs to supplied
+answers. The harness passes each entry as a `--answer` argument to `war plan`;
+the recorded `plan/request.json` retains its text. Answers are data, not shell
+commands or authority grants. Existing tasks with no answers keep their behavior.
+Their request token estimate includes any recorded answers.
+
 ## The ladder
 
 | rung | meaning |
