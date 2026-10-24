@@ -4,7 +4,7 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "74b112866a13bc2eef501f0798db10a535f926e98bdeaa14fb803b6144bcd243",
-  "summary": "Historical audit observed seven comparisons: stderr and exit codes match; four stdout comparisons differ through OW71 runtime-receipt applicability. Owner explicitly permits the bounded planned applicability changes; original observations and signed records remain unchanged. Pre-M1 check-generated timed out; scale/release-budget proof remains unobserved. Work remains in progress and unverified.",
+  "summary": "Debug and release historical audits completed seven paired command comparisons: same stderr and exit codes, four stdout differences with identical applicability diff bodies. Both release check-generated commands exceeded120s and remain UNKNOWN. Owner permits the bounded planned applicability changes; signed records and original observations stay unchanged. The1000-Warrant corpus and release budget remain unfinished. No completion or assurance claimed.",
   "notes": "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/build-identities.json",
@@ -16,7 +16,14 @@
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/owner-direction.json",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/functional-ci-excerpt.log",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/functional-ci-observation.json",
-    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/shared-preparation-ci-excerpt.log"
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/shared-preparation-ci-excerpt.log",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/build-identities.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/check-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/check.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/exception-classification.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/next.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/status-json.diff"
   ],
   "next_steps": [
     "Carry the owner-selected bounded applicability exception into the governed clarification; preserve other byte-comparison requirements and original observations.",

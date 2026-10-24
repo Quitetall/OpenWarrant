@@ -65,3 +65,20 @@ identity, Warrant-specific work, failed gates, different orders, an earlier
 failure and a second-call timeout. This addresses the implementation that the
 original M1 notes explicitly said was still absent. It supplies no historical
 byte-equality or performance result.
+
+## Release-profile comparison
+
+Both exact historical commits also built successfully in release mode, with
+clean source afterwards. The [release identities and observation](release-base/observation.json)
+retain their binary hashes, all command states, timings and raw-stream hashes.
+Seven command pairs completed. Both `check --generated` executions reached the
+unchanged 120-second command deadline; their comparisons remain UNKNOWN.
+
+The four changed stdout diff bodies match the earlier audit exactly. The
+[classification](release-base/exception-classification.json) compares diff bodies
+only to identify the same bounded applicability change; it does not rewrite raw
+streams, claim byte equality, activate an amendment or establish assurance.
+The signing list, console JSON and resolved pins remained byte-identical.
+
+These timings describe this frozen repository, not the required 1,000-Warrant
+budget. The synthetic corpus and its unchanged budget gate remain unfinished.
