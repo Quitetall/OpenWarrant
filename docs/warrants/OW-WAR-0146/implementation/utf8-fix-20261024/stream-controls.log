@@ -1,0 +1,25 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 47s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 2 tests
+test verification_subject_cli::captured_utf8_tail_respects_the_rendered_byte_limit ... ok
+test verification_subject_cli::captured_stream_limits_preserve_hashes_and_absence ... FAILED
+
+failures:
+
+---- verification_subject_cli::captured_stream_limits_preserve_hashes_and_absence stdout ----
+
+thread 'verification_subject_cli::captured_stream_limits_preserve_hashes_and_absence' (2124497) panicked at crates/openwarrant-cli/tests/verification_subject_cli.rs:5221:13:
+assertion `left == right` failed: stdout, input [97, 98, 99], limit 0
+  left: String("abc")
+ right: ""
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    verification_subject_cli::captured_stream_limits_preserve_hashes_and_absence
+
+test result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 369 filtered out; finished in 1.08s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

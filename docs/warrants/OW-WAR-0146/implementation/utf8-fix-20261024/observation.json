@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "observed_at": "2026-10-24T12:03:53.087734+00:00",
+  "warrant": "OW-WAR-0146",
+  "parent": "845c6a2b4a03b41d3cacbfbc50fed29eec61e67e",
+  "red_exit": 101,
+  "red_failure": "one-byte cap rendered U+FFFD instead of empty tail",
+  "cli_tests": {
+    "passed": 2,
+    "failed": 0
+  },
+  "existing_bundle_tests": {
+    "passed": 11,
+    "failed": 0
+  },
+  "clippy_exit": 0,
+  "scope": "stdout/stderr tails; ASCII, valid multibyte, invalid UTF8, default-zero configuration, empty and absent streams; full raw hashes and deterministic packet bytes",
+  "source_hashes": {
+    "crates/openwarrant-cli/src/bundle.rs": "7894a63c2da41fcaa39258a4d2a4365af0dcad280001dd872cd435ffafa5f2f1",
+    "crates/openwarrant-cli/tests/verification_subject_cli.rs": "673a1b33afade1b6c03f84fb1cac2b642350e27ef1294bacb27f5663a23b7085"
+  },
+  "qualification_granted": false,
+  "original_registered_controls": "await exact-head CI; earlier controls retained",
+  "authority_or_disposition_changed": false
+}
