@@ -23,10 +23,14 @@
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/exception-classification.json",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/next.diff",
     "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/observation.json",
-    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/status-json.diff"
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/status-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/generated-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/pre-capture.json"
   ],
   "next_steps": [
     "Carry the owner-selected bounded applicability exception into the governed clarification; preserve other byte-comparison requirements and original observations.",
+    "Complete the exact human-output generated-check comparison and bound the separately observed JSON projection-drift effects; do not substitute the diagnostic variant.",
     "Finish remaining functional, historical scale/budget and source-bound gate evidence without changing preserved records.",
     "Independent review and human acceptance remain separate."
   ]

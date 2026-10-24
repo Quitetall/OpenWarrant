@@ -1,0 +1,63 @@
+{
+  "schema": "oh.war/repository-layout-diagnostic/v1",
+  "scope": "Diagnostic only: same tracked corpus, standalone Git layout and absent ignored build outputs. No qualification or performance pass claimed.",
+  "qualification_established": false,
+  "commands": {
+    "clone": {
+      "exit_code": 0,
+      "argv": [
+        "git",
+        "clone",
+        "--shared",
+        "--no-checkout",
+        "--no-tags",
+        "--single-branch",
+        "--branch",
+        "agent/ow148-audit-20261023",
+        "/mnt/4tb/tmp/openwarrant-ow148-audit-20261023",
+        "/mnt/4tb/tmp/openwarrant-ow148-standalone-20261023"
+      ]
+    },
+    "checkout": {
+      "exit_code": 0,
+      "argv": [
+        "git",
+        "-C",
+        "/mnt/4tb/tmp/openwarrant-ow148-standalone-20261023",
+        "checkout",
+        "--detach",
+        "d21710454011b204a69c7a2f6364431bb4a55775"
+      ]
+    },
+    "check": {
+      "exit_code": 0,
+      "elapsed_seconds": 1.466238193999743,
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow148-standalone-20261023",
+        "--json",
+        "check"
+      ],
+      "stdout_sha256": "fa255bf284569cc7a6033e16be56004ea1c8f4e67b6c63aec957428f9175308c",
+      "completed": true
+    },
+    "check-generated": {
+      "exit_code": 2,
+      "elapsed_seconds": 1.966921197992633,
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow148-standalone-20261023",
+        "--json",
+        "check",
+        "--generated"
+      ],
+      "stdout_sha256": "a2a56670ca9d091fd990c834b7fc5e63ae50f77d6d3db6326e6ffa2912043c5b",
+      "completed": true
+    }
+  },
+  "head": "d21710454011b204a69c7a2f6364431bb4a55775",
+  "tree": "2148085cfc9d5886bf2a16cbebfc9949ff1fb756",
+  "source_clean_after": true
+}

@@ -82,3 +82,21 @@ The signing list, console JSON and resolved pins remained byte-identical.
 
 These timings describe this frozen repository, not the required 1,000-Warrant
 budget. The synthetic corpus and its unchanged budget gate remain unfinished.
+
+## Separate standalone JSON diagnostic
+
+A clean standalone clone of the same `d2171045…` tree produced a completed
+**JSON** generated-check report: the old release returned exit 0 after about
+248 seconds; the post-M2 release returned exit 2 after about two seconds.
+The [raw diff](standalone-diagnostic/generated-json.diff) includes the
+applicability diagnostic and three `corpus-status.drift` findings for the
+Markdown, JSON and HTML views. The [capture](standalone-diagnostic/pre-capture.json)
+retains the longer observation guard and makes no release-budget claim.
+
+This is a diagnostic variant with `--json`, not the exact human-output
+`check --generated` command required by OBL-001. Earlier timeouts remain. The
+clone also differs in Git layout, local origin and absent ignored build outputs;
+these observations do not establish the timeout's cause. No extra compatibility
+exception is assumed: determine whether fresh-rendered view changes are limited
+to the chosen applicability change before judging them. Raw reports remain in
+the durable artifact directory named by the audit.
