@@ -1,0 +1,61 @@
+{
+  "ci_head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "ci_run": 40033704288,
+  "consumer_source": "ada90ce194f146fce52df154745c65d9e2c86df4",
+  "files": [
+    {
+      "path": "crates/openwarrant-core/src/config.rs",
+      "sha256": "6e9b3e6e96c2b9a5029084497625265aace687a6f7c424e0c86b93476c713690",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/init/mod.rs",
+      "sha256": "5d441c05178af7b90c28db9faef6a77f5c9534847f6e27f49071da9982818fd5",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/init/guided.rs",
+      "sha256": "fd511d23c992ac1b00f62c773d2cf4e545ac61549ca28c0108db526d885e784c",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/lib.rs",
+      "sha256": "16b7cc80584b28a3ad50045553255a2b84f9e69fe8bcc9ec3df1482ef1ede18a",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/telemetry.rs",
+      "sha256": "fb04e8cadff9161afdbbc73009f278b8bb02b42ceb6e8f393c44d872add297c5",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/templates/adopt/20-basis.md",
+      "sha256": "9b28c249e0e4307b84ccdd52f6178f5dce28a4847b46711eaeb2c46bf67c2c66",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "conformance/plants.d/59-adoption.sh",
+      "sha256": "2cc3b2c3e2b4819500074ba1ff46e110d2a91796322fd474e6ecd8be63bb0943",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "conformance/plants.d/75-init-program.sh",
+      "sha256": "b902a757a27189344408fde4166c8cdf3088989d800e2481505e7cf74de2a613",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "conformance/plants.d/99-init.sh",
+      "sha256": "c1c919fc18c25b38d3a68bf8d8c50bb0826ca48fff1a29c003d0016a5968f4dd",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    }
+  ]
+}

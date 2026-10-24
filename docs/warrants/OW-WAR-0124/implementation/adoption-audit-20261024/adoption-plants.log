@@ -1,0 +1,24 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== brownfield adoption (OW-WAR-0124) ==
+ok    init records HEAD as the baseline  c6df3cb82426a8eb2a67bf22a2e56a3a59b1565a
+ok    the adopted scaffold passes check  exit 0
+ok    --baseline 0000000 is refused      exit 1, nothing written
+ok    a commit off HEAD's history refused exit 1, nothing written
+ok    --baseline HEAD~1 records its full id 3ae9430f5766881dd54674cd89c8304ec1b7e0a2
+ok    no commits, no [adoption] table    three lines, as before
+ok    0 candidates right after init      read from c6df3cb82426a8eb2a67bf22a2e56a3a59b1565a..HEAD
+ok    one uncited commit is 1 candidate  1
+ok    an ACME-WAR citation is tracked    still 1
+ok    an OW-WAR citation is not tracked  2
+ok    no baseline reads all history      5, named as all history
+ok    the adopt Basis names the baseline and claims nothing before it
+ok    no history, no baseline section    and no marker left
+ok    pins lists no pre-baseline file    exit 0
+ok    pins lists paths where some are pinned this corpus
+ok    resolve --dry-run: nothing established exit 2
+ok    existing ADRs get the migrate line one line, nothing imported
+ok    no ADR corpus, no migrate line     README.md alone, or no directory
+PLANT SETUP FAILED: /mnt/4tb/tmp/openwarrant-ow124-adoption-20261024/scratch/tmp.zJqQsECT5j/outside is already inside a work tree

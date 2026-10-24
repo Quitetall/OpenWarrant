@@ -1,0 +1,31 @@
+{
+  "schema": "oh.war/workflow-observation/v1",
+  "tool_sha256": "a39cdbbc9c8855a4573c5349955b03f858720809eec02287a0cdc836e1f6b0a9",
+  "fixture_history_commits": 3,
+  "commands": [
+    "init --namespace ACME --name Acme",
+    "create Record fixture observation --item Observe setup records without signatures",
+    "view prime",
+    "claim t-fcfa/i-9ed6",
+    "done t-fcfa/i-9ed6 --note Observed minimal configuration and ticket files; signing records absent",
+    "view prime"
+  ],
+  "all_exit_codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "ssh_agent_reachable": false,
+  "preset": {
+    "name": "vibe",
+    "ticks": "claimed",
+    "signing": "never",
+    "pr_requires_official": false
+  },
+  "adoption_baseline_matches_fixture_head": true,
+  "authority_paths_after": [],
+  "boundary": "Synthetic observation ticket only; no software feature, independent verdict, signature or assurance claimed. No human key provisioned."
+}
