@@ -1,0 +1,15 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== authorization retention (OW-WAR-0144) ==
+ok    a dry run keeps nothing            the Warrant directory is byte-identical
+FAIL  dry run sees the kept-name collision exit 0: PASS authorize.would-record             AR-WAR-0001: revision 2 at contract a324236000e41861d0c7f57a7b33320772c693b66d53d87d45b34368bc23f298 would be recorded, granting 0 path(s) under set sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945. Not written|
+ok    a colliding kept name refuses      authorize.retire-collision, entire Warrant directory unchanged
+ok    revision 1 is kept beside revision 2 authorization.2d7bd412.toml, same bytes
+ok    the revision-1 envelope verifies   attest.subject-archived
+ok    without it, the envelope drifts    attest.subject-drift names authorization.toml
+ok    the kept file is not a record      check clean; no authorization pending
+ok    an identical kept copy is reused   same file and bytes, revision 3 permitted
+
+8 passed, 1 failed

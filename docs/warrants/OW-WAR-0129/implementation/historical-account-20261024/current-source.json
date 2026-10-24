@@ -1,0 +1,31 @@
+{
+  "protected_source": "4a9f0b8088756aa933eff08079de35b18f83a768",
+  "protected_run": 40099735996,
+  "protected_gate": "14 steps green, 1716 plants, zero failures",
+  "files": [
+    {
+      "id": "D-001",
+      "path": "crates/openwarrant-compiler/src/dispatch.rs",
+      "sha256": "aca4710e70e4430093d3a1ce6addd1f51f04cf9c1c15966d1cc5111b301ade5e",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-002",
+      "path": "crates/openwarrant-cli/src/dispatch.rs",
+      "sha256": "94d6a9f0aa12aa565ecc2e2cb5fc0529640d9aa14ee18791174e1573192e2e7d",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-003",
+      "path": "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs",
+      "sha256": "b34037aa85d235913e27a22b1e70864a25cee5769b254e7f13946c8e9780f600",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-004",
+      "path": "conformance/plants.d/83-tokens.sh",
+      "sha256": "cb5f99a170a93ea0b62128f5fec4751bab9d4a8ff560dff460ebc185c85431e0",
+      "matches_protected_ci_source": true
+    }
+  ]
+}

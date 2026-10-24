@@ -1,0 +1,160 @@
+{
+  "corpus_source": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+  "warrant": "OW-WAR-0047",
+  "stage": "STAGE-002",
+  "mode": "prototype compilation only; no actor execution",
+  "accounts": {
+    "before": {
+      "budget_tokens": 32000,
+      "estimated_tokens": 4533,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    },
+    "after": {
+      "budget_tokens": 32000,
+      "estimated_tokens": 4533,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    }
+  },
+  "equal": true,
+  "context_manifests_identical": true,
+  "context_sha256": "63857e380bd4945d587071e05d32b5f7724b8424b89c55e923dde090f70fd9db",
+  "input_trees": {
+    "before": "811fc88779a816a43573c2a07291cc0aa0d958e2",
+    "after": "811fc88779a816a43573c2a07291cc0aa0d958e2"
+  },
+  "commands": [
+    {
+      "name": "clone",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "clone",
+        "--quiet",
+        "--shared",
+        "--no-hardlinks",
+        "/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "name": "checkout",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "checkout",
+        "--quiet",
+        "--detach",
+        "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "before-reset",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "reset",
+        "--hard",
+        "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "before-clean",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "clean",
+        "-fd"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "before-tree",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "before-dispatch",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/corpus-replay",
+        "--json",
+        "dispatch",
+        "OW-WAR-0047",
+        "STAGE-002",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/corpus-replay/before.json",
+        "--emit-context",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/corpus-replay/before-context.json"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "after-reset",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "reset",
+        "--hard",
+        "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "after-clean",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "clean",
+        "-fd"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "after-tree",
+      "argv": [
+        "git",
+        "-c",
+        "core.hooksPath=/dev/null",
+        "rev-parse",
+        "HEAD^{tree}"
+      ],
+      "exit": 0
+    },
+    {
+      "name": "after-dispatch",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/corpus-replay",
+        "--json",
+        "dispatch",
+        "OW-WAR-0047",
+        "STAGE-002",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/corpus-replay/after.json",
+        "--emit-context",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/corpus-replay/after-context.json"
+      ],
+      "exit": 0
+    }
+  ],
+  "qualification": false
+}

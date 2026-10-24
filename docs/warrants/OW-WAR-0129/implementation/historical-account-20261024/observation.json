@@ -1,0 +1,53 @@
+{
+  "schema": "oh.war/implementation-completion-observation/v1",
+  "warrant": "OW-WAR-0129",
+  "performer": "agent://codex",
+  "implementation_complete": true,
+  "independent": false,
+  "verified": false,
+  "historical_before": "fdd346c54417069593d0f393dc63fe24d70424b8",
+  "historical_after": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+  "historical_clean_builds": true,
+  "toolchain": "Rust 1.97.1",
+  "original_corpus_case": {
+    "corpus_source": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+    "warrant": "OW-WAR-0047",
+    "stage": "STAGE-002",
+    "estimated_tokens_before": 4533,
+    "estimated_tokens_after": 4533,
+    "budget_before": 32000,
+    "budget_after": 32000,
+    "method": "oh.war/token-estimate/bytes-div-4/v1",
+    "context_manifests_identical": true
+  },
+  "additional_generated_fixture": {
+    "estimated_tokens_before": 1048,
+    "estimated_tokens_after": 1048,
+    "budget": 12000,
+    "named_over_budget_refusal_without_output_both_versions": true
+  },
+  "current_cli_controls": {
+    "pass": 15,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "current_compiler_boundary": {
+    "pass": 1,
+    "fail": 0
+  },
+  "current_declared_files_match_protected_source": "4a9f0b8088756aa933eff08079de35b18f83a768",
+  "protected_run": 40099735996,
+  "protected_steps": 14,
+  "protected_plants": {
+    "pass": 1716,
+    "fail": 0
+  },
+  "evidence_root": "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024",
+  "limits": [
+    "Prototype compilation only; historical comparison starts no actors and grants no authority.",
+    "Equality is established for the named original corpus stage and generated fixture, not all possible inputs or actual model tokenizers.",
+    "Current selection may legitimately include later required context; no historical/current token-count equality is claimed across those later semantic changes.",
+    "Historical delivery reconciliation, admissible canonical gate receipts, independent dispositions and human resolution remain open."
+  ],
+  "qualification": false
+}

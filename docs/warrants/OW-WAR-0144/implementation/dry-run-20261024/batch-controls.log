@@ -1,0 +1,18 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== batch act (OW-WAR-0072) ==
+ok    a batch without --ssh-sign         batch.needs-ssh (exit 2)
+ok    a target that awaits nothing       batch.unknown-act (exit 2)
+ok    an act named twice                 batch.duplicate-act (exit 2)
+ok    a refused batch writes nothing     no batch, no response left behind
+ok    a batch dry run                    batch.would-record (exit 0)
+ok    a batch dry run writes nothing     no batch, no response left behind
+ok    a failure mid-record records nothing batch.incomplete, docs/ byte-identical
+ok    a batch records every act          2 act(s), one batch signature
+ok    the check believes the batch       2 record(s) signed through the batch
+ok    the batch is attested              one envelope over the batch verifies
+ok    a batch covers exact bytes only    the edited response is not covered
+
+12 passed, 0 failed

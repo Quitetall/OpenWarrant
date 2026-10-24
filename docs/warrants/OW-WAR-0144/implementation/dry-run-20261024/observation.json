@@ -1,0 +1,53 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0144",
+  "performer": "agent://codex",
+  "independent": false,
+  "parent": "b59c3399f1ad2df09f836b79bf103cb724db9acd",
+  "red": {
+    "pass": 8,
+    "fail": 1,
+    "observation": "dry run returned authorize.would-record while actual signing refused authorize.retire-collision"
+  },
+  "first_green": {
+    "pass": 9,
+    "fail": 0
+  },
+  "pipe_red": {
+    "pass": 9,
+    "fail": 1,
+    "observation": "bounded preview of retained FIFO exceeded five-second observation guard; live child was observed waiting for a pipe partner"
+  },
+  "final_green": {
+    "pass": 10,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "batch_controls": {
+    "pass": 12,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "authorization_units": {
+    "pass": 11,
+    "fail": 0
+  },
+  "source_sha256": {
+    "crates/openwarrant-cli/src/authorize.rs": "f082d3d85bb50a4754856d14645843b77b6dfb1bdf659605f81e608883655f4e",
+    "conformance/plants.d/49-authorization-retained.sh": "014c6030d00cdce311798c60e32402ffdf28f4c26f133a9b4dfe830bac9f6cac"
+  },
+  "source_patch": "/mnt/4tb/artifacts/OpenWarrant/keep/ow144-dry-run-20261024/source.patch",
+  "patch_sha256": "271c0c28f960d7c56400df7e814536c41e342e85105caf0009b5e6216ad782ce",
+  "quality": {
+    "all_target_clippy_warnings_denied": true,
+    "fmt": true,
+    "bash_syntax": true
+  },
+  "limits": [
+    "Tests use disposable fixture actors, keys and records, not real human approval.",
+    "No archive or authorization record is written by the preview; the no-write snapshot is bounded to the synthetic Warrant regular files plus explicit FIFO preservation.",
+    "These serial fixture observations do not prove filesystem confinement or eliminate concurrent changes and later storage failures.",
+    "Protected current-head CI, delivery reconciliation, independent qualification and human resolution remain separate."
+  ],
+  "qualification": false
+}

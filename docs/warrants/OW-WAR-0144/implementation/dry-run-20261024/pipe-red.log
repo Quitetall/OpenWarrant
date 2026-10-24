@@ -1,0 +1,16 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== authorization retention (OW-WAR-0144) ==
+ok    a dry run keeps nothing            the Warrant directory is byte-identical
+ok    dry run sees the kept-name collision authorize.retire-collision, Warrant files unchanged
+ok    a colliding kept name refuses      authorize.retire-collision, entire Warrant directory unchanged
+FAIL  a retained pipe is refused unread  exit 124: retained-path preview exceeded its five-second observation bound|
+ok    revision 1 is kept beside revision 2 authorization.6bfac57d.toml, same bytes
+ok    the revision-1 envelope verifies   attest.subject-archived
+ok    without it, the envelope drifts    attest.subject-drift names authorization.toml
+ok    the kept file is not a record      check clean; no authorization pending
+ok    an identical kept copy is reused   same file and bytes, revision 3 permitted
+
+9 passed, 1 failed

@@ -1,0 +1,18 @@
+{
+  "source_checkout_unavailable": true,
+  "inherited_git_routing_cleared": true,
+  "canary_file_head_and_status_unchanged": true,
+  "fixture_signing_disabled": true,
+  "accounts": {
+    "before": {
+      "budget_tokens": 12000,
+      "estimated_tokens": 1048,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    },
+    "after": {
+      "budget_tokens": 12000,
+      "estimated_tokens": 1048,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    }
+  }
+}
