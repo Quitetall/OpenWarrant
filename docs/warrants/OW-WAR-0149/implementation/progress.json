@@ -3,8 +3,8 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate adds a portable real Katana CLI capture fixture and exact TLS security patch. Katana transport and its dependency fix are merged; six CLI and eight native provider controls pass. OpenWarrant TLS4 and actual CLI capture1 controls, advisory and license checks pass locally. Responses remain scripted localhost fixtures. Real provider/human qualification, participant acceptance, operator protections and remaining lifecycle coverage stay open; no assurance is awarded.",
-  "notes": "docs/warrants/OW-WAR-0149/implementation/katana-cli-20261015/README.md",
+  "summary": "Real local provider wiring observed, unqualified: isolated local-only LAMU CPU service and actual Katana reached a real model. Its edit arguments were malformed, no target changed and both tests still failed despite native turn status done. Strict replay passes but does not prove task completion. The fixed service lifetime ended; no budget raised, binding/receipt import or assurance claimed. Earlier scripted native controls remain separate.",
+  "notes": "docs/warrants/OW-WAR-0149/implementation/real-local-provider-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/evidence-index-20261011.md",
     "docs/warrants/OW-WAR-0149/implementation/verifier-observations-20261010/README.md",
@@ -37,9 +37,11 @@
     "docs/warrants/OW-WAR-0149/implementation/native-schema-pack-20261011/README.md",
     "docs/warrants/OW-WAR-0149/implementation/workbench-dispatch-20261011/README.md",
     "docs/warrants/OW-WAR-0149/implementation/workbench-captures-20261011/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/workbench-workspace-20261011/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/workbench-workspace-20261011/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/real-local-provider-20261024/observation.json"
   ],
   "next_steps": [
+    "Use a capable permitted local model within a freshly declared resource envelope; require actual fixture success before native bound capture or completion.",
     "Land the current OpenWarrant candidate after full CI, then complete fresh runtime-linked lifecycle coverage, real coding-agent/provider and human observations, and independent qualification. OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."

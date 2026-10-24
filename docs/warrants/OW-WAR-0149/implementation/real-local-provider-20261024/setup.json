@@ -1,0 +1,11 @@
+{
+  "scratch": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024",
+  "owned_port": 19060,
+  "cpu_only": true,
+  "routing": "local-only",
+  "credentials_inherited": false,
+  "memory_limit": "4G",
+  "cpu_quota": "200%",
+  "model": "ow-cpu-probe",
+  "settings_and_registry_verified": true
+}
