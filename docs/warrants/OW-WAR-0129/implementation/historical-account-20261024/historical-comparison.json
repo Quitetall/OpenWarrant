@@ -1,0 +1,215 @@
+{
+  "schema": "oh.war/performer-historical-comparison/v1",
+  "before": "fdd346c54417069593d0f393dc63fe24d70424b8",
+  "after": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+  "fixture_baseline": "bdb6cdc209dfefc8d43773217c8961bd1fa25c55",
+  "fixture_alias": "HB-WAR-0001",
+  "source_files_sha256": {
+    "openwarrant.toml": "4fe30fd5bcb7b608f68d523fceeafec5297edca716db8d37eaff0e892372f317",
+    "AGENTS.md": "e248d978739102e138927f93e500ab8bfd24213ee4ea395b36f76341ac81934c",
+    "docs/authority/allowed_signers.example": "971a6999974145267b7521f70a8dbf3153e207b8008b73f09558ca00daca2ce1",
+    "docs/authority/roles.toml.example": "73cc582e8e510992f18e141272d7671e370763cff631ce8cd8074e727cf2c50f",
+    "docs/sas/Budget_history_fixture_SAS.md": "7899e4c523b251661649f03f5f2258747039ade806ddf75da55af47a5954ce21",
+    "docs/gates/software.repo.war-check@1.0.0.yaml": "9b2a494ef64ced425962626757822b6e6c3528fbfdfe76e5e5e68fd772bc1c69",
+    "docs/sas/generated/NORMATIVE.json": "163393ad2646a65b51ac43a2d2b0a8ecea0723bfa829844149e1f9871b52d771",
+    "docs/sas/generated/NORMATIVE.md": "c6a81ced3bb819f55dd7cd845435b444b75a0d6b6a6e394e4bd4a29938a50953",
+    "docs/warrants/HB-WAR-0001/manifest.toml": "9a78c38b2968f90dc5678708efc713d8b35c8435c13ca8e7330d9c8e3f653f31",
+    "docs/warrants/HB-WAR-0001/journal.jsonl": "ea9ff722b513136b32d7aad580f2fc71ce1e3dbe3786b397b3b6f05e3289634a",
+    "docs/warrants/generated/WARRANT_OVERVIEW.md": "1ea912ecc392cbe5899e2320c91e7a602b3e9988a9cbb6d7cfc50dd0241adaa5",
+    "docs/warrants/generated/CORPUS_TIMELINE.json": "3670d1555fce90c77d5a6ebcd7bce927426dc6dc115cd76bb4f2d1ab45981832",
+    "docs/warrants/generated/CORPUS_STATUS.md": "74d538013ba9d64e93bcdb49fbd55c2d6b4c847e450ea3e34a30f29c8897bf45",
+    "docs/warrants/generated/CORPUS_STATUS.json": "0c326daaf0142cfb938a26e92c15d0ae979f4e5bd376d240810dd6db81d3a3e2",
+    "docs/warrants/generated/CORPUS_STATUS.html": "8ffacaa2a086573784f3785a41f40107f7e71dede977db74696caece999d904c",
+    "docs/warrants/generated/CORPUS_PENDING.json": "1058c246b9932495d8c6aeeb118a82c4f0891baba2b22c47c6c349bcc2d42c87",
+    "docs/warrants/HB-WAR-0001/generated/WAR.md": "7469a6eb7b9b95218fa535b89fb1a2e8bd17d286f098fb94003a91f0fb2318b8",
+    "docs/warrants/HB-WAR-0001/generated/WAR.json": "0bbe039c49543da6385ce08753b73d4d4e19128322821064daa1d91b8463b987",
+    "docs/warrants/HB-WAR-0001/atoms/20-basis.md": "49b449cfbcae25dd7a52a7fa8cf7dbb4a181842db192acf71e7cac7bd0e84c3e",
+    "docs/warrants/HB-WAR-0001/atoms/10-intent.md": "3c9f873bb8666508a59e7b4a6ba1b669d7af42c4c8de3830daf932c840be0d02",
+    "docs/warrants/HB-WAR-0001/atoms/40-work-order.md": "41a5460f7495fedca2506574af125183bf3aaaf3abd3439119c53bcd491ea221",
+    "docs/warrants/HB-WAR-0001/atoms/60-assurance.md": "51e7a9985f6f6ab650dd22144b74777594537d513a8a2e7765a1703d63056902",
+    "docs/warrants/HB-WAR-0001/atoms/45-milestones.yaml": "fc7e45d384b0ba34b22221305474156665b7f8e880fea727a8436beea0c881ea",
+    "docs/adr/generated/ADR_OVERVIEW.md": "f1bb6ac4c2ca5354c2d0a7213b7941d9d56f9032d4bae75908d80eb7f0a91a73"
+  },
+  "accounts": {
+    "before": {
+      "budget_tokens": 12000,
+      "estimated_tokens": 1048,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    },
+    "after": {
+      "budget_tokens": 12000,
+      "estimated_tokens": 1048,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    }
+  },
+  "accounts_equal": true,
+  "over_budget_refused_both": true,
+  "no_refused_packet_written": true,
+  "commands": [
+    {
+      "label": "git-init",
+      "argv": [
+        "git",
+        "init",
+        "-q",
+        "."
+      ],
+      "exit": 0
+    },
+    {
+      "label": "init",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/fixture",
+        "init",
+        "--program",
+        "Budget history fixture",
+        "--namespace",
+        "HB"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "compile",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/fixture",
+        "compile"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "git-add",
+      "argv": [
+        "git",
+        "add",
+        "-A"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "git-commit",
+      "argv": [
+        "git",
+        "-c",
+        "user.name=Budget Fixture",
+        "-c",
+        "user.email=fixture@invalid",
+        "commit",
+        "-qm",
+        "Frozen token-account comparison fixture"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "before-reset",
+      "argv": [
+        "git",
+        "reset",
+        "--hard",
+        "bdb6cdc209dfefc8d43773217c8961bd1fa25c55"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "before-clean",
+      "argv": [
+        "git",
+        "clean",
+        "-fd"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "before-dispatch",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/fixture",
+        "--json",
+        "dispatch",
+        "HB-WAR-0001",
+        "STAGE-001",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-dispatch.json",
+        "--emit-context",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-context.json"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "before-over-budget",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/fixture",
+        "--json",
+        "dispatch",
+        "HB-WAR-0001",
+        "STAGE-002",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-refused.json"
+      ],
+      "exit": 2
+    },
+    {
+      "label": "after-reset",
+      "argv": [
+        "git",
+        "reset",
+        "--hard",
+        "bdb6cdc209dfefc8d43773217c8961bd1fa25c55"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "after-clean",
+      "argv": [
+        "git",
+        "clean",
+        "-fd"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "after-dispatch",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/fixture",
+        "--json",
+        "dispatch",
+        "HB-WAR-0001",
+        "STAGE-001",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-dispatch.json",
+        "--emit-context",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-context.json"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "after-over-budget",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/fixture",
+        "--json",
+        "dispatch",
+        "HB-WAR-0001",
+        "STAGE-002",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-refused.json"
+      ],
+      "exit": 2
+    }
+  ],
+  "independent": false,
+  "qualification": false
+}

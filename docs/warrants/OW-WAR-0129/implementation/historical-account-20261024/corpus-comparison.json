@@ -1,0 +1,61 @@
+{
+  "schema": "oh.war/performer-historical-comparison/v1",
+  "corpus_source": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+  "warrant": "OW-WAR-0047",
+  "stage": "STAGE-002",
+  "mode": "prototype compilation only, no actor execution",
+  "accounts": {
+    "before": {
+      "budget_tokens": 32000,
+      "estimated_tokens": 4533,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    },
+    "after": {
+      "budget_tokens": 32000,
+      "estimated_tokens": 4533,
+      "method": "oh.war/token-estimate/bytes-div-4/v1"
+    }
+  },
+  "accounts_equal": true,
+  "context_manifests_identical": true,
+  "commands": [
+    {
+      "label": "before",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/source-offline",
+        "--json",
+        "dispatch",
+        "OW-WAR-0047",
+        "STAGE-002",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-corpus-dispatch.json",
+        "--emit-context",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/before-corpus-context.json"
+      ],
+      "exit": 0
+    },
+    {
+      "label": "after",
+      "argv": [
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-war",
+        "--root",
+        "/mnt/4tb/tmp/openwarrant-ow129-history-20261024/source-offline",
+        "--json",
+        "dispatch",
+        "OW-WAR-0047",
+        "STAGE-002",
+        "--prototype",
+        "--emit",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-corpus-dispatch.json",
+        "--emit-context",
+        "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/after-corpus-context.json"
+      ],
+      "exit": 0
+    }
+  ],
+  "independent": false,
+  "qualification": false
+}
