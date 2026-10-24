@@ -1,0 +1,20 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+ok    the packet carries its token account estimate, budget and method are in the packet
+ok    an over-budget stage is refused    rejected by dispatch.over-budget (largest:)
+ok    a non-numeric budget is refused    rejected by milestones.invalid (budget_tokens)
+ok    a compile is journalled            the last journal event is dispatch.compiled with its estimate
+ok    the CLI keeps no budget check      the comparison is the compiler's; the CLI maps OverBudget
+ok    an in-budget stage is unchanged    same estimate, budget and method as before the move
+ok    perform over budget starts nothing rejected by dispatch.over-budget; no marker, packet or journal line
+ok    perform in budget starts the actor the marker exists: the refusal above is the budget's
+ok    perform --all skips only the over  STAGE-002 performed; STAGE-001 named by dispatch.over-budget
+ok    run over budget runs no gate       rejected by dispatch.over-budget; no gate run, no receipt
+ok    run in budget mints a receipt      the gate ran: the refusal above is the budget's
+ok    bundle over budget is refused      rejected by bundle-over-budget; nothing at --emit
+ok    bundle with no tokens is refused   rejected by bundle-tokens-unrecorded; nothing at --emit
+ok    the unedited Dispatch is bundled   the refusals above are not blanket
+
+15 passed, 0 failed

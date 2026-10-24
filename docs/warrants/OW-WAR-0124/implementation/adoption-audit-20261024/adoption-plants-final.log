@@ -1,0 +1,47 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== brownfield adoption (OW-WAR-0124) ==
+ok    init records HEAD as the baseline  4db9c283806862c1bfe12c301759334f4b84b1c7
+ok    the adopted scaffold passes check  exit 0
+ok    --baseline 0000000 is refused      exit 1, nothing written
+ok    a commit off HEAD's history refused exit 1, nothing written
+ok    --baseline HEAD~1 records its full id 268844fdd5727c575fb850a805972fb2eab32ef6
+ok    no commits, no [adoption] table    three lines, as before
+ok    0 candidates right after init      read from 4db9c283806862c1bfe12c301759334f4b84b1c7..HEAD
+ok    one uncited commit is 1 candidate  1
+ok    an ACME-WAR citation is tracked    still 1
+ok    an OW-WAR citation is not tracked  2
+ok    no baseline reads all history      5, named as all history
+ok    the adopt Basis names the baseline and claims nothing before it
+ok    no history, no baseline section    and no marker left
+ok    pins lists no pre-baseline file    exit 0
+ok    pins lists paths where some are pinned this corpus
+ok    resolve --dry-run: nothing established exit 2
+ok    existing ADRs get the migrate line one line, nothing imported
+ok    no ADR corpus, no migrate line     README.md alone, or no directory
+ok    outside a work tree: git init      said so; check ready
+ok    plain init outside: git init too   said so
+ok    inside a work tree: no nested .git enclosing HEAD unchanged
+ok    no git: init continues, says so    exit 0, scaffold written
+ok    no git: identity.changed is UNKNOWN never a pass
+ok    this repository reads all history  1797 candidates, recounted from git log; no adoption_baseline
+ok    0124 leaves the authority steps    1 commit(s): six regions byte-identical before and after
+ok    a touched authority step is seen   a line planted in render_roles is reported, and nothing else
+ok    a scaffolded program passes check  exit 0 
+ok    the scaffold proposes its SAS      exit 0 sas.proposed
+ok    the scaffold still passes after the proposal exit 0 
+ok    next names the human acts          exit 0 HUMAN
+ok    the first Warrant implements RQ-001 exit 0 PP-SAS-RQ-001
+ok    a digit in the namespace is refused exit 1 uppercase ASCII letters only
+== init asks nothing; guided is opt-in (OW-WAR-0112, M9) ==
+ok    init without a terminal asks nothing namespace MGE derived, no signing setup
+ok    --non-interactive still works      accepted, namespace NI derived
+ok    --guided needs a terminal          refused (exit 1, 1), nothing written
+ok    scripted scaffold unchanged        examples only, three lines
+ok    examples state the rule            both examples state the write-once rule
+ok    plain init leads with tickets      the first hint is the ticket start
+ok    scaffold output keeps its shape    no start line in the pinned three
+
+40 passed, 0 failed

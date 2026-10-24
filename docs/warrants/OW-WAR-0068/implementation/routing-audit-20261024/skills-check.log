@@ -1,0 +1,5 @@
+   Compiling xtask v1.0.0 (/mnt/4tb/tmp/openwarrant-ow68-routing-20261024/xtask)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.38s
+     Running `target/debug/xtask skills`
+   SKILL.md: frontmatter present, 8 reference(s) all linked and present
+   no em-dash in any agent-facing document

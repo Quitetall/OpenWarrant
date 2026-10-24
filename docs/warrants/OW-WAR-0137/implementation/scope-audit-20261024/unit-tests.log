@@ -1,0 +1,16 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 9 tests
+test authorize::assignment::tests::narrowing_never_adds_anyone ... ok
+test authorize::assignment::tests::a_valid_assignment_has_no_findings ... ok
+test authorize::assignment::tests::an_actor_without_the_role_is_refused_not_granted ... ok
+test authorize::assignment::tests::an_agent_resolver_is_refused_by_kind_even_holding_the_role ... ok
+test authorize::assignment::tests::the_performer_cannot_be_its_own_verifier ... ok
+test authorize::assignment::tests::a_moved_or_unsigned_assignment_lets_nobody_act ... ok
+test authorize::assignment::tests::standing_names_every_edit_after_signing ... ok
+test authorize::assignment::tests::the_digest_ignores_order_and_moves_with_an_actor ... ok
+test authorize::assignment::tests::parse_refuses_what_it_cannot_read_as_an_assignment ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 541 filtered out; finished in 0.00s
+

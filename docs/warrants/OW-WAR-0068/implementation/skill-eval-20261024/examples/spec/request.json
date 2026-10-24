@@ -1,0 +1,11 @@
+{
+  "api_version": "oh.war/draft-request/v1",
+  "user_request": "A retry policy states the settled limits and the refusal case.",
+  "namespace": "EV",
+  "profile": "delivery",
+  "assurance": "basic",
+  "existing_warrants": [
+    "EV-WAR-0001"
+  ],
+  "existing_adrs": []
+}

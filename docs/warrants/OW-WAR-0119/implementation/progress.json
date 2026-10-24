@@ -4,10 +4,11 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "47cc456348ae0ebe4291177647b6f563fb191c21",
-  "summary": "Observed 32 hosted identity controls and 10 focused identity/BLUT tests passing. Original 23 ADR identities preserved; current 36-ADR population explicitly bounded. Independent review and human resolution remain pending.",
-  "notes": "docs/warrants/OW-WAR-0119/implementation/identity-controls-20261011/README.md",
+  "summary": "Completion audit reproduced and corrected an identity check reporting PASS beside UNKNOWN when Git objects or a historical UUID were unavailable. Expanded CLI controls pass 37/0; nine identity and one BLUT unit pass, with Clippy/fmt clean. Original 23 ADR identities remain unchanged; current corpus is separately bounded at 37. Protected candidate CI and eight formal closure requirements remain pending.",
+  "notes": "docs/warrants/OW-WAR-0119/implementation/unknown-comparison-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0119/implementation/identity-controls-20261011/observation.json"
+    "docs/warrants/OW-WAR-0119/implementation/identity-controls-20261011/observation.json",
+    "docs/warrants/OW-WAR-0119/implementation/unknown-comparison-20261024/observation.json"
   ],
   "next_steps": [
     "Independent reviewer assesses all five obligations against retained exact sources and observed refusal cases.",

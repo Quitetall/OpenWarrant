@@ -1,0 +1,15 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.19s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 7 tests
+test perform::tests::this_build_has_the_group_kill_exactly_on_unix ... ok
+test perform::tests::concurrency_defaults_to_one ... ok
+test perform::tests::the_stderr_note_is_the_last_line_or_nothing ... ok
+test perform::tests::repairs_and_recoveries_are_counted_apart ... ok
+test perform::tests::a_writer_is_alive_gone_or_unknown_and_never_guessed ... ok
+test perform::tests::a_platform_with_the_group_kill_is_admitted ... ok
+test perform::tests::a_platform_without_the_group_kill_is_refused_before_anything_runs ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 543 filtered out; finished in 0.01s
+

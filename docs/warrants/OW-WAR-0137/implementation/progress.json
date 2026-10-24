@@ -4,12 +4,14 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "6d94916f77328182ffbcbf7195baee1580b7185b",
-  "summary": "Assigned-review and verifier-bundle controls pass 53/0, and all nine CLI assignment unit tests pass. Signed assignments narrow eligibility; identity counts are bounded to recorded fixture actors. Eight closure requirements remain unmet, without repinning or self-verification.",
-  "notes": "docs/warrants/OW-WAR-0137/implementation/team-scope-20261012/README.md",
+  "summary": "Full-scope audit observes 47 assignment controls, five unassigned-verifier compatibility controls and shared positive corpus passing, plus nine assignment units. Twelve delivery files match protected CI; check.rs differs only by the W113 rationale check and is exercised by current controls. Basis U-001 still requires an owner model choice; confirmation and formal qualification remain pending.",
+  "notes": "docs/warrants/OW-WAR-0137/implementation/scope-audit-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0137/implementation/team-scope-20261012/observation.json"
+    "docs/warrants/OW-WAR-0137/implementation/team-scope-20261012/observation.json",
+    "docs/warrants/OW-WAR-0137/implementation/scope-audit-20261024/observation.json"
   ],
   "next_steps": [
+    "Retain the pending owner decision without fabricating a historical act; current implementation observations do not establish that decision.",
     "Run the full registered gate on the exact committed candidate.",
     "Reconcile historical delivery ownership and assess all declared obligations independently.",
     "Human acceptance and resolution remain separate; fixture identities are not real-user study participants."

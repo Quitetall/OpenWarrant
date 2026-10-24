@@ -1,0 +1,43 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0148",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "74b112866a13bc2eef501f0798db10a535f926e98bdeaa14fb803b6144bcd243",
+  "summary": "Implementation complete under the owner-selected capability-applicability behavior, unverified. Functional controls and all eight comparisons on the 1,000-Warrant/500-resolved corpus pass; all nine original release-budget medians hold. Real-corpus output differences, including three derived views and the generated-check exit change, remain explicitly bounded and retained. No literal byte equality or signed OBL-001 satisfaction is claimed for those differences. Governed criterion adoption, independent assessment and human acceptance remain separate.",
+  "notes": "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/build-identities.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/check-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/check.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/next.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/status.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/owner-direction.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/functional-ci-excerpt.log",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/functional-ci-observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/shared-preparation-ci-excerpt.log",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/build-identities.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/check-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/check.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/exception-classification.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/next.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/release-base/status-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/generated-json.diff",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/standalone-diagnostic/pre-capture.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/README.md",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/counts.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/generator-build.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/projection-differences.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/real-corpus-observation.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/initial-budget.json",
+    "docs/warrants/OW-WAR-0148/implementation/differential-audit-20261023/full-scale/budget.json"
+  ],
+  "next_steps": [
+    "Represent the owner-selected bounded applicability clarification and all derived-view effects in a governed successor/amendment before claiming the original signed obligation met.",
+    "Independent assessment and human acceptance remain separate; no assurance mark is awarded by implementation completion."
+  ]
+}

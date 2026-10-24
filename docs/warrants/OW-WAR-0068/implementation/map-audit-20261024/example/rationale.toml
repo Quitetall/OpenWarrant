@@ -1,0 +1,8 @@
+schema = "oh.war/rationale/v1"
+[[assumption]]
+id = "A-001"
+statement = "The synthetic case has no selected retention mode."
+epistemic_status = "blocking_unknown"
+resolution_requirement = "The fixture decision owner supplies memory, disk or none with its rationale."
+consequence_if_false = "Treating an absent choice as selected would invent a decision."
+judgment_ref = ""

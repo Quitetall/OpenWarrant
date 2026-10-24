@@ -1,0 +1,22 @@
+--- pre-release
++++ post-release
+@@ -18776,6 +18776,9 @@
+           "independence_requirements_met": true,
+           "no_blocker_remains": false,
+           "no_required_unknown_remains": false,
++          "not_applicable": [
++            "runtime receipts match the basis"
++          ],
+           "required_deliverables_exist": false,
+           "required_judgments_exist": true,
+           "residual_risks_have_sufficient_authority": true,
+@@ -18917,8 +18920,7 @@
+           "artifact digests verify",
+           "every required gate has admissible result",
+           "no required unknown remains",
+-          "no blocker remains",
+-          "runtime receipts match the basis"
++          "no blocker remains"
+         ],
+         "uuid": "01a0983e-32d7-7473-b6e1-fbef061a1e5f",
+         "validity": {

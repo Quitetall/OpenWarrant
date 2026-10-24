@@ -15,6 +15,8 @@ fn war(args: &[&str]) -> (i32, String, String) {
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
         // This checkout's .git is not a test's to write caches into.
         .env("OPENWARRANT_NO_CACHE", "1")
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
         .args(args)
         .current_dir(repo_root())
         .output()
@@ -291,6 +293,36 @@ fn envelope(stdout: &str) -> serde_json::Value {
     keys.sort_unstable();
     assert_eq!(keys, FROZEN_KEYS, "envelope keys are frozen at 1.0");
     v
+}
+
+fn incomplete_legacy_export(force: bool) {
+    let mut args = vec!["--json", "admin", "export", "OW-WAR-0030"];
+    if force {
+        args.push("--force");
+    }
+    let (code, stdout, stderr) = war(&args);
+    assert_eq!(code, if force { 2 } else { 1 }, "{stderr}");
+    let report = envelope(&stdout);
+    assert_eq!(report["exit_code"], code);
+    assert_eq!(report["verdict"], "not_ready");
+    assert_eq!(report["counts"]["error"], 1);
+    assert!(report["diagnostics"].as_array().unwrap().iter().any(|d| {
+        d["rule"] == "cli.error"
+            && d["message"]
+                .as_str()
+                .unwrap()
+                .contains("no archive was written")
+    }));
+}
+
+#[test]
+fn incomplete_legacy_export_is_one_json_error() {
+    incomplete_legacy_export(false);
+}
+
+#[test]
+fn forced_incomplete_legacy_export_is_one_json_error() {
+    incomplete_legacy_export(true);
 }
 
 #[test]

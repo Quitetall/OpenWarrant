@@ -1,0 +1,41 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+== idempotency, batch recovery, version negotiation (OW-WAR-0130) ==
+ok    no marker, no batch.interrupted    batch.interrupted silent
+ok    SIGKILL after 2 of 3 records       killed (137), marker B-20261024T140415Z-8dc2716f, 2 of 3 recorded: a hole
+ok    war check names the interrupted batch ERROR batch.interrupted B-20261024T140415Z-8dc2716f, its paths listed
+ok    a new batch refuses while interrupted batch.interrupted (dry run, exit 2)
+ok    recovering an unknown batch refuses batch.nothing-to-recover; the marker stays
+ok    --recover with a target refuses    batch.recover-alone; the marker stays
+ok    recover restores every listed path 36 path(s) at their prior sha256 or absent; .refused.json kept
+ok    after recovery, no batch.interrupted batch.interrupted silent
+ok    a planted refusal leaves no marker batch.incomplete, docs/ byte-identical
+ok    an unwritable target leaves no marker batch.incomplete, docs/ byte-identical
+ok    an unkilled batch leaves no marker 3 of 3 recorded, no .recording, no .recording.d
+ok    war sign records once              IA-WAR-0001.response.toml
+ok    a signed act retried replays       authorize.replayed, exit 0, IA-WAR-0001 byte-identical
+ok    a signed act by another refuses    work.idempotency-conflict, 3 line(s) unchanged
+ok    war ask retried replays            question.replayed, exit 0, IA-WAR-0001 byte-identical
+ok    war ask by another refuses         work.idempotency-conflict, 4 line(s) unchanged
+ok    a different question is asked      question.asked, not replayed
+ok    war submit records once            dispatch 01a16e39-fc2b-73c1-affe-a033ec05a603
+ok    war submit retried replays         submission.replayed, exit 0, IA-WAR-0001 byte-identical
+ok    war submit by another refuses      work.idempotency-conflict, 7 line(s) unchanged
+ok    war verify records once            OBL-001 established by plant-verifier
+ok    war verify retried replays         verify.replayed, exit 0, IA-WAR-0001 byte-identical
+ok    war verify by another refuses      work.idempotency-conflict, 8 line(s) unchanged
+note  control: before, the retry failed  not run: set IP_WAR_BEFORE to a war built before OW-WAR-0130
+ok    war evidence record records once   1 receipt(s)
+ok    war evidence retried replays       evidence.replayed, exit 0, IA-WAR-0001 byte-identical
+ok    war evidence by another refuses    work.idempotency-conflict, 9 line(s) unchanged
+ok    requires_war >=99 refuses          compat.war-too-old (exit 2), >=99 and war 1.0.0-alpha.5 named, no Warrant read
+ok    requires_war = this war passes     =1.0.0-alpha.5: status unchanged from no key (exit 0)
+ok    a malformed requires_war refuses   not a version requirement (exit 1)
+ok    a v1 record is not newer           compat.newer-record silent
+ok    a v9 record is UNKNOWN             UNKNOWN compat.newer-record, no PASS, no new ERROR (0)
+FAIL  a future manifest is UNKNOWN       exit 1: schema major must be detected before current fields
+ok    a malformed current manifest fails current parser still requires uuid (cli.error, exit 1)
+
+33 passed, 1 failed

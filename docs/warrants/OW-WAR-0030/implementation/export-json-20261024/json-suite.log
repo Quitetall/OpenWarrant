@@ -1,0 +1,33 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 13 tests
+test json_envelope::the_error_path_is_still_json_on_stdout_and_exits_one ... ok
+test json_envelope::forced_incomplete_legacy_export_is_one_json_error ... ok
+test json_envelope::incomplete_legacy_export_is_one_json_error ... ok
+test json_envelope::a_request_document_rides_inside_result_with_its_own_schema ... ok
+test json_envelope::init_emits_one_json_value_without_changing_the_created_configuration ... ok
+test json_envelope::init_json_covers_presets_and_the_program_scaffold ... ok
+test json_envelope::schema_discovery_keeps_toml_root_and_body_rules ... ok
+test json_envelope::compile_emits_one_envelope_and_reports_skipped_warrants ... ok
+test json_envelope::without_the_flag_stdout_never_begins_with_a_brace ... ok
+test json_envelope::check_emits_an_envelope_whose_exit_code_is_the_process_exit_code ... ok
+test json_envelope::fixture_eval_keeps_setup_output_inside_the_child_process ... ok
+test json_envelope::the_flag_works_after_the_subcommand_too ... ok
+test json_envelope::the_corpus_projection_is_the_result_payload_verbatim ... FAILED
+
+failures:
+
+---- json_envelope::the_corpus_projection_is_the_result_payload_verbatim stdout ----
+
+thread 'json_envelope::the_corpus_projection_is_the_result_payload_verbatim' (450939) panicked at crates/openwarrant-cli/tests/json_envelope.rs:389:5:
+the envelope carries the committed projection; run war admin compile after staging source files
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    json_envelope::the_corpus_projection_is_the_result_payload_verbatim
+
+test result: FAILED. 12 passed; 1 failed; 0 ignored; 0 measured; 363 filtered out; finished in 1.85s
+
+error: test failed, to rerun pass `-p openwarrant-cli --test all`

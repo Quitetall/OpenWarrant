@@ -1,0 +1,7 @@
+{
+  "observed_at": "2026-10-24T08:19:49.251621+00:00",
+  "attempt": "context-final-tool/war",
+  "observation": "Snapshot copy did not complete; output was non-executable and the subsequent record unit exited126 with Permission denied. This is not a fixture run.",
+  "partial_size": 89194496,
+  "cleanup": "Owned partial output removed after copy session and recorded unit were terminal."
+}

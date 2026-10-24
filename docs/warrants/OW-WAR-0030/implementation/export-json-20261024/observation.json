@@ -1,0 +1,38 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0030",
+  "performer": "agent://codex",
+  "independent": false,
+  "source_parent": "63530a3584f2707f9abdb1922a31c8fd11b1abde",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/lib.rs": "20cd2cb36fd3cc2a226a892619a8ecddab92708e50186efc877fbb209718068f",
+    "crates/openwarrant-cli/tests/json_envelope.rs": "7c202fe399f8eb4dc49b5217b58f721bfbb45b62afad1c21beacf34b2f9e7bfa"
+  },
+  "red": {
+    "pass": 0,
+    "fail": 2,
+    "reason": "Human text precedes JSON on ordinary failure; forced failure emits human text without an envelope"
+  },
+  "green": {
+    "new_controls": 2,
+    "fail": 0,
+    "full_json_suite": 13
+  },
+  "human_compatibility": {
+    "ordinary_exit": 1,
+    "forced_exit": 2,
+    "stdout_and_stderr_byte_identical": true
+  },
+  "quality": {
+    "all_target_clippy_warnings_denied": true,
+    "fmt": true
+  },
+  "initial_full_suite_failure": "12 pass, 1 corpus projection mismatch after staged source edit; public compilation corrected generated records. Initial formatting check also failed and was fixed before the final suite/checks.",
+  "archive_implementation_complete": false,
+  "original_obligations": {
+    "OBL-001": "Full content export remains unestablished",
+    "OBL-002": "Actual full-archive import/re-export remains unestablished",
+    "OBL-003": "Full historical preservation in legacy export remains unestablished"
+  },
+  "qualification": false
+}

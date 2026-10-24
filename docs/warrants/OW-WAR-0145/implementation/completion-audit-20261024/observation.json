@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "observed_at": "2026-10-24T08:43:31.601173+00:00",
+  "warrant": "OW-WAR-0145",
+  "tested_source": "5a5f7ce6f3b0f6758c7971f6f4ef34ea42011508",
+  "ci_run": 40073655945,
+  "ci_job": 120812291596,
+  "ci_conclusion": "SUCCESS",
+  "main_merge": "b54d55bff6b82263ba12825b49337a70fddb56eb",
+  "sources_equal_tested_revision": {
+    "conformance/plant-isolated.sh": "9c6d448f726903d8ed185e4f49eacab9019728edf52d8327ca1116b8abf4ffd6",
+    "conformance/plants.d/48-isolated-battery.sh": "abf7870761a200b652162d34aa2a59b39b7f0207589a4dff5c164ae88b6d66c6",
+    "docs/gates/ops.conformance.plants@1.1.0.yaml": "ee4bc551c3a60134d64a330c5c63d99b43e152311a334dbe5609a567fe6fe216",
+    "docs/gates/ops.conformance.plants@1.0.0.yaml": "467b90edd95a9f85d8928e2a5215ea38508288476a7a605d7c30b7c660674cf5"
+  },
+  "scope": "Linux scratch-corpus isolation and named gate-registration/frozen-v1 controls",
+  "excerpt_sha256": "2057353fbc58ad737949e402697cb9d5401a97c94acb70d18e64b0b372d1dcdd",
+  "human_acceptance": false,
+  "independent_disposition": false,
+  "legacy_resolution": false,
+  "delivery_pins_changed": false
+}

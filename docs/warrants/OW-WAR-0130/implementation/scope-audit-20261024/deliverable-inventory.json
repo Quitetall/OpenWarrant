@@ -1,0 +1,97 @@
+{
+  "schema": "oh.war/performer-deliverable-inventory/v1",
+  "meaning": "Current source witnesses, not refreshed delivery pins or proof of independent disposition",
+  "deliverables": [
+    {
+      "id": "D-001",
+      "title": "Batch step 6: the durable .recording marker, batch.interrupted, --recover",
+      "path": "crates/openwarrant-cli/src/batch_cmd.rs",
+      "exists": true,
+      "sha256": "b3997abcd4c2266494485fa4ae90d989506ede547b1b923978afc4209cc19102"
+    },
+    {
+      "id": "D-002",
+      "title": "The journal replays an equivalent append and refuses a conflicting one",
+      "path": "crates/openwarrant-cli/src/journal_cmd.rs",
+      "exists": true,
+      "sha256": "7f3365fb51aee6fb4cd9cc42f74a6e227283564b183472afdb3560f18a5ae8ee"
+    },
+    {
+      "id": "D-003a",
+      "title": "war ask checks before its first write",
+      "path": "crates/openwarrant-cli/src/questions.rs",
+      "exists": true,
+      "sha256": "5e02d594cd205662b522e18f6bb17a88f37fe53d671b54db44fed8cc88e429a5"
+    },
+    {
+      "id": "D-003b",
+      "title": "war submit checks before its first write",
+      "path": "crates/openwarrant-cli/src/run_cmd.rs",
+      "exists": true,
+      "sha256": "0666f689512d851bece88bad5f9f5ff2549b073654105bf088f1b50a444633c9"
+    },
+    {
+      "id": "D-003c",
+      "title": "war verify --response checks before its first write",
+      "path": "crates/openwarrant-cli/src/verify.rs",
+      "exists": true,
+      "sha256": "820acb242467551e390f72a7fce3953d5b242ceeb59dd7ce2c19dbddcd25d4de"
+    },
+    {
+      "id": "D-003d",
+      "title": "war evidence record checks before its first write",
+      "path": "crates/openwarrant-cli/src/evidence.rs",
+      "exists": true,
+      "sha256": "143c330025f6f98130cad2c29621d99f9ab4c0210de9717dd94905786fcbd80c"
+    },
+    {
+      "id": "D-003e",
+      "title": "The single-act authorization ingest checks before its first write",
+      "path": "crates/openwarrant-cli/src/authorize.rs",
+      "exists": true,
+      "sha256": "db7cee5f9ca164dbdbaa5da8803c4dad0b63251cf982abe4506baeb5419328d9"
+    },
+    {
+      "id": "D-004",
+      "title": "compat.rs: requires_war and schema-major recognition",
+      "path": "crates/openwarrant-cli/src/compat.rs",
+      "exists": true,
+      "sha256": "842095661d57ad19003c1ee9c632ebdaaf259893fa3e8f8a5e8f53afa0b03598"
+    },
+    {
+      "id": "D-005",
+      "title": "[project] requires_war",
+      "path": "crates/openwarrant-core/src/config.rs",
+      "exists": true,
+      "sha256": "6e9b3e6e96c2b9a5029084497625265aace687a6f7c424e0c86b93476c713690"
+    },
+    {
+      "id": "D-006",
+      "title": "Repository::discover runs the compat check once",
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "exists": true,
+      "sha256": "2e223f91df918eddbd21bf4ef954fb0d1c989bdb8f1beafff1a12cea53a0dc75"
+    },
+    {
+      "id": "D-007",
+      "title": "Reading backward: what an older war does with newer records",
+      "path": "docs/COMPATIBILITY.md",
+      "exists": true,
+      "sha256": "3a199ea257f77330b6dc334843bcf2bacb14ef58cc9e21373ca257c53f50a1ef"
+    },
+    {
+      "id": "D-008",
+      "title": "The idempotency, batch-atomicity and version plants",
+      "path": "conformance/plants.d/69-idempotency.sh",
+      "exists": true,
+      "sha256": "822d207282c79869d12f90e254d88746ea39ad811e58db6aace9b8e9c5666193"
+    },
+    {
+      "id": "D-013",
+      "title": "`war sign --batch --recover <id>` as a flag, and exit 2 for compat.war-too-old (AM-002)",
+      "path": "crates/openwarrant-cli/src/lib.rs",
+      "exists": true,
+      "sha256": "16b7cc80584b28a3ad50045553255a2b84f9e69fe8bcc9ec3df1482ef1ede18a"
+    }
+  ]
+}

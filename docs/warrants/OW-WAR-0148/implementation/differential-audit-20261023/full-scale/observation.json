@@ -1,0 +1,318 @@
+{
+  "schema": "oh.war/historical-release-differential-observation/v1",
+  "corpus_commit": "be1083cdcb7e79a99afb0183a983201b9b11e10c",
+  "builds": {
+    "pre": {
+      "head": "d21710454011b204a69c7a2f6364431bb4a55775",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--bin",
+        "war",
+        "--release"
+      ],
+      "build_cache": "/mnt/4tb/build/cargo/88/90cee7b8403e5a/history/d21710454011b204a69c7a2f6364431bb4a55775",
+      "exit_code": 0,
+      "source_clean_after": true,
+      "binary_sha256": "8ba9d736a37a0f01da42c17684ff4b597508710f77a2feccd7ed0f4e20d11c18",
+      "version": "war 1.0.0-alpha.2 (unreleased, commit d21710454011)"
+    },
+    "post": {
+      "head": "a616c84c99a671446fed9d6472163ac8e00b0979",
+      "argv": [
+        "cargo",
+        "build",
+        "--locked",
+        "-p",
+        "openwarrant-cli",
+        "--bin",
+        "war",
+        "--release"
+      ],
+      "build_cache": "/mnt/4tb/build/cargo/88/90cee7b8403e5a/history/a616c84c99a671446fed9d6472163ac8e00b0979",
+      "exit_code": 0,
+      "source_clean_after": true,
+      "binary_sha256": "68d2d769a849663dd444971959bf253cca8648a75b41d6eb6578f8debd680ebb",
+      "version": "war 1.0.0-alpha.2 (unreleased, commit a616c84c99a6)"
+    }
+  },
+  "comparisons": {
+    "check": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "check"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 5.864724783008569,
+        "exit_code": 0,
+        "stdout_sha256": "9747428919f82e4d56cfb701489d738a0cc305cc3fe1a598d2ac00c35f8c9120",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "check"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.427267765000579,
+        "exit_code": 0,
+        "stdout_sha256": "9747428919f82e4d56cfb701489d738a0cc305cc3fe1a598d2ac00c35f8c9120",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "check-json": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "check",
+          "--json"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.3046383280016016,
+        "exit_code": 0,
+        "stdout_sha256": "4fd755806a49ad2ce635145906ace3af6f46570f55db0fb907907e47563c3c6e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "check",
+          "--json"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.455513927008724,
+        "exit_code": 0,
+        "stdout_sha256": "4fd755806a49ad2ce635145906ace3af6f46570f55db0fb907907e47563c3c6e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "check-generated": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "check",
+          "--generated"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 10.635628383999574,
+        "exit_code": 0,
+        "stdout_sha256": "824b193099153740d0d11cd7d1ba8e9ef64df5097d916fa5b3e60eaf773e5010",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "check",
+          "--generated"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 6.354589951995877,
+        "exit_code": 0,
+        "stdout_sha256": "824b193099153740d0d11cd7d1ba8e9ef64df5097d916fa5b3e60eaf773e5010",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "status-json": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "status",
+          "--json"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 0.4384374539949931,
+        "exit_code": 0,
+        "stdout_sha256": "2163a0c8e78060530426382e07db8521785ad1ab95a676573a4bda2a3239a721",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "status",
+          "--json"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 0.4752118439937476,
+        "exit_code": 0,
+        "stdout_sha256": "2163a0c8e78060530426382e07db8521785ad1ab95a676573a4bda2a3239a721",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "next": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "next"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.2703709460038226,
+        "exit_code": 0,
+        "stdout_sha256": "50a4e6bc70ef71977a7831eaaf23b2c4c6e162cb9971d6d1fb15abfa408218b6",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "next"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 2.902499757008627,
+        "exit_code": 0,
+        "stdout_sha256": "50a4e6bc70ef71977a7831eaaf23b2c4c6e162cb9971d6d1fb15abfa408218b6",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "console-json": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "console",
+          "--json"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 4.243693657001131,
+        "exit_code": 0,
+        "stdout_sha256": "97f341e6e95ea4584cac73191ecb910f6c8767ffd051bf670a82fd0daac5111e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "console",
+          "--json"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.8332093409990193,
+        "exit_code": 0,
+        "stdout_sha256": "97f341e6e95ea4584cac73191ecb910f6c8767ffd051bf670a82fd0daac5111e",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "sign-list": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "sign",
+          "--list"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.98266785099986,
+        "exit_code": 0,
+        "stdout_sha256": "441c6ba326278f3cd5597866858ac450b79f076b1cb09b3fd95b88899a907274",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "sign",
+          "--list"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 3.7203131209971616,
+        "exit_code": 0,
+        "stdout_sha256": "441c6ba326278f3cd5597866858ac450b79f076b1cb09b3fd95b88899a907274",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    },
+    "pins": {
+      "pre": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "pins",
+          "--resolved-only"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 0.8569905970070977,
+        "exit_code": 0,
+        "stdout_sha256": "65debc480cc9b08f0d33339c12b4ed4b918791292e2fa291f6b145b2b5542830",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "post": {
+        "argv": [
+          "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/post-release-tool/war",
+          "--root",
+          "/mnt/4tb/tmp/openwarrant-ow148-m1-full-20261023/corpus",
+          "pins",
+          "--resolved-only"
+        ],
+        "state": "completed",
+        "elapsed_seconds": 0.8674915960000362,
+        "exit_code": 0,
+        "stdout_sha256": "65debc480cc9b08f0d33339c12b4ed4b918791292e2fa291f6b145b2b5542830",
+        "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "both_completed": true,
+      "stdout_equal": true,
+      "stderr_equal": true,
+      "exit_equal": true
+    }
+  },
+  "exceptions_applied": [],
+  "qualification_established": false,
+  "purpose": "Content comparison only;600s observation guard is not the release performance budget. Prior execution-deadline observations are preserved.",
+  "source_clean_after": true,
+  "all_eight_completed": true,
+  "all_bytes_and_exits_equal": true
+}

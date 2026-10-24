@@ -1,0 +1,11 @@
+{
+  "schema": "oh.war/implementation-observation/v1",
+  "observed_at": "2026-10-24T12:33:31.845435+00:00",
+  "warrant": "OW-WAR-0113",
+  "public_command": "war plan new --preset decision",
+  "generated_refusal": "atom.jurisdiction-mismatch",
+  "header_only_repair_refusal": "atom.generated-as-source",
+  "external_proposed_adr_check_exit": 0,
+  "actual_repository_modified": false,
+  "qualification_granted": false
+}

@@ -1,0 +1,11 @@
+--- pre
++++ post
+@@ -129,7 +129,7 @@
+ agent  OW-WAR-0070  deliver    war evidence record OW-WAR-0070 && war verify OW-WAR-0070
+        unmet: required deliverables exist; artifact digests verify; every required gate has admissible result; no required unknown remains; no blocker remains; required judgments exist; residual risks have sufficient authority
+ agent  OW-WAR-0071  deliver    war evidence record OW-WAR-0071 && war verify OW-WAR-0071
+-       unmet: required deliverables exist; artifact digests verify; every required gate has admissible result; no required unknown remains; no blocker remains; runtime receipts match the basis
++       unmet: required deliverables exist; artifact digests verify; every required gate has admissible result; no required unknown remains; no blocker remains
+ agent  OW-WAR-0072  deliver    war evidence record OW-WAR-0072 && war verify OW-WAR-0072
+        unmet: required deliverables exist; artifact digests verify; every required gate has admissible result; no required unknown remains; no blocker remains
+ agent  OW-WAR-0073  deliver    war evidence record OW-WAR-0073 && war verify OW-WAR-0073

@@ -54,3 +54,10 @@ runs use a standalone clone to isolate Git refs from integration worktrees.
 ## OW-WAR-0100 delivery reconciliation
 
 [Current reconciliation and fresh targeted checks](../../OW-WAR-0100/implementation/RECONCILIATION.md) retain this trail and the original baseline. This link does not qualify OW41 or replace its observations.
+
+## V2 declaration scope
+
+[Current qualifier and regression evidence](declaration-scope-20261024/README.md)
+keeps parsed adequacy declarations distinct from execution or independent
+verification. Numeric values and legacy output remain unchanged in the bounded
+comparisons. This does not close the remaining event/window or qualification gaps.

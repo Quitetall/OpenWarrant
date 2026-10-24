@@ -1,0 +1,9 @@
+{
+  "source": "fdd346c54417069593d0f393dc63fe24d70424b8",
+  "source_dirty": false,
+  "binary_sha256": "2f817313b4bc6dd3d325d54976e9f95e436cb099dec1cc54df81cb880ef20a85",
+  "version": "war 1.0.0-alpha.2",
+  "toolchain": "rustc 1.97.1 (8bab26f4f 2026-07-14)",
+  "lock_sha256": "9eefdf5987bffc709a1f0045939ff33acefaf98ae559abcfe0728c5d32a54f2c",
+  "build": "cargo build --locked --offline -p openwarrant-cli"
+}

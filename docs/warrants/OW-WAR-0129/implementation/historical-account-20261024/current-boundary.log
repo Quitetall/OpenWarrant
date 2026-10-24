@@ -1,0 +1,30 @@
+   Compiling serde_core v1.0.229
+   Compiling serde v1.0.229
+   Compiling hashbrown v0.17.1
+   Compiling libc v0.2.189
+   Compiling syn v3.0.3
+   Compiling indexmap v2.14.0
+   Compiling serde_derive v1.0.229
+   Compiling thiserror-impl v2.0.21
+   Compiling getrandom v0.4.3
+   Compiling thiserror v2.0.21
+   Compiling toml_datetime v1.1.2+spec-1.1.0
+   Compiling serde_json v1.0.154
+   Compiling serde_spanned v1.1.2
+   Compiling uuid v1.28.0
+   Compiling toml v1.1.8+spec-1.1.0
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling toml_edit v0.22.27
+   Compiling serde_jcs v0.2.0
+   Compiling toml v0.8.23
+   Compiling openwarrant-core v1.0.0 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-core)
+   Compiling openwarrant-compiler v1.0.0 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-compiler)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 34.95s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_compiler-6e05163bacc9c3c9)
+
+running 1 test
+test dispatch::tests::the_compiler_refuses_over_budget_and_emits_at_budget ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 79 filtered out; finished in 0.00s
+

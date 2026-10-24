@@ -1,0 +1,19 @@
+{
+  "source_commit": "d21710454011b204a69c7a2f6364431bb4a55775",
+  "tools": [
+    {
+      "profile": "debug",
+      "path": "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-isolated-tool/war",
+      "sha256": "d1fd8a212ebf75a5b2b88d7dd028615713fbcb1be5d718ea81d5dce37d11cbca",
+      "version": "war 1.0.0-alpha.2 (unreleased, commit d21710454011, debug)"
+    },
+    {
+      "profile": "release",
+      "path": "/mnt/4tb/artifacts/OpenWarrant/keep/ow148-audit-20261023/pre-release-tool/war",
+      "sha256": "8ba9d736a37a0f01da42c17684ff4b597508710f77a2feccd7ed0f4e20d11c18",
+      "version": "war 1.0.0-alpha.2 (unreleased, commit d21710454011)"
+    }
+  ],
+  "toolchain": "Rust 1.97.1",
+  "independent_verification": false
+}

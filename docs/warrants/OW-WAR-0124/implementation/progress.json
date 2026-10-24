@@ -1,0 +1,26 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0124",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "c08603d7452c7b629128e27bc87d32004b0cc1475f26f649537185f63f1c59de",
+  "summary": "Implementation complete, unverified: adoption guide now leads with optional no-signature tracking and accurately describes delivery pins. All 40 registered adoption/setup controls passed; the new routine init/create/claim/done path also passed without signer files or SSH. Named guided tests have source-bound protected-CI observations. Both earlier failed runs and exact tool identities are preserved. Only D-007 provenance updated via war deliver; no authority, schema or signed atom changed.",
+  "notes": "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/README.md",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/adoption-plants-external-tmp.log",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/adoption-plants-final.log",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/adoption-plants.log",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/final-delivery.json",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/guided-ci-excerpt.log",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/initial-corpus-observation.json",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/routine-observation.json",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/source-comparison.json",
+    "docs/warrants/OW-WAR-0124/implementation/adoption-audit-20261024/tool-identity.json"
+  ],
+  "next_steps": [
+    "Run protected CI on the exact published head.",
+    "Independent controlled review, legacy provenance reconciliation and human acceptance remain separate.",
+    "Real-user friction qualification remains a separate study, not satisfied by this fixture."
+  ]
+}

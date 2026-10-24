@@ -1,0 +1,17 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.65s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 9 tests
+test preflight_cli::later_graph_cannot_hide_an_earlier_failure ... ok
+test preflight_cli::claimed_standing_policy_cannot_reuse_an_ordinary_signature ... ok
+test preflight_cli::read_only_and_human_output_names_all_dimensions ... ok
+test preflight_cli::unavailable_authorization_is_not_reported_absent ... ok
+test preflight_cli::missing_atom_and_cyclic_graph_refuse_with_named_checks ... ok
+test preflight_cli::unavailable_configured_store_never_falls_back_to_signed_legacy_authority ... ok
+test preflight_cli::signed_commitment_does_not_claim_runtime_or_side_effect_authority ... ok
+test preflight_cli::unsigned_mismatched_or_revoked_authorization_cannot_pass_preflight ... ok
+test preflight_cli::unknown_runtime_blocks_without_omitting_any_dimension ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 365 filtered out; finished in 0.07s
+

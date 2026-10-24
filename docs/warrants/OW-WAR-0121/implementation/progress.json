@@ -1,0 +1,25 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0121",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "64c1d7ed89868e015673de626f23be848870e1193272ec9548a7f2635e433424",
+  "summary": "Implementation complete, unverified: 23 registered historical storage controls pass with original diagnostic names and sealed exact-source debug/release tools. The recorded journal pin predates the later FORMAT-1.0 rename. Current-source controls retain their newer names and their own release-hook UNKNOWN. The earlier inference that the rename required an amendment is corrected. No signed record, pin or independent disposition changed; delivery/provenance and acceptance gaps remain separate.",
+  "notes": "docs/warrants/OW-WAR-0121/implementation/historical-scope-20261024/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/README.md",
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/ci-excerpt.log",
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/fault-hook-source.json",
+    "docs/warrants/OW-WAR-0121/implementation/current-source-20261024/source-observation.json",
+    "docs/warrants/OW-WAR-0121/implementation/historical-scope-20261024/README.md",
+    "docs/warrants/OW-WAR-0121/implementation/historical-scope-20261024/controls.log",
+    "docs/warrants/OW-WAR-0121/implementation/historical-scope-20261024/journal-pin-history.json",
+    "docs/warrants/OW-WAR-0121/implementation/historical-scope-20261024/setup.json",
+    "docs/warrants/OW-WAR-0121/implementation/historical-scope-20261024/tool-identities.json"
+  ],
+  "next_steps": [
+    "Preserve original and later diagnostic versions as distinct observations.",
+    "Reconcile current delivery provenance through permitted routes; no pin was refreshed here.",
+    "Independent controlled assessment and human acceptance remain separate."
+  ]
+}

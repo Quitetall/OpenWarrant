@@ -1,16 +1,21 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0146",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
   "revision": "b9d942667c5ffb1363c8e00a256392b4af1ce0ca",
-  "summary": "7 feature controls pass in the combined 19/0 fixture run; nine closure requirements remain unestablished.",
-  "notes": "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/README.md",
+  "summary": "Implementation complete, unverified. The exact UTF-8 capture fix candidate passed all 14 protected gate steps and 1711 plants with zero failures, then merged to main via PR351. Original bundle-output controls and additional stdout/stderr boundary matrix are retained; raw hashes, capture absence and deterministic output remain intact. Formal delivery reconciliation, independent qualification and human resolution remain separate.",
+  "notes": "docs/warrants/OW-WAR-0146/implementation/completion-audit-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/observation.json"
+    "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/observation.json",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/README.md",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/observation.json",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/README.md",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/observation.json",
+    "docs/warrants/OW-WAR-0146/implementation/completion-audit-20261024/observation.json"
   ],
   "next_steps": [
-    "Establish admissible exact-candidate gate evidence and independently assessed obligations.",
-    "Reconcile every named closure requirement before requesting authorized acceptance."
+    "Reconcile historical delivery records without rewriting signed history.",
+    "Obtain admissible independent qualification and secure human acceptance for formal resolution."
   ]
 }

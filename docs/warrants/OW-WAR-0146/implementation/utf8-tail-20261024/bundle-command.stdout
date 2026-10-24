@@ -1,0 +1,102 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "verify.bundle",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "verify.bundle",
+      "file": null,
+      "message": "EV-WAR-0002 [OBL-001]: bundle 25894e94cce251a73d20d41d60244e8522956f6f69c80c3bb0430aaf7e33984f written to docs/warrants/EV-WAR-0002/verifications/bundle-25894e94cce251a7.json — warrant scope, 1 obligation(s), 5 atom(s), 1 deliverable(s) carried (1 truncated, 0 not carried), 0 plant line(s), 1 gate run(s), 1 prior verification(s); 0 named path(s) not carried, 0 named term(s) shown nowhere; ~6238 of 48000 tokens (oh.war/token-estimate/bytes-div-4/v1)"
+    }
+  ],
+  "notes": [],
+  "counts": {
+    "pass": 1,
+    "warn": 0,
+    "unknown": 0,
+    "error": 0,
+    "worst": "pass"
+  },
+  "verdict": "well_formed",
+  "verdict_line": "WELL-FORMED (record only — Preflight is partial; `war check` does not establish execution readiness or run gates)",
+  "exit_code": 0,
+  "result": {
+    "schema": "oh.war/review-packets/v1",
+    "reviewed_subject": {
+      "contract_digest": "ab60c85a14c49f549a666c1bb83577452d963c79391aa5d03ae83aaeef4b62b8",
+      "artifacts": {
+        "EXPORT.md": "sha256:7ef440fa24006c5237257b33f81dd9cc2c47296789b7bc36d42bdfae676a1b5e"
+      },
+      "gate_definitions": {
+        "software.repo.war-check@1.0.0": "sha256:9b2a494ef64ced425962626757822b6e6c3528fbfdfe76e5e5e68fd772bc1c69"
+      },
+      "gate_evidence": {
+        "docs/warrants/EV-WAR-0002/gate-runs/software_repo_war-check_1_0_0.receipt.json": "sha256:0085706839a884040fd17f72c86bd3e6ae3e6181cd82930e23833d70c4ac17d5",
+        "docs/warrants/EV-WAR-0002/gate-runs/software_repo_war-check_1_0_0.run.toml": "sha256:57e7d28dffe3f388e36fb3057a6e3626413034af5d65418429a88a6a6ce821be",
+        "docs/warrants/EV-WAR-0002/gate-runs/software_repo_war-check_1_0_0.stderr.txt": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "docs/warrants/EV-WAR-0002/gate-runs/software_repo_war-check_1_0_0.stdout.txt": "sha256:4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c"
+      },
+      "gate_inputs": {
+        ".gitattributes": "sha256:55521112b89499ce5e77a4608099763657e3d5a1ec71e8e41dbb007fac83759a",
+        ".openwarrant/eval-context.json": "sha256:95b6aa021e628f8446d3de783e17b4266b680e6f0592ddc4bf0e058d9ed897b9",
+        "AGENTS.md": "sha256:3eb856a372d72eda4e0a2987665d2ad06707d1c7debd2c2ff5eb4ce0ebb55457",
+        "CONTEXT.md": "sha256:8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8",
+        "EXPORT.md": "sha256:7ef440fa24006c5237257b33f81dd9cc2c47296789b7bc36d42bdfae676a1b5e",
+        "docs/authority/allowed_signers.example": "sha256:971a6999974145267b7521f70a8dbf3153e207b8008b73f09558ca00daca2ce1",
+        "docs/authority/roles.toml.example": "sha256:9566b6426cfc7926422cf640f902f7213d75301bad6c6fa1305fa4bbf91e9cc0",
+        "docs/gates/software.repo.war-check@1.0.0.yaml": "sha256:9b2a494ef64ced425962626757822b6e6c3528fbfdfe76e5e5e68fd772bc1c69",
+        "docs/sas/Eval_grill_SAS.md": "sha256:dee7e6f8d8ade386b9452f418754c2d696fe371002795024a9b6561078934082",
+        "docs/warrants/EV-WAR-0001/atoms/10-intent.md": "sha256:3f1c3d832c68ef470e66407ed901ecf6c1ab96f83e8e2f3106dab28685657b72",
+        "docs/warrants/EV-WAR-0001/atoms/20-basis.md": "sha256:d2ec950db049090fb2e7690cf3a04895a091a10827977ccf148532b01bc21f9d",
+        "docs/warrants/EV-WAR-0001/atoms/40-work-order.md": "sha256:b5aba007688cee3baebc52a54d1572b882f6d3d428100da3f31413b3d92eb74d",
+        "docs/warrants/EV-WAR-0001/atoms/45-milestones.yaml": "sha256:1b713ebd482c679e5d488d772cc4d4fd92edb87f04b423b1796c147a5a828cf3",
+        "docs/warrants/EV-WAR-0001/atoms/60-assurance.md": "sha256:c1c60e39d53b2c5740876b322c1261581eab5bed64343f4a66d16c2a379f1ad2",
+        "docs/warrants/EV-WAR-0001/manifest.toml": "sha256:168145a5c5a9049c006be4087008ad2ac5206ed535afe830020cfe932dd38657",
+        "docs/warrants/EV-WAR-0002/atoms/10-intent.md": "sha256:77ec295fe8e662c7036e282efb64ce1938a09568a617f4930c338978d672c3d2",
+        "docs/warrants/EV-WAR-0002/atoms/20-basis.md": "sha256:2282c8e495035b274259835a9fd67db9c0f7815af362c0979a3e5ee0a2448c78",
+        "docs/warrants/EV-WAR-0002/atoms/40-work-order.md": "sha256:008202ec64e53ab0b6b9d7d830e083e0bca2599eec487cea23a6dab1740a2f6d",
+        "docs/warrants/EV-WAR-0002/atoms/45-milestones.yaml": "sha256:41044e98e708d2de5ea61c7ee808cc24dd48e984ce56068021cabf132b54136c",
+        "docs/warrants/EV-WAR-0002/atoms/60-assurance.md": "sha256:646bc8a632240a08135634647003f92dd8c6e69fd587ef6b15cadab3b268a9e4",
+        "docs/warrants/EV-WAR-0002/deliverables.toml": "sha256:2ac4a74e926f22a5b1abad31d72fbf8db7014f3c6d8c47d38d7d244483e7e8d1",
+        "docs/warrants/EV-WAR-0002/manifest.toml": "sha256:879dc62df93a32c40eb491389162705cce32a6c1ae5bf0cbde01ae9dbb9aed2a",
+        "docs/warrants/EV-WAR-0002/plan/drafter.json": "sha256:d695f1074298ba9498c2f002fc3d78c3627f3333d5cea760c6e91e8cd99d4382",
+        "docs/warrants/EV-WAR-0002/plan/pipeline.json": "sha256:ba5f4cccd878730de422a0291bb50bbef09fbc5e5eb6f704ff16956df420d5b7",
+        "docs/warrants/EV-WAR-0002/plan/proposal.json": "sha256:7c6b710ea6e5e72ceb49efb540338f2a8299d7a106573d4c03833f9a94ca2d31",
+        "docs/warrants/EV-WAR-0002/plan/request.json": "sha256:b2d511973ed654dbb87c4acc76b4dbf7d213caae6ad1f399a0d27e9dfa800f99",
+        "openwarrant.toml": "sha256:b6fdd99c644d77f0a0728f136879bf75efba64f6027246ea69af5f14f3173c6d",
+        "schemas/oh.war/atom/v1.json": "sha256:1675e4d61918bb2b14c6c600e0e4c9ebd2138e2a20e6db36a8daac6bfc0e27df",
+        "schemas/oh.war/authorization/v1.json": "sha256:33812323fcb35beb82bae1c20fb6ae5c1fc2e88f54b4af69cbcb8b3687649dfe",
+        "schemas/oh.war/bonsai-evidence/v1.json": "sha256:60f08006cb5d4297c656ece6c4c8cadfb177c0a5ff247a7c426ec2ed805746a3",
+        "schemas/oh.war/correction/v1.json": "sha256:efe7f5ccdbf9ffe1214c376994a4e0c41e0a721a7079f7aab1a990312abfc217",
+        "schemas/oh.war/deliverables/v1.json": "sha256:5e94a4fb4b267e867c233f95400521db7a4cb74296b839690aea0a72bb9002b3",
+        "schemas/oh.war/impact/v1.json": "sha256:a7c69e24cce9155bddb0168ebbe4ec70edbc30b638ef438b053bd55d703b7bb5",
+        "schemas/oh.war/journal-event/v1.json": "sha256:386c353ffe3b6018ef95f9fb5c8ba4a5affe97150920367a7cfba19b81154a0a",
+        "schemas/oh.war/judgments/v1.json": "sha256:47515f5f69389f3b06ff7c804973a6806368e23daa940125d11d90ca5d881892",
+        "schemas/oh.war/ledger-file/v1.json": "sha256:2e8c174c69b33381cc76a1bb8c64e96baacd89355c666c675dd8c832ffd1d45c",
+        "schemas/oh.war/liminal-request/v1.json": "sha256:4a4158fb4c7956dabb122980adc08ff15f05f489e335e3e715f6b9bf9bdd8d4c",
+        "schemas/oh.war/liminal-response/v1.json": "sha256:c33102cd6437a13d0ba05989cf2e22ec215b66dccf6c8e0bb344be43b1ff841b",
+        "schemas/oh.war/manifest/v1.json": "sha256:2744bca0701f368c530dc5ed13b71f7bbeb80f3fab780266c28f9ed6b0b7a152",
+        "schemas/oh.war/milestones/v1.json": "sha256:7f6d5961a7dc98d45a16cffe72e8695f7fe9cfd4b1e676e558bd7561e28dcaa9",
+        "schemas/oh.war/model/v1.json": "sha256:8f25ea8c6eba1ab875737be5c8a9b9228bfaac4b0a7bf961d821ff958e6447f5",
+        "schemas/oh.war/projection/v1.json": "sha256:a274f5b26364c6716a62d567605f2f9bbd8e5bd408df3c3258e48abcb129fea1",
+        "schemas/oh.war/report/v1.json": "sha256:a0ea9231edc2dacd29d53ddfb5f71c49a6a7d5bbba1d9977f3223da53ce03eec",
+        "schemas/oh.war/resolution/v1.json": "sha256:b295334e3bffd1bedd68362fde1c1c33908393fcc0b240c5bcbaad33c5381489",
+        "schemas/oh.war/roadmap/v1.json": "sha256:f7bbca05b9d8996f70597bdf17d5a57924cf4b7b7e5bded2d33afd418ad2d1e4",
+        "schemas/oh.war/score-statement/v1.json": "sha256:01e50129edd176221313b8fed622cef85c12b02bc4e7b4af92a794f92c5fbd0d",
+        "schemas/oh.war/score/v1.json": "sha256:06e2d3b1e5af9ce0d877bfdea295cede27e624082122cdb1d956493eec0b113d",
+        "schemas/oh.war/stage-dispatch/v1.json": "sha256:817b9e6fd80a44e5fa980d7a5b789f18df8d6efa6c609c95f3e6d9216a31546d",
+        "schemas/oh.war/stage-submission/v1.json": "sha256:dc92f1df46530a7edcb7452923fef17651e7d7a4c7f216904fba6000187d7944",
+        "schemas/oh.war/standing-authorization/v1.json": "sha256:ee7a8d1cae87d00a0804d4c5ab8a98e630c0494437fa237aee14e214ca9c80ae",
+        "schemas/oh.war/verification/v1.json": "sha256:72f0adee007391244d82d00b2346724c4cb68d8de21a39b0f59cfd538b83787c",
+        "schemas/oh.war/war/v1.json": "sha256:f7f18291101c31f5014378a140611d2cac205ff91769b77e967a7212dc05f8e1",
+        "schemas/pack.json": "sha256:595dc7502afda013f1fed4afe6e05676eb980309b623c848d5abe7c1052e4a00"
+      }
+    },
+    "packets": [
+      {
+        "path": "docs/warrants/EV-WAR-0002/verifications/bundle-25894e94cce251a7.json",
+        "digest": "25894e94cce251a73d20d41d60244e8522956f6f69c80c3bb0430aaf7e33984f"
+      }
+    ]
+  }
+}

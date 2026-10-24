@@ -1,0 +1,22 @@
+{
+  "schema": "oh.war/viewer-work-report/v1",
+  "warrant": "OW-WAR-0125",
+  "work_state": "completed",
+  "reported_by": "agent://codex",
+  "revision": "018fea969160b2568321c11c209fb1ae59909e01eafffe163254b11db644426b",
+  "summary": "Implementation complete, unverified: section split/join, generated indexes, exact citation checks, per-section currency and SAS diff have source-bound protected-CI controls. Historical first-delivery check passes all 43 citations including original 16; actual pin differences and the separate old-to-1.1 diff refusal are retained. No SAS bytes, proposed ADR status, authority, signed atoms or independent dispositions changed. Authored SAS sections are later work.",
+  "notes": "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/README.md",
+  "evidence": [
+    "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/README.md",
+    "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/candidate-source.json",
+    "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/ci-excerpt.log",
+    "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/historical-observation.json",
+    "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/old-to-1.1-diff.json",
+    "docs/warrants/OW-WAR-0125/implementation/sections-audit-20261024/source-comparison.json"
+  ],
+  "next_steps": [
+    "Run protected CI on the exact published head.",
+    "Independent assessment, current provenance reconciliation and human acceptance remain separate.",
+    "Do not treat completion of section derivation as adoption or implementation of authored SAS sections."
+  ]
+}

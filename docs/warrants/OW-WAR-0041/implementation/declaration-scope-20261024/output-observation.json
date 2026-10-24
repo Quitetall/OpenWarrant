@@ -1,0 +1,10 @@
+{
+  "legacy_historical_fixture_sha256": "6a6dee2292c7eed1c8ce4726578f9becd5b977e3f88bab2b2f0a38d16567746a",
+  "legacy_byte_equal": true,
+  "derived_subject": "23070e52da9d6153e136883ec1f1406da5151f39",
+  "derived_only_change": "measures/adequacy counterexamples/method",
+  "before_method": "executed attacks, via the same adequacy::parse `war check` uses",
+  "after_method": "declared executed-attack entries in committed assurance atoms; parsing them does not establish execution or independent verification",
+  "derived_values_unchanged": true,
+  "signature_or_authority_granted": false
+}

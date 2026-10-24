@@ -1,0 +1,9 @@
+{
+  "binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow41-telemetry-20261024/tool/war",
+  "sha256": "3360fac3423b446da47b54e14776839c83cb2dd76b1b3f682c59061bd366d9a2",
+  "version": "war 1.0.0-alpha.5 (unreleased, commit 23070e52da9d, dirty, debug)",
+  "source_parent": "23070e52da9d6153e136883ec1f1406da5151f39",
+  "working_patch_sha256": "2addf126e00bea18b5bd8f30002ea344a48d9a9dc093db9b714238832773f6cd",
+  "toolchain": "rustc 1.97.1",
+  "boundary": "Debug performer build from the parent plus retained patch. No release qualification or independent verdict."
+}

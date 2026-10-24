@@ -1,0 +1,28 @@
+{
+  "schema": "oh.war/command-observation/v1",
+  "raw_artifact": "/mnt/4tb/artifacts/OpenWarrant/keep/ow124-adoption-20261024/initial-corpus-check.json",
+  "sha256": "ca1b35e727319401e19ea15e20dee84537bfb799b344f95800b9dc52b4ee26da",
+  "counts": {
+    "pass": 2052,
+    "warn": 423,
+    "unknown": 0,
+    "error": 2,
+    "worst": "error"
+  },
+  "exit_code": 2,
+  "errors": [
+    {
+      "severity": "error",
+      "rule": "corpus-status.drift",
+      "file": "docs/warrants/generated/CORPUS_STATUS.json",
+      "message": "the committed CORPUS_STATUS.json differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
+    },
+    {
+      "severity": "error",
+      "rule": "corpus-status.drift",
+      "file": "docs/warrants/generated/CORPUS_STATUS.html",
+      "message": "the committed CORPUS_STATUS.html differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
+    }
+  ],
+  "boundary": "Only error findings are copied. The full raw report retains all passes and warnings at the named durable artifact."
+}

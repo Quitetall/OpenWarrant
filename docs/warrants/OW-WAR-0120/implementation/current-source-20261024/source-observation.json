@@ -1,0 +1,36 @@
+{
+  "ci_head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "ci_run": 40033704288,
+  "files": [
+    {
+      "path": "tools/scale/synth-corpus.sh",
+      "sha256": "3f2718e64cb807b3443c36769d6d051937ed0beb552ea6376a0c85e4071c8d67",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "tools/scale/budget.sh",
+      "sha256": "b80f16fb2e210b9b6f971b34215b92cae39618ce687d8a9b9aaa95d869427420",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "tools/scale/budget.toml",
+      "sha256": "06ee18e66e3f688688c2ee683a1779147fcb5e446d0f027c701a9c6569829150",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "docs/scale/baseline-1000.json",
+      "sha256": "c1ba0aa319e8691a7c42b0577edbf1e873f896f13079daba252d325a91518bc7",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "docs/RETENTION.md",
+      "sha256": "10c16326964ff2720e5ef93632b0d0daad0616303d93688f4f101b782f2befdc",
+      "identical_to_protected_ci": true
+    },
+    {
+      "path": "conformance/plants.d/52-retention.sh",
+      "sha256": "9de66682948df3d044de052a793efb6d5eea71f4d6e903a83415a4d3a2d9d912",
+      "identical_to_protected_ci": true
+    }
+  ]
+}

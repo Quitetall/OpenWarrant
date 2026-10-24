@@ -1,0 +1,85 @@
+{
+  "meaning": "Current source witnesses, not refreshed delivery pins",
+  "protected_candidate": "8606def37781037aa3741e8108b1d06bfb708445",
+  "protected_run": 40094082209,
+  "files": [
+    {
+      "id": "D-001",
+      "path": "crates/openwarrant-core/src/assignment.rs",
+      "sha256": "6eb62f2ed418a9495ad9fda425556d27f4057144b2af45228f9f5107eb52c3dc",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-002",
+      "path": "crates/openwarrant-cli/src/authorize.rs",
+      "sha256": "db7cee5f9ca164dbdbaa5da8803c4dad0b63251cf982abe4506baeb5419328d9",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-003",
+      "path": "crates/openwarrant-cli/src/sign.rs",
+      "sha256": "86582d80ab6ca9132f18a384b8f76f85a12494c1c077645971a77e8705721ee1",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-004",
+      "path": "crates/openwarrant-cli/src/inbox/mod.rs",
+      "sha256": "d8c6f8c1a59de5747ec7a5be85e505ab8d32ce7c7550ade1ad6b7df09bd06572",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-005",
+      "path": "crates/openwarrant-cli/src/verify.rs",
+      "sha256": "820acb242467551e390f72a7fce3953d5b242ceeb59dd7ce2c19dbddcd25d4de",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-006",
+      "path": "docs/TEAMS.md",
+      "sha256": "eb792b1e204f8f4cd31ff49a2727b23adb9ad6601866e562426177412ccda6a7",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-007",
+      "path": "docs/THREAT_MODEL.md",
+      "sha256": "31c59179e1464cbaf1e5a2efaf488dc9ef11455b66c23f886bc10b7df04c9e90",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-008",
+      "path": "conformance/plants.d/57-teams.sh",
+      "sha256": "07a0538b3f5308fe2233f00093bff8432a4da39ed0356455cac071dec13f9809",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-009",
+      "path": "crates/openwarrant-cli/src/lib.rs",
+      "sha256": "16b7cc80584b28a3ad50045553255a2b84f9e69fe8bcc9ec3df1482ef1ede18a",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-010",
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "sha256": "151617bb6c9124432b6b541d58e4db63bf49f5476be9fc43bbbcef6e751df1d3",
+      "matches_protected_ci_source": false
+    },
+    {
+      "id": "D-011",
+      "path": "crates/openwarrant-cli/src/status.rs",
+      "sha256": "0874aca9a612c48877dcc5168b108ccb8ca827eebffbc818f19b8743a45f313e",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-012",
+      "path": "crates/openwarrant-core/src/status.rs",
+      "sha256": "28cf3012d3d42d7d9af21c974e17562288b820af4622cb043d27b1e8bdc0b0db",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-013",
+      "path": "crates/openwarrant-cli/src/resolution_cmd.rs",
+      "sha256": "7d8ecaeed97ab1e4572a0fdce26749ec3eb22b05dbad178de258d7cb87bb0e86",
+      "matches_protected_ci_source": true
+    }
+  ]
+}

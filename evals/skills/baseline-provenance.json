@@ -1,0 +1,23 @@
+{
+  "schema": "oh.war/fixture-baseline-observation/v1",
+  "source_commit": "64603ffda27907bd90fb30856a54b25ca1986b73",
+  "ci_run": 40088204346,
+  "ci_url": "https://github.com/Quitetall/OpenWarrant/actions/runs/40088204346",
+  "result_sha256": "9a64700b4f6ebe71ac0b7a2b31d7ebc873ab8724e3c1ff5946bc43d3f9fb4683",
+  "binary_version": "war 1.0.0-alpha.5 (unreleased, commit 64603ffda279, debug)",
+  "binary_sha256": "b25e321fcf70c48d2186e64cf869f8b36aa0dfd9344c68ffbe268ad7fd6a9095",
+  "archive_sha256": {
+    "grill": "c27c10b693d8a60299e8d8e37125b79d635bfc044eb378b3636c8f4db0d68543",
+    "grill-12k-budget": "143416d637fbc73b851637d9d226f4f1207dd17df79e4855031d926899289e85",
+    "grill-unanswered": "67fdc28257952554cc5347b44c244685ceb3693f111d6ee167f671fc994a232b",
+    "spec": "5175caea5c750a4a191cb06e4ef756fb55475e63eebb5575a1517c8a983654ba",
+    "tickets": "00d5991415c75d457bb92670e7c4e4a1de048686bbb644381d8d937fd263edb6"
+  },
+  "generic_baseline_unchanged": true,
+  "generic_expected_cases": 12,
+  "skill_expected_cases": 5,
+  "fixture_only": true,
+  "model_quality_measured": false,
+  "owner_first_run_review_pending": true,
+  "qualification_granted": false
+}

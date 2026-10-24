@@ -4,10 +4,12 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "2085ae428d25e2ffe68dc89153f6b8d33b9fb972",
-  "summary": "Existing scoped implementation exercised: 6 feature controls plus positive corpus pass (7/0 total). Eight closure requirements remain unestablished.",
-  "notes": "docs/warrants/OW-WAR-0144/implementation/scoped-controls-20261012/README.md",
+  "summary": "Corrected a reproduced dry-run mismatch: preview now refuses the same retained-file collision as actual signing without creating an archive. A bounded FIFO reproduction exposed a blocking read; non-regular retained paths now refuse before open, and unavailable state remains UNKNOWN. Ten retention controls, twelve batch controls and eleven authorization units pass, with Clippy/fmt clean. Formal closure and full-scope historical reconciliation remain open.",
+  "notes": "docs/warrants/OW-WAR-0144/implementation/dry-run-20261024/README.md",
   "evidence": [
-    "docs/warrants/OW-WAR-0144/implementation/scoped-controls-20261012/observation.json"
+    "docs/warrants/OW-WAR-0144/implementation/scoped-controls-20261012/observation.json",
+    "docs/warrants/OW-WAR-0144/implementation/retention-audit-20261024/observation.json",
+    "docs/warrants/OW-WAR-0144/implementation/dry-run-20261024/observation.json"
   ],
   "next_steps": [
     "Reconcile later delivery ownership without rewriting signed history.",

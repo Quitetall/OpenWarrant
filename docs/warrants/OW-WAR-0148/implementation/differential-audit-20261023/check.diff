@@ -1,0 +1,19 @@
+--- pre
++++ post
+@@ -1119,6 +1119,7 @@
+ PASS milestones.valid                   OW-WAR-0070: 2 milestone(s), 2 stage(s), acyclic with no dangling refs
+ PASS obligations.valid                  OW-WAR-0070: 3 obligation(s), each with a bounded scope and evidence
+ PASS manifest.valid                     OW-WAR-0071: manifest and composition are well-formed
++PASS capability.not-applicable          OW-WAR-0071: profile decision does not select `stages` (the milestone graph and §56.1 requirement 12's runtime receipts): not applicable, not passed (OW-ADR-0031)
+ PASS traceability.refs                  OW-WAR-0071: 2 requirement ref(s) and 1 roadmap ref(s) parse
+ WARN evidence.stale-binding             OW-WAR-0071: software.repo.war-check@1.0.0 · the receipt names tree:9729d66838274661a8b7382db6ef1108887babec and 157 path(s) outside the evidence records, projections, authority records, verification records and ticket bookkeeping have changed since (.github/workflows/ci.yml, Cargo.lock, Cargo.toml, …) — a run over an earlier source is a record, not evidence about this one
+                                              → docs/warrants/OW-WAR-0071/gate-runs/software_repo_war-check_1_0_0.run.toml
+@@ -3163,7 +3164,7 @@
+   human war sign SAS-0.1.0-draft.2 --ssh-sign   (×1)
+   human war sign SAS-0.1.0-draft.3 --ssh-sign   (×1)
+ 
+-1854 pass · 390 warn · 0 unknown · 0 error   (worst: WARN)
++1855 pass · 390 warn · 0 unknown · 0 error   (worst: WARN)
+ 
+ NOT CHECKED:
+   · 144 of 144 Warrant(s) have no disposed              obligations — §38.6 yields no resolution verdict for them, which is the              expected state of work that has not been assessed

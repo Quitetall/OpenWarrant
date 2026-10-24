@@ -1,0 +1,16 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.28s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 8 tests
+test repo::compat::tests::requires_war_refuses_an_older_war_naming_both_versions ... ok
+test repo::compat::tests::hosted_schema_facts_do_not_make_withheld_bytes_readable ... ok
+test repo::compat::tests::schema_facts_require_a_content_witness_in_each_compilation ... ok
+test repo::compat::tests::schema_only_duplicates_record_one_complete_body ... ok
+test repo::compat::tests::only_a_file_that_could_name_a_newer_major_is_parsed ... ok
+test repo::compat::tests::changed_bytes_cannot_reuse_a_schema_fact ... ok
+test repo::compat::tests::a_newer_major_is_unknown_and_an_unrelated_schema_is_ignored ... ok
+test repo::compat::tests::performance_cache_preserves_toml_schema_escapes ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 542 filtered out; finished in 0.00s
+

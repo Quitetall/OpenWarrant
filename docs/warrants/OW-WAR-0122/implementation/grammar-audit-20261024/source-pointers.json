@@ -1,0 +1,97 @@
+{
+  "checked_pointers": 13,
+  "references": [
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "start": 763,
+      "end": 776,
+      "source_sha256": "f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "start": 1069,
+      "end": 1107,
+      "source_sha256": "f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "start": 781,
+      "end": 807,
+      "source_sha256": "f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "start": 781,
+      "end": 807,
+      "source_sha256": "f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/frontmatter.rs",
+      "start": 185,
+      "end": 195,
+      "source_sha256": "12fd0f41eb2b5eb145dd6d96c4421a458120cda68e0ded95761f3e00f07f750d"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "start": 2092,
+      "end": 2102,
+      "source_sha256": "f72258c1c80f14bbb105ea9f03661a71e87bd82ae756ed07ce3d047e630dc4ca"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/sections.rs",
+      "start": 10,
+      "end": 28,
+      "source_sha256": "9bb9924b79c5d571be59ad2abd9cd0c6760cb0c30b64eed2bbe42d1eab050c83"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/obligation.rs",
+      "start": 407,
+      "end": 439,
+      "source_sha256": "a98391170c8c4abd5c2a2bbd44826630927a242c898ba735053ded049790597b"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/obligation.rs",
+      "start": 443,
+      "end": 496,
+      "source_sha256": "a98391170c8c4abd5c2a2bbd44826630927a242c898ba735053ded049790597b"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/obligation.rs",
+      "start": 499,
+      "end": 511,
+      "source_sha256": "a98391170c8c4abd5c2a2bbd44826630927a242c898ba735053ded049790597b"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/gate.rs",
+      "start": 737,
+      "end": 760,
+      "source_sha256": "d9f605338b14816a640e7dafaaee9deb2ebf5a1c617798ef83fd6e75166eec32"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-core/src/role.rs",
+      "start": 99,
+      "end": 127,
+      "source_sha256": "4a5d6619ea8be7ca9ca38730fc06827f6593f9bafbeb46786795ddf5ea369b43"
+    },
+    {
+      "commit": "23070e52da9d6153e136883ec1f1406da5151f39",
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "start": 763,
+      "end": 776,
+      "source_sha256": "f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78"
+    }
+  ],
+  "result": "All pinned source paths and line ranges exist, match current source and retain their exact Git revision."
+}

@@ -1,0 +1,19 @@
+{
+  "alias": "MX-WAR-0003",
+  "warrant_root": "/mnt/4tb/tmp/openwarrant-ow68-map-example-20261024/docs/warrants/MX-WAR-0003",
+  "adr_source": "/mnt/4tb/tmp/openwarrant-ow68-map-example-20261024/docs/adr/atoms/MX-ADR-u01a16e00127874cca8f256f2e3916bb5.md",
+  "unknowns": [
+    "A-001"
+  ],
+  "phase": "draft",
+  "valid_check_counts": {
+    "pass": 16,
+    "warn": 3,
+    "unknown": 0,
+    "error": 0,
+    "worst": "warn"
+  },
+  "invalid_refusal": "rationale.invalid",
+  "decision_accepted": false,
+  "qualification_granted": false
+}

@@ -1,0 +1,155 @@
+{
+  "workspace_basis_ref": "basis://docs/warrants/OW-WAR-0047/manifest.toml",
+  "workspace_basis_digest": "f28cb0b98260ed92828fb4a62be53b99480c486d228042a3a556554a29c346f2",
+  "included": [
+    {
+      "id": "CONTEXT.md",
+      "role": "informative",
+      "required": false,
+      "holder": {
+        "kind": "git",
+        "repository": "OpenWarrant",
+        "commit_sha": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+        "path": "CONTEXT.md"
+      },
+      "content_digest": "sha256:b752a92e017366d6ec948388b38ccf2c56536d3c78cf6350800195150d887710",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "informative_source"
+    },
+    {
+      "id": "atoms/10-intent.md",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "OpenWarrant",
+        "commit_sha": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+        "path": "docs/warrants/OW-WAR-0047/atoms/10-intent.md"
+      },
+      "content_digest": "sha256:d1fd80d8c13308b4cb896ca457cc5965ed20d0c3f180e0f70b2cbb929866c12c",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/20-basis.md",
+      "role": "governing",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "OpenWarrant",
+        "commit_sha": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+        "path": "docs/warrants/OW-WAR-0047/atoms/20-basis.md"
+      },
+      "content_digest": "sha256:9752ebdb7a992b841fda5759bb198f9f41cbd665dae49ce3362233c3f834033d",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/40-work-order.md",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "OpenWarrant",
+        "commit_sha": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+        "path": "docs/warrants/OW-WAR-0047/atoms/40-work-order.md"
+      },
+      "content_digest": "sha256:9931ad1c45e71970248f0f2d8b3012f307854092dc9cecae0848f44ec43df749",
+      "selector_sections": [
+        "Deliverables",
+        "Premade Instructions"
+      ],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/45-milestones.yaml",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "OpenWarrant",
+        "commit_sha": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+        "path": "docs/warrants/OW-WAR-0047/atoms/45-milestones.yaml"
+      },
+      "content_digest": "sha256:c240b53cfb61a93f0414c2e45f37ccd81dbb3cdf95d9ae301d1f68f3deda43f8",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "atoms/60-assurance.md",
+      "role": "normative",
+      "required": true,
+      "holder": {
+        "kind": "git",
+        "repository": "OpenWarrant",
+        "commit_sha": "4f1f6a80fd65c5a0c0e7b256a1fc494f43248a79",
+        "path": "docs/warrants/OW-WAR-0047/atoms/60-assurance.md"
+      },
+      "content_digest": "sha256:a210ab75cce9bf02e1b77d4fb91ac1d96fd40b401a4ddf077e2bae99de74a1bf",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "authoritative_internal",
+      "taints": [],
+      "precedence": "authorized_war_contract"
+    },
+    {
+      "id": "sas://§33",
+      "role": "informative",
+      "required": false,
+      "holder": {
+        "kind": "external",
+        "repository": "",
+        "commit_sha": "",
+        "path": "sas://§33"
+      },
+      "content_digest": "",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "external_untrusted",
+      "taints": [
+        "unfetched"
+      ],
+      "precedence": "informative_source"
+    },
+    {
+      "id": "sas://§47.2",
+      "role": "informative",
+      "required": false,
+      "holder": {
+        "kind": "external",
+        "repository": "",
+        "commit_sha": "",
+        "path": "sas://§47.2"
+      },
+      "content_digest": "",
+      "selector_sections": [],
+      "classification": "internal",
+      "trust": "external_untrusted",
+      "taints": [
+        "unfetched"
+      ],
+      "precedence": "informative_source"
+    }
+  ],
+  "omitted": [],
+  "unresolved": [],
+  "conflicts": [],
+  "effective_classification": "internal",
+  "policy_digest": "",
+  "compiler_digest": "openwarrant-cli/1.0.0-alpha.2"
+}

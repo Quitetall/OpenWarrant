@@ -186,7 +186,19 @@ pub fn run_profile(
         {
             Ok(mut file) => {
                 let uuid = WarUuid::mint();
-                let mut manifest = manifest_template(&uuid, &alias, title, profile, definition);
+                let bound_adr = if profile.core() == CoreProfile::Decision {
+                    Some(write_bound_decision(repo, &dir, &uuid, title, preset)?)
+                } else {
+                    None
+                };
+                let mut manifest = manifest_template(
+                    &uuid,
+                    &alias,
+                    title,
+                    profile,
+                    definition,
+                    bound_adr.as_deref(),
+                );
                 if let Some(citation) = &citation {
                     manifest.push_str(citation);
                 }
@@ -447,7 +459,9 @@ fn manifest_template(
     title: &str,
     profile: &Profile,
     definition: &ProfileDefinition,
+    bound_adr: Option<&str>,
 ) -> String {
+    let title = toml::Value::String(title.to_owned()).to_string();
     let mut out = format!(
         "# A Warrant is the contract for ONE bounded intervention inside a program,\n\
          # and it traces to that program's SAS through [[implements]] and [[roadmap]].\n\
@@ -459,7 +473,7 @@ fn manifest_template(
          # Allocated only by Knowledge Fabric (SAS §12.4). Leave empty.\n\
          enterprise_id = \"\"\n\
          \n\
-         title = \"{title}\"\n\
+         title = {title}\n\
          profile = \"{profile}\"\n\
          {pin}\
          assurance_level = \"basic\"\n\
@@ -484,8 +498,16 @@ fn manifest_template(
             .unwrap_or_default()
     );
     for (ordinal, role, file) in template_atoms(profile) {
+        let path = if role == "adr" {
+            bound_adr
+                .map(str::to_owned)
+                .unwrap_or_else(|| format!("atoms/{file}"))
+        } else {
+            format!("atoms/{file}")
+        };
+        let path = toml::Value::String(path).to_string();
         out.push_str(&format!(
-            "[[atoms]]\nordinal = {ordinal}\nrole = \"{role}\"\npath = \"atoms/{file}\"\nrequired = true\n\n"
+            "[[atoms]]\nordinal = {ordinal}\nrole = \"{role}\"\npath = {path}\nrequired = true\n\n"
         ));
     }
     // The namespaced roles the profile requires, in ordinal order after the
@@ -532,6 +554,10 @@ fn write_preset(
     preset: &str,
 ) -> Result<(), RepoError> {
     for (ordinal, role, file) in template_atoms(profile) {
+        if role == "adr" {
+            // A bound ADR has its own identity and source in the ADR corpus.
+            continue;
+        }
         let path = dir.join("atoms").join(file);
         if path.exists() {
             continue;
@@ -561,6 +587,60 @@ fn write_preset(
         })?;
     }
     Ok(())
+}
+
+fn write_bound_decision(
+    repo: &Repository,
+    dir: &camino::Utf8Path,
+    warrant_uuid: &WarUuid,
+    title: &str,
+    preset: &str,
+) -> Result<String, RepoError> {
+    let body = preset_body(preset, "30-decision.md").ok_or_else(|| {
+        RepoError::Message(format!(
+            "new.preset-incomplete: preset {preset:?} has no decision body"
+        ))
+    })?;
+    let adr_uuid = WarUuid::mint();
+    // UUID-based aliases do not race a shared next-number counter across branches.
+    let alias = format!(
+        "{}-ADR-u{}",
+        repo.config.project.namespace.as_str(),
+        adr_uuid.to_string().replace('-', "")
+    );
+    let store = repo.adr_atoms_dir();
+    fs::create_dir_all(&store).map_err(|source| RepoError::Io {
+        context: format!("could not create {store}"),
+        source,
+    })?;
+    let path = store.join(format!("{alias}.md"));
+    let text = format!(
+        "---\nschema: oh.war/atom/v1\nadr_uuid: {adr_uuid}\nlocal_alias: {alias}\nrole: adr\njurisdiction: bound\norder: 30\nclassification: internal\nstatus: proposed\ngoverns:\n  - \"war://{warrant_uuid}\"\n---\n\n# ADR {alias}: {title}\n\n{body}"
+    );
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&path)
+        .map_err(|source| RepoError::Io {
+            context: format!("could not create {path}"),
+            source,
+        })?;
+    file.write_all(text.as_bytes())
+        .map_err(|source| RepoError::Io {
+            context: format!("could not write {path}"),
+            source,
+        })?;
+    let from: Vec<_> = dir.components().collect();
+    let to: Vec<_> = path.components().collect();
+    let common = from.iter().zip(&to).take_while(|(a, b)| a == b).count();
+    let mut reference = Utf8PathBuf::new();
+    for _ in common..from.len() {
+        reference.push("..");
+    }
+    for component in &to[common..] {
+        reference.push(component.as_str());
+    }
+    Ok(reference.into_string())
 }
 
 /// A stub for each namespaced role the profile requires, from its
@@ -605,7 +685,14 @@ mod tests {
         let uuid = WarUuid::mint();
         let registry = openwarrant_core::role::ProfileRegistry::builtin();
         let definition = registry.definition(&Profile::Delivery).expect("core");
-        let m = manifest_template(&uuid, "OW-WAR-0001", "x", &Profile::Delivery, definition);
+        let m = manifest_template(
+            &uuid,
+            "OW-WAR-0001",
+            "x",
+            &Profile::Delivery,
+            definition,
+            None,
+        );
         assert!(m.contains(&format!("uuid = \"{uuid}\"")));
         assert!(m.starts_with("# A Warrant is the contract for ONE bounded intervention"));
     }

@@ -1,0 +1,10 @@
+{
+  "source_parent": "63530a3584f2707f9abdb1922a31c8fd11b1abde",
+  "source_dirty": true,
+  "binary_sha256": "e27fd99009b8e142b15daae3e14639b2f30ac35587158a9a99e22561a4f50f0f",
+  "version": "war 1.0.0-alpha.5 (unreleased, commit 63530a3584f2, dirty, debug)",
+  "source_sha256": {
+    "crates/openwarrant-cli/src/lib.rs": "20cd2cb36fd3cc2a226a892619a8ecddab92708e50186efc877fbb209718068f",
+    "crates/openwarrant-cli/tests/json_envelope.rs": "7c202fe399f8eb4dc49b5217b58f721bfbb45b62afad1c21beacf34b2f9e7bfa"
+  }
+}

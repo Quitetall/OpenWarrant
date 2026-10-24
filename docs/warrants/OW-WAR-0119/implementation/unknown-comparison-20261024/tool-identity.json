@@ -1,0 +1,7 @@
+{
+  "version": "war 1.0.0-alpha.5 (unreleased, commit 08ae6c208439, dirty, debug)",
+  "parent": "08ae6c2084399f22ea64a86bfafc0d018f3fbfb9",
+  "binary_sha256": "62f90c73b83e92157488bd0941b80a8aad2c0eda1daceed65ea607d03231e174",
+  "identity_source_sha256": "a3755048cce7b86206abd6031323617883cc12a61e802c1448fb18e2d080325b",
+  "dirty_source": true
+}

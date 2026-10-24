@@ -1,0 +1,53 @@
+gate	cargo xtask gate	2026-10-23T22:36:27.4253098Z ok    stale parent contract digest       rejected by relations.parent-digest (no longer the one it was authorized against)
+gate	cargo xtask gate	2026-10-23T22:52:38.4844402Z == parent revision (OW-WAR-0123) ==
+gate	cargo xtask gate	2026-10-23T22:52:48.6173385Z ok    corpus: OW-WAR-0002 named as revision 2 warn relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:48.6728179Z ok    corpus: OW-WAR-0003 named as revision 2 warn relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:48.7293575Z ok    corpus: OW-WAR-0004 named as revision 2 warn relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:48.7845063Z ok    corpus: OW-WAR-0005 named as revision 2 warn relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:48.8097807Z ok    corpus: only the four children     no parent finding elsewhere
+gate	cargo xtask gate	2026-10-23T22:52:48.8656619Z ok    corpus: no parent error            no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:48.9207868Z ok    corpus: no parent-digest error     no error relations.parent-digest
+gate	cargo xtask gate	2026-10-23T22:52:50.5215671Z ok    revision 7 refused                 error relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:50.5216127Z ok    revision 7 exits non-zero          exit 2
+gate	cargo xtask gate	2026-10-23T22:52:50.5366424Z ok    revision 7 is not passed           no pass relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:51.1168697Z ok    exact revision 1 passes            pass relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:51.1323070Z ok    exact revision 1: parent moved     warn relations.parent-moved ×1
+gate	cargo xtask gate	2026-10-23T22:52:51.1473559Z ok    exact revision 1: no revision error no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:51.1626631Z ok    exact revision 1: no digest error  no error relations.parent-digest
+gate	cargo xtask gate	2026-10-23T22:52:51.1776000Z ok    exact revision 1: not UNKNOWN (full) no unknown relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:51.7051482Z ok    exact revision 2 passes            pass relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:51.7205524Z ok    exact revision 2: no moved warning no warn relations.parent-moved
+gate	cargo xtask gate	2026-10-23T22:52:51.7359229Z ok    exact revision 2: no revision error no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:51.7508935Z ok    exact revision 2: no revision warning no warn relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:51.7659329Z ok    exact revision 2: no digest error  no error relations.parent-digest
+gate	cargo xtask gate	2026-10-23T22:52:51.7808606Z ok    revision 2 exact: 7 not reported   no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:52.3687720Z ok    rev 2 at rev 1's digest (signed)   warn relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:52.3842676Z ok    rev 2 at rev 1's digest: no pass   no pass relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:52.3996038Z ok    rev 2 at rev 1's digest: no digest pass no pass relations.parent-digest
+gate	cargo xtask gate	2026-10-23T22:52:52.9706695Z ok    a digest of no revision            error relations.parent-digest ×1
+gate	cargo xtask gate	2026-10-23T22:52:52.9707195Z ok    a digest of no revision exits non-zero exit 2
+gate	cargo xtask gate	2026-10-23T22:52:52.9859952Z ok    no revision: not named as a revision no warn relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:53.0011371Z ok    no revision: not passed            no pass relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:53.5859107Z ok    rev 2 at rev 1's digest (unsigned) error relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:53.6008058Z ok    unsigned: not softened to a warning no warn relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:53.6008445Z ok    unsigned mismatch exits non-zero   exit 2
+gate	cargo xtask gate	2026-10-23T22:52:54.0307630Z ok    shallow: revision 1 is UNKNOWN     unknown relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:54.0458839Z ok    shallow: not PASS                  no pass relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:54.0607413Z ok    shallow: not ERROR (revision)      no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:54.0756891Z ok    shallow: not ERROR (digest)        no error relations.parent-digest
+gate	cargo xtask gate	2026-10-23T22:52:54.0903656Z ok    shallow: no moved claim            no warn relations.parent-moved
+gate	cargo xtask gate	2026-10-23T22:52:54.0904009Z ok    shallow: UNKNOWN blocks readiness  exit 2
+gate	cargo xtask gate	2026-10-23T22:52:57.6060924Z ok    shallow: corpus still answered     warn relations.parent-revision ×4
+gate	cargo xtask gate	2026-10-23T22:52:57.6635605Z ok    shallow: corpus has no UNKNOWN     no unknown relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:58.2137332Z ok    parent edited: still caught        error relations.parent-digest ×1
+gate	cargo xtask gate	2026-10-23T22:52:58.7248533Z ok    parent edited: exact rev 2 caught  error relations.parent-digest ×1
+gate	cargo xtask gate	2026-10-23T22:52:58.8535509Z ok    new --parent writes the citation   OW-WAR-0150 cites revision 2 at f29c7d95…
+gate	cargo xtask gate	2026-10-23T22:52:59.2433719Z ok    new --parent child passes          pass relations.parent-revision ×1
+gate	cargo xtask gate	2026-10-23T22:52:59.2587384Z ok    new --parent child: no finding     no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:59.2739458Z ok    new --parent child: no warning     no warn relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:59.4423002Z ok    new --parent OW-WAR-9999           refused (exit 1), nothing created
+gate	cargo xtask gate	2026-10-23T22:52:59.5572863Z ok    new --parent <a draft>             refused (exit 1), nothing created
+gate	cargo xtask gate	2026-10-23T22:52:59.6093766Z ok    new --parent <a corpus draft>      refused (exit 1), nothing created
+gate	cargo xtask gate	2026-10-23T22:52:59.6894328Z ok    draft parent, revision 1: passes   pass relations.parent-digest ×1
+gate	cargo xtask gate	2026-10-23T22:52:59.7035434Z ok    draft parent, revision 1: no error no error relations.parent-revision
+gate	cargo xtask gate	2026-10-23T22:52:59.7438608Z ok    draft parent, revision 2: refused  error relations.parent-revision ×1

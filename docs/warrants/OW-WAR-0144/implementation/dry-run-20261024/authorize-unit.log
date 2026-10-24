@@ -1,0 +1,19 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 40.87s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/openwarrant_cli-189bd122cb0a0f63)
+
+running 11 tests
+test authorize::tests::an_authorization_must_be_authorized_and_current ... ok
+test authorize::tests::a_response_for_another_warrant_is_refused ... ok
+test authorize::tests::an_unknown_schema_is_refused ... ok
+test authorize::tests::an_actor_with_no_assignment_has_no_authority ... ok
+test authorize::tests::a_signature_against_a_moved_digest_is_refused ... ok
+test authorize::tests::a_human_risk_acceptance_needs_the_risk_acceptor_role ... ok
+test authorize::tests::an_agent_may_recommend_a_judgment_but_not_make_one ... ok
+test authorize::tests::a_well_formed_human_authorization_is_accepted ... ok
+test authorize::tests::an_authorizer_who_proposed_it_is_refused ... ok
+test authorize::tests::an_agent_cannot_authorize_even_holding_the_role ... ok
+test authorize::tests::a_signed_response_becomes_a_record_and_a_refused_one_writes_nothing ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 539 filtered out; finished in 9.48s
+

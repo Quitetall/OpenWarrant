@@ -18,8 +18,9 @@ repository's AGENTS.md for its own conventions.
   Warrant, whatever its encoding.
 - A Warrant whose type has a sign-off step adds a person's approval, and the
   tool holds those rules.
-- Finished and verified are separate: report finished work as finished, and
-  as unverified until an independent check says more.
+- **Completion is separate from assurance.** Report finished work as unverified.
+  Use OpenWarrant Verified only after independent evidence and secure human
+  acceptance bind the exact result under the applicable baseline.
 - At the end of a session, tell the person what waits on them: `war next`
   lists the approvals and signatures that are a person's, and
   `war sign inbox` the same list by person. Agents go on working meanwhile.
@@ -34,9 +35,10 @@ repository's AGENTS.md for its own conventions.
 1. Confirm the repository, current changes and `war --version` / `--help`.
    In this source repository, prefer the checkout's `target/debug/war` over an
    older one on PATH.
-2. For intent routing, read [war](../war/SKILL.md). Live CLI output outranks a
-   skill example. `war view overview` and `war plan frontier` describe records; neither
-   is a gate on ordinary work.
+2. If the requested workflow is not already selected, read the
+   [war router](../war/SKILL.md). Live CLI output outranks a skill example.
+   `war view overview` and `war plan frontier` describe records; neither is a
+   gate on ordinary work.
 3. Apply the requested scope. Behaviour the installed CLI lacks is reported as
    unsupported.
 

@@ -1,0 +1,12 @@
+gate	cargo xtask gate	2026-10-23T22:51:22.4123984Z == shared preparation observations ==
+gate	cargo xtask gate	2026-10-23T22:51:23.2589175Z ok    shared preparation                 shared, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:23.5830734Z ok    shared preparation                 mutate-input, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:23.9518405Z ok    shared preparation                 mutate-contract, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:24.2731161Z ok    shared preparation                 mutate-gate, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:24.7273592Z ok    shared preparation                 warrant-specific, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:25.0825898Z ok    shared preparation                 fail-gate, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:25.5609380Z ok    shared preparation                 different-orders, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:25.9714864Z ok    shared preparation                 different-orders, jobs=2
+gate	cargo xtask gate	2026-10-23T22:51:26.3923020Z ok    shared preparation                 earlier-failure, jobs=1
+gate	cargo xtask gate	2026-10-23T22:51:26.7776204Z ok    shared preparation                 earlier-failure, jobs=2
+gate	cargo xtask gate	2026-10-23T22:51:32.2821530Z ok    shared preparation                 timeout-second, jobs=1

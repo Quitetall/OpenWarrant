@@ -1,0 +1,71 @@
+--- pre-release-json
++++ post-release-json
+@@ -6829,6 +6829,12 @@
+     },
+     {
+       "severity": "pass",
++      "rule": "capability.not-applicable",
++      "file": null,
++      "message": "OW-WAR-0071: profile decision does not select `stages` (the milestone graph and §56.1 requirement 12's runtime receipts): not applicable, not passed (OW-ADR-0031)"
++    },
++    {
++      "severity": "pass",
+       "rule": "traceability.refs",
+       "file": null,
+       "message": "OW-WAR-0071: 2 requirement ref(s) and 1 roadmap ref(s) parse"
+@@ -17317,22 +17323,22 @@
+       "message": "ADR_OVERVIEW.md matches a fresh compilation"
+     },
+     {
+-      "severity": "pass",
++      "severity": "error",
+       "rule": "corpus-status.drift",
+-      "file": null,
+-      "message": "CORPUS_STATUS.md matches a fresh compilation"
+-    },
+-    {
+-      "severity": "pass",
++      "file": "docs/warrants/generated/CORPUS_STATUS.md",
++      "message": "the committed CORPUS_STATUS.md differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
++    },
++    {
++      "severity": "error",
+       "rule": "corpus-status.drift",
+-      "file": null,
+-      "message": "CORPUS_STATUS.json matches a fresh compilation"
+-    },
+-    {
+-      "severity": "pass",
++      "file": "docs/warrants/generated/CORPUS_STATUS.json",
++      "message": "the committed CORPUS_STATUS.json differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
++    },
++    {
++      "severity": "error",
+       "rule": "corpus-status.drift",
+-      "file": null,
+-      "message": "CORPUS_STATUS.html matches a fresh compilation"
++      "file": "docs/warrants/generated/CORPUS_STATUS.html",
++      "message": "the committed CORPUS_STATUS.html differs from a fresh compilation; it was edited by hand or its sources changed without recompiling"
+     },
+     {
+       "severity": "pass",
+@@ -17398,13 +17404,13 @@
+     "Source Holder ambiguity and classification propagation (§91.2 tests 14, 15) — narrowed by OW-ADR-0008: test 14 needs a `source_holder` on atoms, which §13 requires and none declares; test 15 needs a classification ordering, which the SAS does not give. Neither is undecided — both are undeclared"
+   ],
+   "counts": {
+-    "pass": 2011,
++    "pass": 2009,
+     "warn": 390,
+     "unknown": 0,
+-    "error": 0,
+-    "worst": "warn"
++    "error": 3,
++    "worst": "error"
+   },
+-  "verdict": "well_formed",
+-  "verdict_line": "WELL-FORMED (record only — Preflight is not implemented, and `war check` does not run gates)",
+-  "exit_code": 0
++  "verdict": "not_ready",
++  "verdict_line": "NOT READY",
++  "exit_code": 2
+ }

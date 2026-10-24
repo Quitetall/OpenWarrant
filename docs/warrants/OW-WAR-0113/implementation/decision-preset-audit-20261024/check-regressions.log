@@ -1,0 +1,15 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 8 tests
+test checks_cli::a_run_counts_only_for_the_revisions_it_names ... ok
+test checks_cli::a_hand_tick_is_raised_by_a_later_pass ... ok
+test checks_cli::the_watcher_fires_commits_and_the_hook_is_never_someone_elses ... ok
+test checks_cli::done_fires_the_default_trigger ... ok
+test checks_cli::a_fail_reopens_only_when_the_check_says_so ... ok
+test checks_cli::a_trigger_fires_once_per_revision_and_subject ... ok
+test checks_cli::a_pass_ticks_observed_and_a_fail_ticks_nothing ... ok
+test checks_cli::an_unknown_run_ticks_nothing_and_is_neither_pass_nor_fail ... ok
+
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 364 filtered out; finished in 2.55s
+

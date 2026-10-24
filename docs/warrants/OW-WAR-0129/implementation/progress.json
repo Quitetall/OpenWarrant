@@ -1,18 +1,18 @@
 {
   "schema": "oh.war/viewer-work-report/v1",
   "warrant": "OW-WAR-0129",
-  "work_state": "in-progress",
+  "work_state": "completed",
   "reported_by": "agent://codex",
   "revision": "3c5251a2d2b27c80efc6f887c53415a03df6127b",
-  "summary": "Dispatch-budget scope audited: fifteen current CLI controls and one compiler boundary test pass. Over-budget work starts no actor and emits no packet or gate receipt; invalid bundles are refused, with in-budget controls observed. Historical delivery reconciliation, exact-subject gate evidence and independent/human closure remain pending.",
-  "notes": "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/README.md",
+  "summary": "Implementation complete, unverified. Actual clean before/after binaries preserve the original OW47/STAGE-002 account at 4533/32000 with identical context; a generated fixture preserves 1048/12000 and both versions refuse over-budget output. Current 15 CLI controls and compiler boundary test pass; all four delivery source files match protected 14-step/1716-plant CI. Formal historical delivery reconciliation, independent qualification and human resolution remain open.",
+  "notes": "docs/warrants/OW-WAR-0129/implementation/historical-account-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/observation.json",
-    "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/closure.json"
+    "docs/warrants/OW-WAR-0129/implementation/budget-scope-20261012/closure.json",
+    "docs/warrants/OW-WAR-0129/implementation/historical-account-20261024/observation.json"
   ],
   "next_steps": [
-    "Reconcile historical delivery versions: current closure identifies D-001 and D-002 as moved under later OW133 ownership; preserve original records.",
-    "Obtain admissible registered gate evidence and independent reassessment for the exact reviewed subject.",
-    "Human acceptance and resolution remain separate."
+    "Reconcile historical delivery versions under their actual authority, preserving old records.",
+    "Obtain admissible canonical gate evidence, independent reassessment and secure human acceptance for formal resolution."
   ]
 }

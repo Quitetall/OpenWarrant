@@ -3,18 +3,26 @@
   "warrant": "OW-WAR-0041",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "revision": "de5efe56d463e38045d667368eddbad4cf175050",
-  "summary": "Eight exact SDK-derived calculations and four frozen CLI populations implemented. Both publication paths preserve retained baseline bytes and distinguish live vs frozen source provenance, unverified. Four event/window metrics, historical before-tuning reconciliation and independent qualification remain.",
+  "revision": "c59efbab5b418007476e09b682503b15be1697fe2ed8cc9a671f080829310773",
+  "summary": "Eight exact SDK-derived calculations and four frozen CLI populations implemented, unverified. V2 now identifies adequacy counts as declared source entries, not established execution; the legacy bytes and every numeric value are preserved in bounded differential checks. Four event/window metrics, historical before-tuning reconciliation and independent qualification remain.",
   "notes": "docs/warrants/OW-WAR-0041/implementation/notes.md",
   "evidence": [
     "docs/warrants/OW-WAR-0041/implementation/observation.json",
     "docs/warrants/OW-WAR-0041/implementation/regression.log",
     "docs/warrants/OW-WAR-0100/implementation/gate.log",
-    "docs/warrants/OW-WAR-0041/implementation/baseline-provenance-20261009/README.md"
+    "docs/warrants/OW-WAR-0041/implementation/baseline-provenance-20261009/README.md",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/README.md",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/clippy.log",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/green.log",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/output-observation.json",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/red.log",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/red2.log",
+    "docs/warrants/OW-WAR-0041/implementation/declaration-scope-20261024/tool-identity.json"
   ],
   "next_steps": [
     "Publication/provenance candidate passed the 14-step gate and merged via PR167 at 301faf1c. Actual correlated human-time, safety, repair-follow-up and escape-window inputs remain.",
     "Record actual correlated human-time, safety, repair-follow-up and escape-window inputs.",
-    "Obtain independent historical before-tuning review or prepare an explicit governed reconciliation; preserve original records."
+    "Obtain independent historical before-tuning review or prepare an explicit governed reconciliation; preserve original records.",
+    "Keep declaration counts distinct from execution/verification; collect real correlated event inputs before qualifying the remaining metrics."
   ]
 }

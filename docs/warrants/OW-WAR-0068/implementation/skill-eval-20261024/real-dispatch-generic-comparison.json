@@ -1,0 +1,91 @@
+{
+  "schema": "oh.war/report/v1",
+  "command": "eval.verify",
+  "diagnostics": [
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "code-01-changelog: would_satisfy both times; tokens 707 → 9678"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "code-02-receipt: would_satisfy both times; tokens 753 → 9747"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "code-03-pins: would_satisfy both times; tokens 724 → 9702"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "code-04-json: would_satisfy both times; tokens 707 → 9665"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "doc-01-tokenizer: would_satisfy both times; tokens 779 → 6344"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "doc-02-threat: would_satisfy both times; tokens 749 → 6307"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "doc-03-adr: would_satisfy both times; tokens 761 → 6325"
+    },
+    {
+      "severity": "pass",
+      "rule": "eval.same",
+      "file": null,
+      "message": "doc-04-example: would_satisfy both times; tokens 752 → 6323"
+    },
+    {
+      "severity": "error",
+      "rule": "eval.regressed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-eval-20261024/real-dispatch-generic.json",
+      "message": "run-01-echo: would_satisfy → refused (expected would_satisfy); tokens 1017 → 693"
+    },
+    {
+      "severity": "error",
+      "rule": "eval.regressed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-eval-20261024/real-dispatch-generic.json",
+      "message": "run-02-timeout: would_satisfy → refused (expected would_satisfy); tokens 1021 → 696"
+    },
+    {
+      "severity": "error",
+      "rule": "eval.regressed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-eval-20261024/real-dispatch-generic.json",
+      "message": "run-03-submit: would_satisfy → refused (expected would_satisfy); tokens 1014 → 689"
+    },
+    {
+      "severity": "error",
+      "rule": "eval.regressed",
+      "file": "/mnt/4tb/artifacts/OpenWarrant/keep/ow68-eval-20261024/real-dispatch-generic.json",
+      "message": "run-04-battery: would_satisfy → refused (expected would_satisfy); tokens 1021 → 695"
+    }
+  ],
+  "notes": [
+    "baseline fixture-agent.sh (12 would_satisfy, 12 as expected) vs result fixture-agent.sh (4 refused, 8 would_satisfy, 8 as expected)"
+  ],
+  "counts": {
+    "pass": 8,
+    "warn": 0,
+    "unknown": 0,
+    "error": 4,
+    "worst": "error"
+  },
+  "verdict": "not_ready",
+  "verdict_line": "NOT READY",
+  "exit_code": 2
+}

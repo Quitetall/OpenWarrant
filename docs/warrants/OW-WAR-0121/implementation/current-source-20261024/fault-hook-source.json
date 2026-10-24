@@ -1,0 +1,9 @@
+{
+  "schema": "oh.war/source-region-observation/v1",
+  "historical_source": "43a33fb2f4d2e1ffa846fef289df4fdaf9589bed",
+  "path": "crates/openwarrant-cli/src/atomic.rs",
+  "region": "debug/release fault-hook definitions, excluding tests",
+  "identical": true,
+  "sha256": "b20d30cec46892fec113e8ba2bd23de4aac5a703656801aa892fce97708dd69c",
+  "boundary": "Earlier exact release observation covers its named artifact. Region equality supports unchanged compilation guard; not a new current release runtime measurement."
+}

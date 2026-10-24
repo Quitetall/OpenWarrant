@@ -1,0 +1,97 @@
+gate	cargo xtask gate	2026-10-23T23:01:47.0998071Z == compiled model (OW-WAR-0148) ==
+gate	cargo xtask gate	2026-10-23T23:01:47.3634889Z ok    model names every record kind      deliverable instruction item milestone obligation phase question requirement section spec stage ticket warrant
+gate	cargo xtask gate	2026-10-23T23:01:47.3649713Z ok    model names every relation kind    depends_on implements parent part_of promoted_to roadmap supersedes
+gate	cargo xtask gate	2026-10-23T23:01:47.3664304Z ok    a resolvable program: no diagnostic every relation names a record
+gate	cargo xtask gate	2026-10-23T23:01:47.3962190Z ok    two runs are byte-identical        basis sha256:ff0e61ea58978785bed4e5ec00252a4bc9392c371c5fb485cbbf200427d7f082
+gate	cargo xtask gate	2026-10-23T23:01:47.4010900Z ok    a doctored output is a difference  one byte at offset 40, reported by cmp
+gate	cargo xtask gate	2026-10-23T23:01:47.4892048Z ok    the schema validates the model     and refuses one planted field
+gate	cargo xtask gate	2026-10-23T23:01:47.5405669Z ok    an unknown target is a diagnostic  model.relation-target-unknown; the edge is kept (edges 2 diagnostics 2)
+gate	cargo xtask gate	2026-10-23T23:01:47.7244887Z == capabilities in profile data (OW-WAR-0148 M2) ==
+gate	cargo xtask gate	2026-10-23T23:01:47.9835644Z ok    verification without evidence      refused: profile.capability-prerequisite, naming both
+gate	cargo xtask gate	2026-10-23T23:01:47.9957652Z ok    an unknown capability              refused: profile.capability-unknown, naming it
+gate	cargo xtask gate	2026-10-23T23:01:48.0245503Z ok    a narrowed kind is admitted        lab: its absent capabilities named, not passed (exit 0)
+gate	cargo xtask gate	2026-10-23T23:01:48.0342019Z ok    a new manifest pins its profile    CP-WAR-0002: sha256:82d6fe1d180616e798bb163fec392dfb7c327735159941f7d5391e19289b842f; the scaffold's older manifest has none
+gate	cargo xtask gate	2026-10-23T23:01:48.0615808Z ok    the pinned file checks clean       profile.pinned
+gate	cargo xtask gate	2026-10-23T23:01:48.1366849Z ok    unsigned drift is a warning        profile.pin-drift names decision and both digests
+gate	cargo xtask gate	2026-10-23T23:01:48.1384635Z ok    no pin, no change                  CP-WAR-0001's check is byte-identical across the profile edit
+gate	cargo xtask gate	2026-10-23T23:01:48.2397649Z ok    next offers lab nothing            the decision's authorize is offered; CP-WAR-0003 appears in neither next nor sign --list
+gate	cargo xtask gate	2026-10-23T23:01:48.2429226Z ok    sign and authorize refuse lab      capability.absent, naming `authorization`
+gate	cargo xtask gate	2026-10-23T23:01:48.2905868Z ok    resolve and verify refuse lab      capability.absent for `resolution` and `verification`; no requirement read met
+gate	cargo xtask gate	2026-10-23T23:01:48.3993137Z ok    authorized, the pin still holds    profile.pinned
+gate	cargo xtask gate	2026-10-23T23:01:48.4329851Z ok    signed drift is an error           profile.pin-drift: the signature covered the type as pinned
+gate	cargo xtask gate	2026-10-23T23:01:49.0887294Z ok    a decision reaches would_satisfy   requirement 12 not applicable: no `stages` capability, named
+gate	cargo xtask gate	2026-10-23T23:01:49.0903026Z ok    an absent capability is never met  requirement 12 reads false and not applicable, never met
+gate	cargo xtask gate	2026-10-23T23:01:49.8786294Z ok    edit to a pinned file is denied    present "permissionDecision":"deny"
+gate	cargo xtask gate	2026-10-23T23:01:50.5166950Z ok    the denial names the correction act present war correct
+gate	cargo xtask gate	2026-10-23T23:01:51.1351067Z ok    edit to a historical pin is permitted empty 
+gate	cargo xtask gate	2026-10-23T23:01:51.1818905Z ok    edit under generated/ is denied    present war compile
+gate	cargo xtask gate	2026-10-23T23:01:51.2180183Z ok    generated/ outside OpenWarrant passes empty 
+gate	cargo xtask gate	2026-10-23T23:01:51.2632742Z ok    docs/generated/ once adopted is denied present war compile
+gate	cargo xtask gate	2026-10-23T23:01:51.3100725Z ok    a repo's own codegen is not denied empty 
+gate	cargo xtask gate	2026-10-23T23:01:51.3569096Z ok    a configured [paths] tree is guarded present war compile
+gate	cargo xtask gate	2026-10-23T23:01:51.9713848Z ok    edit to an unpinned file is silent empty 
+gate	cargo xtask gate	2026-10-23T23:01:51.9868450Z ok    stop after a block is allowed      empty 
+gate	cargo xtask gate	2026-10-23T23:01:55.8352715Z ok    red corpus does not block a turn   empty 
+gate	cargo xtask gate	2026-10-23T23:01:59.6341591Z ok    stop diagnostic retains corpus error
+gate	cargo xtask gate	2026-10-23T23:01:59.8271271Z == records and typed relations (OW-WAR-0148 M3) ==
+gate	cargo xtask gate	2026-10-23T23:02:00.1879290Z ok    the password-reset records parse   6 records by type; implements, constrains, selected_over, evaluates and an item's implements as relations
+gate	cargo xtask gate	2026-10-23T23:02:00.2617931Z ok    one edit moves one revision        REQ-pr1's revision moved and no other; the title moved none
+gate	cargo xtask gate	2026-10-23T23:02:00.5210029Z ok    each undeclared thing refused      6 by rule: duplicate id, undeclared type, kernel type, undeclared core kind, no kind, missing required relation; the records alone pass
+gate	cargo xtask gate	2026-10-23T23:02:00.7732745Z ok    a namespaced kind is inert         carried (OPT-pr1 x.mentions REQ-pr1, NOPE-404); check, status, next unchanged; impact lists it inert, unwalked
+gate	cargo xtask gate	2026-10-23T23:02:00.8547311Z ok    an unknown target is a diagnostic  record.relation-target-unknown (a warning) and model.relation-target-unknown; the edge kept
+gate	cargo xtask gate	2026-10-23T23:02:01.3638642Z ok    a verdict on this revision is current OBL-001 established, bound to REQ-pr1's revision now
+gate	cargo xtask gate	2026-10-23T23:02:01.5549707Z ok    impact names what a change affects the item, the Warrant's basis, OBL-001 recorded established but stale and unknown for current work, RP-PHASE-1, WAR.md and the corpus views; only the record file changed
+gate	cargo xtask gate	2026-10-23T23:02:01.6654914Z ok    impact on an unknown id            refused: impact.unknown-record, naming REQ-nope; no result
+gate	cargo xtask gate	2026-10-23T23:02:01.8234022Z == remedies (§76.2) ==
+gate	cargo xtask gate	2026-10-23T23:02:09.4779490Z ok    drift carries a human correction   human, war sign correct <alias> <D>, no placeholders
+gate	cargo xtask gate	2026-10-23T23:02:09.5024853Z ok    auto remedies never sign           no auto remedy signs
+gate	cargo xtask gate	2026-10-23T23:02:09.5267156Z ok    a pass has no remedy               absent on a pass, never null
+gate	cargo xtask gate	2026-10-23T23:02:09.5486732Z ok    remedies render for a human        third line + one REMEDIES block
+gate	cargo xtask gate	2026-10-23T23:02:09.5729024Z ok    envelope keys unchanged            eight keys, remedy inside the diagnostic
+gate	cargo xtask gate	2026-10-23T23:02:09.8296308Z ok    a scaffolded program passes check  exit 0 
+gate	cargo xtask gate	2026-10-23T23:02:09.8439732Z ok    the scaffold proposes its SAS      exit 0 sas.proposed
+gate	cargo xtask gate	2026-10-23T23:02:09.8755515Z ok    the scaffold still passes after the proposal exit 0 
+gate	cargo xtask gate	2026-10-23T23:02:09.8971295Z ok    next names the human acts          exit 0 HUMAN
+gate	cargo xtask gate	2026-10-23T23:02:09.9124063Z ok    the first Warrant implements RQ-001 exit 0 PP-SAS-RQ-001
+gate	cargo xtask gate	2026-10-23T23:02:09.9208540Z ok    a digit in the namespace is refused exit 1 uppercase ASCII letters only
+gate	cargo xtask gate	2026-10-23T23:02:10.0661813Z == states: a fixed set plus declared refinements (OW-WAR-0148 M4) ==
+gate	cargo xtask gate	2026-10-23T23:02:10.3031212Z ok    fixed states are in the model      draft and open, computed, facet phase; rung and phase still beside them
+gate	cargo xtask gate	2026-10-23T23:02:10.3060496Z ok    no authenticated state unsigned    no authorized, verified or resolved without its act
+gate	cargo xtask gate	2026-10-23T23:02:10.3198105Z ok    refines an unknown state           refused: profile\.state-refines-unknown
+gate	cargo xtask gate	2026-10-23T23:02:10.3331832Z ok    named like a fixed state           refused: profile\.state-collides
+gate	cargo xtask gate	2026-10-23T23:02:10.3461521Z ok    refines a state it never reaches   refused: profile\.state-unreachable
+gate	cargo xtask gate	2026-10-23T23:02:10.3790387Z ok    the declarations alone pass        in_review, signed_off and acknowledged check clean
+gate	cargo xtask gate	2026-10-23T23:02:10.3994904Z ok    in_review on an unclaimed item     refused: state.parent-not-holding (it reads open); journal unchanged
+gate	cargo xtask gate	2026-10-23T23:02:10.4265013Z ok    a fixed state entered by hand      refused: state.fixed
+gate	cargo xtask gate	2026-10-23T23:02:10.5430793Z ok    in_review on a claimed item        state.entered journaled; model: declared, refines in_progress; show and tickets name it
+gate	cargo xtask gate	2026-10-23T23:02:10.5459765Z ok    a record without one is unchanged  i-15c1: no declared state, its line as before
+gate	cargo xtask gate	2026-10-23T23:02:10.6334710Z ok    in_review lapses when done         model: lapsed; show: [in_review, lapsed]; tickets no longer lists it
+gate	cargo xtask gate	2026-10-23T23:02:10.6542107Z ok    in_review on a done item           refused: state.parent-not-holding (it reads done); journal unchanged
+gate	cargo xtask gate	2026-10-23T23:02:10.6871921Z ok    signed_off on an unverified obligation refused: state.parent-not-holding, naming the authenticated parent; journal unchanged
+gate	cargo xtask gate	2026-10-23T23:02:10.8972731Z ok    acknowledged on the draft Warrant  state.entered in its journal; model: declared, refines draft
+gate	cargo xtask gate	2026-10-23T23:02:10.9010559Z ok    a declared state meets no §56.1 check resolve --dry-run, status checks/unmet/state and next byte-identical
+gate	cargo xtask gate	2026-10-23T23:02:14.9804853Z ok    a resolved claim in the roadmap is refused rejected by roadmap.status-claim (§56.2)
+gate	cargo xtask gate	2026-10-23T23:02:15.5565713Z ok    a roadmap ref into another program is refused rejected by roadmap.wrong-namespace (XX)
+gate	cargo xtask gate	2026-10-23T23:02:15.7101365Z ok    sas accept refuses effective_time = soon rejected by sas.effective-time (RFC 3339)
+gate	cargo xtask gate	2026-10-23T23:02:15.8507280Z == projection targets (OW-WAR-0148 M6) ==
+gate	cargo xtask gate	2026-10-23T23:02:16.2010229Z ok    four documents from one set        prd, architecture, test-plan and agent-packet compiled; render = compiled bytes, writes nothing; an unknown projection refused
+gate	cargo xtask gate	2026-10-23T23:02:16.2745704Z ok    every line traces to its record    test plan: lines covered, REQ-pr1 at its model revision; architecture mentions REQ-pr1, selects it not
+gate	cargo xtask gate	2026-10-23T23:02:16.4370085Z ok    a change moves exactly its projections REQ-pr1 changed: prd, test-plan, agent-packet moved and impact names them; architecture neither
+gate	cargo xtask gate	2026-10-23T23:02:16.5852267Z ok    undeclared types and kinds refused risk, in:supersedes, x.mentions refused (profile.projection); authorization refused (profile.capabilities); the shipped four accepted
+gate	cargo xtask gate	2026-10-23T23:02:16.7502184Z ok    a hand-edit is drift               prd.md edited: projection.drift; a stray notes.md: projection.drift; committed: pass
+gate	cargo xtask gate	2026-10-23T23:02:16.9259689Z ok    an agent packet over budget is refused 600 bytes: compile and render refuse by name, nothing written or truncated; within budget it renders
+gate	cargo xtask gate	2026-10-23T23:02:17.0621273Z == ticket features (OW-WAR-0148 M5) ==
+gate	cargo xtask gate	2026-10-23T23:02:18.2040752Z ok    filters return exact sets          type, label(s), state (fixed and in_review), text, search (title, intent, items, notes), epic: 18 sets exact; unknown state and type refused
+gate	cargo xtask gate	2026-10-23T23:02:18.3774194Z ok    an epic lists its tickets and progress t-1ddd: 0/2 → 1/2 when t-ddba is done; never offered whole by war ready
+gate	cargo xtask gate	2026-10-23T23:02:18.4333470Z ok    tickets read through the kernel    items are records; i-157c depends_on i-a1fe and its claim is refused (ticket.blocked); t-4b44 part_of t-1ddd
+gate	cargo xtask gate	2026-10-23T23:02:18.5358960Z ok    a pre-M5 ticket works unchanged    claimed and finished: manifest byte-identical, one checklist line changed; war edit added exactly 'type = "chore"'
+gate	cargo xtask gate	2026-10-23T23:02:18.6388321Z ok    a closed label set refuses others  frontend refused on create, edit and filter (ticket.label-unknown), nothing written; ui admitted
+gate	cargo xtask gate	2026-10-23T23:02:18.7888895Z ok    create --issue reads once; no write t-92ad from #12: one read (env passed through), the link recorded without the token; done ran nothing more (writeback off)
+gate	cargo xtask gate	2026-10-23T23:02:19.0551090Z ok    writeback: one comment, one close  t-f9f4 from #13: nothing written until its last item; then exactly comment (items, notes) and close, configured argv, in order
+gate	cargo xtask gate	2026-10-23T23:02:19.2683223Z ok    a failed write reads UNKNOWN       comment failed: exit 2, ticket.issue-unknown, t-7482 stays done, close not run, journalled unknown
+gate	cargo xtask gate	2026-10-23T23:02:19.2961639Z ok    a writing fetch_argv is refused    fetch_argv naming close: intake.fetch-not-a-read, no process started, no ticket
+gate	cargo xtask gate	2026-10-23T23:02:20.8626388Z ok    filters are fast here               --search ticket=396ms --state done=384ms --label none-such=387ms --text kernel=388ms
+gate	cargo xtask gate	2026-10-23T23:02:21.0103454Z == the typed-records demonstration (OW-WAR-0148 M5) ==
+gate	cargo xtask gate	2026-10-23T23:02:21.5220930Z ok    one set of records, every output   ticket t-4c80 (items implement REQ-pr1, CON-pr1), DM-WAR-0002 in DM-PHASE-2, prd/architecture/test-plan/agent-packet current; --implements REQ-nope refused
+gate	cargo xtask gate	2026-10-23T23:02:21.5813488Z ok    impact names every affected output items i-e247 and i-078d, DM-WAR-0002 and OBL-001 (stale), DM-PHASE-2, prd/test-plan/agent-packet; architecture not named
+gate	cargo xtask gate	2026-10-23T23:02:21.7640027Z ok    a change moves exactly its outputs compile moved prd, test-plan, agent-packet, the index (and the record); architecture, WAR.md, the ticket unchanged; impact REQ-nope refused

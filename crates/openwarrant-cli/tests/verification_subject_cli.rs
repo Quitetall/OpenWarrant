@@ -5074,3 +5074,184 @@ fn batch_recovery_refuses_special_backup_nodes_before_any_restore() {
         "{result}"
     );
 }
+
+#[test]
+fn captured_utf8_tail_respects_the_rendered_byte_limit() {
+    let fixture = Fixture::new();
+    let config = fixture.0.join("openwarrant.toml");
+    let mut settings: toml::Value = toml::from_str(&fs::read_to_string(&config).unwrap()).unwrap();
+    settings
+        .as_table_mut()
+        .unwrap()
+        .entry("verify")
+        .or_insert_with(|| toml::Value::Table(toml::Table::new()))
+        .as_table_mut()
+        .unwrap()
+        .insert("max_excerpt_bytes".into(), toml::Value::Integer(1));
+    fs::write(&config, toml::to_string(&settings).unwrap()).unwrap();
+    // Synthetic capture bytes, not a claim that a production gate ran.
+    let runs = fixture.0.join("docs/warrants/IX-WAR-0003/gate-runs");
+    fs::create_dir_all(&runs).unwrap();
+    fs::write(runs.join("probe.run.toml"), "id = \"probe\"\ngate = \"fixture.probe@1.0.0\"\naskability = \"askable\"\nexecution_status = \"completed\"\nverdict = \"pass\"\n").unwrap();
+    fs::write(runs.join("probe.stdout.txt"), "é").unwrap();
+    fs::write(runs.join("probe.stderr.txt"), "").unwrap();
+    let emitted = fixture.run(&[
+        "verify",
+        "IX-WAR-0003",
+        "--performer",
+        "fixture-performer",
+        "--bundle",
+        "--json",
+    ]);
+    assert_eq!(emitted["exit_code"], 0, "{emitted}");
+    let packet = fixture
+        .0
+        .join(emitted["result"]["packets"][0]["path"].as_str().unwrap());
+    let bundle: serde_json::Value = serde_json::from_slice(&fs::read(packet).unwrap()).unwrap();
+    let stream = &bundle["gate_runs"][0]["stdout"];
+    assert_eq!(stream["captured"], true);
+    assert_eq!(stream["bytes"], 2);
+    assert_eq!(stream["truncated"], true);
+    assert_eq!(
+        stream["sha256"],
+        "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c"
+    );
+    assert_eq!(stream["text"], "");
+}
+
+#[test]
+fn captured_stream_limits_preserve_hashes_and_absence() {
+    let fixture = Fixture::new();
+    let config = fixture.0.join("openwarrant.toml");
+    let original: toml::Value = toml::from_str(&fs::read_to_string(&config).unwrap()).unwrap();
+    let runs = fixture.0.join("docs/warrants/IX-WAR-0003/gate-runs");
+    fs::create_dir_all(&runs).unwrap();
+    fs::write(runs.join("probe.run.toml"), "id = \"probe\"\ngate = \"fixture.probe@1.0.0\"\naskability = \"askable\"\nexecution_status = \"completed\"\nverdict = \"pass\"\n").unwrap();
+    let emit = || {
+        let emitted = fixture.run(&[
+            "verify",
+            "IX-WAR-0003",
+            "--performer",
+            "fixture-performer",
+            "--bundle",
+            "--json",
+        ]);
+        assert_eq!(emitted["exit_code"], 0, "{emitted}");
+        let path = fixture
+            .0
+            .join(emitted["result"]["packets"][0]["path"].as_str().unwrap());
+        let raw = fs::read(&path).unwrap();
+        (path, raw)
+    };
+    let cases: &[(&[u8], i64, &str, bool, &str)] = &[
+        (
+            &[97, 98, 99, 100, 101, 102],
+            3,
+            "def",
+            true,
+            "bef57ec7f53a6d40beb640a780a639c83bc29ac8a9816f1fc6c5c6dcd93c4721",
+        ),
+        (
+            &[97, 195, 169, 195, 169],
+            3,
+            "é",
+            true,
+            "ea17f889b782d95ad97cd21ec7f9f86531cce09ee9f5f371e8aa4858896ae89a",
+        ),
+        (
+            &[195, 169],
+            1,
+            "",
+            true,
+            "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c",
+        ),
+        (
+            &[255, 255],
+            4,
+            "�",
+            true,
+            "ca2fd00fa001190744c15c317643ab092e7048ce086a243e2be9437c898de1bb",
+        ),
+        (
+            &[255],
+            3,
+            "�",
+            false,
+            "a8100ae6aa1940d0b663bb31cd466142ebbdbd5187131b92d93818987832eb89",
+        ),
+        (
+            &[97, 98, 99],
+            0,
+            "abc",
+            false,
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+        ),
+        (
+            &[],
+            0,
+            "",
+            false,
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        ),
+        (
+            &[195, 169],
+            2,
+            "é",
+            false,
+            "4a99557e4033c3539de2eb65472017cad5f9557f7a0625a09f1c3f6e2ba69c4c",
+        ),
+    ];
+    for (input, limit, expected_text, truncated, digest) in cases {
+        let mut settings = original.clone();
+        settings
+            .as_table_mut()
+            .unwrap()
+            .entry("verify")
+            .or_insert_with(|| toml::Value::Table(toml::Table::new()))
+            .as_table_mut()
+            .unwrap()
+            .insert("max_excerpt_bytes".into(), toml::Value::Integer(*limit));
+        fs::write(&config, toml::to_string(&settings).unwrap()).unwrap();
+        for name in ["probe.stdout.txt", "probe.stderr.txt"] {
+            fs::write(runs.join(name), input).unwrap();
+        }
+        let (packet, raw) = emit();
+        let (again, again_raw) = emit();
+        assert_eq!(
+            packet, again,
+            "unchanged inputs must retain one packet digest"
+        );
+        assert_eq!(
+            raw, again_raw,
+            "unchanged streams must produce identical bytes"
+        );
+        let bundle: serde_json::Value = serde_json::from_slice(&raw).unwrap();
+        for name in ["stdout", "stderr"] {
+            let stream = &bundle["gate_runs"][0][name];
+            assert_eq!(stream["captured"], true);
+            assert_eq!(
+                stream["text"], *expected_text,
+                "{name}, input {input:?}, limit {limit}"
+            );
+            // A zero configuration means the documented 65536-byte default.
+            let effective_limit = if *limit == 0 { 65536 } else { *limit as usize };
+            assert!(stream["text"].as_str().unwrap().len() <= effective_limit);
+            assert_eq!(stream["truncated"], *truncated);
+            assert_eq!(stream["sha256"], *digest);
+            assert!(
+                stream.get("mismatch").is_none(),
+                "no receipt digest was supplied"
+            );
+            assert_eq!(stream["bytes"].as_u64().unwrap(), input.len() as u64);
+        }
+    }
+    fs::remove_file(runs.join("probe.stdout.txt")).unwrap();
+    fs::remove_file(runs.join("probe.stderr.txt")).unwrap();
+    let (_, missing_raw) = emit();
+    let missing: serde_json::Value = serde_json::from_slice(&missing_raw).unwrap();
+    for name in ["stdout", "stderr"] {
+        assert_eq!(missing["gate_runs"][0][name]["captured"], false);
+        assert!(missing["gate_runs"][0][name].get("text").is_none());
+        assert!(missing["gate_runs"][0][name].get("sha256").is_none());
+    }
+}

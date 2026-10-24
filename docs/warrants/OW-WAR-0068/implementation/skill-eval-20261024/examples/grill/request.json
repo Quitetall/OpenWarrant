@@ -1,0 +1,14 @@
+{
+  "api_version": "oh.war/draft-request/v1",
+  "user_request": "An export note records the supplied format answer.",
+  "namespace": "EV",
+  "profile": "delivery",
+  "assurance": "basic",
+  "existing_warrants": [
+    "EV-WAR-0001"
+  ],
+  "existing_adrs": [],
+  "answers": {
+    "Q-001": "Markdown"
+  }
+}

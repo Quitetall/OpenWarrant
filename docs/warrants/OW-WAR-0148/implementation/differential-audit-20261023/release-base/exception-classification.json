@@ -1,0 +1,14 @@
+{
+  "schema": "oh.war/differential-exception-classification/v1",
+  "diff_bodies_match_original_observation": {
+    "check": true,
+    "check-json": true,
+    "status-json": true,
+    "next": true
+  },
+  "header_paths_only_excluded_for_this_comparison": true,
+  "raw_streams_changed": false,
+  "byte_equality_claimed": false,
+  "authority_or_signature_created": false,
+  "qualification_established": false
+}

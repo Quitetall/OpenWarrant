@@ -1,0 +1,67 @@
+{
+  "ci_head": "1f0fa2e34ef608073ac439653dd723ac9609c7b1",
+  "ci_run": 40033704288,
+  "consumer_source": "ada90ce194f146fce52df154745c65d9e2c86df4",
+  "files": [
+    {
+      "path": "crates/openwarrant-core/src/sas_sections.rs",
+      "sha256": "8095618f1531fa1977fe53312d3ff4edc6eda5c7b8716d50f07fc6133ad1c2a2",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-core/src/lib.rs",
+      "sha256": "fe67a279817b294ad9f6a0174fed6c50fb2865d6e0958e0895e0be71d9ccb6a3",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/compile.rs",
+      "sha256": "ed85354219a9fa3770e7938dee709321bb835d9605c55818d7273799ef0feeae",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "sha256": "f72258c1c80f14bbb105ea9f03661a71e87bd82ae756ed07ce3d047e630dc4ca",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/sas.rs",
+      "sha256": "78a96b7503e398f6a257cb6b8949c83efdfc9d1cbab4d3839ee97e63961dbcdd",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/repo.rs",
+      "sha256": "f97bfa22683c95e291428a03e780aecfda13ce46ce726380965f50fa782cde78",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "crates/openwarrant-cli/src/contract_history.rs",
+      "sha256": "5af3467b864037f06263e9803a1657a4bea32eaa25c96879a7a8ec8ebb702b26",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "conformance/plants.d/56-sas-sections.sh",
+      "sha256": "ec7bb2b512b12d9d1d1599d71ae04c6c3c7a8ee1e0654647ffa3a1da93d9b86d",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": "docs/adr/atoms/OW-ADR-0028-sas-sections-are-atoms.md",
+      "sha256": "f61ba64c466cb65fe47ca4f18923a0dc64cfb86f632faa7166b50e6fa7b99245",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "8370d73381a61b843b0e08b8954f2b548120dd77d6dc4fe773b036d8621ec06f",
+      "identical_to_protected_ci": true,
+      "identical_to_consumer_source": true
+    }
+  ]
+}

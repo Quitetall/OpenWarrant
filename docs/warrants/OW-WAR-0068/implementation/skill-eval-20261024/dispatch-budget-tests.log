@@ -1,0 +1,19 @@
+   Compiling openwarrant-cli v1.0.0-alpha.5 (/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024/crates/openwarrant-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 29.92s
+     Running tests/all.rs (/mnt/4tb/build/cargo/77/039fbe22c009b7/debug/deps/all-962fabe8847d6410)
+
+running 7 tests
+test eval_subject_cli::eval_context_refuses_paths_outside_the_repository_or_missing_sources ... ok
+test eval_subject_cli::a_failed_dispatch_never_reaches_the_fixture_performer ... ok
+test eval_subject_cli::supplemental_context_cannot_bypass_the_stage_budget ... ok
+test eval_subject_cli::context_inputs_reach_the_agent_with_exact_sources has been running for over 60 seconds
+test eval_subject_cli::document_evaluation_reviews_the_final_gate_evidence has been running for over 60 seconds
+test eval_subject_cli::interview_answers_reach_the_recorded_draft_request_as_data has been running for over 60 seconds
+test eval_subject_cli::skill_fixtures_preserve_answers_and_refuse_false_completion has been running for over 60 seconds
+test eval_subject_cli::context_inputs_reach_the_agent_with_exact_sources ... ok
+test eval_subject_cli::interview_answers_reach_the_recorded_draft_request_as_data ... ok
+test eval_subject_cli::document_evaluation_reviews_the_final_gate_evidence ... ok
+test eval_subject_cli::skill_fixtures_preserve_answers_and_refuse_false_completion ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 361 filtered out; finished in 212.15s
+
