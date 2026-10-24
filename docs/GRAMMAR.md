@@ -11,6 +11,10 @@ has its own draft contract, `docs/sas/drafts/1.0.0-rc.3/format-contract.md`,
 and its own Warrant, OW-WAR-0075. Nothing here decides which format is the
 standard.
 
+Source links name the relevant symbol and pin its lines to repository revision
+`23070e52da9d6153e136883ec1f1406da5151f39`. Later source changes do not move these references.
+The tables describe the behavior observed at that revision.
+
 ## How to read it
 
 Two kinds of conformance, kept apart in every row:
@@ -44,7 +48,7 @@ reporting a planted bare cell.
 | construct | SAS | standard | `war` | plant |
 |---|---|---|---|---|
 | unique ordinals | §61.2, §91.2 test 8 | refuse: "Ordinals SHALL be unique within one composition" | refuse, rule `manifest.invalid` ("duplicate atom ordinal") | `G-M1` |
-| a declared `path` atom that is not there | §91.2 test 7 | refuse when required: "Missing required atom fails." Unspecified when optional | refuse whether required or not, rule `atom.missing` | `G-M2`; optional case: source `crates/openwarrant-cli/src/repo.rs:395-404` (no `required` test) |
+| a declared `path` atom that is not there | §91.2 test 7 | refuse when required: "Missing required atom fails." Unspecified when optional | refuse whether required or not, rule `atom.missing` | `G-M2`; optional case: source [Repository::load_warrant](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-cli/src/repo.rs#L763-L776) (no `required` test) |
 | an atom declared by `ref =` | §61.3 | refuse at authorization: "An authorized compilation SHALL resolve every atom and bound reference to an exact revision and digest." Unspecified offline | UNKNOWN, rule `atom.bound-unresolvable`: federation is not implemented, so neither pass nor error | `G-M9` |
 | an unknown top-level key | §61, §87.2 | unspecified. §87.2 asks parsers to "preserve unknown extensions"; §61 names no extension point | accepted and ignored: `Manifest` has no `deny_unknown_fields`. The bytes survive only under `manifest_digest` (DV-4) | `G-M3` |
 
@@ -71,7 +75,7 @@ classification: internal
 
 Checked for every `.md` atom whose manifest role is not `adr`. ADR atoms
 carry `adr_uuid` and `governs` instead of `warrant_uuid` and keep their own
-check under the ADR loader (source `crates/openwarrant-cli/src/repo.rs:413`).
+check under the ADR loader (source [Repository::load_adrs](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-cli/src/repo.rs#L1069-L1107)).
 One diagnostic per key. A missing key names the key; a different value names
 both values. `order` compares as a number, so `order: 05` restates ordinal 5.
 
@@ -89,10 +93,10 @@ both values. `order` compares as a number, so `order: 05` restates ordinal 5.
 |---|---|---|---|---|
 | `jurisdiction` not one of three | §13.1–§13.3 | unspecified as a header value. §13 defines authored, bound and generated atoms | refuse, rule `atom.unknown-jurisdiction` | `G-J1` |
 | `jurisdiction` other than §16.1 gives the role | §16.1 table, "Typical authority" | unspecified: the column says "typical" | refuse, rule `atom.jurisdiction-mismatch` | `G-J2` |
-| `jurisdiction` absent | §13 | unspecified | accept, read as `authored` (source `crates/openwarrant-cli/src/repo.rs:422`) | `G-J3` |
+| `jurisdiction` absent | §13 | unspecified | accept, read as `authored` (source [Repository::load_warrant](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-cli/src/repo.rs#L781-L807)) | `G-J3` |
 | `holder`, as §62 writes it (nested) | §13, §62 | accept: §13 "Every atom or bound record SHALL declare its Source Holder", and §62's example is the only form given | refuse, rule `atom.frontmatter` ("an indented (nested) mapping") (DV-1) | `G-R10` |
 | `atom_uuid` | §62 example | unspecified: in the example, in no clause | accepted and kept, never read. No atom in this corpus carries it (DV-6) | `G-P2` |
-| `classification` | §62 example | unspecified | accepted and kept, never read (source `crates/openwarrant-cli/src/repo.rs:422`: only `jurisdiction` is read) | `G-P2` |
+| `classification` | §62 example | unspecified | accepted and kept, never read (source [Repository::load_warrant](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-cli/src/repo.rs#L781-L807): only `jurisdiction` is read) | `G-P2` |
 | an unknown key that is not namespaced | §62.3 | unspecified: "Unknown required fields fail." does not say whether an unknown key is required (U-002) | accepted and kept (DV-3) | `G-P2` (`atom_uuid`) |
 | a namespaced key (`x.note: kept`) | §62.3, §91.1 test 5 | accept and preserve: "Namespaced optional fields are preserved." | accepted, kept in the source bytes the IR's `atom_source_digest` binds (§62.2); not an IR field, and stripped from `WAR.md` (DV-12) | `G-P3` |
 
@@ -102,7 +106,7 @@ both values. `order` compares as a number, so `order: 05` restates ordinal 5.
 accepts what YAML accepts. `war` reads a restricted subset:
 `key: scalar` (plain, `"double"` or `'single'` quoted) and `key:` followed
 by `- item` lines, top level only, `#` comments and blank lines allowed, a
-UTF-8 BOM tolerated (source `crates/openwarrant-core/src/frontmatter.rs:188`).
+UTF-8 BOM tolerated (source [frontmatter::parse](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/frontmatter.rs#L185-L195)).
 Everything else is refused by name (DV-2).
 
 | construct | SAS | standard | `war` | plant |
@@ -124,9 +128,9 @@ Everything else is refused by name (DV-2).
 `.yaml` atoms, today only the milestones atom (§62.1), read by the second
 restricted reader (OW-ADR-0003): top-level `key: scalar`, or `key:` over a
 block sequence of flat mappings whose values are scalars or flow sequences
-of scalars. Two levels, no more. The milestones atom is found by role, not
-extension, and always goes to that reader (source
-`crates/openwarrant-cli/src/check.rs:1604-1605`).
+of scalars. Two levels, no more. When the profile selects the `stages` capability, the milestones atom is found
+by role, not extension, and goes to that reader (source
+[check_one](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-cli/src/check.rs#L2092-L2102)).
 
 | construct | SAS | standard | `war` | plant |
 |---|---|---|---|---|
@@ -141,8 +145,8 @@ The SAS gives no heading grammar. `war` uses one for a stage's
 `context_sections` (`<atom>#<heading>`), when it compiles a dispatch: an ATX
 heading is 1–6 `#` then a space, matched by its trimmed text,
 case-sensitively. Lines inside a ```` ``` ```` fence are not headings
-(source `crates/openwarrant-core/src/sections.rs:8-28`). `~~~` fences and
-setext headings are not recognised (same lines). `war check` does not
+(source [sections::headings](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/sections.rs#L10-L28)). `~~~` fences and
+setext headings are not recognised (the same source). `war check` does not
 resolve `context_sections`; a missing section is found at `war dispatch`.
 
 | construct | SAS | standard | `war` | plant |
@@ -167,13 +171,13 @@ conformance (U-003, DV-5):
 
 - An `### ` heading whose first token starts `OBL-` opens an obligation. The
   statement follows an em dash, or ` - `. Any other `### ` heading, or any
-  `## ` heading, closes it (source `obligation.rs:407-439`).
+  `## ` heading, closes it (source [obligation::parse (headings)](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/obligation.rs#L407-L439)).
 - Bullets are `- **key:** value`, the key case-insensitive. `scope` and
   `evidence` are required. `note`, `disposition`, `origin`, `admissibility`
   and `scope kind` are read. Any other bullet is prose (source
-  `obligation.rs:443-496`). A line that is not a bullet continues a
+  [obligation::parse (bullets)](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/obligation.rs#L443-L496)). A line that is not a bullet continues a
   `scope` or `evidence` value and is dropped after any other bullet
-  (`obligation.rs:499-511`).
+  ([obligation::parse (continuations)](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/obligation.rs#L499-L511)).
 - Lines are read trimmed, so an **indented** `- **word:**` bullet inside an
   evidence list is a new key, not part of the evidence: an unknown word
   ends the `evidence` value there, silently, and every line after it is
@@ -190,7 +194,7 @@ conformance (U-003, DV-5):
 
 An obligation cites its gate in a `- **gate:**` (or `- **gates:**`) bullet.
 Tokens split on commas and whitespace, backticks and a trailing full stop
-stripped (source `crates/openwarrant-core/src/gate.rs:737-760`). A `gate://`
+stripped (source [gate::cited_gate_uris](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/gate.rs#L737-L760)). A `gate://`
 URI in prose is prose, not a citation.
 
 | construct | SAS | standard | `war` | plant |
@@ -202,7 +206,7 @@ URI in prose is prose, not a citation.
 
 The core roles are `control`, `intent`, `basis`, `adr`, `work_order`,
 `milestones`, `execution`, `assurance`, `resolution`, `validation` and
-`relations_and_integrity` (source `crates/openwarrant-core/src/role.rs:110-122`).
+`relations_and_integrity` (source [AtomRole and AtomRole::ALL](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-core/src/role.rs#L99-L127)).
 An extension role is namespaced: it contains a `.` with text on both sides.
 
 | construct | SAS | standard | `war` | plant |
@@ -335,7 +339,7 @@ header (`G-P3`). No IR field carries the key's value.
 **DV-13. An optional atom that is missing is refused.** §91.2 test 7 fails
 a missing *required* atom. `war` refuses any declared `path` it cannot
 read (rule `atom.missing`, `G-M2`); the `required` flag is not consulted
-(source `crates/openwarrant-cli/src/repo.rs:395-404`). Stricter, not contrary.
+(source [Repository::load_warrant](https://github.com/Quitetall/OpenWarrant/blob/23070e52da9d6153e136883ec1f1406da5151f39/crates/openwarrant-cli/src/repo.rs#L763-L776)). Stricter, not contrary.
 
 > *Proposed SAS text, §61:* "A declared `path` SHALL exist. `required =
 > false` means a profile does not demand the role, not that the file may be
