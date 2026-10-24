@@ -1,0 +1,13 @@
+{
+  "source_commit": "dbdfadd3e8eaf728bd1c782f872fc0cd4b764b10",
+  "ci_run": 40080431918,
+  "case": "tickets preparation and caller require separate bounded obligations",
+  "observed_m2_obligations": [
+    "OBL-001"
+  ],
+  "expected_m2_obligations": [
+    "OBL-002"
+  ],
+  "scope": "observed generated CLI artifact; logical acceptance dependency flaw, not a runtime deadlock claim",
+  "baseline_adopted": false
+}

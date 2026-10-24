@@ -4,8 +4,8 @@
   "scope": "One contract and one caller; the fixture intentionally delivers the first stage only.",
   "method_marker": "Record only real prerequisite edges",
   "requirements": [
-    "- Write API.md with the transport contract.",
-    "- Write CLIENT.md only after that contract is available.",
+    "- API.md defines GET /health with no request body: HTTP 200 returns {\"status\":\"ok\"}; HTTP 503 returns {\"status\":\"unavailable\"}.",
+    "- Write CLIENT.md only after API.md; map HTTP 200 to healthy and HTTP 503 to unavailable.",
     "- A missing required caller must leave the Warrant unsatisfied."
   ],
   "targets": [

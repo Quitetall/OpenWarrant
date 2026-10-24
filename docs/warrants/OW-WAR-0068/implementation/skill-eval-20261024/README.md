@@ -1,10 +1,15 @@
 # W68 skill transport evaluation
 
-Current status: implementation in progress, unverified. Final Clippy passes.
-The latest local five-test run hit its 900-second execution guard after four
+Current status: implementation in progress, unverified. The first hosted run
+passed all five expected transport scores at `dbdfadd3e8eaf728bd1c782f872fc0cd4b764b10`.
+Artifact inspection then found both tickets milestones sharing an all-files
+obligation. The corrected fixture binds API.md to OBL-001 and CLIENT.md to
+OBL-002, with M2 depending on M1. Drafter and performer interface checks pass;
+the updated full hosted run and measured baseline are still pending.
+
+The final local five-test run hit its 900-second execution guard after four
 tests completed; its full result is UNKNOWN. A separate 600-second capture also
-ended before a complete result was written. Neither timeout is a passing run.
-The separate skill baseline awaits actual hosted observations.
+ended before a complete result was written. Both observations remain unchanged.
 
 The eval interface now accepts explicit repository-relative context sources.
 It assembles exact UTF-8 bodies and SHA-256 hashes into a packet for the drafter
@@ -70,3 +75,24 @@ has a 600-second guard. The retention helper archives inputs and outputs before
 rejecting unexpected scores. Artifact upload runs even on failure. The original
 twelve-task baseline and its comparison remain unchanged. This capture must
 succeed and be inspected before a measured skill baseline is adopted.
+
+## Hosted artifact review and correction
+
+[Run 40080431918](https://github.com/Quitetall/OpenWarrant/actions/runs/40080431918)
+retained the real output and five scratch archives. Its source commit and
+executable version match; every downloaded archive matches the uploaded hash.
+The first scores are preserved in [the actual result](hosted-40080431918.json).
+No baseline was adopted from these green scores.
+
+Inspection found a logical scope problem: both tickets milestones referenced
+one obligation covering both files. Preparation needs its own bounded
+obligation before the dependent caller can be assessed. This is an observed
+artifact defect, not a claim that a runtime scheduler deadlocked. The
+[red observation](stage-scope-red.json) preserves the original graph.
+
+The corrected fixture produces one obligation per target and corresponding
+milestone and delivery references. Its API.md now states a usable GET /health
+contract and the caller's required response handling. The
+[interface observation](stage-scope-green.json) records the separate scopes,
+prerequisite edge and absent dependent caller. The public CLI regression now
+requires these exact relationships. Full corrected execution is pending.

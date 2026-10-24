@@ -56,7 +56,7 @@ def draft(case, request, packet):
     milestones = []
     for index, title in enumerate(case["stages"], 1):
         stages.append(dict(id=f"STAGE-{index:03d}", title=title, executor_kind="agent", executor_ref="agent://skill-fixture", responsibility_tier="T1", context_sections=["40-work-order.md#Premade Instructions", "40-work-order.md#Deliverables"], budget_tokens=8000))
-        milestone = dict(id=f"M{index}", title=title, stage_refs=[f"STAGE-{index:03d}"], obligation_refs=["OBL-001"])
+        milestone = dict(id=f"M{index}", title=title, stage_refs=[f"STAGE-{index:03d}"], obligation_refs=[f"OBL-{index:03d}"])
         if index > 1:
             milestone["depends_on"] = [f"M{index-1}"]
         milestones.append(milestone)
@@ -69,7 +69,11 @@ def draft(case, request, packet):
         for index, (key, value) in enumerate(stage.items()):
             graph_body += f'  {"- " if index == 0 else "  "}{key}: {json.dumps(value)}\n'
     atom("milestones", 45, "45-milestones.yaml", graph_body)
-    atom("assurance", 60, "60-assurance.md", '# Assurance\n\n## Acceptance Obligations\n\n### OBL-001 - the declared files exist at their pinned bytes\n- **scope:** only the files named by this fixture Warrant.\n- **gate:** `gate://software.repo.war-check@1.0.0`\n- **evidence:** retained files, content digests and the gate receipt; a missing required file must prevent satisfaction.\n\n## Gate Adequacy\n\nRequired at `basic`.\n\n**Adversarial question:** can an absent required file satisfy the result? The digest and presence checks must refuse it.\n\n- **outcome:** gap_accepted\n\n## Residual Risk\n\nThe verifier is a scripted fixture, not an independent assessment of this project.\n')
+    assurance = '# Assurance\n\n## Acceptance Obligations\n\n'
+    for index, target in enumerate(case["targets"], 1):
+        assurance += f'### OBL-{index:03d} - `{target}` exists at its pinned bytes\n- **scope:** only `{target}`.\n- **gate:** `gate://software.repo.war-check@1.0.0`\n- **evidence:** retained file, content digest and the gate receipt; an absent file must prevent this obligation from being satisfied.\n\n'
+    assurance += '## Gate Adequacy\n\nRequired at `basic`.\n\n**Adversarial question:** can an absent required file satisfy the result? The digest and presence checks must refuse it.\n\n- **outcome:** gap_accepted\n\n## Residual Risk\n\nThe verifier is a scripted fixture, not an independent assessment of this project.\n'
+    atom("assurance", 60, "60-assurance.md", assurance)
     operations.append(dict(op="add_relation", relation_kind="roadmap", relation_ref=f'roadmap://{request["namespace"]}-PHASE-1/adopt'))
     proposal = dict(api_version="oh.war/draft-proposal/v2", proposed_identity=dict(title=case["title"], profile="delivery", assurance="basic"), operations=operations, risk_assessment="deterministic fixture; authority and model quality unestablished")
     if case["skill"] == "grill":
@@ -86,7 +90,7 @@ def perform(case, document):
     for index, name in enumerate(case["targets"], 1):
         content = Path(name).read_bytes() if Path(name).is_file() else b""
         digest = "sha256:" + hashlib.sha256(content).hexdigest()
-        entries += ["[[deliverable]]", f'id = "D-{index:03d}"', f'title = {json.dumps(name)}', 'kind = "file"', f'target_ref = {json.dumps(name)}', 'required = true', 'content_addressed = true', 'provenance_required = true', 'obligation_refs = ["OBL-001"]', "", "[deliverable.provenance]", 'producer = "eval-performer"', f'producing_attempt = "{alias}/attempt-1"', 'contract_digest = "unrecorded"', 'input_digests = []', 'tool_or_runtime_identity = "evals/skills/fixture-agent.py perform"', 'creation_method = "authored"', f'content_digest = "{digest}"', 'media_type = "text/markdown"', 'classification = "internal"', 'retention = "repository-lifetime"', 'source_holder = "git"', ""]
+        entries += ["[[deliverable]]", f'id = "D-{index:03d}"', f'title = {json.dumps(name)}', 'kind = "file"', f'target_ref = {json.dumps(name)}', 'required = true', 'content_addressed = true', 'provenance_required = true', f'obligation_refs = ["OBL-{index:03d}"]', "", "[deliverable.provenance]", 'producer = "eval-performer"', f'producing_attempt = "{alias}/attempt-1"', 'contract_digest = "unrecorded"', 'input_digests = []', 'tool_or_runtime_identity = "evals/skills/fixture-agent.py perform"', 'creation_method = "authored"', f'content_digest = "{digest}"', 'media_type = "text/markdown"', 'classification = "internal"', 'retention = "repository-lifetime"', 'source_holder = "git"', ""]
     Path(f"docs/warrants/{alias}/deliverables.toml").write_text("\n".join(entries))
     print(json.dumps(dict(schema="oh.war/eval-performed/v1", warrant=alias, fixture_only=True, performed_stage=document["stage"])))
 

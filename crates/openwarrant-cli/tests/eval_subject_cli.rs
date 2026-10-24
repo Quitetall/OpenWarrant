@@ -401,6 +401,25 @@ fn skill_fixtures_preserve_answers_and_refuse_false_completion() {
             );
         }
         if id == "tickets" {
+            let alias = task["warrant"].as_str().unwrap();
+            let warrant = scratch.0.join("docs/warrants").join(alias);
+            let graph = openwarrant_core::milestones::parse(
+                &std::fs::read_to_string(warrant.join("atoms/45-milestones.yaml")).unwrap(),
+            )
+            .unwrap();
+            let first = graph.milestones.iter().find(|m| m.id == "M1").unwrap();
+            let second = graph.milestones.iter().find(|m| m.id == "M2").unwrap();
+            assert_eq!(first.obligation_refs, ["OBL-001"]);
+            assert_eq!(second.obligation_refs, ["OBL-002"]);
+            assert_eq!(second.depends_on, ["M1"]);
+            let delivered: toml::Value = toml::from_str(
+                &std::fs::read_to_string(warrant.join("deliverables.toml")).unwrap(),
+            )
+            .unwrap();
+            assert_eq!(
+                delivered["deliverable"][1]["obligation_refs"][0].as_str(),
+                Some("OBL-002")
+            );
             assert!(scratch.0.join("API.md").is_file());
             assert!(!scratch.0.join("CLIENT.md").exists());
             assert!(

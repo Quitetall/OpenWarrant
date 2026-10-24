@@ -4,7 +4,7 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "f77a07c9bee13fc2490a248e8e735bafe31ea3ab01399d9b45f5cdf53e115808",
-  "summary": "Exact context packets and five source-identified skill transport fixtures are implemented, unverified. An earlier five-test run passed; final Clippy passes. The final local suite completed four tests before its 900s execution guard; a 600s capture also timed out. Both full results remain UNKNOWN. Hosted eval capture now retains actual outputs and tool/source identity. Skill baseline adoption and remaining qualification are pending.",
+  "summary": "First exact-source hosted capture passes five transport scores and retains hashed archives. Artifact review caught a shared all-files obligation in the tickets fixture; corrected per-target obligations, milestone dependencies and delivery bindings pass drafter/performer interface checks. Updated full hosted execution and measured baseline remain pending. Local execution timeouts remain UNKNOWN. Implementation is unverified; owner review and independent qualification remain separate.",
   "notes": "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/README.md",
@@ -14,10 +14,13 @@
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/skills-check.log",
     "docs/warrants/OW-WAR-0068/implementation/routing-audit-20261024/skills-control.log",
     "docs/warrants/OW-WAR-0068/implementation/frontier-integrity.md",
-    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/README.md"
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/README.md",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/hosted-40080431918.json",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/stage-scope-red.json",
+    "docs/warrants/OW-WAR-0068/implementation/skill-eval-20261024/stage-scope-green.json"
   ],
   "next_steps": [
-    "Run and inspect hosted skill capture; adopt a separate baseline only from actual complete observations. Preserve local timeout evidence.",
+    "Run and inspect corrected hosted skill capture, including separate prerequisite/caller obligations; adopt a baseline only from actual complete observations.",
     "Record remaining review/map evidence and check Dispatch glossary projections.",
     "Owner first-run review, model/harness effectiveness and independent qualification remain separate."
   ]
