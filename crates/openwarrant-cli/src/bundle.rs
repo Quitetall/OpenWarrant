@@ -980,21 +980,24 @@ fn captured(
             (tail, Some(a - tail))
         }
     };
-    let truncated = bytes.len() > tail_cap;
-    let tail = if truncated {
-        &bytes[bytes.len() - tail_cap..]
-    } else {
-        &bytes[..]
-    };
+    // Bound the rendered text, not raw bytes that lossy decoding can expand.
+    // A valid multibyte character cut at the raw boundary must not turn into
+    // replacement characters that were absent from the captured stream.
+    let whole = String::from_utf8_lossy(bytes);
+    let mut start = whole.len().saturating_sub(tail_cap);
+    while !whole.is_char_boundary(start) {
+        start += 1;
+    }
+    let truncated = start != 0;
+    let tail = &whole[start..];
     let mut v = serde_json::json!({
         "captured": true,
         "sha256": sha,
         "bytes": bytes.len(),
         "truncated": truncated,
-        "text": String::from_utf8_lossy(tail),
+        "text": tail,
     });
     if let Some(allowance) = allowance {
-        let whole = String::from_utf8_lossy(bytes);
         let mut p = Picker::new(&whole, allowance);
         let n = p.lines.len();
         let mut sections = Vec::new();

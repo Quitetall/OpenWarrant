@@ -4,16 +4,17 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "b9d942667c5ffb1363c8e00a256392b4af1ce0ca",
-  "summary": "Implementation remains incomplete: a public bundle reproduction observes a one-byte excerpt limit rendering three bytes after a UTF-8 boundary cut. Original ASCII controls and protected CI pass, but do not cover this defect. Full raw digest and truncated flag remain correct. Qualification and historical closure gaps remain separate.",
-  "notes": "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/README.md",
+  "summary": "Rendered UTF-8 tail bound fix implemented, unverified. A public CLI red/green regression and stdout/stderr matrix pass, preserving raw hashes, capture absence and deterministic bytes. Two CLI controls, 11 existing bundle tests and all-target Clippy pass. Exact-head full CI, delivery reconciliation and independent qualification remain pending.",
+  "notes": "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0146/implementation/scoped-controls-20261012/observation.json",
     "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/README.md",
-    "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/observation.json"
+    "docs/warrants/OW-WAR-0146/implementation/utf8-tail-20261024/observation.json",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/README.md",
+    "docs/warrants/OW-WAR-0146/implementation/utf8-fix-20261024/observation.json"
   ],
   "next_steps": [
-    "Fix the rendered UTF-8 byte bound without changing raw digests or treating an absent capture as empty output.",
-    "Run multibyte, invalid-byte, ASCII and zero-limit regressions plus existing bundle controls.",
-    "Reconcile delivery records, independent assessment and authorized acceptance separately from implementation."
+    "Run exact-head protected CI and inspect registered bundle-output controls.",
+    "Reconcile historical delivery records; independent assessment and secure human acceptance remain separate."
   ]
 }
