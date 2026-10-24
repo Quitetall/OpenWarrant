@@ -1,0 +1,9 @@
+{
+  "files_match_expected": true,
+  "tests_exit": 0,
+  "task_success": true,
+  "binding_supplied": false,
+  "openwarrant_qualification": false,
+  "cost": "unknown",
+  "test_scope": "two arithmetic unittest cases"
+}

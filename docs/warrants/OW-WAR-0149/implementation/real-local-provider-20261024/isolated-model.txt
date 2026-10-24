@@ -1,0 +1,31 @@
+name: ow-cpu-probe
+path: /home/brianklam/models/bartowski-Qwen2.5-0.5B-Instruct-GGUF/Qwen2.5-0.5B-Instruct-Q3_K_M.gguf
+format: gguf
+backend: llama_cpp
+backend_kind: llama_cpp_cpu
+arch: qwen2
+params_b: 0.6
+quant: Q3_K_M
+vram_mb: 0
+context_max: 32768
+capabilities:
+- chat
+- code
+reasoning_marker: null
+speculative: null
+sampling: null
+pinned: false
+main: true
+notes: ''
+status: ''
+modality: llm
+context: 16384
+# model settings (computed):
+#   runtime context: 16384 (set for this model); context_max: 32768
+#   estimated VRAM: 0 MB (declared vram_mb 0 MB; the engine sizes its own cache)
+#   KV cache type: q8_0 (default)
+#   KV cache precision: q8_0 is near-lossless at about half of f16's memory; q4_0 halves it again and can cost some quality on long or exact recall; f16 is lossless and largest. K is more sensitive than V, so `q8_0/q4_0` keeps K at q8_0.
+#   server slots (parallel): 1 (fixed by the engine)
+#   startup allowance: 60 s
+#   works: yes
+#   default model: yes (★)
