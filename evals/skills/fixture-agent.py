@@ -82,6 +82,14 @@ def draft(case, request, packet):
 
 
 def perform(case, document):
+    dispatch = document.get("dispatch")
+    if not isinstance(dispatch, dict) or dispatch.get("api_version") != "oh.war/stage-dispatch/v1":
+        fail("performer requires an actual Stage Dispatch")
+    if not isinstance(dispatch.get("tokens"), dict) or dispatch["tokens"].get("estimated_tokens", 0) <= 0:
+        fail("performer requires measured task context")
+    context = json.loads(Path(os.environ["EVAL_DISPATCH_CONTEXT_FILE"]).read_text())
+    if not any(item.get("holder", {}).get("path") == "CONTEXT.md" for item in context["included"]):
+        fail("Dispatch context did not carry the glossary")
     alias = document["warrant"]
     request = json.loads(Path(f"docs/warrants/{alias}/plan/request.json").read_text())
     target = Path(case["targets"][0])

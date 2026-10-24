@@ -81,6 +81,8 @@ pub enum Score {
     Partial,
     /// Drafting saved questions and awaits input; no Warrant was created.
     NeedsInput,
+    /// A required observation could not be established; the actor did not run.
+    Unknown,
     /// The loop's estimated tokens exceeded the task's `max_tokens`.
     OverBudget,
     /// A named refusal stopped the loop (the tool did its job).
@@ -96,6 +98,7 @@ impl Score {
             Self::WouldSatisfy => "would_satisfy",
             Self::Partial => "partial",
             Self::NeedsInput => "needs_input",
+            Self::Unknown => "unknown",
             Self::OverBudget => "over_budget",
             Self::Refused => "refused",
             Self::Errored => "errored",
@@ -112,6 +115,7 @@ const REFUSALS: &[&str] = &[
     "plan.v1-has-no-payloads",
     "plan.interview-required",
     "dispatch.over-budget",
+    "dispatch.unauthorized",
     "dispatch.section-missing",
     "dispatch.unknown-atom",
     "dispatch.artifact-missing",
@@ -725,6 +729,10 @@ fn perform(
         .env("PATH", scratch.path_env())
         .env("EVAL_TASK_DIR", &scratch.task_dir)
         .env(
+            "EVAL_DISPATCH_CONTEXT_FILE",
+            scratch.root.join("eval-dispatch.context.json"),
+        )
+        .env(
             "EVAL_CONTEXT_FILE",
             scratch.root.join(".openwarrant/eval-context.json"),
         )
@@ -830,6 +838,7 @@ fn run_task(
         notes: Vec::new(),
     };
     let finish = |r: &mut TaskResult, started: Instant| {
+        r.tokens.total = r.tokens.request + r.tokens.dispatch + r.tokens.bundle;
         r.as_expected = r.score.name() == r.expected;
         TaskTiming {
             id: r.id.clone(),
@@ -940,8 +949,21 @@ fn run_task(
         return Ok((r, t));
     };
     r.stage = Some(stage.clone());
+    // These are synthetic, unverified programs. Commit their source for exact
+    // context holders, but never manufacture an authorization to dispatch it.
+    scratch.commit("eval: before prototype dispatch")?;
     let dispatch_path = scratch.root.join("eval-dispatch.json");
-    let dispatch = scratch.war(&["dispatch", &alias, &stage, "--emit", dispatch_path.as_str()])?;
+    let context_path = scratch.root.join("eval-dispatch.context.json");
+    let dispatch = scratch.war(&[
+        "dispatch",
+        &alias,
+        &stage,
+        "--prototype",
+        "--emit",
+        dispatch_path.as_str(),
+        "--emit-context",
+        context_path.as_str(),
+    ])?;
     r.steps.push(dispatch.step("dispatch"));
     if let Some(rule) = dispatch.refusal() {
         r.refusals.push(rule);
@@ -949,15 +971,55 @@ fn run_task(
         let t = finish(&mut r, started);
         return Ok((r, t));
     }
-    let dispatch_doc = read_json(&dispatch_path);
-    r.tokens.dispatch = dispatch_doc
-        .as_ref()
-        .and_then(|d| d.get("tokens"))
-        .and_then(|t| t.get("estimated_tokens"))
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
-    r.tokens.dispatch += context_tokens;
-    let _ = std::fs::remove_file(&dispatch_path);
+    if dispatch.exit_code != 0 {
+        r.score = if dispatch
+            .diagnostics
+            .iter()
+            .any(|(severity, _, _)| severity == "unknown")
+        {
+            Score::Unknown
+        } else {
+            Score::Errored
+        };
+        r.notes
+            .push("dispatch did not succeed; performer was not invoked".to_owned());
+        for (severity, rule, message) in &dispatch.diagnostics {
+            if severity == "error" || severity == "unknown" {
+                r.notes.push(format!("dispatch {rule}: {message}"));
+            }
+        }
+        let t = finish(&mut r, started);
+        return Ok((r, t));
+    }
+    let dispatch_doc = read_json(&dispatch_path)
+        .ok_or_else(|| RepoError::Message("eval.dispatch-missing: successful command emitted no readable packet; performer not invoked".to_owned()))?;
+    let packet: openwarrant_core::execution::StageDispatch =
+        serde_json::from_value(dispatch_doc.clone()).map_err(|e| {
+            RepoError::Message(format!("eval.dispatch-invalid: {e}; performer not invoked"))
+        })?;
+    let account = packet.tokens.as_ref().ok_or_else(|| {
+        RepoError::Message(
+            "eval.dispatch-tokens-missing: cannot measure the packet; performer not invoked"
+                .to_owned(),
+        )
+    })?;
+    if read_json(&context_path).is_none() {
+        return Err(RepoError::Message(
+            "eval.dispatch-context-missing: performer not invoked".to_owned(),
+        ));
+    }
+    r.tokens.dispatch = account.estimated_tokens + context_tokens;
+    if r.tokens.dispatch > account.budget_tokens {
+        r.refusals.push("dispatch.over-budget".to_owned());
+        r.score = Score::Refused;
+        r.notes.push(format!(
+            "task context plus supplemental context needs {} tokens against the stage budget {}; performer not invoked",
+            r.tokens.dispatch, account.budget_tokens
+        ));
+        let t = finish(&mut r, started);
+        return Ok((r, t));
+    }
+    let dispatch_doc = Some(dispatch_doc);
 
     // 4–7. Perform, compile, record evidence, verify blind. The order differs
     // by kind: a code or document deliverable must exist before the gate
@@ -987,7 +1049,7 @@ fn run_task(
             Ok(code == 0)
         };
     if task.kind == "run" {
-        let run = scratch.war(&["run", &alias, &stage])?;
+        let run = scratch.war(&["run", &alias, &stage, "--prototype"])?;
         r.steps.push(run.step("run"));
         if let Some(rule) = run.refusal() {
             r.refusals.push(rule);
@@ -1403,6 +1465,7 @@ mod tests {
             Score::WouldSatisfy,
             Score::Partial,
             Score::NeedsInput,
+            Score::Unknown,
             Score::OverBudget,
             Score::Refused,
             Score::Errored,

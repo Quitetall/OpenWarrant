@@ -45,6 +45,7 @@ baseline is separate from the original twelve-task baseline.
 | rung | meaning |
 |---|---|
 | `would_satisfy` | §38.6 `would_resolve_satisfied` under the blind verifier, AND every requirement the loop controls holds |
+| `unknown` | a required observation could not be established; the performer did not run |
 | `needs_input` | drafting saved interview questions and awaits answers; no Warrant was created |
 | `partial` | the loop ran to the end; something it controls is unmet (a deliverable, a digest, a gate result, independence) |
 | `over_budget` | request + Dispatch + bundle estimate exceeded `max_tokens` |
@@ -97,3 +98,10 @@ PR. The conformance plants in `conformance/plants.d/87-eval.sh` prove the
 rungs can be reached: a file-writing drafter is `refused`, a one-token budget
 is `over_budget`, two fixture runs are byte-identical, a doctored result is
 `eval.regressed`.
+
+Scratch Dispatches and service runs explicitly use prototype mode. The harness
+retains `eval-dispatch.json` and `eval-dispatch.context.json`, requires a valid
+packet with a token account, and stops before the performer on failed dispatch.
+`EVAL_DISPATCH_CONTEXT_FILE` points performers to the actual manifest. The
+combined task and supplemental context must fit the stage budget; the harness
+does not silently drop required sources. These records grant no authority.

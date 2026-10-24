@@ -1,15 +1,16 @@
 # W68 skill transport evaluation
 
-Current status: implementation in progress, unverified. The first hosted run
-passed all five expected transport scores at `dbdfadd3e8eaf728bd1c782f872fc0cd4b764b10`.
-Artifact inspection then found both tickets milestones sharing an all-files
-obligation. The corrected fixture binds API.md to OBL-001 and CLIENT.md to
-OBL-002, with M2 depending on M1. Drafter and performer interface checks pass;
-the updated full hosted run and measured baseline are still pending.
+Current status: implementation in progress, unverified. Artifact review found
+that eval continued after a refused Dispatch and passed null to its performer.
+The earlier hosted green scores are preserved as insufficient evidence, not
+adopted as a baseline. The corrected loop requests explicit prototype Dispatches
+and service runs, retains and validates actual packets/context, and stops before
+performing after a failed dispatch or combined stage-budget overrun. Eight
+public CLI controls and warnings-denied Clippy pass. A complete updated suite
+recording remains pending; local recording guards expired under host IO load.
 
-The final local five-test run hit its 900-second execution guard after four
-tests completed; its full result is UNKNOWN. A separate 600-second capture also
-ended before a complete result was written. Both observations remain unchanged.
+The earlier local execution timeouts remain UNKNOWN. No signature, independent
+qualification or legacy resolution is claimed by these fixture observations.
 
 The eval interface now accepts explicit repository-relative context sources.
 It assembles exact UTF-8 bodies and SHA-256 hashes into a packet for the drafter
@@ -96,3 +97,46 @@ contract and the caller's required response handling. The
 [interface observation](stage-scope-green.json) records the separate scopes,
 prerequisite edge and absent dependent caller. The public CLI regression now
 requires these exact relationships. Full corrected execution is pending.
+
+## Refused Dispatch bypass and correction
+
+The earlier hosted result recorded `dispatch.unauthorized` with exit 2, then a
+successful performer call and a `would_satisfy` score. No packet had been
+emitted, so its Dispatch input estimate was zero. The
+[actual result observation](dispatch-bypass-red.json) preserves this defect.
+These runs cannot support a measured successful-loop baseline.
+
+The scratch loop now explicitly requests `--prototype` for both packet emission
+and service execution. This records unverified authority; no signature is
+created. It commits the synthetic source before selection, retains the real
+Dispatch and context manifest, requires a typed packet and token account, and
+never calls its performer following an unsuccessful dispatch. The additional
+context also counts against the stage's unchanged budget before performance.
+Unknown observations remain distinct from failures. Early exits retain known
+input totals instead of resetting them to zero.
+
+Eight CLI controls pass, including real glossary/packet delivery, malformed
+executor refusal without performer output, supplemental-context budget refusal,
+and an actual prototype service run with a submission requesting verification.
+A context-delivery test now correctly observes an overrun against its unchanged
+12,000-token limit. Final Clippy passes. The original twelve-task baseline is
+unchanged; compatibility is being checked against actual executions.
+
+The optional Bonsai report job separately refuses W68 because it has no bound
+scope sidecar. `scope.toml` contributes to the immutable contract digest, so
+adding it just to clear the job would change the signed contract. No sidecar,
+authority act or disposition was fabricated. A governed scope revision remains
+separate from these implementation tests.
+
+## Service prototype path
+
+The first corrected packet recording observed eight original code/document
+cases satisfying their expected rung, while four service cases correctly
+refused `dispatch.unauthorized`: their separate `war run` call also needed the
+explicit prototype flag. The original results and comparison are preserved.
+The harness now requests prototype service execution too. A public regression
+requires a successful run and an actual submission requesting verification.
+All eight CLI controls pass after both fixes; final Clippy passes. The complete
+local recording did not finish before its guard, so full-suite recording and
+baseline adoption still await exact-source hosted execution. Original generic
+fixture definitions and baseline bytes remain unchanged.

@@ -121,6 +121,9 @@ fn context_inputs_reach_the_agent_with_exact_sources() {
             toml::Value::String(answer.into()),
         )])),
     );
+    task.as_table_mut()
+        .unwrap()
+        .insert("expected".into(), toml::Value::String("over_budget".into()));
     task.as_table_mut().unwrap().insert(
         "context".into(),
         toml::Value::Array(vec![toml::Value::String("CONTEXT.md".into())]),
@@ -211,7 +214,13 @@ subprocess.run([{}, *sys.argv[1:]], input=sys.stdin.buffer.read(), check=True)
             .unwrap()
             .starts_with("sha256:")
     );
-    assert_eq!(task["score"], "would_satisfy", "{task}");
+    // The full retained context crosses this task's unchanged 12k limit.
+    // Context delivery must not hide that overrun by omitting the Dispatch.
+    assert_eq!(task["score"], "over_budget", "{task}");
+    assert_eq!(task["as_expected"], true);
+    assert!(task["tokens"]["total"].as_u64().unwrap() > task["max_tokens"].as_u64().unwrap());
+    assert!(scratch.0.join("eval-dispatch.json").is_file());
+    assert!(scratch.0.join("eval-dispatch.context.json").is_file());
 }
 
 #[test]
@@ -443,4 +452,290 @@ fn skill_fixtures_preserve_answers_and_refuse_false_completion() {
             );
         }
     }
+}
+
+#[test]
+fn a_failed_dispatch_never_reaches_the_fixture_performer() {
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let tmp = Temp(std::env::temp_dir().join(format!(
+            "ow-eval-failed-dispatch-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        )));
+    let task_dir = tmp.0.join("tasks/unbound");
+    std::fs::create_dir_all(&task_dir).unwrap();
+    let source = repo.join("evals/tasks/code-01-changelog");
+    for name in [
+        "task.toml",
+        "proposal.json",
+        "deliver/CHANGELOG.md",
+        "deliver/docs/warrants/WARRANT_ALIAS/deliverables.toml.tmpl",
+    ] {
+        let target = task_dir.join(name);
+        std::fs::create_dir_all(target.parent().unwrap()).unwrap();
+        std::fs::copy(source.join(name), target).unwrap();
+    }
+    let proposal = task_dir.join("proposal.json");
+    let mut doc: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&proposal).unwrap()).unwrap();
+    let stage = doc["operations"]
+        .as_array_mut()
+        .unwrap()
+        .iter_mut()
+        .find(|op| op["role"] == "milestones")
+        .unwrap();
+    stage["body"] = serde_json::Value::String(stage["body"].as_str().unwrap().replace(
+        "executor_ref: \"agent://fixture-agent\"",
+        "executor_ref: \"\"",
+    ));
+    std::fs::write(proposal, serde_json::to_vec(&doc).unwrap()).unwrap();
+    let output = tmp.0.join("result.json");
+    let run = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(repo)
+        .args(["eval", "run", "--task", "unbound", "--tasks-dir"])
+        .arg(tmp.0.join("tasks"))
+        .arg("--drafter")
+        .arg(repo.join("evals/fixtures/fixture-agent.sh"))
+        .arg("--verifier")
+        .arg(repo.join("conformance/fixtures/verifier/establishes-all.sh"))
+        .args(["--keep", "--out"])
+        .arg(&output)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    assert!(
+        run.status.success(),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let result: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(output).unwrap()).unwrap();
+    let task = &result["tasks"][0];
+    let scratch = Temp(std::path::PathBuf::from(
+        task["notes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|n| n.as_str())
+            .find_map(|n| n.strip_prefix("scratch kept at "))
+            .unwrap(),
+    ));
+    let steps = task["steps"].as_array().unwrap();
+    assert!(
+        steps
+            .iter()
+            .any(|s| s["name"] == "dispatch" && s["exit_code"] != 0),
+        "{task}"
+    );
+    assert!(!steps.iter().any(|s| s["name"] == "perform"), "{task}");
+    assert_eq!(task["score"], "errored", "{task}");
+    assert!(
+        task["notes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|n| n.as_str())
+            .any(|n| n.contains("declares no executor_ref")),
+        "{task}"
+    );
+    assert!(task["tokens"]["total"].as_u64().unwrap() > 0);
+    assert!(!scratch.0.join("CHANGELOG.md").exists());
+}
+
+#[test]
+fn supplemental_context_cannot_bypass_the_stage_budget() {
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let tmp = Temp(std::env::temp_dir().join(format!(
+            "ow-eval-context-cap-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        )));
+    let caller = tmp.0.join("caller");
+    std::fs::create_dir_all(&caller).unwrap();
+    assert!(
+        Command::new("git")
+            .args(["init", "-q"])
+            .arg(&caller)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let init = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&caller)
+        .args([
+            "init",
+            "--program",
+            "Context budget fixture",
+            "--namespace",
+            "CB",
+        ])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    assert!(
+        init.status.success(),
+        "{}",
+        String::from_utf8_lossy(&init.stderr)
+    );
+    std::fs::write(
+        caller.join("context.txt"),
+        "Required prototype context\n".repeat(2000),
+    )
+    .unwrap();
+    let task_dir = tmp.0.join("tasks/cap");
+    std::fs::create_dir_all(&task_dir).unwrap();
+    let source = repo.join("evals/tasks/code-01-changelog");
+    let mut task: toml::Value =
+        toml::from_str(&std::fs::read_to_string(source.join("task.toml")).unwrap()).unwrap();
+    task.as_table_mut().unwrap().insert(
+        "context".into(),
+        toml::Value::Array(vec![toml::Value::String("context.txt".into())]),
+    );
+    task.as_table_mut()
+        .unwrap()
+        .insert("max_tokens".into(), toml::Value::Integer(60000));
+    std::fs::write(task_dir.join("task.toml"), toml::to_string(&task).unwrap()).unwrap();
+    std::fs::copy(source.join("proposal.json"), task_dir.join("proposal.json")).unwrap();
+    let output = tmp.0.join("result.json");
+    let run = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&caller)
+        .args(["eval", "run", "--task", "cap", "--tasks-dir"])
+        .arg(tmp.0.join("tasks"))
+        .arg("--drafter")
+        .arg(repo.join("evals/fixtures/fixture-agent.sh"))
+        .arg("--verifier")
+        .arg(repo.join("conformance/fixtures/verifier/establishes-all.sh"))
+        .args(["--keep", "--out"])
+        .arg(&output)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    assert!(
+        run.status.success(),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let result: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(output).unwrap()).unwrap();
+    let task = &result["tasks"][0];
+    let _scratch = Temp(std::path::PathBuf::from(
+        task["notes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|n| n.as_str())
+            .find_map(|n| n.strip_prefix("scratch kept at "))
+            .unwrap(),
+    ));
+    assert_eq!(task["score"], "refused", "{task}");
+    assert!(
+        task["refusals"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r == "dispatch.over-budget"),
+        "{task}"
+    );
+    assert!(
+        !task["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["name"] == "perform"),
+        "{task}"
+    );
+    assert!(task["tokens"]["dispatch"].as_u64().unwrap() > 8000);
+}
+
+#[test]
+fn service_evaluation_runs_a_prototype_and_retains_its_submission() {
+    let repo = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
+    let name = format!(
+        "ow-eval-service-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    );
+    let tmp = Temp(std::env::temp_dir().join(name));
+    std::fs::create_dir_all(&tmp.0).unwrap();
+    let output = tmp.0.join("result.json");
+    let run = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(repo)
+        .args(["eval", "run", "--task", "run-01-echo", "--tasks-dir"])
+        .arg(repo.join("evals/tasks"))
+        .arg("--drafter")
+        .arg(repo.join("evals/fixtures/fixture-agent.sh"))
+        .arg("--verifier")
+        .arg(repo.join("conformance/fixtures/verifier/establishes-all.sh"))
+        .args(["--keep", "--out"])
+        .arg(&output)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    assert!(
+        run.status.success(),
+        "{}",
+        String::from_utf8_lossy(&run.stderr)
+    );
+    let result: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(output).unwrap()).unwrap();
+    let task = &result["tasks"][0];
+    let scratch = Temp(std::path::PathBuf::from(
+        task["notes"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|n| n.as_str())
+            .find_map(|n| n.strip_prefix("scratch kept at "))
+            .unwrap(),
+    ));
+    assert!(
+        task["steps"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|s| s["name"] == "run" && s["exit_code"] == 0),
+        "{task}"
+    );
+    assert_eq!(task["score"], "would_satisfy", "{task}");
+    let alias = task["warrant"].as_str().unwrap();
+    let submissions: Vec<_> = std::fs::read_dir(
+        scratch
+            .0
+            .join("docs/warrants")
+            .join(alias)
+            .join("submissions"),
+    )
+    .unwrap()
+    .map(|e| e.unwrap().path())
+    .filter(|p| p.extension().is_some_and(|e| e == "json"))
+    .collect();
+    assert!(!submissions.is_empty());
+    let submission: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&submissions[0]).unwrap()).unwrap();
+    assert_eq!(submission["requested_next_action"], "verify");
 }
