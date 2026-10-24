@@ -1,0 +1,246 @@
+{
+  "protected_source": "b59c3399f1ad2df09f836b79bf103cb724db9acd",
+  "protected_run": 40105835301,
+  "files": [
+    {
+      "id": "D-001",
+      "path": "docs/adr/atoms/OW-ADR-0022-current-by-relation.md",
+      "sha256": "7a8b347bf360856f8a062b31c5d78120ee431ff1ed4f7c3b48ccb15133210623",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-002",
+      "path": "crates/openwarrant-cli/src/relations.rs",
+      "sha256": "b0f0e1a0a14a09994311ec317bb517444ffca0019979c113242f2ea2f2b8bb06",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-003",
+      "path": "crates/openwarrant-cli/src/ownership.rs",
+      "sha256": "5b2f5db9762e48a1bbacc4d91ea93921f037947a2fde50e44a3b843d624248d3",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-004",
+      "path": "crates/openwarrant-compiler/src/warrant_overview.rs",
+      "sha256": "cb0da1a4bb9dc3d91149f88042a1a082232ce5ca42a564545695a3e19523b3f4",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-005",
+      "path": "docs/warrants/OW-WAR-0073/manifest.toml",
+      "sha256": "15cd99638326a0ba20307da66f21d31f628f76163868007ea0078923252aa25b",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-006",
+      "path": "crates/openwarrant-compiler/src/current.rs",
+      "sha256": "52081417500a09460dc8cfeea76f350b1dcfaf9a2851ecedee1f18a652f06e00",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-007",
+      "path": "crates/openwarrant-compiler/src/history.rs",
+      "sha256": "43707867fc26419848b0825ea00e5055ce67c9b9aeaf8f0f7da3f00466e263cb",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-008",
+      "path": "crates/openwarrant-cli/src/compile.rs",
+      "sha256": "ed85354219a9fa3770e7938dee709321bb835d9605c55818d7273799ef0feeae",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-009",
+      "path": "crates/openwarrant-compiler/src/lib.rs",
+      "sha256": "3302d689af56902da7902d45e62c04ff1c4810a8bf85c0a5390f356ed0d06369",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-010",
+      "path": "docs/generated/CURRENT.md",
+      "sha256": "2d0e944b68a6f50f93e639da75130bc9f77c30cddd273991214300797b89cf67",
+      "matches_protected_source": false
+    },
+    {
+      "id": "D-011",
+      "path": "docs/generated/HISTORY.md",
+      "sha256": "0dde10eb98b1bdfee610ce141962ef0c6918d019fddac74419c03b18856f5694",
+      "matches_protected_source": false
+    },
+    {
+      "id": "D-012",
+      "path": "crates/openwarrant-core/src/config.rs",
+      "sha256": "6e9b3e6e96c2b9a5029084497625265aace687a6f7c424e0c86b93476c713690",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-013",
+      "path": "openwarrant.toml",
+      "sha256": "47450b5f5795591961a3a6a4414b66a849879cf56ff83dd53d4b51d791729e20",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-014",
+      "path": "crates/openwarrant-cli/src/check.rs",
+      "sha256": "151617bb6c9124432b6b541d58e4db63bf49f5476be9fc43bbbcef6e751df1d3",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-015",
+      "path": "crates/openwarrant-cli/src/next.rs",
+      "sha256": "266c90d1d35b2f039b8985d94d814665d331400fbdf3b8cffb9c38b51a1b5b61",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-016",
+      "path": "crates/openwarrant-cli/src/tui/mod.rs",
+      "sha256": "975503194367324775c16a851b403b00ca31d97f72d3c6dda410c04f3be2ae55",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-017",
+      "path": "crates/openwarrant-cli/templates/presets/feature/10-intent.md",
+      "sha256": "79d8e412fd757f213c17b8ab6eb7530557ba9caf0882438d42a13eea4573e4bc",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-018",
+      "path": "crates/openwarrant-cli/templates/presets/feature/20-basis.md",
+      "sha256": "2dd82428472b38cef03d43ecd6d6961c6f14538368baf4611291f63ff5270f82",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-019",
+      "path": "crates/openwarrant-cli/templates/presets/feature/40-work-order.md",
+      "sha256": "2f52063e34011b9f4f220e95f5f02cc17adb3449ae5e5a0de790aa50f2abbbdf",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-020",
+      "path": "crates/openwarrant-cli/templates/presets/feature/45-milestones.yaml",
+      "sha256": "778df9dae508398537e9160bc715dd93c908bebdbaebe190cfc03b0f4e95daa5",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-021",
+      "path": "crates/openwarrant-cli/templates/presets/feature/60-assurance.md",
+      "sha256": "e432b5cb261cbfd0ae70ef7213b2a27d59c6f6ff3897323a33735a1f585af863",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-022",
+      "path": "crates/openwarrant-cli/templates/presets/fix/10-intent.md",
+      "sha256": "e7560f804eb25d8ad1cff9d0950fb0872a3529db98b3d978b5dc9e10eb711054",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-023",
+      "path": "crates/openwarrant-cli/templates/presets/fix/20-basis.md",
+      "sha256": "302e0ed96717d090d9cb7813d128713248721545518236c3cb60e19b75c07977",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-024",
+      "path": "crates/openwarrant-cli/templates/presets/fix/40-work-order.md",
+      "sha256": "5b133aefae38df3dea6e3b9662a4c0a79e702ed899f35b5428adbe20fff1689d",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-025",
+      "path": "crates/openwarrant-cli/templates/presets/fix/45-milestones.yaml",
+      "sha256": "778df9dae508398537e9160bc715dd93c908bebdbaebe190cfc03b0f4e95daa5",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-026",
+      "path": "crates/openwarrant-cli/templates/presets/fix/60-assurance.md",
+      "sha256": "1d9f70255430dadfa72ee4ccbcb7e1a79bd18aa2f81c346992fc36464802ba0f",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-027",
+      "path": "crates/openwarrant-cli/templates/presets/decision/10-intent.md",
+      "sha256": "f06aa3b60969a6aa5b795fabfff4f6c8a4a437bb1bbf0bf899082e41ee1b14a9",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-028",
+      "path": "crates/openwarrant-cli/templates/presets/decision/20-basis.md",
+      "sha256": "6e85450f5a237a1b9bee2a5dd3da63069b309264748a0136243253c81e381a97",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-029",
+      "path": "crates/openwarrant-cli/templates/presets/decision/30-decision.md",
+      "sha256": "aa2a503f810fe86920e680e932282c5b4b48832552970e0dc444aba30c31338d",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-030",
+      "path": "crates/openwarrant-cli/templates/presets/decision/60-assurance.md",
+      "sha256": "5917a0ca91fbcaf62ebbed7dbc736d7968c519191ab4d0709eb97df5ab83cb27",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-031",
+      "path": "crates/openwarrant-cli/src/new.rs",
+      "sha256": "1cb1ea4b44f7888b6da4f9a4fb54e1f9c9c8c7bdee4f601d9215f8ca51540b0d",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-032",
+      "path": "crates/openwarrant-cli/src/lib.rs",
+      "sha256": "20cd2cb36fd3cc2a226a892619a8ecddab92708e50186efc877fbb209718068f",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-033",
+      "path": "CONTEXT.md",
+      "sha256": "8dc96b0b179d02bf0ffbeb9f1937f59dd4252dc1a72570d725034c64a7496cd8",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-034",
+      "path": "README.md",
+      "sha256": "abeac9089f9e06e43c096cb0826f68a1556b07ef937960a81d2213172c1a0eb2",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-035",
+      "path": "QUICKSTART.md",
+      "sha256": "4c9f480db9d163a726a26c15292b7767a23edd04da79d86c325b218218ee8fdc",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-036",
+      "path": "AGENTS.md",
+      "sha256": "6b4d4bdfdf5983233435167ab5993562c7e3645fda196b26cb64df96b92005f2",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-037",
+      "path": "docs/TUI.md",
+      "sha256": "e5694605f324ccbd9c08a45108888cf9822b502db0af18be91966422734193a1",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-038",
+      "path": "conformance/plants.d/69-current.sh",
+      "sha256": "c368b7f8a193c3d984ff7fde1693560685910ee5494bf32bfa8148f72a88dd33",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-039",
+      "path": "conformance/plants/33-supersession-without-currency.py",
+      "sha256": "57934035d345d6afac3f91d01f1e00ba8e61c17c1c3242ac7f3e2a4770ccc536",
+      "matches_protected_source": true
+    },
+    {
+      "id": "D-040",
+      "path": "conformance/plants.d/00-corpus.sh",
+      "sha256": "4638148b9158f93a8bf6ea423da4cfb89b7924423cab7d215e68c80a714a74ce",
+      "matches_protected_source": true
+    }
+  ]
+}
