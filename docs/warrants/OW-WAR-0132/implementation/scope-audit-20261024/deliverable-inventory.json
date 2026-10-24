@@ -1,0 +1,67 @@
+{
+  "meaning": "Current source witnesses, not refreshed delivery pins",
+  "protected_candidate": "8606def37781037aa3741e8108b1d06bfb708445",
+  "protected_run": 40094082209,
+  "files": [
+    {
+      "id": "D-001",
+      "path": "crates/openwarrant-cli/src/frontier.rs",
+      "sha256": "bd446435a0d8ac3d25bb3c8b0dd8f9ce99ff4f281f5645883e0aa4e8d36596dd",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-002",
+      "path": "crates/openwarrant-cli/src/perform.rs",
+      "sha256": "b4b1eb12077be3bc4e81fcf8b340be4dc85810cf1f754d1f59c48bd680a2f8ef",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-003",
+      "path": "crates/openwarrant-core/src/config.rs",
+      "sha256": "6e9b3e6e96c2b9a5029084497625265aace687a6f7c424e0c86b93476c713690",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-004",
+      "path": "openwarrant.toml",
+      "sha256": "47450b5f5795591961a3a6a4414b66a849879cf56ff83dd53d4b51d791729e20",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-005",
+      "path": "docs/HOTLINE.md",
+      "sha256": "13a6186323f5f5109148d964cfa8254fc53dded13b4cc3c946b563a3d4b7018c",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-006",
+      "path": "conformance/plants.d/52-hotline-defaults.sh",
+      "sha256": "158c38807844588bf9f88fe9f8dc3fddb4c03aff01595ca3c691e5185fb75aa4",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-007",
+      "path": "conformance/plants.d/60-perform-cancel.sh",
+      "sha256": "666240b8d64d1c17aada8073aa156e95fce2754f857f24ad380939fba858e6f4",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-008",
+      "path": "conformance/plants.d/83-tokens.sh",
+      "sha256": "cb5f99a170a93ea0b62128f5fec4751bab9d4a8ff560dff460ebc185c85431e0",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-009",
+      "path": "crates/openwarrant-cli/src/next.rs",
+      "sha256": "266c90d1d35b2f039b8985d94d814665d331400fbdf3b8cffb9c38b51a1b5b61",
+      "matches_protected_ci_source": true
+    },
+    {
+      "id": "D-010",
+      "path": "crates/openwarrant-cli/src/init/mod.rs",
+      "sha256": "5d441c05178af7b90c28db9faef6a77f5c9534847f6e27f49071da9982818fd5",
+      "matches_protected_ci_source": true
+    }
+  ]
+}
