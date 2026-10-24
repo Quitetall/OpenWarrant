@@ -7008,6 +7008,23 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                     Ok(EXIT_OK)
                 }
                 Err(e) => {
+                    if mode == output::Mode::Json {
+                        let status = if force {
+                            EXIT_NOT_READY
+                        } else {
+                            EXIT_DIAGNOSTIC
+                        };
+                        output::error_with_status(
+                            mode,
+                            &format!(
+                                "{alias}: {e}. Legacy metadata only; no archive was written. \
+                                 Missing contents: {}",
+                                missing.join("; ")
+                            ),
+                            status,
+                        );
+                        return Ok(status);
+                    }
                     println!(
                         "{alias}: §68.2 export INCOMPLETE — {} of {} required contents absent:",
                         missing.len(),

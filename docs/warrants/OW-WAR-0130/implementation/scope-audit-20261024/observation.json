@@ -1,0 +1,40 @@
+{
+  "schema": "oh.war/performer-observation/v1",
+  "warrant": "OW-WAR-0130",
+  "performer": "agent://codex",
+  "independent": false,
+  "parent": "4a9f0b8088756aa933eff08079de35b18f83a768",
+  "source_patch": "/mnt/4tb/artifacts/OpenWarrant/keep/ow130-scope-20261024/source.patch",
+  "patch_sha256": "d6b48ec9138853b318200ff6b9e35347bef4195856c7cd371aedf3d52e8c6a73",
+  "baseline_controls": {
+    "pass": 32,
+    "fail": 0
+  },
+  "corrected_red": {
+    "pass": 33,
+    "fail": 1,
+    "target": "Future manifest was rejected by the current Manifest parser before schema negotiation"
+  },
+  "green": {
+    "pass": 34,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "focused_tests": {
+    "compatibility": 8,
+    "preflight_cli": 9,
+    "fail": 0
+  },
+  "historical_before_fix_control": "Not rerun with current v2 payload; original exact historical v1 comparison retained in retry-proof-20261012",
+  "known_test_repairs": [
+    "Initial current-malformed control expected manifest.invalid/exit2 but existing parser truthfully uses cli.error/exit1; retained probe proves unchanged behavior.",
+    "First green assertion incorrectly rejected manifest.valid findings for other valid sibling Warrants; final assertion is bounded to the future IV-WAR-0001 target."
+  ],
+  "limits": [
+    "Valid TOML with a recognized future manifest major is detected; no future schema translation, compilation basis or execution readiness is inferred.",
+    "Scope inventory is retrospective and cannot prove pre-implementation chronology.",
+    "Current work.* event/refusal names and v2 writes are reported separately from the historical frozen v1 evidence.",
+    "Formal delivery ownership, admissible gate evidence and independent/human closure remain unestablished."
+  ],
+  "qualification": false
+}

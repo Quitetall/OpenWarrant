@@ -4,13 +4,14 @@
   "work_state": "in-progress",
   "reported_by": "agent://codex",
   "revision": "26880ca930c274ddcacd741f51665087e8665e55",
-  "summary": "Historical before-fix retry proof is retained. Eval setup no longer corrupts JSON stdout: eight envelope tests and four amended fixture evals pass, with Clippy and formatting clean. Full scope/delivery/gate reconciliation and independent/human closure remain pending.",
-  "notes": "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/README.md",
+  "summary": "Full-scope audit retains a retrospective 13-deliverable/five-act inventory and 32/0 original controls. A reproduced future-manifest negotiation defect is corrected: unsupported major reports UNKNOWN before current-field parsing, with no Compilation Basis. Expanded controls pass 34/0, plus eight compatibility and nine Preflight tests, Clippy/fmt. Historical v1 proof, newer event-name/encoding differences and formal closure gaps remain explicit.",
+  "notes": "docs/warrants/OW-WAR-0130/implementation/scope-audit-20261024/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/historical-retry-observation.json",
     "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/exact-observation.json",
     "docs/warrants/OW-WAR-0130/implementation/retry-proof-20261012/current-source-binding.json",
-    "docs/warrants/OW-WAR-0130/implementation/eval-json-20261012/observation.json"
+    "docs/warrants/OW-WAR-0130/implementation/eval-json-20261012/observation.json",
+    "docs/warrants/OW-WAR-0130/implementation/scope-audit-20261024/observation.json"
   ],
   "next_steps": [
     "Independent reviewer reassesses OBL-002 using the actual historical control; retain previous findings unchanged.",

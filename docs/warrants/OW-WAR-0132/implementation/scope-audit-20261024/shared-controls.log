@@ -1,0 +1,79 @@
+== positive fixture ==
+ok    corpus                             clean corpus reports well-formed
+
+== planted violations ==
+ok    a blocking question blocks         STAGE-001 blocked waiting_on Q-001; STAGE-002 open
+ok    perform on a question-blocked stage rejected by perform.question-open (Q-001); no marker, no Dispatch
+ok    --all performs the other stage     STAGE-002 answered; STAGE-001 not started
+ok    a non-blocking question            STAGE-001 open and performed despite Q-001
+ok    an answered question unblocks      STAGE-001 open after Q-001 answered; performed
+ok    frontier with no responder         UNKNOWN question.no-responder naming roles.toml; STAGE-001 still blocked
+ok    next with no responder             UNKNOWN question.no-responder naming roles.toml; STAGE-001 not offered
+ok    an agent answering, no responder   rejected by question.agent; question byte-identical
+ok    frontier with a responder          no question.no-responder; STAGE-001 blocked on Q-001
+ok    a hard spend cap                   rejected by perform.spend-unenforceable; nothing compiled or spawned
+ok    allow_unmetered absent             rejected by perform.unmetered-not-allowed, naming the key
+ok    allow_unmetered = true             STAGE-001 performed; perform.ended answered
+ok    max_recoveries = 1                 failed, failed, then rejected by perform.recovery-limit
+ok    max_repairs = 1                    answered, answered, then rejected by perform.repair-limit
+ok    a failed run is not a repair       answered, failed, answered; no limit fired
+ok    a lowered repair cap fences recovery perform.repair-limit; no actor, Dispatch, journal claim or ending
+ok    a raised repair cap admits recovery same pending recovery answers after the cap permits repair 2
+ok    spend is unknown, never zero       11 perform.ended lines, each spend "unknown"; no spend 0
+ok    a zero spend would be seen         the planted "spend":0 matches the check above
+ok    war init allows unmetered          allow_unmetered = true under one [perform], its cost named UNKNOWN
+== teams: review assignment (OW-WAR-0137) ==
+ok    the request lists the assignment and digest  assignment + assignment_digest
+ok    a response signing another assignment        authorize.stale-assignment (exit 2)
+ok    a response echoing no assignment             authorize.assignment-unsigned (exit 2)
+ok    a refused authorization writes nothing       no authorization.toml
+ok    an assigned actor without the role           assignment.role-missing (exit 2)
+ok    the agent named as resolver                  assignment.agent-prohibited (exit 2)
+ok    the performer as its own verifier            assignment.self-verify (exit 2)
+ok    the signature covers the assignment          response and journal carry sha256:e8760bac1b682ac089df1d453a134a24db49b52346b825dbf7a51cd4ca733aa3
+ok    an unassigned Warrant authorizes as before   authorize.recorded (exit 0)
+ok    an eligible resolver who is not assigned     sign.not-assigned (exit 2)
+ok    no --as selects the assigned resolver        sign.signer: Ben
+ok    unassigned: both eligible, as before         more than one eligible signer (Ada, Ben) (exit 2)
+ok    the list shows who an act is assigned to     [assigned: Ben] on 0001 only
+ok    sign --list --as Ada omits Ben's act         0002 only
+ok    sign --list --as Ben lists it, assigned first 0001 first, then 0002
+ok    the same, under --json, for Ada              acts: 0002 resolve, no 0001
+ok    the same, under --json, for Ben              0001 first, assigned_to_actor
+ok    with no --as, --json lists both, as before   0001 and 0002
+ok    inbox --as Ada omits Ben's act               0002 only
+ok    inbox --as Ben lists it                      0001 and 0002
+ok    inbox --as Ada, under --json                 items: 0002, no 0001
+ok    inbox --as Ben, under --json, assigned first 0001 first, assigned
+ok    war check reads the signed assignment        assignment.signed, and no other assignment rule
+ok    no verification: war show says none on record verified by: none on record
+ok    a revoked assignee makes nobody eligible     assignment.role-revoked (exit 2)
+ok    and nobody else is added                     sign.not-assigned (exit 2)
+ok    an assignment edited after signing           assignment.moved (exit 2)
+ok    war check names the moved assignment         ERROR assignment.moved TT-WAR-0001 (exit 2)
+ok    an assignment removed after signing          assignment.moved (exit 2)
+ok    war check names the removed assignment       ERROR assignment.moved
+ok    removal with the journal field stripped too  assignment.moved (exit 2)
+ok    a verdict from an unassigned verifier        verify.not-assigned (exit 2)
+ok    the refused verdict is not written           no verifications/OBL-002.toml
+ok    the assigned verifier without the role       verify.role-missing (exit 2)
+ok    the role-less verdict is not written         no verifications/OBL-002.toml
+ok    a verdict under an assignment edited after   assignment.moved (exit 2)
+ok    the moved assignment writes nothing          no verifications/OBL-001.toml
+ok    the assigned verifier's verdict              verify.recorded (exit 0)
+ok    the assigned verdict is written              verifications/OBL-001.toml
+ok    unassigned: any distinct verifier, as before verify.recorded (exit 0)
+ok    a hand-written resolution by the unassigned  resolution.not-assigned (exit 2)
+ok    the refused resolution writes nothing        journal unchanged
+ok    the assigned resolver signs                  resolution.signature-supplied as Ben
+ok    one human in every role counts one           status --json: distinct_humans [Ada]
+ok    two humans on record count two               status --json: distinct_humans [Ada, Ben]
+ok    war show: one distinct human                 distinct humans on record: 1 (Ada)
+ok    war status <alias>: two distinct humans      distinct humans on record: 2 (Ada, Ben)
+ok    the bundle is deterministic        two runs, the same 8 digest(s), no new file
+ok    no verifier configured is said     rejected by verify.no-verifier (verifier_argv)
+ok    a configured verifier is ingested  rejected by verify.recorded (fixture-verifier)
+ok    replacement retains prior records  3 exact prior records retained; pre-existing history untouched
+ok    a self-verifying verifier is refused rejected by verify.inadmissible (claude)
+
+73 passed, 0 failed

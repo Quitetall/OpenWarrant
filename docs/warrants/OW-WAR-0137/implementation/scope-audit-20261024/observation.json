@@ -1,0 +1,44 @@
+{
+  "schema": "oh.war/performer-scope-audit/v1",
+  "warrant": "OW-WAR-0137",
+  "performer": "agent://codex",
+  "independent": false,
+  "fixture_source": "898b9722ed78bf0da1f179e4420c9bfc939ce7fd",
+  "combined_controls": {
+    "pass": 73,
+    "fail": 0,
+    "hotline": 20,
+    "teams": 47,
+    "unassigned_bundle": 5,
+    "shared_positive_corpus": 1
+  },
+  "relevant_unit_tests": 9,
+  "independent_verdict": null,
+  "source_inventory": "deliverable-inventory.json",
+  "retained_responses": [
+    {
+      "path": "docs/authority/responses/OW-WAR-0137.028bfb04.response.toml",
+      "judgment_count": 0
+    },
+    {
+      "path": "docs/authority/responses/OW-WAR-0137.b257be93.response.toml",
+      "judgment_count": 0
+    },
+    {
+      "path": "docs/authority/responses/OW-WAR-0137.response.toml",
+      "judgment_count": 0
+    }
+  ],
+  "retained_submissions": [
+    {
+      "path": "docs/warrants/OW-WAR-0137/submissions/01a0df67-0b63-7350-9886-7b0c442e220d.json",
+      "stage_id": "STAGE-005",
+      "requested_next_action": "verify"
+    }
+  ],
+  "remaining_decision": "W137 Basis U-001: per-Warrant assignment file model exists, but separate owner disposition not established from inspected retained responses. Question sent; no default answer inferred.",
+  "question_status": "pending",
+  "work_state": "in-progress",
+  "qualification": false,
+  "setup_failure": "Initial private harness used an absolute WAR path; plants prefix WAR with REPO_ROOT. This failed before controls. Corrected only the private harness to use ./target/debug/war; actual tool succeeds on the fixture. Failure and diagnostic retained in durable evidence."
+}

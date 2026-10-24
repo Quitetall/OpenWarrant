@@ -442,6 +442,42 @@ if grep -qE '^UNKNOWN +compat\.newer-record' <<<"$IV_OUT" && grep -q 'verificati
 else
     ip_fail "a v9 record is UNKNOWN" "$(grep -E 'compat|^ERROR' <<<"$IV_OUT" | head -3 | tr '\n' '|')"
 fi
+
+# A future manifest need not have the fields today's manifest requires.
+# Detect its declared major before attempting the current typed reader.
+IV_MANIFEST="$IV/docs/warrants/IV-WAR-0001/manifest.toml"
+cp "$IV_MANIFEST" "$IP_TMP/current-manifest.toml"
+printf 'schema = "oh.war/manifest/v9"\nfuture_payload = "not a v1 manifest"\n' > "$IV_MANIFEST"
+IV_FUTURE_SHA=$(ip_sha "$IV_MANIFEST")
+IV_OUT=$(iv --json check 2>/dev/null); IV_STATUS=$?
+if [[ $IV_STATUS -eq 2 && "$(ip_sha "$IV_MANIFEST")" == "$IV_FUTURE_SHA" ]] && python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+findings = d["diagnostics"]
+assert any(x["severity"] == "unknown" and x["rule"] == "compat.newer-record"
+           and x.get("file", "").endswith("manifest.toml") for x in findings)
+assert not any(x["severity"] == "error" for x in findings)
+assert not any(x["rule"] == "manifest.valid"
+               and x["message"].startswith("IV-WAR-0001:") for x in findings)
+' <<<"$IV_OUT"; then
+    ip_ok "a future manifest is UNKNOWN" "no current field requirements imposed on v9"
+else
+    ip_fail "a future manifest is UNKNOWN" "exit $IV_STATUS: schema major must be detected before current fields"
+fi
+sed -i 's|oh.war/manifest/v9|oh.war/manifest/v1|' "$IV_MANIFEST"
+IV_OUT=$(iv --json check 2>/dev/null); IV_STATUS=$?
+if [[ $IV_STATUS -eq 1 ]] && python3 -c '
+import json, sys
+d = json.load(sys.stdin)
+assert any(x["severity"] == "error" and x["rule"] == "cli.error"
+           and "missing field `uuid`" in x["message"]
+           for x in d["diagnostics"])
+' <<<"$IV_OUT"; then
+    ip_ok "a malformed current manifest fails" "current parser still requires uuid (cli.error, exit 1)"
+else
+    ip_fail "a malformed current manifest fails" "exit $IV_STATUS"
+fi
+cp "$IP_TMP/current-manifest.toml" "$IV_MANIFEST"
 corpus_gone "$IV"
 unset PLANT_ROOT
 

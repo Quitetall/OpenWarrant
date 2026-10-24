@@ -134,6 +134,28 @@ pub(crate) fn newer_records(
     out
 }
 
+/// An unsupported manifest must be identified before its fields are read as
+/// the current Manifest type. Inspect the exact bytes already read by the
+/// caller, so a second filesystem read cannot erase the schema observation.
+pub(crate) fn newer_manifest(bytes: &[u8], relative: &str) -> Option<Diagnostic> {
+    if !may_name_newer(bytes, "toml") {
+        return None;
+    }
+    let known = known_major("manifest")?;
+    let (_, major) = schemas_from_bytes(bytes.to_vec(), "toml")
+        .into_iter()
+        .find(|(record, major)| record == "manifest" && *major > known)?;
+    Some(Diagnostic::unknown(
+        "compat.newer-record",
+        relative,
+        format!(
+            "written as oh.war/manifest/v{major}; this war ({WAR_VERSION}) reads \
+             manifest up to v{known}. Its fields are not interpreted and no \
+             Compilation Basis is produced; use a war that knows this major"
+        ),
+    ))
+}
+
 fn walk(dir: &Utf8Path, out: &mut Vec<Utf8PathBuf>) {
     let Ok(rd) = crate::vfs::read_dir(dir) else {
         return;

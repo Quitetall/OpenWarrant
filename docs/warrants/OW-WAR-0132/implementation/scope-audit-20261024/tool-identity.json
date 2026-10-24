@@ -1,0 +1,8 @@
+{
+  "binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow130-scope-20261024/war",
+  "sha256": "845f38eacea6ead1330563abec7145e16cd6088ee8ef2a29c45a29b8e08620a1",
+  "build_identity": "/mnt/4tb/artifacts/OpenWarrant/keep/ow130-scope-20261024/fixed-tool-identity.json",
+  "fixture_source": "898b9722ed78bf0da1f179e4420c9bfc939ce7fd",
+  "fixture_only": true,
+  "independent": false
+}
