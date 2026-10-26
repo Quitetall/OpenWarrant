@@ -3,8 +3,8 @@
   "warrant": "OW-WAR-0149",
   "work_state": "in-progress",
   "reported_by": "agent://codex",
-  "summary": "Candidate adds a portable real Katana CLI capture fixture and exact TLS security patch. Katana transport and its dependency fix are merged; six CLI and eight native provider controls pass. OpenWarrant TLS4 and actual CLI capture1 controls, advisory and license checks pass locally. Responses remain scripted localhost fixtures. Real provider/human qualification, participant acceptance, operator protections and remaining lifecycle coverage stay open; no assurance is awarded.",
-  "notes": "docs/warrants/OW-WAR-0149/implementation/katana-cli-20261015/README.md",
+  "summary": "Provider budget, cancellation and finalization receipt fixes merged in Katana PR17/18 after local and hosted checks. The current reader validates four retained real-model receipts and refuses false assurance; one absent receipt remains unvalidated. No fresh model execution, protected production custody or assurance is inferred. W149 remains in progress.",
+  "notes": "docs/warrants/OW-WAR-0149/implementation/provider-interruptions-20261026/README.md",
   "evidence": [
     "docs/warrants/OW-WAR-0149/implementation/evidence-index-20261011.md",
     "docs/warrants/OW-WAR-0149/implementation/verifier-observations-20261010/README.md",
@@ -37,9 +37,14 @@
     "docs/warrants/OW-WAR-0149/implementation/native-schema-pack-20261011/README.md",
     "docs/warrants/OW-WAR-0149/implementation/workbench-dispatch-20261011/README.md",
     "docs/warrants/OW-WAR-0149/implementation/workbench-captures-20261011/README.md",
-    "docs/warrants/OW-WAR-0149/implementation/workbench-workspace-20261011/README.md"
+    "docs/warrants/OW-WAR-0149/implementation/workbench-workspace-20261011/README.md",
+    "docs/warrants/OW-WAR-0149/implementation/real-local-provider-20261024/observation.json",
+    "docs/warrants/OW-WAR-0149/implementation/real-workhorse-20261024/verification.json",
+    "docs/warrants/OW-WAR-0149/implementation/real-bound-provider-20261024/observation.json",
+    "docs/warrants/OW-WAR-0149/implementation/provider-interruptions-20261026/real-history-compatibility.json"
   ],
   "next_steps": [
+    "Qualify current producer execution and protected provider/operator collection against the current SDK; preserve unknown confinement/accounting and remaining participant/human gates.",
     "Land the current OpenWarrant candidate after full CI, then complete fresh runtime-linked lifecycle coverage, real coding-agent/provider and human observations, and independent qualification. OW95 participants and BLUT contributor agreement remain unavailable.",
     "Preserve UNKNOWN for absent custody, spend and confinement observations; host checks around execution are not an atomic revocation fence.",
     "Complete actual provider integrations and independent qualification. OW111 retains native and real-corpus KF preservation observations; production operator and participant acceptance remain separate."

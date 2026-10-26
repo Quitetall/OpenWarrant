@@ -19,6 +19,10 @@ struct Fixture {
 }
 
 #[cfg(unix)]
+#[path = "runtime_capture/real_local_model.rs"]
+mod real_local_model;
+
+#[cfg(unix)]
 #[test]
 fn katana_process_preserves_unavailable_and_refuses_contradictory_responses() {
     use capture::katana_process::{KatanaProcessConfig, KatanaProcessVerifier};

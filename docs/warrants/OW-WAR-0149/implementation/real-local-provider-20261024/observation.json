@@ -1,0 +1,50 @@
+{
+  "schema": "oh.war/performer-provider-observation/v1",
+  "warrant": "OW-WAR-0149",
+  "performer": "agent://codex",
+  "independent": false,
+  "service": "owned isolated LAMU 1.0.0-rc.1 d1bb1ce, loopback19060",
+  "provider": "actual Katana CLI 0.4.0 via local LAMU, not scripted SSE",
+  "model": "Qwen2.5-0.5B-Instruct Q3_K_M, explicit llama_cpp_cpu backend",
+  "routing": "local-only; whitelisted environment contains no provider API credentials",
+  "private_settings_registry_db_runtime_verified": true,
+  "resource_limits": {
+    "memory": "4G",
+    "cpu": "200%",
+    "service_lifetime_seconds": 600,
+    "katana_wall_seconds": 150,
+    "provider_seconds": 60,
+    "turns": 4,
+    "tool_calls": 4,
+    "main_output_tokens": 512
+  },
+  "observed_memory_bytes": 1431732224,
+  "preflight_exit": 0,
+  "initial_startup": "Katana required HOME; first invocation exited1 before model work. Retry preserved the actual home value instead of repurposing it; private XDG state and session path remained explicit.",
+  "model_run": {
+    "cli_exit": 0,
+    "reported_status": "done",
+    "successful_tools": 0,
+    "failed_tools": 1,
+    "tool": "edit",
+    "reason": "model generated malformed/truncated repetitive arguments; broker refused missing path",
+    "target_changed": false,
+    "tests_passed": false,
+    "usage": {
+      "estimated": false,
+      "input": 3466,
+      "output": 572,
+      "total": 4038
+    }
+  },
+  "strict_replay_exit": 0,
+  "actual_task_completion": false,
+  "repair_attempt": "NOT RUN: remaining service lifetime could not fit the proposed bounded attempt; no limit was raised or service restarted",
+  "terminal_service": "timeout, MainPID0, no remaining file holders",
+  "native_openwarrant_binding": "not attempted; this is an unbound provider wiring probe, not imported receipt qualification",
+  "confinement": "bubblewrap configured; no successful mutation/Exec occurred, so this run does not establish realized filesystem protection",
+  "spend": "unknown; inference used only owned local CPU endpoint, no paid model request",
+  "qualification": false,
+  "participant_acceptance": false,
+  "human_acceptance": false
+}

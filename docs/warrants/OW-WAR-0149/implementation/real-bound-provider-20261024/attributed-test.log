@@ -1,0 +1,7 @@
+
+running 1 test
+PASS actual local model edit/tests/native capture/current binding; excess capability and stale basis refused; no assurance
+test runtime_capture::real_local_model::actual_model_edit_receipt_matches_recorded_dispatch_and_refuses_stale_basis ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 376 filtered out; finished in 3.82s
+

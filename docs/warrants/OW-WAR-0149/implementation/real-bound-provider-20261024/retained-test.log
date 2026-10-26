@@ -1,0 +1,18 @@
+
+running 1 test
+
+thread 'runtime_capture::real_local_model::actual_model_edit_receipt_matches_recorded_dispatch_and_refuses_stale_basis' (2987729) panicked at crates/openwarrant-cli/tests/runtime_capture/real_local_model.rs:40:5:
+ Real local fixture refused: actual CLI failed: katana: session log /mnt/4tb/tmp/openwarrant-native-bound-20261024/ow-capture-2987728-1792863758059093682/real-local-turn/session.jsonl
+katana: native receipt rejected: result without native tool call
+
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test runtime_capture::real_local_model::actual_model_edit_receipt_matches_recorded_dispatch_and_refuses_stale_basis ... FAILED
+
+failures:
+
+failures:
+    runtime_capture::real_local_model::actual_model_edit_receipt_matches_recorded_dispatch_and_refuses_stale_basis
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 376 filtered out; finished in 5.47s
+

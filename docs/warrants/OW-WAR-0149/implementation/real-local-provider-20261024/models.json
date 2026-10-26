@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "availability": "available",
+      "backend_kind": "llama_cpp_cpu",
+      "capabilities": [
+        "chat",
+        "code"
+      ],
+      "caps": {
+        "cache_prompt": true,
+        "context_max": 32768,
+        "embeddings": false,
+        "thinking": false,
+        "tools": true
+      },
+      "context": 16384,
+      "created": 0,
+      "default": true,
+      "estimated_vram_mb": 0,
+      "format": "gguf",
+      "id": "ow-cpu-probe",
+      "last_error": null,
+      "last_failure": null,
+      "loaded": true,
+      "modality": "llm",
+      "object": "model",
+      "owned_by": "local",
+      "params_b": 0.6000000238418579,
+      "requires": null,
+      "state": "loaded",
+      "unusable_reason": null,
+      "usable": true,
+      "vram_mb": 0
+    }
+  ],
+  "object": "list"
+}

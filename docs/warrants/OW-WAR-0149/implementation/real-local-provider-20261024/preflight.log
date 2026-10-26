@@ -1,0 +1,159 @@
+git=/usr/bin/git
+lamu=/home/brianklam/.local/bin/lamu
+katana=/home/brianklam/.cargo/bin/katana
+repo=/mnt/4tb/tmp/openwarrant-ow41-telemetry-20261024
+branch=agent/ow113-completion-20261024
+status_begin
+status_end
+lamu 1.0.0-rc.1 (git:d1bb1ce)
+lamu_doctor_begin
+{
+  "arch": "x86_64",
+  "auth": {
+    "configured": "off",
+    "serve_enforces": null
+  },
+  "checks": [
+    {
+      "detail": "lamu 1.0.0-rc.1 (git:d1bb1ce) — /home/brianklam/.local/lib/lamu/1.0.0-rc.1+d1bb1ce/bin/lamu",
+      "name": "build",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/llama.cpp/build/bin/llama-server (via LAMU_LLAMACPP_DIR / llama.cpp checkout; ggml_cuda_init: failed to initialize CUDA: no CUDA-capable device is detected)",
+      "name": "llama-server",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/.local/bin/tritium-serve-cuda (tritium-serve 1.1.0-rc.2 (source-git:1925b2554c5a7be5c04f0925730de010fb2bfac4)); /home/brianklam/.local/bin/tritium-serve (tritium-serve 1.1.0-rc.2 (source-git:1925b2554c5a7be5c04f0925730de010fb2bfac4))",
+      "name": "tritium-serve",
+      "status": "pass"
+    },
+    {
+      "detail": "24564 MB VRAM visible; 21695 MB available for a load after 512 MB headroom (default)",
+      "name": "gpu (nvml)",
+      "status": "pass"
+    },
+    {
+      "detail": "/usr/bin/bwrap",
+      "name": "sandbox (bwrap)",
+      "status": "pass"
+    },
+    {
+      "detail": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/config/lamu/api-keys.env absent — cloud models need `lamu login`",
+      "name": "api-keys.env",
+      "status": "warn"
+    },
+    {
+      "detail": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/data/lamu/models.yaml (1 models)",
+      "name": "model registry",
+      "status": "pass"
+    },
+    {
+      "detail": "/home/brianklam/models — 899 GiB free",
+      "name": "models dir disk",
+      "status": "pass"
+    },
+    {
+      "detail": "no token — gated/private HF repos will 401 (set HF_TOKEN or `hf auth login`)",
+      "name": "hf token",
+      "status": "warn"
+    },
+    {
+      "detail": "local-only — cloud tools are refused; `lamu service set-routing auto` to re-enable",
+      "name": "routing mode",
+      "status": "pass"
+    },
+    {
+      "detail": "http://127.0.0.1:8888 not running yet; managed by LAMU: no lamu-searxng container yet; would be created with podman (first start pulls the image from Docker Hub); auto-starts on the first search; a running lamu serve/start stops it after 900s idle. `lamu searxng start` starts it now",
+      "name": "searxng",
+      "status": "pass"
+    },
+    {
+      "detail": "no embedder: no embedding-capable model in the registry and no OPENAI_API_KEY — recall degrades to FTS + recency (score=recency)",
+      "name": "semantic memory",
+      "status": "warn"
+    },
+    {
+      "detail": "port free — `lamu serve` can start (LAMU starts it on demand)",
+      "name": "serve :8020",
+      "status": "pass"
+    },
+    {
+      "detail": "not running and LAMU_SERVE_AUTOSTART=0 — lamu memory remember|recall|forget|unforget|erase|supersede|scope-*, lamu context, lamu service, lamu chat, TUI chat (Enter) and model load/unload (l/u) refuse until you run `lamu serve` (or unset LAMU_SERVE_AUTOSTART)",
+      "name": "service: lamu serve",
+      "status": "pass"
+    },
+    {
+      "detail": "not installed — LAMU starts `lamu serve` on demand; `lamu init --service` installs lamu-serve.service",
+      "name": "systemd unit",
+      "status": "pass"
+    },
+    {
+      "detail": "no store yet at /mnt/4tb/tmp/openwarrant-native-cpu-20261024/data/lamu/lamu.db",
+      "name": "stale binary",
+      "status": "pass"
+    },
+    {
+      "detail": "off — no token: serve answers loopback requests without one and refuses an off-loopback bind (`lamu auth init` creates a token); serve not running",
+      "name": "auth",
+      "status": "pass"
+    },
+    {
+      "detail": "not configured — generate_image requires ComfyUI: install ComfyUI (a dir with .venv/bin/python and main.py) and add a registry entry with `backend: comfyui`, `modality: image`, `path: <ComfyUI dir>`; LAMU spawns it on the first generate_image",
+      "name": "service: comfyui",
+      "status": "pass"
+    },
+    {
+      "detail": "not configured — text_to_speech requires fish-speech: for local speech, install fish-speech (repo with .venv and tools/api_server.py) and add a registry entry with `backend: fish_speech`, `modality: tts`, `path: <repo>/checkpoints/<model>`; LAMU spawns it on the first text_to_speech. The cloud path needs FISH_AUDIO_API_KEY instead",
+      "name": "service: fish-speech",
+      "status": "pass"
+    },
+    {
+      "detail": "all 1 registry entries can load",
+      "name": "model usability",
+      "status": "pass"
+    },
+    {
+      "detail": "'ow-cpu-probe'",
+      "name": "default model",
+      "status": "pass"
+    },
+    {
+      "detail": "25 known, 13 installed (lamu-repl, claude-code, claude-code-mimo, codex, codex-mimo, katana, katana-mimo, opencode, opencode-lamu, hermes, hermes-mimo, gh, gh-copilot); `lamu launch list`\noverrides: none (~/.config/lamu/harnesses.yaml)\ndefault: claude-code",
+      "name": "harnesses",
+      "status": "pass"
+    },
+    {
+      "detail": "claude-code-mimo needs MIMO_API_KEY; codex-mimo needs MIMO_API_KEY; katana-mimo needs MIMO_API_KEY; hermes-mimo needs MIMO_API_KEY (add them to the secrets file)",
+      "name": "harness keys",
+      "status": "warn"
+    }
+  ],
+  "failed": 0,
+  "os": "linux",
+  "stale_binary": {
+    "state": "no_store",
+    "this": "1.0.0-rc.1 (git:d1bb1ce, schema 22)"
+  },
+  "systemd_unit": {
+    "active": null,
+    "enabled": null,
+    "exec": null,
+    "exec_exists": null,
+    "foreign": false,
+    "installed": false,
+    "managed": false,
+    "path": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/config/systemd/user/lamu-serve.service",
+    "port": null,
+    "supported": true
+  },
+  "version": "1.0.0-rc.1",
+  "warned": 4
+}
+lamu_doctor_end
+katana 0.4.0
+lamu_endpoint_begin
+{"active_model":"ow-cpu-probe","available":true,"loading":false,"loading_model":null,"routing_mode":"local-only","vram_total_gb":23.98828125,"vram_used_gb":2.330078125}
+lamu_endpoint_end
+sandbox=bubblewrap:/usr/bin/bwrap

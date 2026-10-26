@@ -1,0 +1,38 @@
+{
+  "reader_source": "8bd6cbced09ed13c6d6c5f738d1a09547bf77009",
+  "main_merge": "ced1d4af78bd3479e65946fbb436a41d002fdbd2",
+  "captures": [
+    {
+      "capture": "real-local-04e3ac4f2a8a4bcfaf90bc44fcd02175",
+      "standing": "receipt absent; not validated"
+    },
+    {
+      "capture": "real-local-8546ca9a32fb43d7b1b747912c90d0dc",
+      "standing": "validated",
+      "outcome": "halted"
+    },
+    {
+      "capture": "real-local-95feee32b816434087060163c629ff1c",
+      "standing": "validated",
+      "outcome": "completed"
+    },
+    {
+      "capture": "real-local-a24163157d3f4edba8bc9b7771a2f327",
+      "standing": "validated",
+      "outcome": "completed"
+    },
+    {
+      "capture": "real-local-f08ce461f21c4db9aaad0a9067fda3d9",
+      "standing": "validated",
+      "outcome": "completed"
+    }
+  ],
+  "false_assurance_refused": true,
+  "new_model_execution": false,
+  "head_custody": "test instrumentation only",
+  "global_harness_modified": false,
+  "binary_sha256": {
+    "katana": "8ffb3a9ca5aa14eef4d945d7b075027a78bf88bc625faed541d961669e7323f0",
+    "openwarrant_verifier": "bc906657235fbb8ac9fb43b78ce6d77fcfd706e56990cb553e786209b3fd35a9"
+  }
+}
