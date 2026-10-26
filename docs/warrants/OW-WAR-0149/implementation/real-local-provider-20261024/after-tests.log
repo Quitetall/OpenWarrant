@@ -1,0 +1,22 @@
+======================================================================
+FAIL: test_negative (test_calc.AddTests.test_negative)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/workspace/test_calc.py", line 5, in test_negative
+    def test_negative(self): self.assertEqual(add(-2, 1), -1)
+                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+AssertionError: -3 != -1
+
+======================================================================
+FAIL: test_positive (test_calc.AddTests.test_positive)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/workspace/test_calc.py", line 4, in test_positive
+    def test_positive(self): self.assertEqual(add(3, 4), 7)
+                             ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+AssertionError: -1 != 7
+
+----------------------------------------------------------------------
+Ran 2 tests in 0.001s
+
+FAILED (failures=2)

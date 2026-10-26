@@ -1,0 +1,39 @@
+{
+  "schema": "oh.war/implementation-completion-observation/v1",
+  "warrant": "OW-WAR-0113",
+  "performer": "agent://codex",
+  "implementation_complete": true,
+  "independent": false,
+  "verified": false,
+  "subject": "f832fb32303957f6230699518d28e91e2b1789f7",
+  "protected_source": "b59c3399f1ad2df09f836b79bf103cb724db9acd",
+  "protected_run": 40105835301,
+  "protected_steps": 14,
+  "protected_plants": {
+    "pass": 1718,
+    "fail": 0
+  },
+  "declared_files": 40,
+  "source_files_matching_protected_source": 38,
+  "different_files": [
+    "docs/generated/CURRENT.md",
+    "docs/generated/HISTORY.md"
+  ],
+  "difference_reason": "Fresh data projections reflect later actual progress; current controls exercise verbatim content/currency/history rules.",
+  "runtime_controls": {
+    "pass": 32,
+    "fail": 0,
+    "includes_positive_corpus": true
+  },
+  "decision_scaffold_cli": 3,
+  "scaffold_units": 10,
+  "projection_guard_units": 2,
+  "owner_direction": {
+    "source": "docs/warrants/OW-WAR-0113/implementation/current-source-20261023/owner-direction.json",
+    "answer": "Accept either bounded refusal (Recommended)",
+    "signed_amendment_inferred": false
+  },
+  "setup_failure": "Initial private clone checkout terminated by timeout45; completed existing owned checkout with git restore and confirmed clean. Failed harness invocation was not a test run.",
+  "formal_status": "Delivery/authority reconciliation, formal criterion clarification, independent qualification and human acceptance remain separate",
+  "qualification": false
+}

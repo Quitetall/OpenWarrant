@@ -1,0 +1,26 @@
+{
+  "schema": "openwarrant-performer-real-local-integration-observation/1",
+  "scope": "actual local model against recorded prototype inbox fixture Dispatch, not production qualification",
+  "native_outcome": "completed",
+  "binding": {
+    "warrant_ref": "war://01a0ac9b-3953-7511-86f6-7face232c663",
+    "contract_digest": "762f751ef8e3d1a1e92c574c05ff7dfd87bf823e04b04d07be99e1c2990f522f",
+    "dispatch_digest": "ecf554893848678a1f991a0839f9a596f558af77bcfde013c09ee89cacb0081a",
+    "stage_id": "STAGE-001",
+    "attempt_id": "01a16f03-9212-73ad-85f1-0d9bc6870f26"
+  },
+  "native_event_log_head": "b3:c2d22b2796321c3e7af320f611dd848737bbe78832d8918d8872529580897867",
+  "provider_receipt_identity": "b3:c2d22b2796321c3e7af320f611dd848737bbe78832d8918d8872529580897867",
+  "capture_standing": "matches",
+  "assurance_granted": false,
+  "input_tokens": 8014,
+  "output_tokens": 237,
+  "cost": "unknown",
+  "confinement": "configured bubblewrap; enforcement unestablished",
+  "source_identity": "installed Katana source unestablished; exact binary hash retained",
+  "real_runs_passed": 3,
+  "real_runs_failed": 2,
+  "native_budget_refusal_defect_open": true,
+  "retained_evidence": "/mnt/4tb/artifacts/OpenWarrant/keep/native-bound-20261024",
+  "cleanup_record": "cleanup.json"
+}

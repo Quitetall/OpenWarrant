@@ -1,0 +1,8 @@
+{
+  "binary": "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/followup-war",
+  "sha256": "057ebe46985c3d48ca9b15e8f39c0c6b78b9e1feebd8ad0dc38d4604005ca560",
+  "build_identity": "/mnt/4tb/artifacts/OpenWarrant/keep/ow129-history-20261024/followup-tool.json",
+  "fixture_source": "f832fb32303957f6230699518d28e91e2b1789f7",
+  "fixture_clean": true,
+  "setup": "Initial checkout terminated by timeout45; resumed existing owned checkout with git restore, then checked clean before running controls."
+}

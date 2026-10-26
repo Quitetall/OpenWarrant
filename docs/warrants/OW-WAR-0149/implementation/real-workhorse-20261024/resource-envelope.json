@@ -1,0 +1,15 @@
+{
+  "model": "ow-local-workhorse",
+  "port": 19062,
+  "host_memory_limit": "24G",
+  "cpu_quota": "200%",
+  "service_lifetime_seconds": 600,
+  "context": 8192,
+  "agent_turns": 4,
+  "agent_tools": 4,
+  "agent_wall_seconds": 150,
+  "routing": "local-only",
+  "credentials_inherited": false,
+  "actual_home_preserved": true,
+  "private_state": "/mnt/4tb/tmp/openwarrant-native-workhorse-20261024"
+}

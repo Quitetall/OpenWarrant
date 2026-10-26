@@ -1,0 +1,101 @@
+{
+  "schema": "lamu.config/v1",
+  "settings": [
+    {
+      "from": "LAMU_SETTINGS",
+      "key": "settings_file",
+      "source": "env",
+      "value": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/config/lamu/settings.toml"
+    },
+    {
+      "from": "LAMU_REGISTRY",
+      "key": "registry",
+      "source": "env",
+      "value": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/data/lamu/models.yaml"
+    },
+    {
+      "key": "models_dir",
+      "source": "default",
+      "value": "/home/brianklam/models"
+    },
+    {
+      "from": "--port",
+      "key": "serve_port",
+      "source": "flag",
+      "value": 19060
+    },
+    {
+      "from": "LAMU_CONTEXT_URL",
+      "key": "service_url",
+      "source": "env",
+      "value": "http://127.0.0.1:19060"
+    },
+    {
+      "key": "service_token",
+      "note": "`lamu auth init` creates one; `lamu service`, memory and context need it",
+      "source": "default",
+      "value": "unset"
+    },
+    {
+      "from": "settings.toml routing_mode",
+      "key": "routing_mode",
+      "source": "file",
+      "value": "local-only"
+    },
+    {
+      "from": "LAMU_SERVE_AUTOSTART",
+      "key": "serve_autostart",
+      "source": "env",
+      "value": false
+    },
+    {
+      "key": "serve_idle_stop_secs",
+      "source": "default",
+      "value": 900
+    },
+    {
+      "key": "searxng_idle_stop_secs",
+      "source": "default",
+      "value": 900
+    },
+    {
+      "key": "engine_startup_timeout_secs",
+      "source": "default",
+      "value": 300
+    },
+    {
+      "key": "vram_headroom_mb",
+      "source": "default",
+      "value": 512
+    },
+    {
+      "key": "gpu_index",
+      "source": "default",
+      "value": 0
+    },
+    {
+      "key": "bind_host",
+      "source": "default",
+      "value": "127.0.0.1"
+    },
+    {
+      "key": "searxng",
+      "source": "default",
+      "value": "managed (lamu-searxng)"
+    },
+    {
+      "key": "secrets_file",
+      "note": "no encrypted secrets file; legacy key files only",
+      "source": "default",
+      "value": null
+    },
+    {
+      "from": "registry",
+      "key": "default_model",
+      "source": "file",
+      "value": "ow-cpu-probe"
+    }
+  ],
+  "settings_file": "/mnt/4tb/tmp/openwarrant-native-cpu-20261024/config/lamu/settings.toml",
+  "settings_file_exists": true
+}
