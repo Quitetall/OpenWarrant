@@ -251,3 +251,31 @@ plan's limits instead of being billed.
 once the reported API-equivalent cost reaches the cap; each session also has its
 own USD 8 cap. The pilot runs first, and its measured cost per session gives the
 estimate for the full study before the full study is approved.
+
+## Amendment 1 (2026-10-29): the full study measures OpenWarrant after the pilot's fix
+
+The pilot (`pilot-3-v2`, OpenWarrant 1.0.0-alpha.5) found the `openwarrant` arm
+took more turns and tokens than `plain`, with no gain in correctness. Its owner
+changed the product in response (PR #343, merged to main as `984069004`):
+`war start` takes the next ready Warrant and prints only it, `war done` with no
+id closes what the agent holds, `war view prime` and `war view ready` list one
+line per Warrant, and an opt-in `SessionStart` hook prints the overview at the
+start of a session. This is a change to the product under study, made by its
+owner. The harness, backlogs, prompts, turn caps, measures and the other four
+arms are unchanged.
+
+- The full study's `openwarrant` arm runs `war` built from main at `984069004`
+  (`ADOPTION_WAR`) and the plugin from the same commit (`ADOPTION_OW_PLUGIN_REF`),
+  both recorded in `run.json`. It is set up as shipped: the session hook is
+  off, since `[tickets] session_start` is opt-in and QUICKSTART does not turn it on.
+- The pilot's alpha.5 runs stay the before-measure.
+- An exploratory run, `full-1-hook`, repeats the `openwarrant` arm with the hook
+  on (`ADOPTION_OW_SESSION_START=1`), one replicate. It is reported beside the
+  study, not as one of its comparisons.
+- Cost: the pilot measured USD 0.13 to 0.18 per Sonnet 5.5 session, not the
+  0.6 to 2.5 estimated above. With the v2 backlogs (11 items each), the full
+  plan is 390 cells (330 directed, 30 relays, 30 parallel) and at most 810
+  sessions. Caps: USD 125 for the study and USD 15 for the exploratory run, out
+  of about USD 185 left on the key; the rest is kept for a re-measure after
+  further changes. Cells run replicate by replicate with arms interleaved, so a
+  budget stop leaves every arm with the same cells, and the report says which ran.
