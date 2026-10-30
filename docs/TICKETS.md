@@ -467,7 +467,8 @@ them, and an item whose minimum is observed says so in `war view prime`. A faile
 check refuses the tick by name and leaves the claim yours: fix the work and
 run it again.
 
-Over MCP (`war admin mcp`) the same loop is `war_start` and `war_done`, with
+Over MCP (`war admin mcp`, for a harness without a shell; one with a shell is
+better served by the commands above) the same loop is `war_start` and `war_done`, with
 `war_prime`, `war_ready`, `war_claim`, `war_create`, `war_add`, `war_note`,
 `war_show`, `war_tickets` and `war_heartbeat` around it.
 Each takes an optional `actor`; `war_done` also takes `check` (`--check`);

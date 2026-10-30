@@ -177,8 +177,11 @@ Claude Code: add this repository as a plugin (`claude plugin marketplace add
 <path>`, `/plugin install openwarrant@openwarrant`) — the skill, the MCP server
 and two hooks (an edit guard for generated and pinned files, active only in a
 repository with `openwarrant.toml`, and an end-of-turn check that reports
-`war check` errors without blocking). Any other harness: `war admin mcp` over
-stdio; `war admin mcp --describe` lists the tools and what is deliberately not one.
+`war check` errors without blocking). Any other harness with a shell (opencode,
+Codex, Cursor) needs nothing more: the block `war init` adds to `AGENTS.md` teaches
+`war start` and `war done`, and the shell answers in one call where an MCP tool
+can cost a lookup first. A harness without a shell: `war admin mcp` over stdio;
+`war admin mcp --describe` lists the tools and what is deliberately not one.
 
 ## Worked examples
 
