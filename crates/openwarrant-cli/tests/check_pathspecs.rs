@@ -53,10 +53,10 @@ fn git_argvs(root: &Path, args: &[&str]) -> Vec<Vec<String>> {
         .collect()
 }
 
-#[test]
-fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
+/// A committed `war init` scaffold with a held-out tree beside it.
+fn scaffold(tag: &str) -> std::path::PathBuf {
     let root = std::env::temp_dir().join(format!(
-        "ow-pathspec-{}-{}",
+        "ow-pathspec-{tag}-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -81,8 +81,17 @@ fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
     std::fs::write(root.join("heldout/sample.txt"), "not war's to read\n").unwrap();
     git(&root, &["add", "-A"]);
     git(&root, &["commit", "-qm", "fixture"]);
+    root
+}
 
-    for args in [&["check"][..], &["check", "--generated"][..]] {
+#[test]
+fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
+    let root = scaffold("tree");
+    for args in [
+        &["check"][..],
+        &["check", "--generated"][..],
+        &["check", "--changed"][..],
+    ] {
         let argvs = git_argvs(&root, args);
         assert!(
             !argvs.is_empty(),
@@ -108,4 +117,66 @@ fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
     }
     std::fs::remove_dir_all(&root).unwrap();
     let _ = std::fs::remove_file(root.with_extension("trace2.jsonl"));
+}
+
+fn check_changed(root: &Path) -> (i32, String) {
+    let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        .env("OPENWARRANT_NO_CACHE", "1")
+        .env_remove("OPENWARRANT_VERBOSE")
+        .args(["check", "--changed"])
+        .current_dir(root)
+        .output()
+        .unwrap();
+    (
+        out.status.code().unwrap_or(-1),
+        String::from_utf8_lossy(&out.stdout).into_owned(),
+    )
+}
+
+/// `war check --changed` (the end-of-turn hook's check) checks what the
+/// working tree changed and nothing else: nothing governed changed is
+/// nothing checked; a Warrant's record is that Warrant; a file every
+/// Warrant reads is the corpus; an unrelated file is nothing.
+#[test]
+fn check_changed_checks_only_what_changed() {
+    let root = scaffold("changed");
+    let (code, out) = check_changed(&root);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("nothing OpenWarrant governs differs from HEAD"),
+        "{out}"
+    );
+    assert!(
+        !out.contains("--verbose"),
+        "a run that folded nothing offers nothing: {out}"
+    );
+
+    std::fs::write(
+        root.join("heldout/sample.txt"),
+        "moved, and not war's business\n",
+    )
+    .unwrap();
+    let (code, out) = check_changed(&root);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("nothing OpenWarrant governs differs from HEAD"),
+        "{out}"
+    );
+
+    let manifest = root.join("docs/warrants/HO-WAR-0001/manifest.toml");
+    let before = std::fs::read_to_string(&manifest).unwrap();
+    std::fs::write(&manifest, format!("{before}\n# touched\n")).unwrap();
+    let (_, out) = check_changed(&root);
+    assert!(out.contains("checked what changed: HO-WAR-0001"), "{out}");
+    std::fs::write(&manifest, before).unwrap();
+
+    let config = root.join("openwarrant.toml");
+    let before = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("{before}\n# touched\n")).unwrap();
+    let (_, out) = check_changed(&root);
+    assert!(
+        out.contains("checked the corpus: openwarrant.toml changed"),
+        "{out}"
+    );
+    std::fs::remove_dir_all(&root).unwrap();
 }

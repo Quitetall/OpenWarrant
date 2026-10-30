@@ -121,9 +121,25 @@ pub fn run_with(
     only: Option<&str>,
     check_generated: bool,
 ) -> Result<Report, RepoError> {
+    let one = only.map(|a| vec![a.to_owned()]);
+    run_in(shared_corpus, one.as_deref(), check_generated)
+}
+
+/// [`run_with`] over a set of Warrants (`war check --changed`), or the whole
+/// corpus when `only` is `None`. One run, so what is counted across the
+/// Warrants checked ("N of M have no disposed obligations") is counted over
+/// all of them and the corpus-wide rules report once.
+pub fn run_in(
+    shared_corpus: &crate::corpus::Corpus,
+    only: Option<&[String]>,
+    check_generated: bool,
+) -> Result<Report, RepoError> {
     let repo = shared_corpus.repo();
     let dirs = match only {
-        Some(alias) => vec![repo.warrant_dir(alias)?],
+        Some(aliases) => aliases
+            .iter()
+            .map(|a| repo.warrant_dir(a))
+            .collect::<Result<Vec<_>, _>>()?,
         None => shared_corpus
             .entries()?
             .iter()
@@ -2871,8 +2887,14 @@ fn check_drift(
     }
 }
 
-/// Print a report in the §71.7 shape.
+/// Print a report: the brief rendering by default, every finding in the
+/// §71.7 shape under `--verbose`. An explicit `--quiet` wins over
+/// `OPENWARRANT_VERBOSE`, so a hook asking for only what blocks gets that.
 pub fn print(report: &Report) {
+    if crate::output::quiet() || !crate::output::verbose() {
+        print!("{}", crate::output::brief(report));
+        return;
+    }
     for diagnostic in &report.diagnostics {
         println!("{diagnostic}");
     }

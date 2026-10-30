@@ -848,6 +848,17 @@ fn order(next: &mut Next) {
     });
 }
 
+/// Rows of one kind of act the brief rendering shows before counting the rest.
+const BRIEF_PER_ACT: usize = 3;
+
+fn clip(text: &str, max: usize) -> String {
+    if text.chars().count() <= max {
+        return text.to_owned();
+    }
+    let cut: String = text.chars().take(max).collect();
+    format!("{}…", cut.trim_end())
+}
+
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
@@ -870,7 +881,24 @@ pub fn render(n: &Next) -> String {
             "ready", r.ticket, "start", r.command, "", r.priority, r.title
         ));
     }
+    // Brief by default: a corpus of 147 Warrants listed 115 `deliver` rows,
+    // each with its whole unmet list, 41 KB for one question. Each kind of
+    // act shows its first few Warrants; the rest are a count.
+    let verbose = crate::output::verbose();
+    let mut shown: std::collections::BTreeMap<(bool, String), usize> =
+        std::collections::BTreeMap::new();
     for a in &n.actions {
+        let key = (matches!(a.actor, Actor::Human), a.action.to_string());
+        let seen = shown.entry(key).or_default();
+        *seen += 1;
+        if !verbose && *seen > BRIEF_PER_ACT {
+            continue;
+        }
+        let why = if verbose {
+            a.why.clone()
+        } else {
+            clip(&a.why, 120)
+        };
         s.push_str(&format!(
             "{:<6} {:<12} {:<10} {}{}\n{:>6} {}\n",
             match a.actor {
@@ -885,8 +913,19 @@ pub fn render(n: &Next) -> String {
                 .map(|j| format!("  [{}]", j.word()))
                 .unwrap_or_default(),
             "",
-            a.why
+            why
         ));
+    }
+    for ((human, action), k) in &shown {
+        if !verbose && *k > BRIEF_PER_ACT {
+            s.push_str(&format!(
+                "{:<6} {:<12} {:<10} … and {} more (`war next --verbose` lists them)\n",
+                if *human { "HUMAN" } else { "agent" },
+                "",
+                action,
+                k - BRIEF_PER_ACT
+            ));
+        }
     }
     if let Some(r) = &n.release {
         s.push_str(&format!("{:>6} {r}\n", ""));

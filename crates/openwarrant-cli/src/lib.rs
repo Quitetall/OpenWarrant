@@ -24,6 +24,7 @@ pub mod bonsai;
 pub mod bridge;
 pub mod build_identity;
 pub mod bundle;
+pub mod changed;
 pub mod check;
 pub mod commit;
 pub mod compile;
@@ -358,6 +359,15 @@ pub struct Cli {
     /// for every command. Errors are envelopes too.
     #[arg(long, global = true)]
     json: bool,
+    /// Every finding, passes included, and what each unchecked aspect means.
+    /// Without it a report prints errors in full, one line per repeated
+    /// warning rule, and passes as a count. `--json` is always complete.
+    #[arg(long, global = true)]
+    verbose: bool,
+    /// Only what blocks: errors, unknowns, their remedies and the verdict.
+    /// For a hook or a script that acts on a red result and nothing else.
+    #[arg(long, short = 'q', global = true, conflicts_with = "verbose")]
+    quiet: bool,
     /// The repository to act on. Defaults to the nearest ancestor of the
     /// current directory holding `openwarrant.toml`. A command that reads no
     /// repository (`init`, `sdk`, `install`) ignores it.
@@ -1030,11 +1040,18 @@ enum DailyCommand {
         /// Also compare committed generated views against a fresh compilation.
         #[arg(long)]
         generated: bool,
+        /// Only what the working tree changed: the Warrants whose records or
+        /// pinned files differ from HEAD (or are new). A change to the SAS,
+        /// roadmap, ADRs, gates, authority register or openwarrant.toml
+        /// checks the corpus; no change checks nothing. Git is asked about
+        /// those paths alone. What the end-of-turn hook runs.
+        #[arg(long, conflicts_with = "alias")]
+        changed: bool,
         /// The PR gate (docs/PRESETS.md): read PR <NUMBER> through `gh api`
         /// and pass only when it cites a Warrant official at its author's
         /// level. This reads the network; a call that fails is UNKNOWN,
         /// never a pass.
-        #[arg(long, value_name = "NUMBER", conflicts_with_all = ["alias", "generated"])]
+        #[arg(long, value_name = "NUMBER", conflicts_with_all = ["alias", "generated", "changed"])]
         pr: Option<String>,
         /// With --pr: the repository, `owner/name` (default:
         /// $GITHUB_REPOSITORY, else what `gh repo view` names).
@@ -1050,7 +1067,7 @@ enum DailyCommand {
         /// The CI floor (docs/SCORE.md): refuse when the working tree's
         /// score level is below <REV>'s. With --pr, the base's
         /// `[score] floor = true` turns it on instead.
-        #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr"])]
+        #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
     },
 }
@@ -2834,7 +2851,7 @@ pub fn entrypoint() -> ExitCode {
             let mut words = Vec::new();
             while words.len() < 2 {
                 let Some(arg) = args.next() else { break };
-                if arg == "--json" {
+                if arg == "--json" || arg == "--verbose" || arg == "--quiet" || arg == "-q" {
                     continue;
                 }
                 if arg == "--root" {
@@ -2860,6 +2877,8 @@ pub fn entrypoint() -> ExitCode {
     };
     let mode = output::Mode::from_flag(cli.json);
     let json = cli.json;
+    output::set_verbose(cli.verbose);
+    output::set_quiet(cli.quiet);
     let code = match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(report) => {
@@ -4127,9 +4146,50 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             Ok(output::exit_code(&report))
         }
         DailyCommand::Check {
-            alias, generated, ..
+            alias,
+            generated,
+            changed,
+            ..
         } => {
             let repository = ctx.open_repo()?;
+            let mut why_corpus = None;
+            if changed {
+                match changed::scope(&repository)? {
+                    changed::Scope::Nothing => {
+                        let mut report = diagnostic::Report::default();
+                        report.push(diagnostic::Diagnostic::pass(
+                            "check.changed",
+                            "nothing OpenWarrant governs differs from HEAD, so nothing was checked",
+                        ));
+                        return Ok(output::finish(mode, "check", &report, None));
+                    }
+                    changed::Scope::Warrants(aliases) => {
+                        gate_cmd::source::remember_tree_reads();
+                        let aliases: Vec<String> = aliases.into_iter().collect();
+                        let mut report = check::run_in(
+                            &corpus::Corpus::new(&repository),
+                            Some(&aliases),
+                            generated,
+                        )?;
+                        report.diagnostics.insert(
+                            0,
+                            diagnostic::Diagnostic::pass(
+                                "check.changed",
+                                match aliases.len() {
+                                    n if n > 8 => format!(
+                                        "checked what changed: {} and {} more",
+                                        aliases[..8].join(", "),
+                                        n - 8
+                                    ),
+                                    _ => format!("checked what changed: {}", aliases.join(", ")),
+                                },
+                            ),
+                        );
+                        return Ok(output::finish(mode, "check", &report, None));
+                    }
+                    changed::Scope::Corpus(why) => why_corpus = Some(why),
+                }
+            }
             // A ticket is checked for its structure only (OW-WAR-0147): never
             // for a signature, evidence or verification it does not need.
             if let Some(a) = alias.as_deref().filter(|a| ticket::is_ticket_ref(a)) {
@@ -4157,6 +4217,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
             let mut report = check::run(&repository, alias.as_deref(), generated)?;
+            if let Some(why) = why_corpus {
+                report.push(diagnostic::Diagnostic::pass(
+                    "check.changed",
+                    format!("checked the corpus: {why}"),
+                ));
+            }
             if alias.is_none() {
                 match ticket::Store::open(&repository, None) {
                     Ok(store) => ticket::check(&store, None, &mut report)?,

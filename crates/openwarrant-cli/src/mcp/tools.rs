@@ -549,9 +549,49 @@ type ToolResult = Result<CallToolResult, McpError>;
 
 fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -> ToolResult {
     let text = crate::output::envelope(command, report, result);
-    let value: serde_json::Value = serde_json::from_str(&text)
+    let mut value: serde_json::Value = serde_json::from_str(&text)
         .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
+    lean(&mut value);
     Ok(CallToolResult::structured(value))
+}
+
+/// Warnings of one rule an agent is shown before the rest become a count.
+const WARNINGS_PER_RULE: usize = 3;
+
+/// What an agent's context receives: every error and unknown, a few
+/// warnings per rule, no passes. `counts` still totals every finding, and
+/// `folded` says what was left out by rule, so nothing is hidden, only not
+/// repeated. A clean check of 147 Warrants was 711 KB of envelope, 1,891
+/// PASS rows of it; the CLI's `--json` stays complete for programs.
+fn lean(value: &mut serde_json::Value) {
+    let Some(all) = value
+        .get_mut("diagnostics")
+        .and_then(serde_json::Value::as_array_mut)
+    else {
+        return;
+    };
+    let mut seen: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    let mut folded: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
+    all.retain(|d| {
+        let severity = d["severity"].as_str().unwrap_or("");
+        let rule = d["rule"].as_str().unwrap_or("").to_owned();
+        let keep = match severity {
+            "pass" => false,
+            "warn" => {
+                let n = seen.entry(rule.clone()).or_default();
+                *n += 1;
+                *n <= WARNINGS_PER_RULE
+            }
+            _ => true,
+        };
+        if !keep && severity == "warn" {
+            *folded.entry(rule).or_default() += 1;
+        }
+        keep
+    });
+    if !folded.is_empty() {
+        value["folded"] = serde_json::json!({ "warn": folded });
+    }
 }
 
 /// A refusal is a tool OUTCOME, not a protocol failure: the agent reads the
@@ -1189,8 +1229,9 @@ impl WarServer {
             v
         });
         let text = crate::output::envelope("context", &report, value);
-        let value: serde_json::Value = serde_json::from_str(&text)
+        let mut value: serde_json::Value = serde_json::from_str(&text)
             .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
+        lean(&mut value);
         Ok(if report.is_ready() {
             CallToolResult::structured(value)
         } else {
@@ -1515,9 +1556,10 @@ impl WarServer {
             Ok(o) => {
                 let said = cli_text(&o);
                 let text = crate::output::envelope(command, &o.report, Some(o.result));
-                let value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+                let mut value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
                     McpError::internal_error(format!("envelope is not JSON: {e}"), None)
                 })?;
+                lean(&mut value);
                 let mut r = if o.report.is_ready() {
                     CallToolResult::structured(value)
                 } else {

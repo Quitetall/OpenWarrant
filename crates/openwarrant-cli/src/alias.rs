@@ -150,7 +150,7 @@ fn tree_dirs(mut body: &[u8], hash_len: usize, names: &mut BTreeSet<String>) {
 pub fn check_duplicates(
     repo: &Repository,
     corpus: &[Loaded],
-    only: Option<&str>,
+    only: Option<&[String]>,
     report: &mut Report,
 ) {
     let mut by_alias: BTreeMap<String, Vec<(&Loaded, String)>> = BTreeMap::new();
@@ -172,8 +172,13 @@ pub fn check_duplicates(
         if holders.len() < 2 {
             continue;
         }
-        if only.is_some_and(|o| {
-            o != alias && !holders.iter().any(|(l, _)| l.dir.file_name() == Some(o))
+        if only.is_some_and(|wanted| {
+            !wanted.iter().any(|o| {
+                *o == alias
+                    || holders
+                        .iter()
+                        .any(|(l, _)| l.dir.file_name() == Some(o.as_str()))
+            })
         }) {
             continue;
         }

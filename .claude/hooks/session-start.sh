@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # SessionStart: put the agent's tracked work in front of it, so it needs no
-# call to find it. Opt-in: only when the repository sets
-# `[tickets] session_start = true`; otherwise `war view prime --session`
-# prints nothing and this hook adds nothing. Outside an OpenWarrant
-# repository, or without `war`, it does nothing.
+# call to find it. `war view prime --session` prints nothing when no tracked
+# work is open, or when the repository sets `[tickets] session_start = false`;
+# then this hook adds nothing. Outside an OpenWarrant repository, or without
+# `war`, it does nothing.
 set -uo pipefail
 
 input=$(cat)

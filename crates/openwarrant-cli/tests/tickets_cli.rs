@@ -317,11 +317,12 @@ fn done_on_a_ticket_ticks_every_item_or_none() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
-/// `war view prime --session` is opt-in: without `[tickets] session_start`
-/// it prints nothing, so the plugin's SessionStart hook adds nothing. Enabled,
-/// it shows the open Warrants and how to take one; holding one, its brief.
+/// `war view prime --session` is on by default: the open Warrants and how
+/// to take one, or, holding one, its brief, so a session needs no call to
+/// find its work. `[tickets] session_start = false` silences it, so the
+/// plugin's SessionStart hook adds nothing.
 #[test]
-fn the_session_start_view_is_opt_in() {
+fn the_session_start_view_is_on_unless_turned_off() {
     let root = scratch("session");
     let id = json(
         &root,
@@ -338,16 +339,20 @@ fn the_session_start_view_is_opt_in() {
         .unwrap()
         .to_owned();
     let text = |args: &[&str]| String::from_utf8_lossy(&war(&root, args).stdout).into_owned();
-    // Off (the default): nothing at all.
+    // Turned off: nothing at all.
+    let config = root.join("openwarrant.toml");
+    let before = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(
+        &config,
+        format!("{before}\n[tickets]\nsession_start = false\n"),
+    )
+    .unwrap();
     assert_eq!(
         text(&["view", "prime", "--session", "--as", "ann"]).trim(),
         ""
     );
-    let config = root.join("openwarrant.toml");
-    let mut toml = std::fs::read_to_string(&config).unwrap();
-    toml.push_str("\n[tickets]\nsession_start = true\n");
-    std::fs::write(&config, toml).unwrap();
-    // On, nothing held: the overview and how to take the next.
+    std::fs::write(&config, before).unwrap();
+    // On (the default), nothing held: the overview and how to take the next.
     let open = text(&["view", "prime", "--session", "--as", "ann"]);
     assert!(
         open.contains(&format!("- {id} — Job")) && open.contains("war start"),
