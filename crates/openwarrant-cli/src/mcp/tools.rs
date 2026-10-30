@@ -7,12 +7,13 @@
 //!
 //! Every tool returns the same `oh.war/report/v1` envelope the CLI prints
 //! under `--json`, as structured content, so an agent that learned the CLI
-//! learns nothing new here.
+//! learns nothing new here. A ticket tool's text content is what the CLI
+//! prints in a terminal, so a model reads its answer once.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use rmcp::handler::server::wrapper::Parameters;
-use rmcp::model::{CallToolResult, ErrorData as McpError};
+use rmcp::model::{CallToolResult, ContentBlock, ErrorData as McpError};
 use rmcp::{tool, tool_router};
 use serde::Deserialize;
 
@@ -25,6 +26,7 @@ use crate::repo::RepoError;
 /// Who a ticket tool acts as. A name for coordination between agents; it
 /// authorizes nothing (OW-WAR-0147).
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct CreateParams {
     /// What this work accomplishes, in one sentence.
     pub title: String,
@@ -50,13 +52,14 @@ pub struct CreateParams {
     /// The Warrant (an epic) this one is part of.
     #[serde(default)]
     pub part_of: Option<String>,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 /// `war warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct TicketsParams {
     /// Only Warrants of this type: a light one's type (bug), or a profile (delivery, openspec).
     #[serde(default, rename = "type")]
@@ -79,48 +82,57 @@ pub struct TicketsParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct ActorParams {
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct ClaimParams {
-    /// An item (`i-...`, `t-.../i-...`) or a whole light Warrant (`t-...`); a unique prefix works.
+    /// An item (`i-...`, `t-.../i-...`) or a whole light Warrant (`t-...`); a unique prefix works,
+    /// and so do words from one Warrant's title or labels (`T8`).
+    #[serde(alias = "ticket", alias = "id")]
     pub target: String,
     /// Take a claim older than the TTL (`[tickets] claim_ttl_minutes`). Journalled.
     #[serde(default)]
     pub steal: bool,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct StartParams {
-    /// A Warrant or item to take; omit for the next ready Warrant (or the one you already hold).
-    #[serde(default)]
+    /// A Warrant or item to take, by id or by words from its title or labels (`T8`); omit for
+    /// the next ready Warrant (or the one you already hold).
+    #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct HeartbeatParams {
     /// One claimed item or ticket; omit to renew every claim the actor holds.
-    #[serde(default)]
+    #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct DoneParams {
-    /// The Warrant (closes every open item at once) or one item; omit for the one Warrant you hold.
-    #[serde(default)]
+    /// The Warrant (closes every open item at once) or one item, by id or by words from its
+    /// title; omit for the one Warrant you hold.
+    #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
     /// What was done, for the next reader: one note on the Warrant, or on the item's line.
     #[serde(default)]
@@ -134,14 +146,16 @@ pub struct DoneParams {
     /// they pass (`war done --check`); on a done item, raise its tick.
     #[serde(default)]
     pub check: bool,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct AddParams {
     /// The Warrant (`t-...`).
+    #[serde(alias = "target", alias = "id")]
     pub ticket: String,
     /// The item, one line.
     pub text: String,
@@ -153,14 +167,16 @@ pub struct AddParams {
     /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct NoteParams {
     /// The Warrant (or one of its items).
+    #[serde(alias = "ticket", alias = "id")]
     pub target: String,
     /// The note, Markdown.
     pub text: String,
@@ -169,22 +185,25 @@ pub struct NoteParams {
     /// `work.stale-revision`, naming the current one.
     #[serde(default)]
     pub if_rev: Option<String>,
-    /// Who is acting; defaults to the repository's configured performer.
+    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct PrimeParams {
-    /// One Warrant in full; omit for every open one.
-    #[serde(default)]
+    /// One Warrant in full, by id or by words from its title; omit for every open one.
+    #[serde(default, alias = "target", alias = "id")]
     pub ticket: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct NoParams {}
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct ContextParams {
     /// A Warrant or ticket alias, `war://<uuid>`, an item (`t-x/i-y`), any
     /// record id from docs/generated/llms.txt, or a repository path.
@@ -204,12 +223,14 @@ pub struct ContextParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct AliasParams {
     /// Local alias, e.g. `OW-WAR-0042`.
     pub alias: String,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct CheckParams {
     /// Local alias; omit to check the whole corpus.
     #[serde(default)]
@@ -220,6 +241,7 @@ pub struct CheckParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct StatusParams {
     /// Local alias for one Warrant's status view; omit for the corpus.
     #[serde(default)]
@@ -227,6 +249,7 @@ pub struct StatusParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct ShowParams {
     /// A Warrant's id: an alias, a light one (`t-...`), or one read in place (`openspec:...`, `speckit:...`).
     pub alias: String,
@@ -240,6 +263,7 @@ fn default_view() -> String {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct DiffParams {
     /// Local alias.
     pub alias: String,
@@ -249,6 +273,7 @@ pub struct DiffParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct GateRunParams {
     /// Gate key to run, e.g. `software.repo.war-check@1.0.0`; omit to run every registered gate.
     #[serde(default)]
@@ -256,6 +281,7 @@ pub struct GateRunParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct PinsParams {
     /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war correct`).
     #[serde(default)]
@@ -263,6 +289,7 @@ pub struct PinsParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct DispatchParams {
     /// Local alias.
     pub alias: String,
@@ -281,6 +308,7 @@ fn default_attempt() -> String {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct VerifyRequestParams {
     /// Local alias.
     pub alias: String,
@@ -291,12 +319,14 @@ pub struct VerifyRequestParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct VersionParams {
     /// SAS version, e.g. `0.1.0-draft.3`.
     pub version: String,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct PlanRequestParams {
     /// The vague request, verbatim — one sentence is enough. Empty when an
     /// issue is given instead.
@@ -330,6 +360,7 @@ fn default_assurance() -> String {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct PlanProposalParams {
     /// The `oh.war/draft-proposal/v2` document, as JSON text.
     pub proposal_json: String,
@@ -398,6 +429,7 @@ fn drafted_from(
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct AskParams {
     /// Local alias.
     pub alias: String,
@@ -414,6 +446,7 @@ pub struct AskParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct QuestionsParams {
     /// One Warrant; omit for every Warrant.
     #[serde(default)]
@@ -424,6 +457,7 @@ pub struct QuestionsParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct AnswersParams {
     /// Local alias.
     pub alias: String,
@@ -433,6 +467,7 @@ pub struct AnswersParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct NewParams {
     /// Title of the new Warrant.
     pub title: String,
@@ -442,6 +477,7 @@ pub struct NewParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct EvidenceParams {
     /// Local alias.
     pub alias: String,
@@ -459,6 +495,7 @@ pub struct EvidenceParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct DeliverParams {
     /// Local alias.
     pub alias: String,
@@ -471,6 +508,7 @@ pub struct DeliverParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct CompileParams {
     /// Local alias; omit to compile the whole corpus and its projections.
     #[serde(default)]
@@ -478,6 +516,7 @@ pub struct CompileParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct SignShowParams {
     /// A pending act as `war sign --list` names it: an alias, a SAS version, or `<alias>/<D-id>`.
     pub target: String,
@@ -486,6 +525,7 @@ pub struct SignShowParams {
 // ---- result shaping -------------------------------------------------------
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct StandingShowParams {
     /// A class id, `standing://<id>@<rev>` or `standing:<id>@<rev>`; omit for every class.
     #[serde(default)]
@@ -493,6 +533,7 @@ pub struct StandingShowParams {
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
+#[serde(deny_unknown_fields)]
 pub struct StandingApplyParams {
     /// Local alias of the Warrant to check against its class.
     pub alias: String,
@@ -1037,7 +1078,7 @@ impl WarServer {
 
     #[tool(
         name = "war_answers",
-        description = "The answers a human gave for a stage, to read BEFORE performing it (`war plan answers`). Read-only.",
+        description = "A Warrant stage's answers from a human, to read BEFORE performing it (`war plan answers`); stages only. A light Warrant's answers are its notes, which `war_start` and `war_prime` already show. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_answers(&self, Parameters(p): Parameters<AnswersParams>) -> ToolResult {
@@ -1221,7 +1262,7 @@ impl WarServer {
 
     #[tool(
         name = "war_start",
-        description = "Take the next ready Warrant and get only what its work needs (`war start`): claims it whole and returns its description, open items, every note, what it depends on, and the call that closes it. Holding one already, it returns that one again. Markdown in result.markdown.",
+        description = "Take the next ready Warrant, or the one `target` names by id or by words of its title (`T8`), and get only what its work needs (`war start`): claims it whole and returns its description, open items, every note, what it depends on, and the call that closes it. Holding one already, it returns that one again.",
         annotations(read_only_hint = false)
     )]
     fn war_start(&self, Parameters(p): Parameters<StartParams>) -> ToolResult {
@@ -1455,7 +1496,10 @@ impl WarServer {
 
 impl WarServer {
     /// Run one ticket command against this repository's ticket store and
-    /// answer with its envelope; a refusal is a tool outcome, as elsewhere.
+    /// answer with its envelope as structured content; a refusal is a tool
+    /// outcome, as elsewhere. The text the model reads is what the CLI prints
+    /// (its findings, then its answer), not the envelope again: a brief is
+    /// read once, in Markdown, and `war_done` answers in one line.
     fn ticket(
         &self,
         command: &str,
@@ -1469,17 +1513,43 @@ impl WarServer {
         });
         match outcome {
             Ok(o) => {
+                let said = cli_text(&o);
                 let text = crate::output::envelope(command, &o.report, Some(o.result));
                 let value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
                     McpError::internal_error(format!("envelope is not JSON: {e}"), None)
                 })?;
-                Ok(if o.report.is_ready() {
+                let mut r = if o.report.is_ready() {
                     CallToolResult::structured(value)
                 } else {
                     CallToolResult::structured_error(value)
-                })
+                };
+                if !said.trim().is_empty() {
+                    r.content = vec![ContentBlock::text(said)];
+                }
+                Ok(r)
             }
             Err(e) => refused(command, &e),
         }
     }
+}
+
+/// What `war <ticket command>` prints for `o` in a terminal: each finding as
+/// `refused (rule): ...`, then the answer unless the command was refused.
+fn cli_text(o: &crate::ticket::Outcome) -> String {
+    use crate::diagnostic::Severity;
+    let mut lines: Vec<String> = Vec::new();
+    for d in &o.report.diagnostics {
+        let tag = match d.severity {
+            Severity::Error => "refused",
+            Severity::Warn => "warning",
+            Severity::Unknown => "UNKNOWN",
+            _ => continue,
+        };
+        lines.push(format!("{tag} ({}): {}", d.rule, d.message));
+    }
+    let happened = o.report.count(Severity::Error) == 0 && !o.result.is_null();
+    if !o.is_refused() || happened {
+        lines.push(o.human.trim_end().to_owned());
+    }
+    lines.join("\n")
 }

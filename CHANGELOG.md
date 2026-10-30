@@ -8,6 +8,29 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- An agent finds and closes the work it was asked for without lookups, under
+  any harness. The adoption study (2026-10-29) traced Claude Code and opencode
+  (DeepSeek V4.1 Flash, GLM 5.3 Flash) sessions spending two to three turns on
+  turning "do item T8" into a ticket id, and reading MCP answers twice.
+  - `war start`, `war done`, `war view prime`, `war note` and the other ticket
+    commands take words of a Warrant's title or labels where they took an id:
+    `war start T8`, `war start monthly budget`. Open Warrants are searched
+    first; words that fit several are refused `ticket.ambiguous` with each id,
+    and words that fit none `ticket.unknown`. MCP: `target` (or `ticket`, `id`).
+  - The MCP tools refuse a parameter they do not know (`unknown field`, naming
+    the ones they take) instead of ignoring it: an ignored `ticket` made
+    `war_start` take the next Warrant instead of the one named.
+  - A ticket tool's MCP text is what the CLI prints (a brief in Markdown, `done
+    t-x (n/n)` in one line); the `oh.war/report/v1` envelope stays its
+    structured content. A `war_start` answer drops from about 5 KB to the 3 KB
+    brief, a `war_done` from about 800 bytes to one line.
+  - In a linked git worktree the default actor is the performer named for its
+    worktree (`claude@w2`): agents side by side in worktrees share the claims,
+    and under one name the second resumed the first one's Warrant as its own.
+    `--as` and `OPENWARRANT_ACTOR` still name the actor outright.
+  - `war_answers` says it is for a Warrant's stages; a light Warrant's answers
+    are its notes, which `war_start` already shows.
+
 - The ticket loop an agent runs is two calls, and what it reads is only the
   work it takes. The adoption pilot (2026-10-22) measured alpha.5's loop at 47%
   more tokens than a plain `CLAUDE.md` for the same items: the agent read the

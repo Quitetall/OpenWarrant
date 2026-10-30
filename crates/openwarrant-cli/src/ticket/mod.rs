@@ -402,7 +402,7 @@ pub struct Store {
     pub session_start: bool,
     pub definition: ProfileDefinition,
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
-    /// `[project] performer`. A name for coordination; it authorizes nothing.
+    /// [`default_actor`]. A name for coordination; it authorizes nothing.
     pub actor: String,
     pub project: String,
     /// OW-WAR-0148 M14: `[preset] name`, when set. Under `vibe`, `war done`
@@ -450,6 +450,19 @@ fn date_of(secs: u64) -> String {
     rfc3339(secs)[..10].to_owned()
 }
 
+/// Who acts when nobody is named: `[project] performer`, named for its
+/// worktree (`claude@w2`) when this checkout is a linked git worktree. Agents
+/// working side by side in worktrees of one repository share its claims, and
+/// under one name each would take another's claim for its own (`war start`
+/// resumes what "you" hold).
+fn default_actor(repo: &Repository) -> String {
+    let performer = repo.performer();
+    match repo.root.file_name() {
+        Some(tree) if repo.root.join(".git").is_file() => format!("{performer}@{tree}"),
+        _ => performer,
+    }
+}
+
 fn io(context: String) -> impl FnOnce(std::io::Error) -> RepoError {
     move |source| RepoError::Io { context, source }
 }
@@ -472,7 +485,7 @@ impl Store {
             .or_else(|| std::env::var("OPENWARRANT_ACTOR").ok())
             .map(|a| ticket::one_line(&a))
             .filter(|a| !a.is_empty())
-            .unwrap_or_else(|| repo.performer());
+            .unwrap_or_else(|| default_actor(repo));
         let tree_claims_dir = resolve(policy.claims_dir.as_deref().unwrap_or(DEFAULT_CLAIMS_DIR));
         let layout = match policy.claims_dir {
             Some(_) => None,
@@ -979,7 +992,7 @@ pub fn episode_of(dir: &Utf8Path, event_type: &str, target: &str) -> Result<u64,
 }
 
 /// M11: renew the claims of the agent a command runs as when it names none
-/// (`$OPENWARRANT_ACTOR`, else `[project] performer`). Best effort and
+/// (`$OPENWARRANT_ACTOR`, else the default actor). Best effort and
 /// silent: a repository without tickets, or a claim that cannot be touched,
 /// changes nothing about the command.
 pub fn renew_ambient(repo: &Repository) {
@@ -1061,7 +1074,8 @@ fn pick<'a>(candidates: &[&'a str], query: &str) -> Result<&'a str, Vec<&'a str>
     }
 }
 
-/// Resolve `t-x`, `t-x/i-y` or `i-y` (each a unique prefix) against `tickets`.
+/// Resolve `t-x`, `t-x/i-y` or `i-y` (each a unique prefix) against `tickets`,
+/// or, failing those forms, words from one Warrant's title or labels.
 pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
     let query = query.trim();
     let unknown = |what: &str, found: &[&str]| {
@@ -1125,13 +1139,69 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
             }
         };
     }
-    Err(Diagnostic::error(
-        "ticket.unknown",
-        String::new(),
-        format!(
-            "{query:?} is not a light Warrant (t-...), an item (i-...) or an item of one (t-.../i-...)"
-        ),
-    ))
+    by_words(tickets, query)
+}
+
+/// Lowercase words of `s`, split at anything not a letter or digit.
+fn words_of(s: &str) -> Vec<String> {
+    s.split(|c: char| !c.is_alphanumeric())
+        .filter(|w| !w.is_empty())
+        .map(str::to_lowercase)
+        .collect()
+}
+
+/// A query that is not an id: the Warrant whose title and labels hold every
+/// one of its words (`war start T8`, `war view prime "monthly budget"`), so a
+/// request that names the work needs no lookup first. Open Warrants are
+/// searched before done ones; one match is the answer, several are refused
+/// with each one's id.
+fn by_words(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
+    let want = words_of(query);
+    let holds = |t: &Ticket| {
+        let mut have = words_of(&t.manifest.title);
+        for l in &t.manifest.labels {
+            have.extend(words_of(l));
+        }
+        !want.is_empty() && want.iter().all(|w| have.contains(w))
+    };
+    let matching = |open: bool| -> Vec<usize> {
+        (0..tickets.len())
+            .filter(|&n| tickets[n].is_done() != open && holds(&tickets[n]))
+            .collect()
+    };
+    let open = matching(true);
+    let found = if open.is_empty() {
+        matching(false)
+    } else {
+        open
+    };
+    match found.as_slice() {
+        [n] => Ok(Target::Ticket(*n)),
+        [] => Err(Diagnostic::error(
+            "ticket.unknown",
+            String::new(),
+            format!(
+                "{query:?} is not an id (t-..., i-..., t-.../i-...) and no Warrant's title or \
+                 labels hold those words; `war view prime` lists them"
+            ),
+        )),
+        many => {
+            let names: Vec<String> = many
+                .iter()
+                .take(6)
+                .map(|n| format!("{} ({})", tickets[*n].id(), tickets[*n].manifest.title))
+                .collect();
+            Err(Diagnostic::error(
+                "ticket.ambiguous",
+                String::new(),
+                format!(
+                    "{query:?} matches {} Warrants: {}. Give the id",
+                    many.len(),
+                    names.join(", ")
+                ),
+            ))
+        }
+    }
 }
 
 // ---- derived state ---------------------------------------------------------
@@ -2944,8 +3014,9 @@ pub fn held_target(store: &Store) -> Result<Result<String, Outcome>, RepoError> 
 /// How an agent spends the fewest turns on tracked work: taking it with its
 /// first look at the code, and closing it with its last test run.
 pub const LOOP_HINT: &str = "Run `war start` in the same command as your first look at the code: \
-     it takes the next ready Warrant and prints only what it needs. Close it in the same command as \
-     your last test run: `<your tests> && war done --note \"what you did\"`.";
+     it takes the next ready Warrant (`war start <words of its title>` takes a named one) and prints \
+     only what it needs. Close it in the same command as your last test run: \
+     `<your tests> && war done --note \"what you did\"`.";
 
 /// `war view prime --session`: what a harness shows an agent as its session
 /// starts, when `[tickets] session_start = true`. Holding a Warrant, its

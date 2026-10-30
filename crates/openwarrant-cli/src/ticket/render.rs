@@ -1165,8 +1165,9 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     ));
     md.push_str(
         "How to work: run `war start` in the same command as your first look at the code; it \
-         takes the next ready Warrant and prints only what it needs. Close it in the same command \
-         as your last test run: `<your tests> && war done --note \"what you did\"`. \
+         takes the next ready Warrant (`war start <words of its title>` takes a named one) and \
+         prints only what it needs. Close it in the same command as your last test run: \
+         `<your tests> && war done --note \"what you did\"`. \
          `war view prime <id>` shows one Warrant in full. No step needs a signature or anyone's \
          approval.\n",
     );
