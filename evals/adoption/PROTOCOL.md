@@ -311,3 +311,16 @@ as their own runs, never pooled with it.
   runs are compared on turns and tokens, not USD.
 - `run.py report` now adds turns and thousands of tokens per session to every
   row, for both agents.
+
+## Amendment 3 (2026-10-30): opencode's openwarrant arm without `war mcp`
+
+Under opencode the `openwarrant` arm first had `war mcp` as an MCP server, as
+QUICKSTART then told "any other harness". The opencode runs showed that path
+costing three turns and about 20 KB before every brief: opencode loads MCP tools
+lazily (the first call fails, a tool search follows), and in its code mode a tool
+answers with the structured JSON envelope. On 2026-10-30 QUICKSTART changed to
+"a harness with a shell needs nothing more" than the block, and `war mcp` became
+the setup for a harness without one. From then, opencode runs set the arm up that
+way: no MCP server. `ADOPTION_OC_OW_MCP=1` restores the earlier setup, and
+`run.json` records which was used (`opencode_ow_mcp`). Runs before this amendment
+(`oc-smoke-*`, `oc-base-1-*`, `oc-base-2-*`) had the server.

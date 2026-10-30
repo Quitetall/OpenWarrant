@@ -449,6 +449,12 @@ ARM_MCP = {
 }
 
 
+# Under opencode, each arm's MCP servers as its documentation sets them up for a harness with a
+# shell. OpenWarrant's QUICKSTART said "any other harness: war admin mcp" until 2026-10-30, when it
+# changed to "a harness with a shell needs nothing more" (amendment 3); runs from then use none.
+OPENCODE_ARM_MCP = {} if os.environ.get("ADOPTION_OC_OW_MCP") != "1" else ARM_MCP
+
+
 def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "") -> list[str]:
     if agent == "claude":
         argv = ["/opt/study/bin/claude", "-p", prompt, "--model", model,
@@ -661,7 +667,7 @@ def opencode_config(arm: str, max_turns: int) -> dict:
         "provider": OPENCODE_PROVIDERS,
     }
     servers = {name: {"type": "local", "command": [d["command"], *d["args"]], "enabled": True}
-               for name, d in ARM_MCP.get(arm, {}).items()}
+               for name, d in OPENCODE_ARM_MCP.get(arm, {}).items()}
     if servers:
         cfg["mcp"] = servers
     return cfg
@@ -942,6 +948,7 @@ def cmd_execute(args) -> None:
         "run_id": args.run_id, "agent": args.agent, "model": args.model, "pins": PINS,
         "war_build": os.environ.get("ADOPTION_WAR"), "plugin_ref": os.environ.get("ADOPTION_OW_PLUGIN_REF"),
         "ow_session_start": os.environ.get("ADOPTION_OW_SESSION_START") == "1",
+        "opencode_ow_mcp": args.agent == "opencode" and os.environ.get("ADOPTION_OC_OW_MCP") == "1",
         "auth": auth_mode(), "budget_usd": args.budget_usd,
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1))
     spent = 0.0
