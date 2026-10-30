@@ -770,6 +770,7 @@ def cmd_execute(args) -> None:
     (run_root / "run.json").write_text(json.dumps({
         "run_id": args.run_id, "agent": args.agent, "model": args.model, "pins": PINS,
         "war_build": os.environ.get("ADOPTION_WAR"), "plugin_ref": os.environ.get("ADOPTION_OW_PLUGIN_REF"),
+        "ow_session_start": os.environ.get("ADOPTION_OW_SESSION_START") == "1",
         "auth": auth_mode(), "budget_usd": args.budget_usd,
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1))
     spent = 0.0

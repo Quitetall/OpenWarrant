@@ -275,6 +275,10 @@ def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> No
     _run([war, "init", "--root", "."], repo, env)
     if "<!-- openwarrant:begin -->" not in (repo / "CLAUDE.md").read_text():
         raise RuntimeError("war init did not add its block to CLAUDE.md")
+    if env.get("ADOPTION_OW_SESSION_START") == "1":
+        # The opt-in session hook (`[tickets] session_start`), when the run enables it.
+        with open(repo / "openwarrant.toml", "a") as f:
+            f.write("\n[tickets]\nsession_start = true\n")
     tickets = {}
     for item in backlog["item"]:
         body = item["description"].strip()
