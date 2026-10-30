@@ -14,6 +14,8 @@
 mod authority_transition_cli;
 #[path = "board_cli.rs"]
 mod board_cli;
+#[path = "check_pathspecs.rs"]
+mod check_pathspecs;
 #[path = "checks_cli.rs"]
 mod checks_cli;
 #[path = "context_apply_cli.rs"]

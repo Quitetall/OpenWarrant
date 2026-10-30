@@ -872,20 +872,29 @@ fn unreadable(name: &str, rel: String, e: &str) -> Diagnostic {
 /// Only refusals are reported. The committed baseline is read only for the
 /// journals git says changed since `HEAD` (one `git diff` for them all),
 /// since a journal git holds unchanged extends its baseline by definition.
+/// With no journals there is nothing to diff, and git is not run: a `git
+/// diff HEAD --` with no pathspec reads the whole tree (issue #365).
 pub fn check_work(root: &Utf8Path, dirs: &[(String, camino::Utf8PathBuf)], report: &mut Report) {
+    if dirs.is_empty() {
+        return;
+    }
     let relative = |p: &Utf8Path| {
         p.strip_prefix(root)
             .map_or_else(|_| p.to_string(), ToString::to_string)
     };
     let changed: std::collections::BTreeSet<String> = {
         let out = std::process::Command::new("git")
-            .args(["diff", "--name-only", "--no-renames", "HEAD", "--"])
-            .args(dirs.iter().map(|(_, d)| relative(&d.join(FILE))))
+            .args(["diff", "--name-only", "--no-renames", "-z", "HEAD", "--"])
+            .args(
+                dirs.iter()
+                    .map(|(_, d)| format!(":(literal){}", relative(&d.join(FILE)))),
+            )
             .current_dir(root)
             .output();
         match out {
             Ok(o) if o.status.success() => String::from_utf8_lossy(&o.stdout)
-                .lines()
+                .split('\0')
+                .filter(|p| !p.is_empty())
                 .map(str::to_owned)
                 .collect(),
             _ => std::collections::BTreeSet::new(),

@@ -1162,8 +1162,12 @@ pub mod source {
     }
 
     /// [`diff_paths`] from `from` to the working tree, over `paths` alone,
-    /// each named literally.
+    /// each named literally. No paths is no diff: an empty pathspec would
+    /// read the whole tree (issue #365).
     fn diff_paths_in(root: &Utf8Path, from: &str, paths: &[&str]) -> Result<Vec<String>, String> {
+        if paths.is_empty() {
+            return Ok(Vec::new());
+        }
         let literal: Vec<String> = paths.iter().map(|p| format!(":(literal){p}")).collect();
         let mut args = vec!["diff", "--no-renames", "--name-only", "-z", from, "--"];
         args.extend(literal.iter().map(String::as_str));
