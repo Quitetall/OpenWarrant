@@ -1,6 +1,7 @@
 """The five arms: one tool-neutral backlog written into each tool's own form.
 
-Every arm's CLAUDE.md starts with the same project facts. What differs is only
+Every arm's instruction file (CLAUDE.md for Claude Code, AGENTS.md for opencode,
+which reads no CLAUDE.md) starts with the same project facts. What differs is only
 where the backlog lives and the instruction that points at it, and for Beads and
 OpenWarrant that instruction is the text the tool itself installs. Each seeder
 also marks the items in `done` as finished, the way that tool records it, so a
@@ -64,6 +65,11 @@ def facts_header(backlog: dict) -> str:
     return f"# {backlog['repo']}\n\n{backlog['project']['facts'].strip()}\n"
 
 
+def instructions(repo: Path, env: dict) -> Path:
+    """The file the agent reads at startup: CLAUDE.md for Claude Code, AGENTS.md for opencode."""
+    return repo / env.get("STUDY_INSTRUCTIONS", "CLAUDE.md")
+
+
 # ---------------------------------------------------------------- plain
 
 
@@ -71,7 +77,7 @@ def seed_plain(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
     parts = [facts_header(backlog), "## Backlog", ""]
     for item in backlog["item"]:
         parts.append(render_item(item, status="done" if item["id"] in done else None))
-    (repo / "CLAUDE.md").write_text("\n".join(parts))
+    instructions(repo, env).write_text("\n".join(parts))
 
 
 def tracker_plain(repo: Path, backlog: dict, env: dict) -> dict:
@@ -89,7 +95,7 @@ handoff log saying what you did and anything the next session needs to know.
 
 
 def seed_plans(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
-    (repo / "CLAUDE.md").write_text(facts_header(backlog) + "\n" + PLANS_POINTER)
+    instructions(repo, env).write_text(facts_header(backlog) + "\n" + PLANS_POINTER)
     parts = [f"# Plan: {backlog['repo']}", "", "## Items", ""]
     for item in backlog["item"]:
         box = "x" if item["id"] in done else " "
@@ -126,6 +132,15 @@ This project uses Spec Kit. The backlog is specified in `specs/001-backlog/`
 checks tasks off in `tasks.md` as they are done.
 """
 
+# opencode gets Spec Kit's opencode commands, which only a user can invoke: the pointer names the file.
+SPECKIT_POINTER_OPENCODE = """## Planned work
+
+This project uses Spec Kit. The backlog is specified in `specs/001-backlog/`
+(`spec.md`, `plan.md`, `tasks.md`). Implement it as the `/speckit.implement` command
+(`.opencode/commands/speckit.implement.md`) describes, checking tasks off in `tasks.md`
+as they are done.
+"""
+
 
 def _speckit_tasks(backlog: dict) -> dict[str, list[str]]:
     """Task ids per item: one task per acceptance criterion, numbered T001.. in order."""
@@ -139,9 +154,11 @@ def _speckit_tasks(backlog: dict) -> dict[str, list[str]]:
 
 
 def seed_speckit(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+    integration = env.get("STUDY_SPECKIT_INTEGRATION", "claude")
     _run([env["STUDY_SPECIFY"], "init", "--here", "--force", "--non-interactive",
-          "--integration", "claude", "--script", "sh", "--ignore-agent-tools"], repo, env)
-    (repo / "CLAUDE.md").write_text(facts_header(backlog) + "\n" + SPECKIT_POINTER)
+          "--integration", integration, "--script", "sh", "--ignore-agent-tools"], repo, env)
+    pointer = SPECKIT_POINTER_OPENCODE if integration == "opencode" else SPECKIT_POINTER
+    instructions(repo, env).write_text(facts_header(backlog) + "\n" + pointer)
     # What `/speckit-constitution` leaves in a set-up project, holding only the facts every arm gets.
     (repo / ".specify" / "memory" / "constitution.md").write_text(
         f"# {backlog['repo']} Constitution\n\n## Core Principles\n\n### I. The project as it is\n\n"
@@ -218,16 +235,25 @@ def tracker_speckit(repo: Path, backlog: dict, env: dict) -> dict:
 
 def seed_beads(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
     bd = env["STUDY_BD"]
-    _run([bd, "init", "--non-interactive"], repo, env)
-    claude = repo / "CLAUDE.md"
-    text = claude.read_text()
     end = "<!-- END BEADS INTEGRATION -->"
-    if end not in text:
-        raise RuntimeError("bd init wrote no Beads block into CLAUDE.md")
-    # Keep the block Beads installs verbatim; replace its placeholder sections with the facts.
-    head, _ = text.split(end, 1)
-    head = head.replace("# Project Instructions for AI Agents", facts_header(backlog).rstrip(), 1)
-    claude.write_text(head + end + "\n")
+    target = instructions(repo, env)
+    if target.name == "AGENTS.md":
+        # opencode: the project's AGENTS.md exists, `bd init` appends its block, and
+        # `bd setup opencode` is the documented step for opencode (it adds nothing more).
+        target.write_text(facts_header(backlog))
+        _run([bd, "init", "--non-interactive"], repo, env)
+        _run([bd, "setup", "opencode"], repo, env)
+        if end not in target.read_text():
+            raise RuntimeError("bd init wrote no Beads block into AGENTS.md")
+    else:
+        _run([bd, "init", "--non-interactive"], repo, env)
+        text = target.read_text()
+        if end not in text:
+            raise RuntimeError("bd init wrote no Beads block into CLAUDE.md")
+        # Keep the block Beads installs verbatim; replace its placeholder sections with the facts.
+        head, _ = text.split(end, 1)
+        head = head.replace("# Project Instructions for AI Agents", facts_header(backlog).rstrip(), 1)
+        target.write_text(head + end + "\n")
     ids = {}
     for item in backlog["item"]:
         argv = [bd, "create", f"{item['id']}: {item['title']}",
@@ -270,11 +296,12 @@ def _war(argv, repo, env):
 
 def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
     war = env["STUDY_WAR"]
-    # QUICKSTART's order: the project's CLAUDE.md exists, and `war init` appends its managed block.
-    (repo / "CLAUDE.md").write_text(facts_header(backlog))
+    # QUICKSTART's order: the project's instruction file exists, and `war init` appends its managed block.
+    target = instructions(repo, env)
+    target.write_text(facts_header(backlog))
     _run([war, "init", "--root", "."], repo, env)
-    if "<!-- openwarrant:begin -->" not in (repo / "CLAUDE.md").read_text():
-        raise RuntimeError("war init did not add its block to CLAUDE.md")
+    if "<!-- openwarrant:begin -->" not in target.read_text():
+        raise RuntimeError(f"war init did not add its block to {target.name}")
     if env.get("ADOPTION_OW_SESSION_START") == "1":
         # The opt-in session hook (`[tickets] session_start`), when the run enables it.
         with open(repo / "openwarrant.toml", "a") as f:
@@ -337,7 +364,7 @@ def seed_jira(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
     import jira_arm
     label = env["STUDY_JIRA_LABEL"]
     pointer = jira_arm.POINTER.format(project=env["JIRA_PROJECT"], site=env["JIRA_SITE"], label=label)
-    (repo / "CLAUDE.md").write_text(facts_header(backlog) + "\n" + pointer)
+    instructions(repo, env).write_text(facts_header(backlog) + "\n" + pointer)
     jira_arm.seed(backlog, done, label, env)
 
 
@@ -358,7 +385,7 @@ def deliver_answer(arm: str, repo: Path, backlog: dict, item: dict, env: dict) -
     text = _answer_text(item)
     iid = item["id"]
     if arm == "plain":
-        p = repo / "CLAUDE.md"
+        p = instructions(repo, env)
         lines = p.read_text().splitlines()
         head = next(n for n, l in enumerate(lines) if l.startswith(f"### {iid} — "))
         nxt = next((n for n in range(head + 1, len(lines)) if lines[n].startswith("### ")), len(lines))
