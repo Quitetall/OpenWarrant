@@ -13,14 +13,16 @@ select one branch from the user's current request. Read the
 | Request | Action |
 | --- | --- |
 | `war`, `war view progress`, `war view overview`, remaining work | Run `war view overview --json`; summarize remaining count and next requested scope. See [progress](../openwarrant/references/progress.md). |
-| `war view prime`, ticket status, or the claim/done loop | `war view prime`, then `war next`; see [tickets](../openwarrant/references/tickets.md). |
+| `war view prime`, ticket status, what can start | `war view prime`; read-only. See [tickets](../openwarrant/references/tickets.md). |
+| `war start` without `--worktree`, work on a ticket | `war start`; complete work with `war done --note "..."`. See [tickets](../openwarrant/references/tickets.md). |
+| `war done`, finish a ticket | `war done --note "..."` after completing its work; see [tickets](../openwarrant/references/tickets.md). |
 | `war grill`, challenge decisions | [war-grill](../war-grill/SKILL.md) |
 | `war spec`, draft this | [war-spec](../war-spec/SKILL.md) |
 | `war tickets`, split work | [war-tickets](../war-tickets/SKILL.md) |
 | `war map`, unknown architecture | [war-map](../war-map/SKILL.md) |
 | `war migrate`, bring existing docs into OpenWarrant | [war-migrate](../war-migrate/SKILL.md) |
 | `war review`, inspect result | [war-review](../war-review/SKILL.md) |
-| `war start <alias>`, `war do <alias>`, continue work | [execution](../openwarrant/references/execution.md) |
+| `war start --worktree <alias>`, `war do <alias>`, run a stage in a worktree | [execution](../openwarrant/references/execution.md) |
 | sign off, qualify, or `war sign` failed | [verification](../openwarrant/references/verification.md) |
 
 A bare `war` request asks for an overview: read, summarize, and wait for what

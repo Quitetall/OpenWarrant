@@ -146,18 +146,221 @@ fn claiming_a_whole_ticket_names_a_command_that_works() {
         String::from_utf8_lossy(&out.stderr)
     );
     let text = String::from_utf8_lossy(&out.stdout).into_owned();
-    // `war done <ticket>` is refused while items are open; the hint must
-    // not send the agent there. It names the next open item instead.
-    assert!(!text.contains(&format!("`war done {id} ")), "{text}");
+    // A whole ticket closes in one call: the hint names it, and it works.
     let hinted = text
         .split('`')
         .find(|s| s.starts_with("war done "))
         .unwrap_or_else(|| panic!("no done command in: {text}"))
         .to_owned();
     let target = hinted.split_whitespace().nth(2).unwrap().to_owned();
-    assert!(target.starts_with(&format!("{id}/i-")), "{hinted}");
+    assert_eq!(target, id, "{hinted}");
+    // The refusal beside it: another actor cannot close what this one holds.
+    let other = json(&root, &["done", &id, "--as", "mallory"]);
+    assert_ne!(other["exit_code"], 0, "{other}");
+    let progress = json(&root, &["show", &id]);
+    assert_eq!(
+        progress["result"]["ticket"]["done"], 0,
+        "nothing ticked: {progress}"
+    );
     let done = json(&root, &["done", &target, "--note", "first"]);
     assert_eq!(done["exit_code"], 0, "the hinted command: {done}");
+    assert_eq!(done["result"]["ticket_state"], "done", "{done}");
+    assert_eq!(
+        done["result"]["progress"]["done"], 2,
+        "every item at once: {done}"
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// `war start` takes the next ready Warrant whole and prints only it: its
+/// description, open items and notes, and the command that closes it. Run
+/// again by the same actor it prints the same one (a session resumes); another
+/// actor gets the next; with nothing left, it says so and claims nothing.
+#[test]
+fn start_takes_the_next_warrant_and_prints_only_it() {
+    let root = scratch("start");
+    let first = json(
+        &root,
+        &[
+            "create",
+            "First job",
+            // Next by priority, not by a tie-break on random ids (§11.5).
+            "--priority",
+            "1",
+            "--body",
+            "Why the first job matters.",
+            "--item",
+            "alpha",
+            "--item",
+            "beta",
+        ],
+    )["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let second = json(&root, &["create", "Second job", "--item", "gamma"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    assert_eq!(
+        json(&root, &["note", &first, "use the old parser"])["exit_code"],
+        0
+    );
+    let out = war(&root, &["start", "--as", "ann"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let brief = String::from_utf8_lossy(&out.stdout).into_owned();
+    assert!(
+        brief.starts_with(&format!("# {first} — First job")),
+        "{brief}"
+    );
+    for want in [
+        "Why the first job matters.",
+        "- [ ] alpha",
+        "- [ ] beta",
+        "use the old parser",
+    ] {
+        assert!(brief.contains(want), "missing {want:?}: {brief}");
+    }
+    assert!(
+        brief.contains(&format!("&& war done {first} --note")),
+        "{brief}"
+    );
+    // Only this Warrant: nothing of the other.
+    assert!(
+        !brief.contains("Second job") && !brief.contains("gamma"),
+        "{brief}"
+    );
+    // The same actor again: the one it holds, no second claim.
+    let again = json(&root, &["start", "--as", "ann"]);
+    assert_eq!(again["result"]["ticket"], first.as_str(), "{again}");
+    // Another actor: the next one.
+    let other = json(&root, &["start", "--as", "bob"]);
+    assert_eq!(other["result"]["ticket"], second.as_str(), "{other}");
+    // A third: nothing ready, and nothing claimed.
+    let none = war(&root, &["start", "--as", "cy"]);
+    assert!(none.status.success());
+    assert!(
+        String::from_utf8_lossy(&none.stdout).starts_with("nothing tracked is ready"),
+        "{}",
+        String::from_utf8_lossy(&none.stdout)
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// `war done` with no id closes the one Warrant the actor holds, every item
+/// in one write; with nothing held it is refused by name and writes nothing.
+#[test]
+fn done_with_no_id_closes_what_you_hold() {
+    let root = scratch("done-held");
+    let id = json(
+        &root,
+        &[
+            "create", "Job", "--item", "one", "--item", "two", "--item", "three",
+        ],
+    )["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let refused = json(&root, &["done", "--as", "ann", "--note", "x"]);
+    assert_eq!(
+        refused["diagnostics"][0]["rule"], "ticket.nothing-held",
+        "{refused}"
+    );
+    assert_eq!(json(&root, &["start", "--as", "ann"])["exit_code"], 0);
+    let done = json(&root, &["done", "--as", "ann", "--note", "all three"]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["ticket"], id.as_str());
+    assert_eq!(done["result"]["progress"]["done"], 3, "{done}");
+    assert_eq!(
+        done["result"]["items"].as_array().map(Vec::len),
+        Some(3),
+        "{done}"
+    );
+    // One note on the Warrant, not a copy on every line.
+    let one = String::from_utf8_lossy(&war(&root, &["view", "prime", &id]).stdout).into_owned();
+    assert_eq!(one.matches("all three").count(), 1, "{one}");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// `war done <ticket>` is all or nothing: an item still waiting on other
+/// work refuses the whole, by name, and no item is ticked.
+#[test]
+fn done_on_a_ticket_ticks_every_item_or_none() {
+    let root = scratch("done-all");
+    let blocker = json(&root, &["create", "Blocker", "--item", "first"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let id = json(&root, &["create", "Job", "--item", "free"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    assert_eq!(
+        json(&root, &["add", &id, "waits", "--after", &blocker])["exit_code"],
+        0
+    );
+    assert_eq!(json(&root, &["claim", &id])["exit_code"], 0);
+    let refused = json(&root, &["done", &id]);
+    assert_eq!(
+        refused["diagnostics"][0]["rule"], "ticket.blocked",
+        "{refused}"
+    );
+    let shown = json(&root, &["show", &id]);
+    assert_eq!(
+        shown["result"]["ticket"]["done"], 0,
+        "nothing ticked: {shown}"
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// `war view prime --session` is opt-in: without `[tickets] session_start`
+/// it prints nothing, so the plugin's SessionStart hook adds nothing. Enabled,
+/// it shows the open Warrants and how to take one; holding one, its brief.
+#[test]
+fn the_session_start_view_is_opt_in() {
+    let root = scratch("session");
+    let id = json(
+        &root,
+        &[
+            "create",
+            "Job",
+            "--body",
+            "What the job is.",
+            "--item",
+            "one",
+        ],
+    )["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let text = |args: &[&str]| String::from_utf8_lossy(&war(&root, args).stdout).into_owned();
+    // Off (the default): nothing at all.
+    assert_eq!(
+        text(&["view", "prime", "--session", "--as", "ann"]).trim(),
+        ""
+    );
+    let config = root.join("openwarrant.toml");
+    let mut toml = std::fs::read_to_string(&config).unwrap();
+    toml.push_str("\n[tickets]\nsession_start = true\n");
+    std::fs::write(&config, toml).unwrap();
+    // On, nothing held: the overview and how to take the next.
+    let open = text(&["view", "prime", "--session", "--as", "ann"]);
+    assert!(
+        open.contains(&format!("- {id} — Job")) && open.contains("war start"),
+        "{open}"
+    );
+    assert!(!open.contains("What the job is."), "{open}");
+    // On, holding it: its brief, and no call needed to find it.
+    assert_eq!(json(&root, &["start", "--as", "ann"])["exit_code"], 0);
+    let held = text(&["view", "prime", "--session", "--as", "ann"]);
+    assert!(
+        held.contains(&format!("you hold {id}")) && held.contains("What the job is."),
+        "{held}"
+    );
     let _ = std::fs::remove_dir_all(&root);
 }
 
@@ -449,8 +652,16 @@ fn an_agent_works_a_ticket_over_mcp() {
         serde_json::json!({"target": target, "note": "ok"}),
     );
     assert_eq!(done["result"]["progress"]["done"], 1, "{done}");
+    // The overview is one line per Warrant; one Warrant in full lists only
+    // what remains.
     let prime = mcp.tool("war_prime", serde_json::json!({}));
     let md = prime["result"]["markdown"].as_str().unwrap();
+    assert!(
+        md.contains(&format!("- {id} — ")) && !md.contains("- [ ]"),
+        "{md}"
+    );
+    let one = mcp.tool("war_prime", serde_json::json!({"ticket": id}));
+    let md = one["result"]["markdown"].as_str().unwrap();
     assert!(md.contains("second") && !md.contains("- [ ] first"), "{md}");
     let shown = mcp.tool("war_show", serde_json::json!({"alias": id}));
     assert!(

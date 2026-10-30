@@ -110,9 +110,10 @@ classification: internal
   tickets and a note; `compact_after_days` at its default of 7.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
-  - accepting: `war prime` lists the remaining items with their claims and
-    blockers and the recent note, and `war prime <ticket>` counts the done
-    items without listing them;
+  - accepting: `war view prime` lists each open ticket on one line with its
+    progress, claims and blockers, and no item or note text;
+    `war view prime <ticket>` lists its remaining items with their blockers
+    and every note, and counts the done items without listing them (AM-001);
   - refusing: no done item appears as a task line, and the 2020 ticket is
     exactly one line under **Done earlier**.
 

@@ -227,7 +227,7 @@ pub fn run(
             repo.relative(&warrant_dir),
             format!(
                 "{node}'s Warrant is not in {base_rev} yet, and the worktree is made from that \
-                 commit. Commit {} first (`git add {0} && git commit`), then run `war start {node}` \
+                 commit. Commit {} first (`git add {0} && git commit`), then run `war start --worktree {node}` \
                  again",
                 repo.relative(&warrant_dir)
             ),

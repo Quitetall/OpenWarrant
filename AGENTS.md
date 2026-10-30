@@ -11,10 +11,10 @@ Explicit execution requests permit scoped unverified work subject to named gates
 ## Tickets: the default work loop
 
 For ordinary work, use tickets ([docs/TICKETS.md](docs/TICKETS.md)): run
-`war view prime` first, then `war next`, `war claim <item>`, do it,
-`war done <item> --note "..."`, and `war note <ticket> "..."` for context the
-next agent needs. Nothing in that loop needs a signature; never ask the human
-to sign during it. Warrants are the opt-in authority layer a ticket enters only
+`war view prime` first, then `war start` (it takes the next ready ticket and
+prints only what its work needs), do it, `war done --note "..."` closes it, and
+`war note <ticket> "..."` keeps context the next agent needs. Nothing in that
+loop needs a signature; never ask the human to sign during it. Warrants are the opt-in authority layer a ticket enters only
 through `war plan promote`, and the records this repository governs itself with.
 
 **When a ticket needs sign-off**, the performer rules of the
@@ -26,9 +26,9 @@ signature a step of the ticket loop.
 
 ## Read the context needed for this task
 
-- **First, always:** run `war view prime`: open work, who holds what, the
-  latest note on each, and the commands that load the rest (a few thousand
-  tokens). Then load only what the task needs, below.
+- **First, always:** run `war view prime`: open work, one line per ticket,
+  who holds what (well under a thousand tokens). `war start` then prints the
+  one ticket you take. Load anything else only when the task needs it, below.
 - **One task's records:** `war context <alias|item|record id|path>` prints them
   whole, inside a byte budget, in a fixed order; records that do not fit are
   listed by summary (`[S]`) to load the same way. Prefer it to reading atoms by

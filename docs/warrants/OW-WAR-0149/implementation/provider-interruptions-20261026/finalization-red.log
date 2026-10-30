@@ -1,0 +1,19 @@
+   Compiling katana v0.4.0 (/mnt/4tb/tmp/katana-native-interruptions-20261024/crates/katana)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.91s
+     Running tests/runtime_policy.rs (/mnt/4tb/build/cargo/27/4d5d99ddbb8473/debug/deps/runtime_policy-9434d8cc832c9e33)
+
+running 1 test
+
+thread 'native_receipt_preserves_finalization_without_discarded_tool_permissions' (2639061) panicked at crates/katana/tests/runtime_policy.rs:313:56:
+called `Result::unwrap()` on an `Err` value: Rejected("result without native tool call")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test native_receipt_preserves_finalization_without_discarded_tool_permissions ... FAILED
+
+failures:
+
+failures:
+    native_receipt_preserves_finalization_without_discarded_tool_permissions
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 4 filtered out; finished in 1.16s
+
+error: test failed, to rerun pass `-p katana --test runtime_policy`

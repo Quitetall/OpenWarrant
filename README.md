@@ -18,14 +18,14 @@ war create "Add password reset" --item "Reset endpoint" --item "Email template"
 Or install with `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli`;
 Homebrew and crates.io are not set up yet ([every way, and what each needs](docs/INSTALL.md#one-line)).
 
-Then `war next` shows what can start, `war claim <id>` takes an item,
-`war done <id> --note "..."` ticks it off, and `war view prime` is what the next
-agent (or person) reads first: open tickets, remaining items, who holds what,
-recent notes. A ticket is two Markdown files you can read on GitHub; no step
-needs a signature or anyone's approval. [The loop in five commands](docs/TICKETS.md).
+Then `war start` takes the next ready ticket and prints only what its work
+needs, and `war done --note "..."` closes it in one call; `war view prime` lists
+what is open, one line each. A ticket is two Markdown files you can read on
+GitHub; no step needs a signature or anyone's approval.
+[The loop in three commands](docs/TICKETS.md).
 Sign-off is opt-in: `war plan promote <ticket>` drafts a Warrant when someone wants it.
 
-`war --help` lists the eleven daily verbs; everything else sits in five groups
+`war --help` lists the twelve daily verbs; everything else sits in five groups
 (`war plan`, `war sign`, `war evidence`, `war view`, `war admin`), and every
 earlier spelling still works. [Where each command went](docs/COMMANDS.md).
 

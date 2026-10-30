@@ -310,11 +310,12 @@ else. `war` keeps one small block in them, and nothing more:
 
 ```markdown
 <!-- openwarrant:begin -->
-<!-- Written by `war agents-md --block`, which rewrites the lines between these markers. -->
+<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->
 Ordinary coding needs no Warrant and no ticket: work here as in any repository.
-OpenWarrant tracks optional plans and checklists in this repository; run
-`war prime` to see what is tracked (open work, who holds what, recent notes).
-<!-- openwarrant agents-md: written by war 1.0.0 -->
+Tracked work, when there is some: `war start` takes the next ready Warrant and prints
+only what it needs; `war done <id> --note "what you did"` closes it.
+`war view prime` lists what is open, one line each.
+<!-- openwarrant agents-md: written by war 1.0.0-alpha.5 -->
 <!-- openwarrant:end -->
 ```
 

@@ -93,7 +93,8 @@ pub struct ReadyItem {
 impl ReadyItem {
     /// The row as `war next` lists it, its text taken rather than copied.
     fn of(r: crate::ticket::ReadyRow) -> Self {
-        let command = format!("war claim {}", r.target());
+        // A Warrant is taken whole: `war start` claims it and prints its work.
+        let command = format!("war start {}", r.ticket);
         Self {
             actor: Actor::Agent,
             ticket: r.ticket,
@@ -850,25 +851,25 @@ fn order(next: &mut Next) {
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
-    // A ready set can hold thousands of rows: their lines are made across
-    // threads on the disk, in order (`vfs::map_ordered`).
-    s.extend(crate::vfs::map_ordered(&n.ready, 1024, |r| {
-        format!(
-            "{:<6} {:<12} {:<10} {}\n{:>6} p{} {}{}\n",
-            "ready",
-            r.ticket,
-            "claim",
-            r.command,
-            "",
-            r.priority,
-            r.text,
-            if r.item.is_some() {
-                format!(" — {}", r.title)
-            } else {
-                String::new()
-            },
-        )
-    }));
+    // One line per ready Warrant, not per item: `war start` takes it whole
+    // and prints its items; the JSON keeps a row per item.
+    let mut order: Vec<&str> = Vec::new();
+    let mut count: std::collections::BTreeMap<&str, (usize, &ReadyItem)> =
+        std::collections::BTreeMap::new();
+    for r in &n.ready {
+        let e = count.entry(r.ticket.as_str()).or_insert_with(|| {
+            order.push(&r.ticket);
+            (0, r)
+        });
+        e.0 += 1;
+    }
+    for id in order {
+        let (k, r) = count[id];
+        s.push_str(&format!(
+            "{:<6} {:<12} {:<10} {}\n{:>6} p{} {} ({k} ready)\n",
+            "ready", r.ticket, "start", r.command, "", r.priority, r.title
+        ));
+    }
     for a in &n.actions {
         s.push_str(&format!(
             "{:<6} {:<12} {:<10} {}{}\n{:>6} {}\n",
@@ -1055,11 +1056,11 @@ mod tests {
                 );
             }
         }
-        // t-67ed: a ready ticket item is an agent's, and is a claim — never
-        // a signature, never an authority verb.
+        // t-67ed: a ready ticket item is an agent's, and is taken with
+        // `war start` — never a signature, never an authority verb.
         for r in &n.ready {
             assert_eq!(r.actor, Actor::Agent);
-            assert!(r.command.starts_with("war claim "), "{r:?}");
+            assert!(r.command.starts_with("war start "), "{r:?}");
             assert!(!r.command.contains("war sign"), "{r:?}");
         }
         // M9: an agent's workable acts come before every human act, so a
