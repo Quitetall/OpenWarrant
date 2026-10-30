@@ -138,7 +138,7 @@ fn four_documents_render_traced_and_impact_names_exactly_their_selectors() {
         }
         assert_eq!(next as usize, file.lines().count() + 1, "{name}");
     }
-    let check = war(&root, &["check", "--generated"]);
+    let check = war(&root, &["--verbose", "check", "--generated"]);
     let text = String::from_utf8_lossy(&check.stdout);
     assert!(text.contains("prd.md matches a fresh rendering"), "{text}");
 

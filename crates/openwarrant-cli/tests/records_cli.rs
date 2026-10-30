@@ -114,7 +114,7 @@ fn records_join_the_model_and_a_duplicate_is_refused() {
         m["diagnostics"]
     );
 
-    let check = war(&root, &["check"]);
+    let check = war(&root, &["--verbose", "check"]);
     let text = String::from_utf8_lossy(&check.stdout);
     assert!(check.status.success(), "{text}");
     assert!(text.contains("records.well-formed"), "{text}");
