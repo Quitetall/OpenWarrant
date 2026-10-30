@@ -458,7 +458,7 @@ fn date_of(secs: u64) -> String {
 fn default_actor(repo: &Repository) -> String {
     let performer = repo.performer();
     match repo.root.file_name() {
-        Some(tree) if repo.root.join(".git").is_file() => format!("{performer}@{tree}"),
+        Some(tree) if crate::vfs::is_file(repo.root.join(".git")) => format!("{performer}@{tree}"),
         _ => performer,
     }
 }
