@@ -8,7 +8,7 @@
     run.py parity <repo>                 seed every arm and check each holds every item's words
     run.py plan [--smoke|--pilot] [--out FILE]
                                          the cells of the study, with session counts
-    run.py execute <plan> --run-id ID --agent claude|fixture-reference|fixture-noop
+    run.py execute <plan> --run-id ID --agent claude|opencode|fixture-reference|fixture-noop
                [--jobs N] [--budget-usd X] [--model M]
                                          run the cells (resumable: a finished cell is skipped)
     run.py report <run-id>               results.json and REPORT.md from a run
@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import itertools
 import json
 import os
 import re
@@ -56,10 +57,36 @@ PINS = {
     "rust": "1.97.1",
     "pytest": "9.0.2",
     "ow_plugin": "v1.0.0-alpha.5",   # the OpenWarrant Claude Code plugin, from this tag
+    "opencode": "2.2.1",
 }
 OW_REPO = Path(os.environ.get("ADOPTION_OW_REPO", "/mnt/4tb/OpenWarrant"))
 PLUGIN_FILES = (".claude-plugin", ".claude/skills", ".claude/hooks", ".mcp.json")
 DEFAULT_MODEL = "claude-sonnet-5-5"
+
+# opencode, the second agent: copied from the owner's install at the pin by `prepare`. Its models
+# come from the LithosAI endpoint (`--model lithosai/<id>`), whose key reaches the sandbox on a
+# file descriptor, never in an argv or the environment.
+OPENCODE_SRC = HOME / ".bun/install/global/node_modules/@opencode/cli/bin/opencode.exe"
+OPENCODE_KEY_ENV = "LITHOSAI_API_KEY"
+OPENCODE_KEY_PATH = "/run/secrets/lithosai"
+_REASONING = {"tools": True, "reasoning": {"supported": True}, "input": ["text"], "output": ["text"]}
+OPENCODE_PROVIDERS = {
+    "lithosai": {
+        "npm": "@ai-sdk/openai-compatible", "name": "LithosAI",
+        "options": {"baseURL": "https://api.lithosai.cloud/v1", "apiKey": "{file:" + OPENCODE_KEY_PATH + "}"},
+        "models": {
+            "deepseek-ai/DeepSeek-V4.1-Flash": {
+                "name": "DeepSeek V4.1 Flash", "limit": {"context": 1000000, "output": 384000},
+                "capabilities": _REASONING, "compatibility": {"reasoningField": "reasoning_content"}},
+            "zai-org/GLM-5.3-Flash": {
+                "name": "GLM 5.3 Flash", "limit": {"context": 1000000, "output": 131072},
+                "capabilities": _REASONING, "compatibility": {"reasoningField": "reasoning_content"}},
+        },
+    },
+}
+# opencode 2.2.1 reads AGENTS.md and never CLAUDE.md, so under it every arm keeps the project's
+# instructions in AGENTS.md, and Spec Kit installs its opencode commands (arms.py).
+AGENT_SEED = {"opencode": {"STUDY_INSTRUCTIONS": "AGENTS.md", "STUDY_SPECKIT_INTEGRATION": "opencode"}}
 SESSION_TURNS = 25          # a session's turn cap (80 in the pilot; tightened so overhead costs something)
 INTERRUPT_TURNS = 5         # relay session 2 is cut here, mid-item: the next session must resume it
 SESSION_TIMEOUT = 45 * 60   # wall clock per session
@@ -88,17 +115,21 @@ def tools() -> dict:
         "STUDY_BD": str(t / "beads/bd"),
         "STUDY_SPECIFY": str(t / "bin/specify"),
         "STUDY_CLAUDE": str(HOME / ".local/share/claude/versions" / PINS["claude"]),
+        "STUDY_OPENCODE": str(t / "opencode" / PINS["opencode"] / "opencode"),
     }
 
 
-def check_tools() -> list[str]:
+def check_tools(agent: str = "claude") -> list[str]:
     problems = []
     probes = {
         "STUDY_WAR": (["--version"], PINS["war"]),
         "STUDY_BD": (["version"], PINS["bd"]),
         "STUDY_CLAUDE": (["--version"], PINS["claude"]),
+        "STUDY_OPENCODE": (["--version"], PINS["opencode"]),
     }
     for key, path in tools().items():
+        if key == "STUDY_OPENCODE" and agent != "opencode":
+            continue
         if not Path(path).exists():
             problems.append(f"{key}: {path} is missing")
             continue
@@ -182,7 +213,11 @@ def seed_repo(repo: str, arm: str, dest: Path, done: list[str], extra: dict | No
 # "credfile": bind ~/.claude/.credentials.json (fallback: token refresh may fail).
 # The variable is passed into the sandbox's environment only, never written to disk.
 AUTH_ENV = {"token": "CLAUDE_CODE_OAUTH_TOKEN", "api": "ANTHROPIC_API_KEY"}
-_PORT = iter(range(42300, 42999))
+# Each networked session's sccache server gets its own port, so sandboxes never share one. The ports
+# cycle (a full study has more sessions than the range); ADOPTION_PORT_BASE keeps a second harness
+# running beside a study off the study's ports.
+_PORT_BASE = int(os.environ.get("ADOPTION_PORT_BASE", "42300"))
+_PORT = itertools.cycle(range(_PORT_BASE, _PORT_BASE + 699))
 _PORT_LOCK = threading.Lock()
 
 
@@ -213,8 +248,8 @@ class Sandbox:
     WORK = "/work"
     AHOME = "/home/agent"
 
-    def __init__(self, cell: Path, repo: str, fixture: bool = False, arm: str = ""):
-        self.cell, self.repo, self.fixture, self.arm = cell, repo, fixture, arm
+    def __init__(self, cell: Path, repo: str, fixture: bool = False, arm: str = "", agent: str = "claude"):
+        self.cell, self.repo, self.fixture, self.arm, self.agent = cell, repo, fixture, arm, agent
 
     def _code_binds(self) -> list[str]:
         """The harness's own files and this repository's backlog.toml, never hidden/ or reference/."""
@@ -227,7 +262,7 @@ class Sandbox:
 
     def argv(self, inner: list[str], cwd: str, net: bool, hidden: Path | None = None,
              config: Path | None = None, extra_env: dict | None = None,
-             harness: bool = False) -> list[str]:
+             harness: bool = False, key_fd: int | None = None) -> list[str]:
         t = tools()
         a = ["bwrap", "--die-with-parent", "--new-session", "--unshare-all"]
         if net:
@@ -245,9 +280,13 @@ class Sandbox:
               "--ro-bind", t["STUDY_BD"], "/opt/study/bin/bd",
               "--ro-bind", t["STUDY_CLAUDE"], "/opt/study/bin/claude",
               "--bind", str(self.cell), self.WORK]
-        if self.arm == "openwarrant" and not harness:
+        if self.arm == "openwarrant" and not harness and self.agent == "claude":
             # The plugin QUICKSTART tells a Claude Code user to install: skills, MCP server, hooks.
             a += ["--ro-bind", str(STUDY / "tools" / "ow-plugin"), "/opt/study/ow-plugin"]
+        if self.agent == "opencode" and not harness:
+            a += ["--ro-bind", t["STUDY_OPENCODE"], "/opt/study/bin/opencode"]
+        if key_fd is not None:
+            a += ["--dir", str(Path(OPENCODE_KEY_PATH).parent), "--ro-bind-data", str(key_fd), OPENCODE_KEY_PATH]
         if harness or self.fixture:
             a += self._code_binds()
         if self.fixture and not harness:
@@ -255,7 +294,9 @@ class Sandbox:
             a += ["--ro-bind", str(repo_def(self.repo)), "/opt/study/repo-def"]
         if hidden is not None:
             a += ["--ro-bind", str(hidden), "/opt/hidden"]
-        if config is not None:
+        if config is not None and self.agent == "opencode":
+            a += ["--bind", str(config), f"{self.AHOME}/.config/opencode"]
+        elif config is not None:
             a += ["--bind", str(config), f"{self.AHOME}/.claude"]
             if net and auth_mode() == "credfile":
                 a += ["--bind", str(HOME / ".claude/.credentials.json"),
@@ -274,8 +315,12 @@ class Sandbox:
             "DISABLE_AUTOUPDATER": "1", "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
             "PYTHONDONTWRITEBYTECODE": "1",
         }
+        if self.agent == "opencode":
+            env.update({"OPENCODE_DISABLE_AUTOUPDATE": "1", "OPENCODE_DISABLE_MODELS_FETCH": "1"})
+        if harness:
+            env.update(AGENT_SEED.get(self.agent, {}))  # `_answers` writes the agent's instruction file
         mode = auth_mode()
-        if net and config is not None and mode in AUTH_ENV:
+        if net and config is not None and self.agent == "claude" and mode in AUTH_ENV:
             env[AUTH_ENV[mode]] = os.environ[AUTH_ENV[mode]]
             # A key not scoped to a workspace needs the workspace named on every request.
             if mode == "api" and os.environ.get("ADOPTION_WORKSPACE_ID"):
@@ -289,9 +334,19 @@ class Sandbox:
 
     def run(self, inner, cwd, net=False, timeout=600, hidden=None, config=None,
             extra_env=None, stdout=None, stderr=None, harness=False) -> subprocess.CompletedProcess:
-        argv = self.argv(inner, cwd, net, hidden, config, extra_env, harness)
-        p = subprocess.Popen(argv, stdout=stdout or subprocess.PIPE, stderr=stderr or subprocess.PIPE,
-                             text=True, start_new_session=True)
+        key_fd = None
+        if self.agent == "opencode" and net and config is not None and not harness:
+            # The provider key, on a pipe bwrap copies into a file only the sandbox sees.
+            key_fd, w = os.pipe()
+            os.write(w, os.environ[OPENCODE_KEY_ENV].encode())
+            os.close(w)
+        argv = self.argv(inner, cwd, net, hidden, config, extra_env, harness, key_fd)
+        try:
+            p = subprocess.Popen(argv, stdout=stdout or subprocess.PIPE, stderr=stderr or subprocess.PIPE,
+                                 text=True, start_new_session=True, pass_fds=(key_fd,) if key_fd is not None else ())
+        finally:
+            if key_fd is not None:
+                os.close(key_fd)
         try:
             out, err = p.communicate(timeout=timeout)
         except subprocess.TimeoutExpired:
@@ -405,6 +460,9 @@ def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "
         if arm == "openwarrant":
             argv += ["--plugin-dir", "/opt/study/ow-plugin"]
         return argv
+    if agent == "opencode":
+        # The turn cap is the build agent's `steps` in the session's config (opencode_config).
+        return ["/opt/study/bin/opencode", "run", "--standalone", "--format", "json", "-m", model, prompt]
     if agent in ("fixture-reference", "fixture-noop", "fixture-claim"):
         return ["python3", "/opt/study/code/fixture_agent.py", agent.split("-", 1)[1]]
     raise SystemExit(f"unknown agent {agent!r}")
@@ -507,18 +565,124 @@ def parse_stream(path: Path) -> dict:
     return out
 
 
+_OC_EDITS = ("edit", "write", "patch", "multiedit")
+
+
+def parse_opencode(path: Path, max_turns: int) -> dict:
+    """Metrics from an `opencode run --format json` stream, in parse_stream's terms.
+
+    Each step (one model call) ends in a `step_finish` event carrying that call's tokens; its
+    tool calls arrive before it as `tool_use` events with the same messageID. A step's context
+    is its input plus cache reads and writes, as for Claude Code."""
+    if not path.exists():
+        return {"error": "no transcript"}
+    steps: list[dict] = []
+    tools_used: dict[str, int] = {}
+    edit_msgs: set = set()
+    bash_tracker_calls = 0
+    errors: list[str] = []
+    stamps: list[int] = []
+    for line in path.read_text(errors="replace").splitlines():
+        try:
+            ev = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(ev.get("timestamp"), int):
+            stamps.append(ev["timestamp"])
+        kind, part = ev.get("type"), ev.get("part") or {}
+        if kind == "tool_use":
+            name = str(part.get("tool", "?"))
+            tools_used[name] = tools_used.get(name, 0) + 1
+            inp = (part.get("state") or {}).get("input") or {}
+            if name in _OC_EDITS:
+                target = str(inp.get("path") or inp.get("filePath") or inp.get("file_path") or "")
+                text = str(inp.get("patchText", "")) if name == "patch" else ""
+                for t in TRACKER_PATHS:
+                    text = text.replace(t, "")
+                if (target and not any(t in target for t in TRACKER_PATHS)) or _SOURCE.search(text):
+                    edit_msgs.add(part.get("messageID"))
+            if name in ("shell", "bash"):
+                cmd = str(inp.get("command", ""))
+                if bash_writes_code(cmd):
+                    edit_msgs.add(part.get("messageID"))
+                if any(cmd.lstrip().startswith(w) or f" {w} " in cmd for w in ("war", "bd")) \
+                        or "PLAN.md" in cmd or "tasks.md" in cmd:
+                    bash_tracker_calls += 1
+        elif kind == "step_finish":
+            tok = part.get("tokens") or {}
+            cache = tok.get("cache") or {}
+            steps.append({"msg": part.get("messageID"), "reason": part.get("reason"),
+                          "input": tok.get("input") or 0, "read": cache.get("read") or 0,
+                          "write": cache.get("write") or 0,
+                          "output": (tok.get("output") or 0) + (tok.get("reasoning") or 0),
+                          "cost": part.get("cost") or 0})
+        elif kind == "error":
+            errors.append(json.dumps(ev.get("error") or part)[:400])
+    ctxs = [st["input"] + st["read"] + st["write"] for st in steps]
+    first_edit_ctx, processed = None, 0
+    for st, ctx in zip(steps, ctxs):
+        processed += ctx + st["output"]
+        if st["msg"] in edit_msgs:
+            first_edit_ctx = ctx
+            break
+    out = {
+        "assistant_messages": len({st["msg"] for st in steps}),
+        "tools": tools_used,
+        "tracker_bash_calls": bash_tracker_calls,
+        "context_at_first_code_edit": first_edit_ctx,
+        "tokens_processed_before_first_code_edit": processed if first_edit_ctx is not None else None,
+        "peak_context": max(ctxs) if ctxs else 0,
+        "num_turns": len(steps),
+        "subtype": ("error_max_turns" if len(steps) >= max_turns else "success") if steps and not errors
+                   else "error_during_execution",
+        "is_error": bool(errors),
+        "duration_ms": (max(stamps) - min(stamps)) if stamps else None,
+        "cost_usd": round(sum(st["cost"] for st in steps), 6),  # 0 when the provider reports no price
+        "input_tokens": sum(st["input"] for st in steps),
+        "output_tokens": sum(st["output"] for st in steps),
+        "cache_read_tokens": sum(st["read"] for st in steps),
+        "cache_creation_tokens": sum(st["write"] for st in steps),
+    }
+    if errors:
+        out["errors"] = errors[:5]
+        if not steps:
+            out["api_error"] = errors[0]  # the model never ran: the harness's problem, not the arm's
+    return out
+
+
+def opencode_config(arm: str, max_turns: int) -> dict:
+    """A session's opencode config: the provider, every tool allowed (the sandbox is the boundary,
+    as with Claude Code's bypassPermissions), the turn cap, and the arm's MCP server."""
+    cfg = {
+        "$schema": "https://opencode.ai/config.json",
+        "autoupdate": False, "share": "disabled",
+        "permission": {k: "allow" for k in ("edit", "bash", "webfetch", "external_directory", "doom_loop")},
+        "agent": {"build": {"steps": max_turns}},
+        "provider": OPENCODE_PROVIDERS,
+    }
+    servers = {name: {"type": "local", "command": [d["command"], *d["args"]], "enabled": True}
+               for name, d in ARM_MCP.get(arm, {}).items()}
+    if servers:
+        cfg["mcp"] = servers
+    return cfg
+
+
 def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, model: str,
                 max_turns: int, extra_env: dict | None = None, arm: str = "") -> dict:
     sdir.mkdir(parents=True, exist_ok=True)
-    config = sdir / "claude-config"
+    config = sdir / ("opencode-config" if agent == "opencode" else "claude-config")
     config.mkdir(exist_ok=True)
+    if agent == "opencode":
+        (config / "opencode.json").write_text(json.dumps(opencode_config(arm, max_turns), indent=1))
     (sdir / "prompt.txt").write_text(prompt + "\n")
     t0 = time.time()
     with open(sdir / "stream.jsonl", "w") as out, open(sdir / "stderr.txt", "w") as err:
         env = {**(extra_env or {}), **(jira_env(sb.cell) if arm == "jira" else {})}
-        p = sb.run(agent_argv(agent, prompt, model, max_turns, arm), cwd, net=(agent == "claude" or arm == "jira"),
+        p = sb.run(agent_argv(agent, prompt, model, max_turns, arm), cwd,
+                   net=(agent in ("claude", "opencode") or arm == "jira"),
                    timeout=SESSION_TIMEOUT, config=config, extra_env=env, stdout=out, stderr=err)
-    metrics = parse_stream(sdir / "stream.jsonl")
+    metrics = (parse_opencode(sdir / "stream.jsonl", max_turns) if agent == "opencode"
+               else parse_stream(sdir / "stream.jsonl"))
     if metrics.get("api_error"):
         # The model never ran: this is the harness's problem, not the arm's. Stop, score nothing.
         raise SystemExit(f"stopped: the API refused the session ({sdir}): {metrics['api_error']}")
@@ -583,11 +747,11 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
         shutil.rmtree(cell)
     cell.mkdir(parents=True)
     backlog = load_backlog(c["repo"])
-    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"])
+    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent)
     fixture_env = {"STUDY_ARM": c["arm"], "STUDY_REPO": c["repo"]}
     result: dict = {"cell": c, "agent": agent, "model": model, "sessions": []}
     t0 = time.time()
-    extra = jira_env(cell) if c["arm"] == "jira" else None
+    extra = {**(jira_env(cell) if c["arm"] == "jira" else {}), **AGENT_SEED.get(agent, {})} or None
     try:
         _run_cell_body(c, cell, sb, backlog, agent, model, fixture_env, result, extra)
     finally:
@@ -758,7 +922,14 @@ def sessions_in(c: dict, backlog: dict) -> int:
 
 def cmd_execute(args) -> None:
     cells = json.loads(Path(args.plan).read_text())["cells"]
-    problems = check_tools()
+    problems = check_tools(args.agent)
+    if args.agent == "opencode":
+        if not os.environ.get(OPENCODE_KEY_ENV):
+            problems.append(f"opencode needs {OPENCODE_KEY_ENV} in the environment (run under `secrets run --`)")
+        provider, _, mid = args.model.partition("/")
+        if mid not in OPENCODE_PROVIDERS.get(provider, {}).get("models", {}):
+            problems.append(f"--model {args.model!r}: opencode runs take lithosai/<model>, one of "
+                            + ", ".join(OPENCODE_PROVIDERS["lithosai"]["models"]))
     if any(c["arm"] == "jira" for c in cells) and jira_arm.missing():
         problems.append("jira cells need " + ", ".join(jira_arm.missing()) + " in the environment")
     if args.agent == "claude" and check_auth():
@@ -854,6 +1025,13 @@ def cmd_report(args) -> None:
     rows = []
     for (scenario, arm), rs in sorted(by.items()):
         cost = sum(r.get("cost_usd") or 0 for r in rs)
+        ms = [s.get("metrics") or {} for r in rs for s in r["sessions"]]
+        per_session = {
+            "turns_per_session": round(sum(m.get("num_turns") or 0 for m in ms) / len(ms), 1) if ms else None,
+            "ktokens_per_session": round(sum((m.get("input_tokens") or 0) + (m.get("cache_read_tokens") or 0)
+                                             + (m.get("cache_creation_tokens") or 0) + (m.get("output_tokens") or 0)
+                                             for m in ms) / len(ms) / 1000, 1) if ms else None,
+        }
         if scenario == "directed":
             k = sum(1 for r in rs if r.get("success"))
             ctx = [s["metrics"].get("context_at_first_code_edit") for r in rs for s in r["sessions"]
@@ -863,7 +1041,7 @@ def cmd_report(args) -> None:
                          "cost_per_success": round(cost / k, 2) if k else None,
                          "median_context_at_first_edit": sorted(ctx)[len(ctx) // 2] if ctx else None,
                          "false_completions": sum(1 for r in rs if r.get("tracker_says_done") and not r.get("success")),
-                         "regressions": sum(len(r.get("regressions", [])) for r in rs)})
+                         "regressions": sum(len(r.get("regressions", [])) for r in rs), **per_session})
         elif scenario == "relay":
             passed = sum(len(r.get("items_passing", [])) for r in rs)
             cut = [r for r in rs if len(r["sessions"]) >= 3
@@ -873,13 +1051,13 @@ def cmd_report(args) -> None:
                          "sessions": sum(r.get("sessions_used", 0) for r in rs), "cost_usd": round(cost, 2),
                          "cost_per_item": round(cost / passed, 2) if passed else None,
                          "false_completions_at_end": sum(len(r.get("false_completions_at_end", [])) for r in rs),
-                         "session2_cut": len(cut), "resumed_in_session3": resumed})
+                         "session2_cut": len(cut), "resumed_in_session3": resumed, **per_session})
         else:
             rows.append({"scenario": scenario, "arm": arm, "cells": len(rs),
                          "items_passing_merged": sum(len(r.get("items_passing_merged", [])) for r in rs),
                          "duplicated_items": sum(len(r.get("duplicated_items", [])) for r in rs),
                          "merge_conflicts": sum(r.get("merge_conflicts", 0) for r in rs),
-                         "cost_usd": round(cost, 2)})
+                         "cost_usd": round(cost, 2), **per_session})
     paired = paired_differences(results)
     (root / "results.json").write_text(json.dumps({"run_id": args.run_id, "rows": rows,
                                                    "paired_vs_openwarrant": paired}, indent=1))
@@ -919,7 +1097,15 @@ def cmd_prepare(args) -> None:
         subprocess.run(["python3", "-m", "venv", str(py)], check=True, timeout=300)
     subprocess.run([str(py / "bin/python3"), "-m", "pip", "install", "-q", f"pytest=={PINS['pytest']}"],
                    check=True, timeout=600)
-    problems = check_tools()
+    oc = Path(tools()["STUDY_OPENCODE"])
+    if not oc.exists() and OPENCODE_SRC.exists():
+        out = subprocess.run([str(OPENCODE_SRC), "--version"], capture_output=True, text=True, timeout=60).stdout
+        if PINS["opencode"] in out:
+            oc.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(OPENCODE_SRC, oc)
+        else:
+            print(f"opencode: {OPENCODE_SRC} is {out.strip()!r}, not the pinned {PINS['opencode']}")
+    problems = check_tools("opencode")
     for p in problems:
         print("tool:", p)
     for repo in sorted(p.name for p in (HERE / "repos").iterdir()

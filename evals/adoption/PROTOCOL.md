@@ -279,3 +279,35 @@ arms are unchanged.
   of about USD 185 left on the key; the rest is kept for a re-measure after
   further changes. Cells run replicate by replicate with arms interleaved, so a
   budget stop leaves every arm with the same cells, and the report says which ran.
+
+## Amendment 2 (2026-10-29): a second agent, opencode
+
+At the owner's request the harness also runs opencode 2.2.1 (`--agent opencode`)
+with models from the LithosAI endpoint (`--model lithosai/deepseek-ai/DeepSeek-V4.1-Flash`
+or `lithosai/zai-org/GLM-5.3-Flash`), so a change can be checked for agents other
+than Claude Code. Claude Code stays the study's agent; opencode runs are reported
+as their own runs, never pooled with it.
+
+- opencode 2.2.1 reads `AGENTS.md` (and `~/.config/opencode/AGENTS.md`) at startup
+  and never `CLAUDE.md`, as its debug log showed on 2026-10-29. Under opencode,
+  each arm keeps the project's instructions in `AGENTS.md` instead, and each tool
+  is set up as its own documentation sets it up for opencode:
+  - `plain`, `plans`, `jira`: the same text, in `AGENTS.md`.
+  - `speckit`: `specify init --integration opencode`, which installs its ten
+    commands in `.opencode/commands/`. The pointer names `/speckit.implement` and its
+    file, since an agent cannot invoke a user's slash command.
+  - `beads`: `bd init` appends its block to `AGENTS.md`; `bd setup opencode`, the
+    documented step, adds nothing further.
+  - `openwarrant`: `war init` appends its block to `AGENTS.md`, and QUICKSTART's
+    setup for "any other harness" adds `war mcp` as an MCP server. OpenWarrant has
+    no opencode plugin, so there are no skills or hooks.
+- Sessions run in the same sandbox. Every tool is allowed by the session's
+  `permission` config, the sandbox being the boundary, as with Claude Code's
+  `bypassPermissions`. The turn cap is the build agent's `steps`. The provider key
+  reaches the sandbox on a file descriptor, never in an argv or the environment.
+  Autoupdate and the models.dev fetch are off.
+- Metrics come from opencode's JSON events: one step per model call, carrying that
+  call's input, cache and output tokens. The endpoint reports no price, so opencode
+  runs are compared on turns and tokens, not USD.
+- `run.py report` now adds turns and thousands of tokens per session to every
+  row, for both agents.
