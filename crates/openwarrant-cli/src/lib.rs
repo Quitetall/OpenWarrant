@@ -738,7 +738,7 @@ enum DailyCommand {
         /// record's first sentence and `(implements REQ-pr1)`. Repeatable.
         #[arg(long, value_name = "RECORD")]
         implements: Vec<String>,
-        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -765,17 +765,20 @@ enum DailyCommand {
     /// Claims it whole and prints its brief: the description, the open
     /// items, every note, what it depends on, and the command that closes it
     /// (`war done <id> --note "..."`). Holding one already, it prints that
-    /// one again (a session resumes where it was). With an id, that Warrant.
+    /// one again (a session resumes where it was). With an id, that Warrant;
+    /// with words instead (`war start T8`, `war start monthly budget`), the
+    /// one Warrant whose title or labels hold them all.
     ///
     /// `--worktree` instead makes the node a git worktree on `war-go/<node>`
     /// with the session's harness settings (the Warrant's declared tools,
     /// paths and commands; `[go] allowed_acts`) and starts the configured
     /// harness there; `--print` shows that command instead.
     Start {
-        /// The Warrant or item (`t-...`, `t-.../i-...`, `i-...`); with
-        /// `--worktree`, also an agent stage `<alias>/<stage>`.
-        #[arg(value_name = "ID")]
-        id: Option<String>,
+        /// The Warrant or item (`t-...`, `t-.../i-...`, `i-...`), or words of
+        /// one Warrant's title or labels; with `--worktree`, an id or an
+        /// agent stage `<alias>/<stage>`.
+        #[arg(value_name = "ID|WORDS", num_args = 0..)]
+        id: Vec<String>,
         /// Start the node in a worktree of its own and launch the harness.
         #[arg(long)]
         worktree: bool,
@@ -1212,7 +1215,7 @@ enum PlanCommand {
         /// Why, for the next reader; kept in the journal entry.
         #[arg(long)]
         note: Option<String>,
-        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -2154,7 +2157,7 @@ enum AdminCommand {
         /// The Beads JSONL file, or the OpenSpec or Spec Kit folder (or the
         /// folder holding `openspec/` or `specs/`).
         path: Utf8PathBuf,
-        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -3054,7 +3057,7 @@ impl Ctx {
     /// (OW-WAR-0115): best-effort, and nothing it does changes the result.
     ///
     /// M11: every command that opens a repository renews the acting agent's
-    /// claim leases (`$OPENWARRANT_ACTOR`, else `[project] performer`): a
+    /// claim leases (`$OPENWARRANT_ACTOR`, else the default actor): a
     /// touch per lock it holds, nothing more. The ticket commands renew for
     /// their own `--as`.
     fn open_repo(&self) -> Result<repo::Repository, repo::RepoError> {
@@ -4001,6 +4004,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             base,
             actor,
         } => {
+            let id = (!id.is_empty()).then(|| id.join(" "));
             if worktree {
                 let Some(id) = id else {
                     let refusal = ticket::Outcome::refused(

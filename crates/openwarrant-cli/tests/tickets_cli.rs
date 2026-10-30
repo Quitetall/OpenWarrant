@@ -364,6 +364,167 @@ fn the_session_start_view_is_opt_in() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// A request names the work ("Do backlog item T8"), not its id: `war start`
+/// and the other ticket commands take words of a Warrant's title or labels,
+/// so an agent needs no lookup first (the adoption study, 2026-10-29: two to
+/// three turns a session went on finding the id). Words that fit several, or
+/// none, are refused by name, never guessed.
+#[test]
+fn start_takes_a_warrant_named_by_words_of_its_title() {
+    let root = scratch("start-words");
+    let id_of = |v: serde_json::Value| v["result"]["id"].as_str().unwrap().to_owned();
+    let t8 = id_of(json(
+        &root,
+        &["create", "T8: Monthly budget report", "--item", "a"],
+    ));
+    let t9 = id_of(json(
+        &root,
+        &["create", "T9: Yearly budget report", "--item", "b"],
+    ));
+    let out = war(&root, &["start", "T8", "--as", "ann"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let brief = String::from_utf8_lossy(&out.stdout).into_owned();
+    assert!(
+        brief.starts_with(&format!("# {t8} — T8: Monthly budget report")),
+        "{brief}"
+    );
+    // Several words, in any order, each a whole word of the title.
+    let shown = String::from_utf8_lossy(&war(&root, &["view", "prime", "report yearly"]).stdout)
+        .into_owned();
+    assert!(shown.starts_with(&format!("# {t9}")), "{shown}");
+    // Fits two: refused, naming both. Fits none (`T1` is not `T10`): refused.
+    let many = json(&root, &["start", "budget", "--as", "bob"]);
+    assert_eq!(many["diagnostics"][0]["rule"], "ticket.ambiguous", "{many}");
+    let message = many["diagnostics"][0]["message"].as_str().unwrap();
+    assert!(message.contains(&t8) && message.contains(&t9), "{message}");
+    let none = json(&root, &["start", "T1", "--as", "bob"]);
+    assert_eq!(none["diagnostics"][0]["rule"], "ticket.unknown", "{none}");
+    assert_ne!(none["exit_code"], 0);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// Agents side by side in linked worktrees share the repository's claims. Named
+/// by nobody, each acts as the performer named for its worktree, so the second
+/// takes the next Warrant instead of resuming the first one's as its own.
+#[test]
+fn agents_in_linked_worktrees_claim_under_their_own_names() {
+    let root = scratch("tree-actor");
+    for title in ["First job", "Second job"] {
+        assert_eq!(
+            json(&root, &["create", title, "--item", "x"])["exit_code"],
+            0
+        );
+    }
+    let git = |dir: &Path, args: &[&str]| {
+        let ok = Command::new("git")
+            .args(["-c", "user.name=t", "-c", "user.email=t@invalid"])
+            .args(args)
+            .current_dir(dir)
+            .status()
+            .unwrap()
+            .success();
+        assert!(ok, "git {args:?}");
+    };
+    git(&root, &["add", "-A"]);
+    git(&root, &["commit", "-q", "-m", "tickets"]);
+    let trees: Vec<PathBuf> = ["a", "b"]
+        .iter()
+        .map(|n| {
+            root.with_file_name(format!(
+                "{}-{n}",
+                root.file_name().unwrap().to_string_lossy()
+            ))
+        })
+        .collect();
+    for (n, tree) in trees.iter().enumerate() {
+        git(
+            &root,
+            &[
+                "worktree",
+                "add",
+                "-q",
+                tree.to_str().unwrap(),
+                "-b",
+                &format!("agent{n}"),
+            ],
+        );
+    }
+    let take = |dir: &Path| {
+        let v = json(dir, &["start"]);
+        assert_eq!(v["exit_code"], 0, "{v}");
+        v["result"]["ticket"].as_str().unwrap().to_owned()
+    };
+    let (first, second) = (take(&trees[0]), take(&trees[1]));
+    assert_ne!(
+        first, second,
+        "the second agent resumed the first one's claim"
+    );
+    let claimed = String::from_utf8_lossy(&war(&trees[0], &["view", "prime"]).stdout).into_owned();
+    let name = format!("claude@{}", trees[0].file_name().unwrap().to_string_lossy());
+    assert!(claimed.contains(&name), "{claimed}");
+    for tree in &trees {
+        let _ = std::fs::remove_dir_all(tree);
+    }
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// Over MCP a ticket tool reads like the CLI (a brief once, in Markdown;
+/// `done` in one line) with the envelope as structured content, and a
+/// misnamed parameter is refused, never ignored: an ignored `ticket` once
+/// made `war_start` take the next Warrant instead of the one named.
+#[test]
+fn mcp_ticket_tools_read_like_the_cli_and_refuse_a_misnamed_parameter() {
+    let root = scratch("mcp-text");
+    let id = json(&root, &["create", "T8: Monthly budget", "--item", "a"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let mut mcp = Mcp::start(&root);
+    let call = |mcp: &mut Mcp, name: &str, args: serde_json::Value| {
+        mcp.call(
+            "tools/call",
+            serde_json::json!({"name": name, "arguments": args}),
+        )
+    };
+    let bad = call(&mut mcp, "war_start", serde_json::json!({"warrant": id}));
+    assert!(
+        bad.to_string().contains("unknown field") && bad.to_string().contains("target"),
+        "{bad}"
+    );
+    assert!(
+        json(&root, &["view", "prime"])["result"]["claims"]
+            .as_array()
+            .is_none_or(Vec::is_empty),
+        "a refused call claimed something"
+    );
+    let started = call(&mut mcp, "war_start", serde_json::json!({"ticket": "T8"}));
+    let text = started["result"]["content"][0]["text"].as_str().unwrap();
+    assert!(
+        text.starts_with(&format!("# {id} — T8: Monthly budget")),
+        "{text}"
+    );
+    assert_eq!(
+        started["result"]["structuredContent"]["schema"],
+        "oh.war/report/v1"
+    );
+    let done = call(
+        &mut mcp,
+        "war_done",
+        serde_json::json!({"id": id, "note": "did it"}),
+    );
+    let text = done["result"]["content"][0]["text"].as_str().unwrap();
+    assert!(
+        text.starts_with(&format!("done {id}")) && text.len() < 200,
+        "{text}"
+    );
+    drop(mcp);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 fn walk(dir: &Path) -> Vec<String> {
     let mut out = Vec::new();
     for entry in std::fs::read_dir(dir).into_iter().flatten().flatten() {
