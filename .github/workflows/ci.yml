@@ -1,4 +1,4 @@
-name: CI
+name: Checkpoint and Bonsai
 
 # Cost discipline is deliberate, not incidental. ADR 0179 measured what the
 # alternative costs on this account: an unfiltered four-platform matrix with two
@@ -14,6 +14,9 @@ name: CI
 # fork would then execute attacker-supplied code on that workstation.
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "27 7 * * *"
   push:
     branches: [main]
   pull_request:
@@ -31,15 +34,17 @@ env:
   RUSTFLAGS: -D warnings
 
 jobs:
-  # `gate` is the single required status check for this repository (ADR 0182).
+  # `fast-gate` is the required PR tier. This full checkpoint keeps its own name;
+  # a skipped job is never a full-gate receipt. Release runs the full gate too.
   #
   # Required checks are matched BY NAME. A matrix leg's name changes when the
   # matrix changes, and a required check whose name no longer exists is silently
   # not enforced while still appearing configured. One stable aggregator makes
   # the required set immune to CI reorganisation: adding work to the gate is an
   # edit to `cargo xtask gate`, not a new branch-protection rule.
-  gate:
-    name: gate
+  full-gate:
+    name: full-gate
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     # Main c8bc0cb0 run 38668856947 completed all 14 gate steps and 1,676
     # plants at the 60-minute job boundary; the runner cancelled it before
@@ -130,10 +135,6 @@ jobs:
             echo "No machine-readable Warrant line; report-phase check skipped."
           fi
 
-      - name: Build Warrant report tool
-        if: steps.warrant.outputs.alias != ''
-        run: cargo build -p openwarrant-cli
-
       - name: Materialize pull-request candidate as data
         id: candidate
         if: steps.warrant.outputs.alias != ''
@@ -149,13 +150,34 @@ jobs:
           git worktree add --detach "$candidate" "$HEAD"
           printf 'path=%s\n' "$candidate" >> "$GITHUB_OUTPUT"
 
+      - name: Determine whether Bonsai is required
+        id: applicability
+        if: steps.warrant.outputs.alias != ''
+        env:
+          WARRANT: ${{ steps.warrant.outputs.alias }}
+          CANDIDATE: ${{ steps.candidate.outputs.path }}
+        run: |
+          if [ -z "$CANDIDATE" ] || [ ! -d "$CANDIDATE/docs/warrants/$WARRANT" ]; then
+            echo "Candidate unavailable; applicability is unknown, retaining the report failure."
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          elif rg -q '^(bonsai_source|bonsai_revision)[[:space:]]*=' "$CANDIDATE/docs/warrants/$WARRANT/scope.toml" 2>/dev/null || rg -q 'gate://software.repo.bonsai-evidence' "$CANDIDATE/docs/warrants/$WARRANT"; then
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'required=false' >> "$GITHUB_OUTPUT"
+            echo 'Bonsai: not applicable. This Warrant declares no Bonsai scope or gate; no evidence or gate pass was minted.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Build Warrant report tool
+        if: steps.applicability.outputs.required == 'true'
+        run: cargo build -p openwarrant-cli
+
       # Bonsai source is public. This PR-triggered job uses no private credential:
       # it clones only the canonical source, verifies the Warrant-pinned commit,
       # and runs its locked build on the hosted ephemeral runner.
 
       - name: Build Warrant-pinned public Bonsai
         id: bonsai-source
-        if: steps.warrant.outputs.alias != ''
+        if: steps.applicability.outputs.required == 'true'
         continue-on-error: true
         env:
           WARRANT: ${{ steps.warrant.outputs.alias }}
@@ -182,7 +204,7 @@ jobs:
 
       - name: Emit Warrant-bound Bonsai evidence
         id: bonsai
-        if: steps.warrant.outputs.alias != ''
+        if: steps.applicability.outputs.required == 'true'
         env:
           WARRANT: ${{ steps.warrant.outputs.alias }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -225,7 +247,7 @@ jobs:
           exit 0
 
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        if: always() && steps.warrant.outputs.alias != ''
+        if: always() && steps.applicability.outputs.required == 'true'
         with:
           name: bonsai-evidence-${{ github.event.pull_request.number }}
           path: |
