@@ -275,11 +275,16 @@ pub fn validate_v2(
         &proposal.unresolved_questions,
         answers,
     ) {
+        let questions: Vec<_> =
+            openwarrant_core::drafting::minimum_question_set(&proposal.unresolved_questions)
+                .into_iter()
+                .filter(|question| !answers.contains(&question.id))
+                .collect();
         return Err(RepoError::Message(format!(
             "plan.interview-required: {e}. Answer with --answer <id>=<text>; the questions are:\n{}",
             serde_json::to_string_pretty(&serde_json::json!({
                 "schema": INTERVIEW_SCHEMA,
-                "questions": openwarrant_core::drafting::minimum_question_set(&proposal.unresolved_questions),
+                "questions": questions,
             }))
             .unwrap_or_default()
         )));
@@ -535,6 +540,11 @@ pub fn apply_with(
         serde_json::to_string_pretty(request).unwrap_or_default(),
     )?;
     write("proposal.json", proposal_json.to_owned())?;
+    write(
+        "interview-metrics.json",
+        serde_json::to_string_pretty(&crate::interview::metrics(repo, request, intake_record))
+            .unwrap_or_default(),
+    )?;
     if let Some(record) = intake_record {
         write(
             intake::RECORD_FILE,
@@ -898,7 +908,7 @@ pub fn record_questions(
     let open: Vec<_> =
         openwarrant_core::drafting::minimum_question_set(&proposal.unresolved_questions)
             .into_iter()
-            .filter(|q| !i.answers.contains_key(&q.id))
+            .filter(|q| !i.answers.contains_key(&q.id) && !request.answers.contains_key(&q.id))
             .collect();
     if open.is_empty() {
         return Ok(None);
@@ -926,6 +936,7 @@ pub fn record_questions(
         "request.json",
         serde_json::to_string_pretty(request).unwrap_or_default(),
     )?;
+    write("proposal.json", proposal_json.to_owned())?;
     if let Some(issue) = &i.issue {
         write(
             intake::RECORD_FILE,
@@ -961,6 +972,15 @@ pub fn record_questions(
          drafted again with its answers: `{redraft}`",
         i.key
     ));
+    write(
+        "interview-metrics.json",
+        serde_json::to_string_pretty(&crate::interview::metrics(
+            repo,
+            request,
+            i.record().as_ref(),
+        ))
+        .unwrap_or_default(),
+    )?;
     Ok(Some((
         report,
         Asked {

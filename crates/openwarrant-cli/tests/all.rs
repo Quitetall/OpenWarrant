@@ -58,6 +58,8 @@ mod model_cli;
 mod normative_completeness_cli;
 #[path = "overview.rs"]
 mod overview;
+#[path = "plan_interview.rs"]
+mod plan_interview;
 #[path = "preflight_cli.rs"]
 mod preflight_cli;
 #[path = "preservation.rs"]

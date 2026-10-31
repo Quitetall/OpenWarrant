@@ -1,6 +1,8 @@
 [alias]
 # `cargo xtask gate` is the aggregate gate (SAS §92).
 xtask = "run --quiet --package xtask --"
+# The bounded PR tier; the complete checkpoint gate remains `cargo xtask gate`.
+xtask-fast = "run --quiet --package xtask --bin fast-gate --"
 # The daily verbs' speed budget at 10,000 Warrants (CONTRIBUTING.md, "The
 # speed budget"): minutes, so not a step of the gate.
 scale-budget = "run --quiet --package xtask --bin scale-budget --"

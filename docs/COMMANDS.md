@@ -100,6 +100,9 @@ value of the `--json` envelope, the same under either spelling.
 
 ### `war plan …`
 
+`war plan interview <intake-key-or-warrant-id>` resumes the unanswered blockers
+and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md).
+
 | New spelling | Earlier spelling (hidden) | Envelope |
 |---|---|---|
 | `war plan "<sentence>"`, `--proposal`, `--apply`, `--records` | the same | `plan.request`, `plan.validate`, `plan.interview`, `plan.apply` |
