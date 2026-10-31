@@ -45,8 +45,8 @@ every failing step rather than the first. Run it before tags, releases or
 downstream pins, nightly and on demand. A fast-tier pass is not a full-gate pass.
 
 During the fast-tier rollout, the existing required `gate` remains in place.
-After `fast-gate` is green on main, branch protection changes to that explicit
-status and the full gate moves off routine pushes. Release qualification keeps
+Once `fast-gate` is green on the receiving candidate, require that explicit
+status before retiring the old PR status. The full gate then moves off routine pushes. Release qualification keeps
 the full gate and its finite deadline on the exact release commit.
 
 ## Rules that are not style preferences
