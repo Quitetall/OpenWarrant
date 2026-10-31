@@ -18,20 +18,36 @@ under Apache-2.0 as well as AGPL-3.0-or-later. Without that, a single
 contribution from a person who later becomes unreachable makes the relicense
 impossible for everyone.
 
-## The gate
+## Checks before merging and releasing
 
-One command decides whether a change is acceptable:
+The PR tier runs locally and in Fast CI with the same command:
+
+```bash
+cargo xtask-fast --base origin/main
+```
+
+It builds the workspace, checks formatting and linting, runs workspace tests
+including refusals, checks licenses, record/projection integrity, agent guidance,
+schema drift and candidate acceptance. `--base` names the receiving base for
+acceptance checks; CI uses `HEAD^1` on its merge candidate. `--list` prints the
+steps without executing them. This tier does not run the full violation battery
+or establish independent qualification.
+
+The complete checkpoint gate remains:
 
 ```bash
 cargo xtask gate
 ```
 
-Five steps: `fmt`, `clippy`, tests, licenses, and the planted-violation battery.
-It exits zero only when every step passes, and it reports **every** failing step
-rather than the first.
+Its fourteen steps include build, formatting, linting, tests, licenses, schemas,
+corpus drift, attestations and the full planted-violation battery. It reports
+every failing step rather than the first. Run it before tags, releases or
+downstream pins, nightly and on demand. A fast-tier pass is not a full-gate pass.
 
-CI runs exactly this. There is no separate CI configuration to keep in sync, so
-"green locally" and "green in CI" cannot come to mean different things.
+During the fast-tier rollout, the existing required `gate` remains in place.
+Once `fast-gate` is green on the receiving candidate, require that explicit
+status before retiring the old PR status. The full gate then moves off routine pushes. Release qualification keeps
+the full gate and its finite deadline on the exact release commit.
 
 ## Rules that are not style preferences
 

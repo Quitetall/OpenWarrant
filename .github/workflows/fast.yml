@@ -1,0 +1,39 @@
+name: Fast CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fast-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  fast-gate:
+    name: fast-gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+      - uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2
+        with:
+          tool: cargo-deny
+      - name: Schema-validation dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/schema-validation"
+          "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
+          echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      - name: PR tier and merge-candidate acceptance
+        run: timeout 1500 cargo xtask-fast --base HEAD^1
