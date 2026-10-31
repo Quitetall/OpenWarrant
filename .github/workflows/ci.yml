@@ -160,7 +160,7 @@ jobs:
           if [ -z "$CANDIDATE" ] || [ ! -d "$CANDIDATE/docs/warrants/$WARRANT" ]; then
             echo "Candidate unavailable; applicability is unknown, retaining the report failure."
             echo 'required=true' >> "$GITHUB_OUTPUT"
-          elif [ -e "$CANDIDATE/docs/warrants/$WARRANT/scope.toml" ] || rg -q 'gate://software.repo.bonsai-evidence' "$CANDIDATE/docs/warrants/$WARRANT"; then
+          elif rg -q '^(bonsai_source|bonsai_revision)[[:space:]]*=' "$CANDIDATE/docs/warrants/$WARRANT/scope.toml" 2>/dev/null || rg -q 'gate://software.repo.bonsai-evidence' "$CANDIDATE/docs/warrants/$WARRANT"; then
             echo 'required=true' >> "$GITHUB_OUTPUT"
           else
             echo 'required=false' >> "$GITHUB_OUTPUT"

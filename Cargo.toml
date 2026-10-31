@@ -92,3 +92,16 @@ opt-level = 3
 # (compat.rs). Optimize the byte search the same way.
 [profile.dev.package.memchr]
 opt-level = 3
+
+# The full battery exercises the debug CLI thousands of times. Optimise the
+# workspace hot paths while retaining debug assertions and overflow checks.
+# Release settings and every gate/plant remain unchanged.
+
+[profile.dev.package.openwarrant-core]
+opt-level = 1
+
+[profile.dev.package.openwarrant-compiler]
+opt-level = 1
+
+[profile.dev.package.openwarrant-cli]
+opt-level = 1

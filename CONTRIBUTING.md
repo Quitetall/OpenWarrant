@@ -44,10 +44,15 @@ corpus drift, attestations and the full planted-violation battery. It reports
 every failing step rather than the first. Run it before tags, releases or
 downstream pins, nightly and on demand. A fast-tier pass is not a full-gate pass.
 
-During the fast-tier rollout, the existing required `gate` remains in place.
-After `fast-gate` is green on main, branch protection changes to that explicit
-status and the full gate moves off routine pushes. Release qualification keeps
-the full gate and its finite deadline on the exact release commit.
+`fast-gate` is the required PR status. The full gate runs nightly and on demand
+in Checkpoint and Bonsai, and before packaging in Release. Its 75-minute
+checkpoint deadline and all fourteen steps remain unchanged. Source-bound
+projections must be regenerated when build/profile inputs change; a stale
+projection is corrected, never ignored to obtain a green check.
+
+Workspace crates use development opt-level 1 to reduce repeated parser/compiler
+work in the full battery. Debug assertions and overflow checks retain their
+defaults. Release settings are unchanged.
 
 ## Rules that are not style preferences
 
