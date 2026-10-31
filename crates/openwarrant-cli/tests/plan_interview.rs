@@ -64,6 +64,9 @@ fn interview_command_resumes_stored_input_and_exposes_bounded_question_counts() 
         fn read(root: &Path, at: &Path, output: &mut BTreeMap<String, Vec<u8>>) {
             for entry in fs::read_dir(at).unwrap() {
                 let entry = entry.unwrap();
+                if entry.file_name() == ".git" {
+                    continue;
+                }
                 if entry.file_type().unwrap().is_dir() {
                     read(root, &entry.path(), output);
                 } else {
@@ -102,6 +105,37 @@ fn interview_command_resumes_stored_input_and_exposes_bounded_question_counts() 
         &Path::new(env!("CARGO_MANIFEST_DIR")).join("../../conformance/fixtures/inbox/repository"),
         &root,
     );
+    fs::create_dir_all(root.join("docs/gates")).unwrap();
+    fs::copy(
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../docs/gates/software.repo.war-check@1.0.0.yaml"),
+        root.join("docs/gates/software.repo.war-check@1.0.0.yaml"),
+    )
+    .unwrap();
+    for args in [
+        vec!["init", "-q"],
+        vec!["add", "-A"],
+        vec!["commit", "-qm", "fixture baseline"],
+    ] {
+        let out = Command::new("git")
+            .args([
+                "-c",
+                "user.name=fixture",
+                "-c",
+                "user.email=fixture@invalid",
+                "-c",
+                "commit.gpgsign=false",
+            ])
+            .args(args)
+            .current_dir(&root)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    }
     let repo = openwarrant_cli::repo::Repository::open(
         camino::Utf8PathBuf::from_path_buf(root.clone()).unwrap(),
     )
@@ -166,6 +200,7 @@ fn interview_command_resumes_stored_input_and_exposes_bounded_question_counts() 
             "--root",
             root.to_str().unwrap(),
             "--json",
+            "plan",
             "interview",
             &key,
         ])
@@ -199,15 +234,117 @@ fn interview_command_resumes_stored_input_and_exposes_bounded_question_counts() 
     fs::create_dir_all(warrant.join("questions")).unwrap();
     fs::create_dir_all(warrant.join("plan")).unwrap();
     let mut question: openwarrant_cli::questions::Question =
-        toml::from_str(&fs::read_to_string(dir.join("questions/Q-ANSWERED.toml")).unwrap()).unwrap();
+        toml::from_str(&fs::read_to_string(dir.join("questions/Q-ANSWERED.toml")).unwrap())
+            .unwrap();
     question.warrant = "IX-WAR-0003".to_owned();
     question.stage = "STAGE-001".to_owned();
     question.question = "A distinct implementation decision".to_owned();
-    fs::write(warrant.join("questions/Q-ANSWERED.toml"), toml::to_string_pretty(&question).unwrap()).unwrap();
-    fs::write(warrant.join("plan/request.json"), serde_json::to_vec(&request).unwrap()).unwrap();
+    fs::write(
+        warrant.join("questions/Q-ANSWERED.toml"),
+        toml::to_string_pretty(&question).unwrap(),
+    )
+    .unwrap();
+    fs::write(
+        warrant.join("plan/request.json"),
+        serde_json::to_vec(&request).unwrap(),
+    )
+    .unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_war"))
-        .args(["--root", root.to_str().unwrap(), "--json", "interview", "IX-WAR-0003"])
-        .env("OPENWARRANT_NO_PROJECTS", "1").env("OPENWARRANT_NO_UPDATE_CHECK", "1").output().unwrap();
+        .args([
+            "--root",
+            root.to_str().unwrap(),
+            "--json",
+            "interview",
+            "IX-WAR-0003",
+        ])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
     let value: Value = serde_json::from_slice(&output.stdout).unwrap();
-    assert_eq!(value["result"]["questions"].as_array().unwrap().len(), 1, "{value}");
+    assert_eq!(
+        value["result"]["questions"].as_array().unwrap().len(),
+        1,
+        "{value}"
+    );
+
+    let fixture = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../conformance/fixtures/proposals/v2-minimal.json"
+    ))
+    .replace("roadmap://OW-PHASE-2", "roadmap://IX-PHASE-2");
+    let (proposal, mut pipeline) =
+        plan::validate_v2(&fixture, true, &BTreeSet::new(), &BTreeSet::new()).unwrap();
+    let (applied, report) =
+        plan::apply(&repo, &proposal, &mut pipeline, &request, None, &fixture).unwrap();
+    assert!(report.is_ready(), "{report:?}");
+    let metrics: Value = serde_json::from_slice(
+        &fs::read(root.join(&applied.dir).join("plan/interview-metrics.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(metrics["recorded_question_count"], 4);
+    assert_eq!(metrics["supplied_answer_count"], 1);
+    assert!(metrics["external_clarifications"].is_null());
+    assert!(!root.join(&applied.dir).join("authorization.toml").exists());
+
+    // A request from another namespace cannot suppress this intake's blockers.
+    let mut foreign = request.clone();
+    foreign.namespace = "OTHER".into();
+    fs::write(
+        dir.join("request.json"),
+        serde_json::to_vec(&foreign).unwrap(),
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args([
+            "--root",
+            root.to_str().unwrap(),
+            "--json",
+            "plan",
+            "interview",
+            &key,
+        ])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    let value: Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(
+        value["result"]["questions"].as_array().unwrap().len(),
+        3,
+        "{value}"
+    );
+
+    #[cfg(unix)]
+    {
+        fs::remove_file(dir.join("request.json")).unwrap();
+        std::os::unix::fs::symlink(warrant.join("plan/request.json"), dir.join("request.json"))
+            .unwrap();
+        let output = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args([
+                "--root",
+                root.to_str().unwrap(),
+                "--json",
+                "plan",
+                "interview",
+                &key,
+            ])
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap();
+        let value: Value = serde_json::from_slice(&output.stdout).unwrap();
+        assert_eq!(
+            value["result"]["questions"].as_array().unwrap().len(),
+            3,
+            "{value}"
+        );
+        assert!(
+            value["diagnostics"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|d| d["rule"] == "interview.metadata-unreadable")
+        );
+    }
 }

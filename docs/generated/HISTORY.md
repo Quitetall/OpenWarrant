@@ -38055,7 +38055,7 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The intake record, its file reader and the optional fetch adapter | `crates/openwarrant-cli/src/intake.rs` | verified |
-| D-002 | war plan --issue / --issue-file, policy review, pre-Warrant questions | `crates/openwarrant-cli/src/plan.rs` | verified |
+| D-002 | war plan --issue / --issue-file, policy review, pre-Warrant questions | `crates/openwarrant-cli/src/plan.rs` | drift |
 | D-003 | Intake questions listed and answered beside Warrant questions | `crates/openwarrant-cli/src/questions.rs` | verified |
 | D-004 | The [intake] table, absent by default | `crates/openwarrant-cli/src/repo.rs` | drift |
 | D-005 | Closes/Refs trailers for issue-linked Warrants | `crates/openwarrant-cli/src/commit.rs` | verified |

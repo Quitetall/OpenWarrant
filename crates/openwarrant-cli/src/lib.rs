@@ -530,6 +530,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
         "plan",
         &[
             "new",
+            "interview",
             "promote",
             "render",
             "impact",
@@ -637,12 +638,6 @@ pub fn group_member(group: &str, word: &str) -> bool {
 /// anything.
 #[derive(Subcommand)]
 enum DailyCommand {
-    /// Resume a Warrant or intake interview: unanswered blockers, ranked and counted.
-    /// Read-only; answers and authorization remain separate acts.
-    Interview {
-        /// Warrant alias or the intake key a drafting request reported.
-        target: String,
-    },
     /// Set up this repository: openwarrant.toml, record directories, AGENTS.md.
     ///
     /// Initialize repository configuration and directories (§71.1). Asks
@@ -1136,6 +1131,12 @@ enum CheckAction {
 /// `war plan …`: shaping the work. Also flattened, hidden, into the top level.
 #[derive(Subcommand)]
 enum PlanCommand {
+    /// Resume an intake or Warrant interview: unanswered blockers, ranked and counted.
+    /// Read-only; answers and authorization remain separate acts.
+    Interview {
+        /// Warrant alias or the intake key a drafting request reported.
+        target: String,
+    },
     /// Create a draft Warrant (§71.2) from a preset: typed atoms, each
     /// heading followed by the question it answers (OW-ADR-0022).
     New {
@@ -3396,19 +3397,6 @@ fn check_action(
 fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
-        DailyCommand::Interview { target } => {
-            let repository = ctx.open_repo()?;
-            let (report, view) = interview::view(&repository, &target)?;
-            if mode == output::Mode::Human {
-                print!("{}", interview::render(&view));
-            }
-            Ok(output::finish(
-                mode,
-                "interview",
-                &report,
-                Some(output::value(&view)),
-            ))
-        }
         DailyCommand::Create {
             title,
             summary,
@@ -4534,6 +4522,19 @@ fn run_plan(ctx: &Ctx, args: PlanArgs) -> Result<u8, Box<dyn std::error::Error>>
 fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        PlanCommand::Interview { target } => {
+            let repository = ctx.open_repo()?;
+            let (report, view) = interview::view(&repository, &target)?;
+            if mode == output::Mode::Human {
+                print!("{}", interview::render(&view));
+            }
+            Ok(output::finish(
+                mode,
+                "interview",
+                &report,
+                Some(output::value(&view)),
+            ))
+        }
         PlanCommand::Promote {
             ticket: target,
             actor,

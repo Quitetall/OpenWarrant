@@ -115,6 +115,10 @@
 > -
 - doc:docs/INSTALL.md · document · - · Installing and updating `war` · docs/INSTALL.md:1
 
+## docs/INTERVIEWS.md
+> -
+- doc:docs/INTERVIEWS.md · document · - · Resume a planning interview · docs/INTERVIEWS.md:1
+
 ## docs/INVALIDATION.md
 > -
 - doc:docs/INVALIDATION.md · document · - · Custody, invalidation and dispute · docs/INVALIDATION.md:1
