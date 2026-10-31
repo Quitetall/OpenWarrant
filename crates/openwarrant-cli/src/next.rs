@@ -93,7 +93,8 @@ pub struct ReadyItem {
 impl ReadyItem {
     /// The row as `war next` lists it, its text taken rather than copied.
     fn of(r: crate::ticket::ReadyRow) -> Self {
-        let command = format!("war claim {}", r.target());
+        // A Warrant is taken whole: `war start` claims it and prints its work.
+        let command = format!("war start {}", r.ticket);
         Self {
             actor: Actor::Agent,
             ticket: r.ticket,
@@ -847,29 +848,49 @@ fn order(next: &mut Next) {
     });
 }
 
+/// Rows of one kind of act the brief rendering shows before counting the rest.
+const BRIEF_PER_ACT: usize = 3;
+
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
-    // A ready set can hold thousands of rows: their lines are made across
-    // threads on the disk, in order (`vfs::map_ordered`).
-    s.extend(crate::vfs::map_ordered(&n.ready, 1024, |r| {
-        format!(
-            "{:<6} {:<12} {:<10} {}\n{:>6} p{} {}{}\n",
-            "ready",
-            r.ticket,
-            "claim",
-            r.command,
-            "",
-            r.priority,
-            r.text,
-            if r.item.is_some() {
-                format!(" — {}", r.title)
-            } else {
-                String::new()
-            },
-        )
-    }));
+    // One line per ready Warrant, not per item: `war start` takes it whole
+    // and prints its items; the JSON keeps a row per item.
+    let mut order: Vec<&str> = Vec::new();
+    let mut count: std::collections::BTreeMap<&str, (usize, &ReadyItem)> =
+        std::collections::BTreeMap::new();
+    for r in &n.ready {
+        let e = count.entry(r.ticket.as_str()).or_insert_with(|| {
+            order.push(&r.ticket);
+            (0, r)
+        });
+        e.0 += 1;
+    }
+    for id in order {
+        let (k, r) = count[id];
+        s.push_str(&format!(
+            "{:<6} {:<12} {:<10} {}\n{:>6} p{} {} ({k} ready)\n",
+            "ready", r.ticket, "start", r.command, "", r.priority, r.title
+        ));
+    }
+    // Brief by default: a corpus of 147 Warrants listed 115 `deliver` rows,
+    // each with its whole unmet list, 41 KB for one question. Each kind of
+    // act shows its first few Warrants; the rest are a count.
+    let verbose = crate::output::verbose();
+    let mut shown: std::collections::BTreeMap<(bool, String), Vec<&str>> =
+        std::collections::BTreeMap::new();
     for a in &n.actions {
+        let key = (matches!(a.actor, Actor::Human), a.action.to_string());
+        let seen = shown.entry(key).or_default();
+        seen.push(&a.warrant);
+        if !verbose && seen.len() > BRIEF_PER_ACT {
+            continue;
+        }
+        let why = if verbose {
+            a.why.clone()
+        } else {
+            crate::output::clipped(&a.why, 160)
+        };
         s.push_str(&format!(
             "{:<6} {:<12} {:<10} {}{}\n{:>6} {}\n",
             match a.actor {
@@ -884,8 +905,25 @@ pub fn render(n: &Next) -> String {
                 .map(|j| format!("  [{}]", j.word()))
                 .unwrap_or_default(),
             "",
-            a.why
+            why
         ));
+    }
+    for ((human, action), warrants) in &shown {
+        if !verbose && warrants.len() > BRIEF_PER_ACT {
+            let rest = &warrants[BRIEF_PER_ACT..];
+            let named: Vec<&str> = rest.iter().take(6).copied().collect();
+            let tail = match rest.len().saturating_sub(named.len()) {
+                0 => String::new(),
+                k => format!(" and {k} more"),
+            };
+            s.push_str(&format!(
+                "{:<6} {:<12} {:<10} … also {}{tail} (`war next --verbose` lists each)\n",
+                if *human { "HUMAN" } else { "agent" },
+                "",
+                action,
+                named.join(", ")
+            ));
+        }
     }
     if let Some(r) = &n.release {
         s.push_str(&format!("{:>6} {r}\n", ""));
@@ -1055,11 +1093,11 @@ mod tests {
                 );
             }
         }
-        // t-67ed: a ready ticket item is an agent's, and is a claim — never
-        // a signature, never an authority verb.
+        // t-67ed: a ready ticket item is an agent's, and is taken with
+        // `war start` — never a signature, never an authority verb.
         for r in &n.ready {
             assert_eq!(r.actor, Actor::Agent);
-            assert!(r.command.starts_with("war claim "), "{r:?}");
+            assert!(r.command.starts_with("war start "), "{r:?}");
             assert!(!r.command.contains("war sign"), "{r:?}");
         }
         // M9: an agent's workable acts come before every human act, so a

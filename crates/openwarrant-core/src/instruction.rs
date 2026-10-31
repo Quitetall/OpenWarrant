@@ -358,9 +358,10 @@ pub fn block_text(version: &str) -> String {
         BLOCK_BEGIN,
         "<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->",
         "Ordinary coding needs no Warrant and no ticket: work here as in any repository.",
-        "OpenWarrant tracks optional plans and checklists in this repository; run",
-        "`war view prime` to see what is tracked (open work, who holds what, recent notes).",
-        "`war context <id>` loads what a task needs: a Warrant, item, record id or file, cited by id.",
+        "Tracked work, when there is some: run `war start` with your first look at the code (it",
+        "takes the next ready Warrant, or `war start <words of its title>` a named one, and prints",
+        "only what it needs); close it with your last test run:",
+        "`<your tests> && war done --note \"what you did\"`. `war view prime` lists all.",
         &format!("{STAMP_PREFIX}{version} -->"),
         BLOCK_END,
     ]

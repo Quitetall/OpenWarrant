@@ -1,0 +1,39 @@
+   Compiling katana v0.4.0 (/mnt/4tb/tmp/katana-native-interruptions-20261024/crates/katana)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 30.28s
+     Running tests/cancel.rs (/mnt/4tb/build/cargo/27/4d5d99ddbb8473/debug/deps/cancel-0e6b4652798386e6)
+
+running 4 tests
+test run_turn_honors_a_pre_set_cancel_flag ... ok
+test an_uncancelled_turn_runs_normally ... ok
+test cancel_mid_response_dispatches_no_further_tool_calls ... ok
+test native_receipt_preserves_cancelled_requests_without_dispatch_permissions ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.26s
+
+     Running tests/openwarrant_receipt.rs (/mnt/4tb/build/cargo/27/4d5d99ddbb8473/debug/deps/openwarrant_receipt-5191523526235778)
+
+running 10 tests
+test sealed_log_transport_child ... ignored, child of sealed_log_transport_accepts_frozen_parent_log
+test unbound_or_incomplete_work_cannot_be_retroactively_bound ... ok
+test sealed_log_transport_accepts_frozen_parent_log ... ok
+test completed_native_turn_binds_log_and_refuses_wrong_or_changed_evidence ... ok
+test denied_tool_has_no_admitted_permission_and_does_not_execute ... ok
+test cancellation_before_inference_preserves_terminal_state_and_missing_prompt ... ok
+test actual_tool_dispatch_retains_capabilities_without_claiming_sandbox_or_cost ... ok
+test file_transport_refuses_missing_changed_duplicate_and_oversized_receipts ... ok
+test halted_and_failed_turns_cannot_claim_completed_execution ... ok
+test budget_refused_tool_keeps_a_verifiable_halted_receipt_without_permission ... ok
+
+test result: ok. 9 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 3.80s
+
+     Running tests/runtime_policy.rs (/mnt/4tb/build/cargo/27/4d5d99ddbb8473/debug/deps/runtime_policy-9434d8cc832c9e33)
+
+running 5 tests
+test finalization_window_is_visible_to_model_before_last_request ... ok
+test runtime_deadline_halts_slow_inference_and_records_exact_reason ... ok
+test main_phase_tool_timeout_preserves_finalization_window ... ok
+test tool_returned_after_finalization_boundary_is_not_dispatched ... ok
+test native_receipt_preserves_finalization_without_discarded_tool_permissions ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.11s
+

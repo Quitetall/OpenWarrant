@@ -319,6 +319,11 @@ fn execute_gate(
     let spawned = Command::new(&def.argv[0])
         .args(&def.argv[1..])
         .current_dir(&repo.root)
+        // A gate's streams are evidence, read later by a verifier whose
+        // bundle keeps the lines that name its Warrant. A `war` the gate runs
+        // prints every finding, PASS lines included, rather than the brief
+        // rendering an agent's context gets.
+        .env("OPENWARRANT_VERBOSE", "1")
         // §44.6 requires stdout and stderr REFS on the receipt, so the streams
         // are captured to files rather than discarded. Piping without draining
         // can deadlock a chatty child on a full pipe buffer, so they go straight
@@ -1162,8 +1167,12 @@ pub mod source {
     }
 
     /// [`diff_paths`] from `from` to the working tree, over `paths` alone,
-    /// each named literally.
+    /// each named literally. No paths is no diff: an empty pathspec would
+    /// read the whole tree (issue #365).
     fn diff_paths_in(root: &Utf8Path, from: &str, paths: &[&str]) -> Result<Vec<String>, String> {
+        if paths.is_empty() {
+            return Ok(Vec::new());
+        }
         let literal: Vec<String> = paths.iter().map(|p| format!(":(literal){p}")).collect();
         let mut args = vec!["diff", "--no-renames", "--name-only", "-z", from, "--"];
         args.extend(literal.iter().map(String::as_str));

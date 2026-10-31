@@ -1,0 +1,9 @@
+   Compiling katana v0.4.0 (/mnt/4tb/tmp/katana-native-interruptions-20261024/crates/katana)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.56s
+     Running tests/cancel.rs (/mnt/4tb/build/cargo/27/4d5d99ddbb8473/debug/deps/cancel-0e6b4652798386e6)
+
+running 1 test
+test native_receipt_preserves_cancelled_requests_without_dispatch_permissions ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+

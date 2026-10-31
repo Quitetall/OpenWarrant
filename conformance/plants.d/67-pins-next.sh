@@ -110,14 +110,14 @@ unset -f nx_cpu_ms
 # Refusal: once the item is claimed it is no longer offered.
 "$WAR" --root "$PLANT_ROOT" create "Plant ticket" --item "Ready plant item" >/dev/null 2>&1
 NX_HUMAN=$("$WAR" --root "$PLANT_ROOT" next 2>/dev/null)
-NX_CLAIM_AT=$(grep -n -m1 '^ready .*war claim t-' <<<"$NX_HUMAN" | cut -d: -f1)
+NX_CLAIM_AT=$(grep -n -m1 '^ready .*war start t-' <<<"$NX_HUMAN" | cut -d: -f1)
 NX_SIGN_AT=$(grep -n -m1 '^HUMAN ' <<<"$NX_HUMAN" | cut -d: -f1)
 nx_ready_first() { python3 -c '
 import sys, json
 v = json.load(sys.stdin)["result"]
 r = v.get("ready", [])
 ok = any(x["text"] == "Ready plant item" for x in r)
-ok = ok and all(x["actor"] == "agent" and x["command"].startswith("war claim ") and "war sign" not in x["command"] for x in r)
+ok = ok and all(x["actor"] == "agent" and x["command"].startswith("war start ") and "war sign" not in x["command"] for x in r)
 humans = [a for a in v["actions"] if a["actor"] == "human"]
 ok = ok and humans and all(a["command"].startswith("war sign") and a.get("judged") for a in humans)
 sys.exit(0 if ok else 1)'; }
@@ -139,8 +139,23 @@ print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Ready plant
 # find, which is not "no longer offered" (t-5134).
 nx_not_offered() {
     local out
-    out=$("$1" --root "$PLANT_ROOT" next 2>/dev/null) || return 1
-    ! grep -qF "war claim $2" <<<"$out"
+    out=$("$1" --root "$PLANT_ROOT" --json next 2>/dev/null) || return 1
+    # Human/legacy actions may remain when no ticket is ready, so neither a
+    # ready text header nor an idle sentence is required. Inspect the item rows.
+    python3 -c '
+import json, sys
+try:
+    report = json.load(sys.stdin)
+    result = report["result"]
+    assert report["schema"] == "oh.war/report/v1" and report["exit_code"] == 0
+    assert result["schema"] == "oh.war/next/v1" and isinstance(result["actions"], list)
+    ready = result.get("ready", [])
+    assert isinstance(ready, list)
+    ticket, item = sys.argv[1].split("/", 1)
+    offered = any(row["ticket"] == ticket and row.get("item") == item for row in ready)
+except (ValueError, TypeError, KeyError, AssertionError):
+    sys.exit(1)
+sys.exit(1 if offered else 0)' "$2" <<<"$out"
 }
 if [[ -n $NX_ITEM ]] && nx_not_offered "$WAR" "$NX_ITEM"; then
     printf 'ok    %-34s a claimed item is no longer offered\n' "next refuses a claimed ticket item"
@@ -158,6 +173,16 @@ if [[ -n $NX_ITEM ]] && ! nx_not_offered "$NX_STUB_DIR/war-exits-1" "$NX_ITEM"; 
     PASSED=$((PASSED + 1))
 else
     printf 'FAIL  %-34s a war that exits 1 passed the claimed-item check\n' "a failing next is not 'not offered'"
+    FAILED=$((FAILED + 1))
+fi
+# A successful process with no valid report is not an answer either.
+printf '#!/bin/sh\nprintf "not a report\\n"\n' > "$NX_STUB_DIR/war-invalid-report"
+chmod +x "$NX_STUB_DIR/war-invalid-report"
+if [[ -n $NX_ITEM ]] && ! nx_not_offered "$NX_STUB_DIR/war-invalid-report" "$NX_ITEM"; then
+    printf 'ok    %-34s exit 0 with invalid JSON: refused\n' "a malformed next is not 'not offered'"
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  %-34s malformed output passed the claimed-item check\n' "a malformed next is not 'not offered'"
     FAILED=$((FAILED + 1))
 fi
 command rm -rf "$NX_STUB_DIR"

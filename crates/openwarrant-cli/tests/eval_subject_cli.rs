@@ -124,6 +124,14 @@ fn context_inputs_reach_the_agent_with_exact_sources() {
     task.as_table_mut()
         .unwrap()
         .insert("expected".into(), toml::Value::String("over_budget".into()));
+    // A budget this run is known to cross (request + Dispatch + bundle came
+    // to about 10k tokens). It used to cross the task's own 12k only because
+    // the bundle carried the gate's `war check` transcript in full; that
+    // transcript is brief now, and the overrun this test is about is the
+    // reporting of one, not how large war's output is.
+    task.as_table_mut()
+        .unwrap()
+        .insert("max_tokens".into(), toml::Value::Integer(6_000));
     task.as_table_mut().unwrap().insert(
         "context".into(),
         toml::Value::Array(vec![toml::Value::String("CONTEXT.md".into())]),
@@ -214,7 +222,7 @@ subprocess.run([{}, *sys.argv[1:]], input=sys.stdin.buffer.read(), check=True)
             .unwrap()
             .starts_with("sha256:")
     );
-    // The full retained context crosses this task's unchanged 12k limit.
+    // The full retained context crosses the task's limit.
     // Context delivery must not hide that overrun by omitting the Dispatch.
     assert_eq!(task["score"], "over_budget", "{task}");
     assert_eq!(task["as_expected"], true);

@@ -1,0 +1,81 @@
+{
+  "steps": [
+    {
+      "step": "fmt",
+      "exit_code": 0
+    },
+    {
+      "step": "clippy",
+      "exit_code": 0
+    },
+    {
+      "step": "tests",
+      "exit_code": 0
+    },
+    {
+      "step": "tools-minimal",
+      "exit_code": 0
+    },
+    {
+      "step": "embed",
+      "exit_code": 0
+    },
+    {
+      "step": "msrv",
+      "exit_code": 0
+    },
+    {
+      "step": "deny",
+      "exit_code": 0
+    },
+    {
+      "step": "swebench-lock",
+      "exit_code": 0
+    },
+    {
+      "step": "swebench-sync",
+      "exit_code": 0
+    },
+    {
+      "step": "swebench-format",
+      "exit_code": 0
+    },
+    {
+      "step": "swebench-lint",
+      "exit_code": 0
+    },
+    {
+      "step": "swebench-toolchains",
+      "exit_code": 0
+    },
+    {
+      "step": "swebench-pytest",
+      "exit_code": 0
+    },
+    {
+      "step": "terminalbench-lock",
+      "exit_code": 0
+    },
+    {
+      "step": "terminalbench-sync",
+      "exit_code": 0
+    },
+    {
+      "step": "terminalbench-format",
+      "exit_code": 0
+    },
+    {
+      "step": "terminalbench-lint",
+      "exit_code": 0
+    },
+    {
+      "step": "terminalbench-toolchains",
+      "exit_code": 0
+    },
+    {
+      "step": "terminalbench-pytest",
+      "exit_code": 0
+    }
+  ],
+  "all_passed": true
+}

@@ -10,8 +10,10 @@ repository. OpenWarrant is optional planning and tracking. Read the target
 repository's AGENTS.md for its own conventions.
 
 - A **Warrant** is a work plan; optional. The lightest one, a **ticket**, tracks
-  a piece of work as a checklist: `war view prime`, `war next`, `war claim <item>`,
-  do it, `war done <item> --note "..."`. No step needs a signature.
+  a piece of work as a checklist: `war start` (with your first look at the code)
+  takes the next ready one and prints only what it needs; do it; close it with
+  your last test run, `<tests> && war done --note "..."`. No step needs a
+  signature.
   [Tickets](references/tickets.md) has the loop; `war view warrants` lists every
   Warrant, whatever its encoding.
 - A Warrant whose type has a sign-off step adds a person's approval, and the

@@ -6,6 +6,66 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- An agent finds and closes the work it was asked for without lookups, under
+  any harness. The adoption study (2026-10-29) traced Claude Code and opencode
+  (DeepSeek V4.1 Flash, GLM 5.3 Flash) sessions spending two to three turns on
+  turning "do item T8" into a ticket id, and reading MCP answers twice.
+  - `war start`, `war done`, `war view prime`, `war note` and the other ticket
+    commands take words of a Warrant's title or labels where they took an id:
+    `war start T8`, `war start monthly budget`. Open Warrants are searched
+    first; words that fit several are refused `ticket.ambiguous` with each id,
+    and words that fit none `ticket.unknown`. MCP: `target` (or `ticket`, `id`).
+  - The MCP tools refuse a parameter they do not know (`unknown field`, naming
+    the ones they take) instead of ignoring it: an ignored `ticket` made
+    `war_start` take the next Warrant instead of the one named.
+  - A ticket tool's MCP text is what the CLI prints (a brief in Markdown, `done
+    t-x (n/n)` in one line); the `oh.war/report/v1` envelope stays its
+    structured content. A `war_start` answer drops from about 5 KB to the 3 KB
+    brief, a `war_done` from about 800 bytes to one line.
+  - In a linked git worktree the default actor is the performer named for its
+    worktree (`claude@w2`): agents side by side in worktrees share the claims,
+    and under one name the second resumed the first one's Warrant as its own.
+    `--as` and `OPENWARRANT_ACTOR` still name the actor outright.
+  - `war_answers` says it is for a Warrant's stages; a light Warrant's answers
+    are its notes, which `war_start` already shows.
+
+- The ticket loop an agent runs is two calls, and what it reads is only the
+  work it takes. The adoption pilot (2026-10-22) measured alpha.5's loop at 47%
+  more tokens than a plain `CLAUDE.md` for the same items: the agent read the
+  backlog three times over (`war view prime`, `war next`/`ready`, `war context`)
+  and ticked each item with its own call.
+  - `war start` takes the next ready Warrant whole and prints its brief: the
+    description, the open items, every note, what it depends on, and the
+    command that closes it. Holding one already, it prints that one again, so an
+    interrupted session resumes. `war start <id>` takes that one. The worktree
+    and harness launch (M15) is `war start --worktree <id>`. MCP: `war_start`.
+  - `war done <ticket>` ticks every open item in one write, or none: each is
+    judged as an item's done is (claim, blockers, checks, least tick), and an
+    item that fails refuses the whole. `war done` with no id closes the one
+    Warrant you hold (`ticket.nothing-held`, `ticket.several-held` otherwise). A
+    note is one note on the Warrant.
+  - `war view prime` is one line per open Warrant (progress, who holds it, what
+    it waits on) and done work by id; `war view prime <id>` is one in full, now
+    with a Format 1.0 ticket's journal notes. On an 11-Warrant repository:
+    20,736 bytes to 1,576.
+  - `war view ready` and `war next` print one line per ready Warrant with
+    `war start <id>`, not every item (4,481 and 7,778 bytes to 282 and 558);
+    their JSON keeps a row per item.
+  - The managed block, the AGENTS.md template, the plugin's skills, the MCP
+    instructions and the docs teach `war start` / `war done`. Plant 186 holds
+    prime, ready and start to a byte budget.
+  - Fewer turns for the same work: the instructions say to run `war start`
+    with the first look at the code and to close with the last test run
+    (`<tests> && war done --note "..."`, which closes only when they pass).
+    Run alone, both work as before, as do `war claim <item>` and
+    `war done <item>`.
+  - Opt-in, `[tickets] session_start = true`: the plugin's SessionStart hook
+    runs `war view prime --session`, which shows the agent the Warrant it
+    holds (a resumed session needs no call to find it), or the open list and
+    how to take the next. Unset, it prints nothing and the hook adds nothing.
+
 ## [1.0.0-alpha.5] — 2026-10-20
 
 ### Added

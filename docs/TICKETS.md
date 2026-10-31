@@ -17,15 +17,19 @@ Sign-off is still there when you want it: `war plan promote` turns a ticket into
 Warrant, and the review and signing path in the rest of these docs applies from
 that point. Most work never needs it.
 
-## The loop in five commands
+## The loop in three commands
 
 ```bash
 war create "Add password reset" --item "Reset endpoint" --item "Email template"
-war next                                    # what can start now
-war claim t-3f2a/i-9c01                     # take one; nobody else will
-war done t-3f2a/i-9c01 --note "POST /reset, rate-limited"
-war view prime                              # what the next person reads first
+war start                                   # takes the next ready ticket; prints only what its work needs
+war done --note "POST /reset, rate-limited" # closes the ticket you hold: every item, in one call
 ```
+
+`war start` claims the ticket whole, so nobody else takes it, and prints its
+description, open items, notes and what it depends on: nothing else. Run again,
+it prints the one you hold, so an interrupted session resumes there.
+`war view prime` lists what is open, one line per ticket. The finer steps stay:
+`war claim t-3f2a/i-9c01` takes one item and `war done t-3f2a/i-9c01` ticks it.
 
 `war create` prints the ticket's id (`t-3f2a`). Items have ids too (`i-9c01`).
 Any command takes an id or a unique prefix of one: `war claim i-9c`,
@@ -210,16 +214,14 @@ war create "Reset page" --type feature -l ui --part-of t-e9a1 -i "Draw the form"
 An agent arrives knowing nothing:
 
 ```bash
-war view prime  # open tickets, remaining items, claims, notes
-war next        # what can start now
-war claim t-77c1/i-1a2b
+war start       # takes the next ready ticket and prints what its work needs
 # ... the work ...
-war done t-77c1/i-1a2b --note "repro: empty POST body"
 war note t-77c1 "root cause is the unchecked empty string in login.rs"
+war done --note "repro: empty POST body"
 ```
 
-A second agent, in parallel, takes what is left — `war view ready` no longer lists
-the claimed item — and finishes the ticket; with write-back configured, issue
+A second agent, in parallel, runs `war start` too and gets the next ticket
+(the one taken is no longer ready), and finishes it; with write-back configured, issue
 #12 gets the summary and is closed. Late afternoon the person looks:
 
 ```bash
@@ -445,12 +447,18 @@ and nothing is written. To read the proposal first, use
 
 ## For agents
 
-Start every session with `war view prime`. It lists the open tickets with only their
-remaining items, who holds which claim, the recent notes, and the done work
-compacted to a line each once it is older than a week. Then `war next`,
-`war claim`, do the work, `war done --note`. Leave what the next agent needs to
-know with `war note`. Do not ask the human to sign anything during this loop;
-nothing in it needs a signature.
+Start every session with `war start`, in the same command as your first look
+at the code (`war start && ls`). It claims the next ready ticket (or prints the
+one you already hold) and gives only what its work needs: the description, the
+open items, every note, and what it depends on. Do the work, then close it in
+the same command as your last test run: `make test && war done --note "..."`,
+which closes it only if the tests pass. Run alone, both work the same; the
+chain only saves the turns. The plugin's SessionStart hook puts the ticket you
+hold (or the open list) in front of the agent before its first turn, and says
+nothing when no ticket is open (`[tickets] session_start = false` turns it off). `war view prime` lists what
+is open, one line per ticket, and `war view prime <id>` shows one in full.
+Leave what the next agent needs to know with `war note`. Do not ask the human
+to sign anything during this loop; nothing in it needs a signature.
 
 Every tick says how it was earned. A plain `war done` is **claimed**: your
 word. When the item (or its Warrant) has a test or a KPI, `war done --check`
@@ -459,9 +467,10 @@ them, and an item whose minimum is observed says so in `war view prime`. A faile
 check refuses the tick by name and leaves the claim yours: fix the work and
 run it again.
 
-Over MCP (`war admin mcp`) the same loop is `war_prime`, `war_ready`, `war_claim`,
-`war_done`, `war_create`, `war_add`, `war_note`, `war_show`, `war_tickets`
-and `war_heartbeat`.
+Over MCP (`war admin mcp`, for a harness without a shell; one with a shell is
+better served by the commands above) the same loop is `war_start` and `war_done`, with
+`war_prime`, `war_ready`, `war_claim`, `war_create`, `war_add`, `war_note`,
+`war_show`, `war_tickets` and `war_heartbeat` around it.
 Each takes an optional `actor`; `war_done` also takes `check` (`--check`);
 `war_create` also takes `type`, `labels` and
 `part_of`, and `war_tickets` the filters above (`type`, `labels`, `state`,
@@ -477,6 +486,7 @@ All optional, in `openwarrant.toml`:
 dir = "docs/tickets"                        # where tickets live
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
+session_start = true                        # the plugin's SessionStart hook shows the agent its held Warrant, or the overview; false: nothing
 
 [claims]
 claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands

@@ -121,9 +121,25 @@ pub fn run_with(
     only: Option<&str>,
     check_generated: bool,
 ) -> Result<Report, RepoError> {
+    let one = only.map(|a| vec![a.to_owned()]);
+    run_in(shared_corpus, one.as_deref(), check_generated)
+}
+
+/// [`run_with`] over a set of Warrants (`war check --changed`), or the whole
+/// corpus when `only` is `None`. One run, so what is counted across the
+/// Warrants checked ("N of M have no disposed obligations") is counted over
+/// all of them and the corpus-wide rules report once.
+pub fn run_in(
+    shared_corpus: &crate::corpus::Corpus,
+    only: Option<&[String]>,
+    check_generated: bool,
+) -> Result<Report, RepoError> {
     let repo = shared_corpus.repo();
     let dirs = match only {
-        Some(alias) => vec![repo.warrant_dir(alias)?],
+        Some(aliases) => aliases
+            .iter()
+            .map(|a| repo.warrant_dir(a))
+            .collect::<Result<Vec<_>, _>>()?,
         None => shared_corpus
             .entries()?
             .iter()
@@ -637,6 +653,12 @@ pub fn run_with(
 /// documents author (OW-WAR-0148 M3), Format 1.0 documents (FORMAT-1.0,
 /// OW-ADR-0032), declared documents (M6), and `docs/types.toml` with the
 /// document index (M18). Each is silent where there is nothing of its kind.
+/// The document rules alone (records, Format 1.0 documents, renderings,
+/// types), for `war check --changed` when only a document moved.
+pub fn check_documents(shared_corpus: &crate::corpus::Corpus, report: &mut Report) {
+    document_checks(shared_corpus, report);
+}
+
 fn document_checks(shared_corpus: &crate::corpus::Corpus, report: &mut Report) {
     crate::records::check(shared_corpus, report);
     crate::format_doc::check(shared_corpus, report);
@@ -2871,8 +2893,14 @@ fn check_drift(
     }
 }
 
-/// Print a report in the §71.7 shape.
+/// Print a report: the brief rendering by default, every finding in the
+/// §71.7 shape under `--verbose`. An explicit `--quiet` wins over
+/// `OPENWARRANT_VERBOSE`, so a hook asking for only what blocks gets that.
 pub fn print(report: &Report) {
+    if crate::output::quiet() || !crate::output::verbose() {
+        print!("{}", crate::output::brief(report));
+        return;
+    }
     for diagnostic in &report.diagnostics {
         println!("{diagnostic}");
     }

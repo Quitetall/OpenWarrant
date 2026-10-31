@@ -46,8 +46,8 @@ The candidate is not signed adoption or proof of shipped behavior.
   agents, not authority; a stale claim (past the TTL) may be stolen, journalled.
 - **Pointer block:** the few lines `war admin agents-md --block` keeps in `CLAUDE.md` and
   `AGENTS.md`, between `<!-- openwarrant:begin -->` and `<!-- openwarrant:end -->`:
-  ordinary coding needs no Warrant, `war view prime` shows tracked work, and the version
-  stamp. It holds no Warrant's context; bytes outside it are the file owner's.
+  ordinary coding needs no Warrant, `war start` takes tracked work and `war done` closes
+  it, `war view prime` lists it, and the version stamp. It holds no Warrant's context; bytes outside it are the file owner's.
 - **Instruction section:** a `##` section of `CLAUDE.md` or `AGENTS.md`, read in place
   as a record `md:<file>#<slug>` of type `instruction` (docs/TYPES.md). Plans cite it
   (`constrains md:CLAUDE.md#testing`) and `war plan impact` follows the citations.

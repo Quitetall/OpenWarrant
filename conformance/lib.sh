@@ -39,6 +39,9 @@ WAR="./target/debug/war"
 # (OW-WAR-0143's notice): a battery's result does not depend on a release.
 export OPENWARRANT_IN_BATTERY=1
 export OPENWARRANT_NO_UPDATE_CHECK=1
+# Plants assert on the PASS line a rule prints, and the default rendering
+# folds passes into a count. The battery reads every finding.
+export OPENWARRANT_VERBOSE=1
 
 # A battery gives the same answer whatever its caller exports (t-354e). Run
 # with CLAUDE_PERFORMER_MODEL exported, 62-verifier's 'independence only where

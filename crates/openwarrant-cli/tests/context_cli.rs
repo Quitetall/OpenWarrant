@@ -448,32 +448,33 @@ fn prime_stays_a_briefing_however_much_has_been_written() {
         done.push(t);
     }
     let md = ok(&war(&root, &["view", "prime"]));
-    assert!(!md.contains(&long.trim().to_owned()), "a long note is cut");
+    // One line per open Warrant: no description, item or note text, however
+    // much has been written; one Warrant's text is `war view prime <id>`.
     assert!(
-        md.contains("note 3: word word") && md.contains("word…"),
+        md.contains(&format!("- {id} — Open job · 0/1 done")),
         "{md}"
     );
-    assert!(md.contains("note 3: word word"), "the latest note");
-    assert!(!md.contains("note 1:") && !md.contains("note 2:"), "{md}");
-    assert!(
-        md.contains(&format!("- (2 earlier: `war view prime {id}`)")),
-        "{md}"
-    );
+    assert!(!md.contains("note 3:") && !md.contains("word word"), "{md}");
+    assert!(!md.contains("- [ ]") && !md.contains("Do it"), "{md}");
     assert!(
         md.lines().all(|l| l.chars().count() <= 400),
         "every line is bounded"
     );
-    let earlier = md.split("## Done earlier").nth(1).unwrap();
-    assert_eq!(
-        earlier.lines().filter(|l| l.starts_with("- t-")).count(),
-        10
-    );
+    assert!(md.len() < 1500, "a briefing: {} bytes\n{md}", md.len());
+    // Done work as ids, latest first, ten named and the rest counted.
+    let done_line = md
+        .lines()
+        .find(|l| l.starts_with("12 done, latest first: "))
+        .unwrap_or_else(|| panic!("{md}"));
     assert!(
-        earlier.contains("(done 2020-01-12, 1 item(s))"),
-        "latest first"
+        done_line.starts_with(&format!("12 done, latest first: {}", done[11])),
+        "{done_line}"
     );
-    assert!(!earlier.contains("(done 2020-01-02,"), "{earlier}");
-    assert!(earlier.contains("- and 2 more: `war view tickets --state done`"));
+    assert!(!done_line.contains(&done[0]), "{done_line}");
+    assert!(
+        done_line.ends_with(", and 2 more (`war view tickets --state done`)"),
+        "{done_line}"
+    );
     // The refusal beside it: nothing is dropped from what a program reads.
     let json: serde_json::Value =
         serde_json::from_slice(&war(&root, &["--json", "view", "prime"]).stdout).unwrap();

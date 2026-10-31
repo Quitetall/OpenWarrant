@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-23.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-24.
 
 ## Lineage
 
@@ -44,6 +44,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
 | 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
 | 2026-10-23 | 2 | sync.receipt_attached 2 |
+| 2026-10-24 | 2 | attestation.recorded 1, authorization.recorded 1 |
 
 ## Roadmap revisions
 
@@ -18939,12 +18940,12 @@ the second is what the recorded run exposes.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The glossary every Dispatch carries | `CONTEXT.md` | verified |
+| D-001 | The glossary every Dispatch carries | `CONTEXT.md` | drift |
 | D-002 | war frontier: the stages that can start now | `crates/openwarrant-cli/src/frontier.rs` | verified |
 | D-003 | The selector carries the glossary | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | /war-grill | `.claude/skills/war-grill/SKILL.md` | verified |
 | D-005 | /war-spec | `.claude/skills/war-spec/SKILL.md` | verified |
-| D-006 | /war-tickets | `.claude/skills/war-tickets/SKILL.md` | verified |
+| D-006 | /war-tickets | `.claude/skills/war-tickets/SKILL.md` | drift |
 | D-007 | /war-review | `.claude/skills/war-review/SKILL.md` | verified |
 | D-008 | /war-map | `.claude/skills/war-map/SKILL.md` | verified |
 | D-009 | docs/SKILLS.md: the mapping, his to ours | `docs/SKILLS.md` | verified |
@@ -26985,15 +26986,15 @@ the app shows a `human` remedy and stops.
 | D-015 | The threat-model row | `docs/THREAT_MODEL.md` | verified |
 | D-016 | Remedies | `crates/openwarrant-cli/src/remedy.rs` | verified |
 | D-017 | A diagnostic carries its remedy | `crates/openwarrant-cli/src/diagnostic.rs` | verified |
-| D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | verified |
+| D-018 | The remedy on the wire and in the REMEDIES block | `crates/openwarrant-cli/src/output.rs` | drift |
 | D-019 | The report schema | `schemas/oh.war/report/v1.json` | verified |
 | D-020 | The schema pack | `schemas/pack.json` | verified |
-| D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | verified |
+| D-021 | init, unchanged in behaviour, as a module directory | `crates/openwarrant-cli/src/init/mod.rs` | drift |
 | D-022 | The guided init | `crates/openwarrant-cli/src/init/guided.rs` | verified |
 | D-023 | roles.toml.example states the rule | `docs/authority/roles.toml.example` | verified |
 | D-024 | allowed_signers.example states the rule | `docs/authority/allowed_signers.example` | verified |
 | D-025 | RESOLVING.md states the rule | `docs/RESOLVING.md` | verified |
-| D-026 | QUICKSTART.md: three questions, two signatures | `QUICKSTART.md` | verified |
+| D-026 | QUICKSTART.md: three questions, two signatures | `QUICKSTART.md` | drift |
 | D-027 | The init plants | `conformance/plants.d/99-init.sh` | verified |
 | D-028 | ratatui and crossterm, exact versions | `Cargo.toml` | drift |
 | D-029 | The lockfile | `Cargo.lock` | drift |
@@ -27003,7 +27004,7 @@ the app shows a `human` remedy and stops.
 | D-033 | The poller opened to the app | `crates/openwarrant-cli/src/watch.rs` | drift |
 | D-034 | The app plants | `conformance/plants.d/97-tui.sh` | verified |
 | D-035 | docs/TUI.md: every pane, every key, the rendering rule | `docs/TUI.md` | verified |
-| D-036 | README: one line | `README.md` | verified |
+| D-036 | README: one line | `README.md` | drift |
 | D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | drift |
 | D-038 | OW-ADR-0020 accepted, governs this Warrant | `docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md` | verified |
 | D-039 | The re-pin act | `crates/openwarrant-cli/src/sas_repin.rs` | verified |
@@ -27553,9 +27554,9 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-030 | preset: decision, assurance | `crates/openwarrant-cli/templates/presets/decision/60-assurance.md` | verified |
 | D-031 | new.rs: --preset, the TODO skeleton retired | `crates/openwarrant-cli/src/new.rs` | drift |
 | D-032 | lib.rs: the flag | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-033 | CONTEXT.md: the terms | `CONTEXT.md` | verified |
-| D-034 | README.md points at CURRENT.md | `README.md` | verified |
-| D-035 | QUICKSTART.md points at CURRENT.md | `QUICKSTART.md` | verified |
+| D-033 | CONTEXT.md: the terms | `CONTEXT.md` | drift |
+| D-034 | README.md points at CURRENT.md | `README.md` | drift |
+| D-035 | QUICKSTART.md points at CURRENT.md | `QUICKSTART.md` | drift |
 | D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | drift |
 | D-037 | docs/TUI.md: Help lists CURRENT.md first | `docs/TUI.md` | verified |
 | D-038 | the plants | `conformance/plants.d/69-current.sh` | drift |
@@ -28275,7 +28276,7 @@ assert it with.
 | D-026 | view.json retired | `docs/roadmap/view.json` | verified |
 | D-027 | rc2 plan retired | `docs/design/rc2-implementation-roadmap.json` | verified |
 | D-028 | rc.3 plan retired | `docs/sas/drafts/1.0.0-rc.3/roadmap.json` | verified |
-| D-029 | CONTEXT.md: the term | `CONTEXT.md` | verified |
+| D-029 | CONTEXT.md: the term | `CONTEXT.md` | drift |
 | D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | verified |
 | D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | verified |
 | D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | drift |
@@ -28521,7 +28522,7 @@ failure, rebuilt.
 | D-002 | war projects; touch on use; war from anywhere | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
 | D-004 | docs/TUI.md: the hub | `docs/TUI.md` | verified |
-| D-005 | README.md: war from anywhere | `README.md` | verified |
+| D-005 | README.md: war from anywhere | `README.md` | drift |
 | D-006 | The hub plants | `conformance/plants.d/71-hub.sh` | verified |
 
 ### OW-WAR-0116 — war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap
@@ -28884,7 +28885,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
-| D-009 | README.md: war ui | `README.md` | verified |
+| D-009 | README.md: war ui | `README.md` | drift |
 | D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
 | D-012 | the verifier's plants: /api/act by method, the act's command, one act at a time, progress on this corpus | `conformance/plants.d/63-webui-verified.sh` | verified |
@@ -31538,7 +31539,7 @@ negative controls.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The optional [adoption] baseline in repository configuration | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
-| D-002 | war init records the baseline, refuses a non-commit, points at existing ADRs | `crates/openwarrant-cli/src/init/mod.rs` | verified |
+| D-002 | war init records the baseline, refuses a non-commit, points at existing ADRs | `crates/openwarrant-cli/src/init/mod.rs` | drift |
 | D-003 | The --baseline flag on war init | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-004 | The adopt Warrant's Basis names the baseline and what it does not claim | `crates/openwarrant-cli/templates/adopt/20-basis.md` | verified |
 | D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | verified |
@@ -34338,7 +34339,7 @@ responder must not read as "waiting normally".
 | D-007 | The cancel plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/60-perform-cancel.sh` | verified |
 | D-008 | The token plants state allow_unmetered for their scratch config (AM-002) | `conformance/plants.d/83-tokens.sh` | verified |
 | D-009 | war next names no-responder and skips question-blocked stages (AM-002) | `crates/openwarrant-cli/src/next.rs` | drift |
-| D-010 | A new program states allow_unmetered = true (AM-002) | `crates/openwarrant-cli/src/init/mod.rs` | verified |
+| D-010 | A new program states allow_unmetered = true (AM-002) | `crates/openwarrant-cli/src/init/mod.rs` | drift |
 
 ### OW-WAR-0133 — Evidence reuse after a source change, and the compiler's source, conflict and omission rules
 
@@ -35085,7 +35086,7 @@ this level requires. The author does not record them.
 | D-001 | What changed between the accepted candidate and this one | `crates/openwarrant-cli/src/acceptance.rs` | verified |
 | D-002 | war pins --candidate: the finding beside each resolved pin | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-003 | The --candidate flag | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | verified |
+| D-004 | The pull-request step that runs it against the merge candidate | `.github/workflows/ci.yml` | drift |
 | D-005 | The acceptance-validity plants | `conformance/plants.d/56-acceptance-validity.sh` | verified |
 | D-006 | After you sign: when the accepted candidate changes before merge | `docs/SIGNING.md` | verified |
 
@@ -35861,7 +35862,7 @@ this level requires. The author does not record them.
 | D-013 | The batch refuses an invalidation: it is signed alone (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/src/batch_cmd.rs` | not_content_addressed |
 | D-014 | The human acts, gate invalidation among them (AM-003; Q-001 a or b only) | `AGENTS.md` | drift |
 | D-015 | Signing an invalidation (AM-003; Q-001 a or b only) | `docs/SIGNING.md` | verified |
-| D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
+| D-016 | The human acts in the AGENTS.md war init writes (AM-003; Q-001 a or b only) | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | drift |
 | D-017 | The human acts an adopter meets (AM-003; Q-001 a or b only) | `docs/ADOPTING.md` | drift |
 | D-018 | The legacy workflow rendered from the AGENTS.md template (AM-003; Q-001 a or b only) | `docs/agents/legacy-warrant-workflow.md` | drift |
 
@@ -38914,14 +38915,14 @@ once, at acceptance, after the blind verifier.
 | D-013 | cli: a covered Warrant is never resolved by a policy service | `crates/openwarrant-cli/src/resolve.rs` | verified |
 | D-014 | the plants | `conformance/plants.d/69-standing.sh` | verified |
 | D-015 | docs/SIGNING.md: routine work under a standing authorization | `docs/SIGNING.md` | verified |
-| D-016 | CONTEXT.md: the term | `CONTEXT.md` | verified |
+| D-016 | CONTEXT.md: the term | `CONTEXT.md` | drift |
 | D-017 | cli: the class acts and the covered verdict | `crates/openwarrant-cli/src/authority_check.rs` | not_content_addressed |
 | D-018 | cli: class-act attestations | `crates/openwarrant-cli/src/attest.rs` | verified |
 | D-019 | cli: a covered Warrant's policy-service resolution refused at ingest | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
 | D-020 | cli: the class acts in war next | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-021 | cli: the class acts in the console | `crates/openwarrant-cli/src/console.rs` | drift |
 | D-022 | cli: war_standing_apply and war_standing_show | `crates/openwarrant-cli/src/mcp/tools.rs` | drift |
-| D-023 | cli: the refused MCP names | `crates/openwarrant-cli/src/mcp/mod.rs` | verified |
+| D-023 | cli: the refused MCP names | `crates/openwarrant-cli/src/mcp/mod.rs` | drift |
 | D-024 | cli: the pack's new member | `crates/openwarrant-cli/src/schemas.rs` | drift |
 | D-025 | schema: the TypeScript projection of the class | `schemas/typescript/standing-authorization.ts` | verified |
 | D-026 | schema: the TypeScript projection manifest | `schemas/typescript/manifest.json` | verified |
@@ -39628,9 +39629,9 @@ OBL-004's.
 | D-006 | tui/mod.rs binary_row: compares identity, names the remedy | `crates/openwarrant-cli/src/tui/mod.rs` | verified |
 | D-007 | install.sh against the current release contract, into the managed layout | `install.sh` | verified |
 | D-008 | release.yml: OPENWARRANT_RELEASE_TAG at build, install.sh attached | `.github/workflows/release.yml` | drift |
-| D-009 | The install document | `docs/INSTALL.md` | verified |
-| D-010 | README.md: a pointer to docs/INSTALL.md | `README.md` | verified |
-| D-011 | QUICKSTART.md step 0: a pointer to docs/INSTALL.md | `QUICKSTART.md` | verified |
+| D-009 | The install document | `docs/INSTALL.md` | drift |
+| D-010 | README.md: a pointer to docs/INSTALL.md | `README.md` | drift |
+| D-011 | QUICKSTART.md step 0: a pointer to docs/INSTALL.md | `QUICKSTART.md` | drift |
 | D-012 | The update, notice, bootstrap and identity plants | `conformance/plants.d/61-update.sh` | verified |
 
 ### OW-WAR-0144 — Amending an authorization keeps the superseded one beside it, as a retired response is kept
@@ -40226,7 +40227,7 @@ verifier conclude a gate printed nothing wrong.
 
 [manifest](../../docs/warrants/OW-WAR-0147/manifest.toml) · [authorization](../../docs/warrants/OW-WAR-0147/authorization.toml) · profile `delivery` · rung `draft` · currency `current`
 
-Contract revision 1 (`ac363e740af7f39c75b97f953bca3423cfb9bb2004965075f0a26644b507733b`), Basis SAS 1.3.0.
+Contract revision 2 (`ca6bab4d2fc18ac8f7308f7db81d16d90fe0a1de1a693202cd1babbef10b0540`), Basis SAS 1.3.0.
 
 #### Intent — [docs/warrants/OW-WAR-0147/atoms/10-intent.md](../../docs/warrants/OW-WAR-0147/atoms/10-intent.md)
 
@@ -40544,9 +40545,10 @@ stages:
   tickets and a note; `compact_after_days` at its default of 7.
 - **gate:** `gate://ops.conformance.plants@1.1.0`
 - **evidence:**
-  - accepting: `war prime` lists the remaining items with their claims and
-    blockers and the recent note, and `war prime <ticket>` counts the done
-    items without listing them;
+  - accepting: `war view prime` lists each open ticket on one line with its
+    progress, claims and blockers, and no item or note text;
+    `war view prime <ticket>` lists its remaining items with their blockers
+    and every note, and counts the done items without listing them (AM-001);
   - refusing: no done item appears as a task line, and the 2020 ticket is
     exactly one line under **Done earlier**.
 
@@ -40596,16 +40598,16 @@ the working form is what keeps the contract corpus unchanged.
 | D-008 | prime, show, tickets | `crates/openwarrant-cli/src/ticket/render.rs` | drift |
 | D-009 | The ticket subcommands, show and check routing, the init start line | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-010 | The ticket tools over MCP | `crates/openwarrant-cli/src/mcp/tools.rs` | drift |
-| D-011 | The MCP instructions name the ticket loop | `crates/openwarrant-cli/src/mcp/mod.rs` | verified |
+| D-011 | The MCP instructions name the ticket loop | `crates/openwarrant-cli/src/mcp/mod.rs` | drift |
 | D-012 | The loop, the process race, check and MCP, through the binary | `crates/openwarrant-cli/tests/tickets_cli.rs` | drift |
 | D-013 | The ticket plants | `conformance/plants.d/45-tickets.sh` | drift |
-| D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | verified |
+| D-014 | The AGENTS.md template starts with the ticket loop | `crates/openwarrant-cli/templates/AGENTS.md.tmpl` | drift |
 | D-015 | The template's rendered reference | `docs/agents/legacy-warrant-workflow.md` | drift |
 | D-016 | The repository's own pointer to the ticket loop | `AGENTS.md` | drift |
 | D-017 | The loop in five commands | `docs/TICKETS.md` | drift |
-| D-018 | Three steps to start | `README.md` | verified |
-| D-019 | Three steps to start | `QUICKSTART.md` | verified |
-| D-020 | Ticket and Claim | `CONTEXT.md` | verified |
+| D-018 | Three steps to start | `README.md` | drift |
+| D-019 | Three steps to start | `QUICKSTART.md` | drift |
+| D-020 | Ticket and Claim | `CONTEXT.md` | drift |
 | D-021 | The working form | `docs/PROFILES.md` | drift |
 
 ### OW-WAR-0148 — Typed records: one compiled model, capabilities chosen by a document's type, records and typed relations, states, and tickets on the new kernel

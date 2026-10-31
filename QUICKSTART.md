@@ -23,10 +23,9 @@ spellings included; they all still work.
 Then work it — no signature, no human step, each command well under a second:
 
 ```bash
-war next                       # what can start now
-war claim t-3f2a/i-9c01        # take an item (refused, by name, if someone holds it)
-war done t-3f2a/i-9c01 --note "what you did"
-war view prime                 # what the next agent reads first
+war start                      # take the next ready ticket; prints only what its work needs
+war done --note "what you did" # close the ticket you hold: every item, in one call
+war view prime                 # what is open, one line each
 ```
 
 `docs/TICKETS.md` has the whole loop. The rest of this page is the governed
@@ -177,9 +176,13 @@ steps announce themselves when the agent reaches them.
 Claude Code: add this repository as a plugin (`claude plugin marketplace add
 <path>`, `/plugin install openwarrant@openwarrant`) — the skill, the MCP server
 and two hooks (an edit guard for generated and pinned files, active only in a
-repository with `openwarrant.toml`, and an end-of-turn check that reports
-`war check` errors without blocking). Any other harness: `war admin mcp` over
-stdio; `war admin mcp --describe` lists the tools and what is deliberately not one.
+repository with `openwarrant.toml`, and an end-of-turn check of what the turn
+changed: silent when it holds, holding the stop once with the finding when it
+does not). Any other harness with a shell (opencode,
+Codex, Cursor) needs nothing more: the block `war init` adds to `AGENTS.md` teaches
+`war start` and `war done`, and the shell answers in one call where an MCP tool
+can cost a lookup first. A harness without a shell: `war admin mcp` over stdio;
+`war admin mcp --describe` lists the tools and what is deliberately not one.
 
 ## Worked examples
 

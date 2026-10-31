@@ -24,6 +24,7 @@ pub mod bonsai;
 pub mod bridge;
 pub mod build_identity;
 pub mod bundle;
+pub mod changed;
 pub mod check;
 pub mod commit;
 pub mod compile;
@@ -359,6 +360,15 @@ pub struct Cli {
     /// for every command. Errors are envelopes too.
     #[arg(long, global = true)]
     json: bool,
+    /// Every finding, passes included, and what each unchecked aspect means.
+    /// Without it a report prints errors in full, one line per repeated
+    /// warning rule, and passes as a count. `--json` is always complete.
+    #[arg(long, global = true)]
+    verbose: bool,
+    /// Only what blocks: errors, unknowns, their remedies and the verdict.
+    /// For a hook or a script that acts on a red result and nothing else.
+    #[arg(long, short = 'q', global = true, conflicts_with = "verbose")]
+    quiet: bool,
     /// The repository to act on. Defaults to the nearest ancestor of the
     /// current directory holding `openwarrant.toml`. A command that reads no
     /// repository (`init`, `sdk`, `install`) ignores it.
@@ -745,7 +755,7 @@ enum DailyCommand {
         /// record's first sentence and `(implements REQ-pr1)`. Repeatable.
         #[arg(long, value_name = "RECORD")]
         implements: Vec<String>,
-        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -767,23 +777,33 @@ enum DailyCommand {
         #[arg(long, value_name = "RFC3339")]
         at: Option<String>,
     },
-    /// Start a Warrant's work in a worktree of its own, with its settings.
+    /// Take the next ready Warrant and print only what its work needs.
     ///
-    /// Claims the item (or a Warrant with no items, or an agent stage
-    /// `<alias>/<stage>`), makes it a git worktree on `war-go/<node>`,
-    /// writes the session's harness settings inside that worktree only (the
-    /// Warrant's declared tools, paths and commands; `[go] allowed_acts`),
-    /// and starts the configured harness there. `--print` shows the command
-    /// and the context instead. Started again, it resumes the same worktree.
+    /// Claims it whole and prints its brief: the description, the open
+    /// items, every note, what it depends on, and the command that closes it
+    /// (`war done <id> --note "..."`). Holding one already, it prints that
+    /// one again (a session resumes where it was). With an id, that Warrant;
+    /// with words instead (`war start T8`, `war start monthly budget`), the
+    /// one Warrant whose title or labels hold them all.
+    ///
+    /// `--worktree` instead makes the node a git worktree on `war-go/<node>`
+    /// with the session's harness settings (the Warrant's declared tools,
+    /// paths and commands; `[go] allowed_acts`) and starts the configured
+    /// harness there; `--print` shows that command instead.
     Start {
-        /// The node: `t-...`, `t-.../i-...`, `i-...`, or `<alias>/<stage>`.
-        #[arg(value_name = "ID")]
-        id: String,
-        /// Print the command and the context; start nothing.
+        /// The Warrant or item (`t-...`, `t-.../i-...`, `i-...`), or words of
+        /// one Warrant's title or labels; with `--worktree`, an id or an
+        /// agent stage `<alias>/<stage>`.
+        #[arg(value_name = "ID|WORDS", num_args = 0..)]
+        id: Vec<String>,
+        /// Start the node in a worktree of its own and launch the harness.
         #[arg(long)]
+        worktree: bool,
+        /// With `--worktree`: print the command and the context; start nothing.
+        #[arg(long, requires = "worktree")]
         print: bool,
-        /// The commit the worktree starts from (default HEAD).
-        #[arg(long, value_name = "REV")]
+        /// With `--worktree`: the commit the worktree starts from (default HEAD).
+        #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -807,14 +827,16 @@ enum DailyCommand {
         #[arg(long, value_name = "RFC3339", hide = true)]
         at: Option<String>,
     },
-    /// Tick an item done in its Warrant's checklist and release the claim.
+    /// Close a Warrant, or tick one item, and release the claim.
     ///
-    /// A Warrant reads done when every item is. A plain tick is `claimed`;
-    /// `--check` runs the item's tests and ticks at `observed`.
+    /// A Warrant id ticks every open item in one write, or none (each judged
+    /// as an item's done is); with no id, the one Warrant you hold. A plain
+    /// tick is `claimed`; `--check` runs the tests and ticks at `observed`.
     Done {
-        /// An item id (or a Warrant with no items left open).
-        target: String,
-        /// What was done, for the next reader; written on the item's line.
+        /// A Warrant or item id; omitted, the one Warrant you hold.
+        target: Option<String>,
+        /// What was done, for the next reader: on the item's line, or one
+        /// note on the Warrant when it closes the whole.
         #[arg(long)]
         note: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
@@ -1025,11 +1047,23 @@ enum DailyCommand {
         /// Also compare committed generated views against a fresh compilation.
         #[arg(long)]
         generated: bool,
+        /// Only what the working tree changed: the Warrants whose records or
+        /// pinned files differ from HEAD (or are new). A change to the SAS,
+        /// roadmap, ADRs, gates, authority register or openwarrant.toml
+        /// checks the corpus; no change checks nothing. Git is asked about
+        /// those paths alone. What the end-of-turn hook runs.
+        #[arg(long, conflicts_with = "alias")]
+        changed: bool,
+        /// With --changed: compare against <REV> instead of HEAD, so work
+        /// committed since then is in scope too (the stop hook passes the
+        /// commit its session started at).
+        #[arg(long, value_name = "REV", requires = "changed")]
+        since: Option<String>,
         /// The PR gate (docs/PRESETS.md): read PR <NUMBER> through `gh api`
         /// and pass only when it cites a Warrant official at its author's
         /// level. This reads the network; a call that fails is UNKNOWN,
         /// never a pass.
-        #[arg(long, value_name = "NUMBER", conflicts_with_all = ["alias", "generated"])]
+        #[arg(long, value_name = "NUMBER", conflicts_with_all = ["alias", "generated", "changed"])]
         pr: Option<String>,
         /// With --pr: the repository, `owner/name` (default:
         /// $GITHUB_REPOSITORY, else what `gh repo view` names).
@@ -1045,7 +1079,7 @@ enum DailyCommand {
         /// The CI floor (docs/SCORE.md): refuse when the working tree's
         /// score level is below <REV>'s. With --pr, the base's
         /// `[score] floor = true` turns it on instead.
-        #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr"])]
+        #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
     },
 }
@@ -1210,7 +1244,7 @@ enum PlanCommand {
         /// Why, for the next reader; kept in the journal entry.
         #[arg(long)]
         note: Option<String>,
-        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -1844,12 +1878,18 @@ enum ViewCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// What an arriving agent or person reads first: open Warrants with their
-    /// remaining items, who holds what, recent notes, done work compacted.
+    /// What is open: one line per open Warrant (progress, who holds it,
+    /// what it waits on) and done work by id; one Warrant in full with an id.
     Prime {
         /// One Warrant in full instead.
         #[arg(value_name = "WARRANT")]
         ticket: Option<String>,
+        /// What a harness puts in front of an agent when its session starts
+        /// (the plugin's SessionStart hook): the brief of the Warrant this
+        /// actor holds, so a resumed session needs no call; else the overview
+        /// and how to take the next; nothing when no tracked work is open.
+        #[arg(long, conflicts_with = "ticket")]
+        session: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -2146,7 +2186,7 @@ enum AdminCommand {
         /// The Beads JSONL file, or the OpenSpec or Spec Kit folder (or the
         /// folder holding `openspec/` or `specs/`).
         path: Utf8PathBuf,
-        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`).
+        /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -2823,7 +2863,7 @@ pub fn entrypoint() -> ExitCode {
             let mut words = Vec::new();
             while words.len() < 2 {
                 let Some(arg) = args.next() else { break };
-                if arg == "--json" {
+                if arg == "--json" || arg == "--verbose" || arg == "--quiet" || arg == "-q" {
                     continue;
                 }
                 if arg == "--root" {
@@ -2849,6 +2889,8 @@ pub fn entrypoint() -> ExitCode {
     };
     let mode = output::Mode::from_flag(cli.json);
     let json = cli.json;
+    output::set_verbose(cli.verbose);
+    output::set_quiet(cli.quiet);
     let code = match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(report) => {
@@ -3046,7 +3088,7 @@ impl Ctx {
     /// (OW-WAR-0115): best-effort, and nothing it does changes the result.
     ///
     /// M11: every command that opens a repository renews the acting agent's
-    /// claim leases (`$OPENWARRANT_ACTOR`, else `[project] performer`): a
+    /// claim leases (`$OPENWARRANT_ACTOR`, else the default actor): a
     /// touch per lock it holds, nothing more. The ticket commands renew for
     /// their own `--as`.
     fn open_repo(&self) -> Result<repo::Repository, repo::RepoError> {
@@ -3477,6 +3519,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         } => {
             answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let target = match target {
+                Some(t) => t,
+                None => match ticket::held_target(&store)? {
+                    Ok(t) => t,
+                    Err(refusal) => return Ok(ticket_answer(mode, "done", &refusal)),
+                },
+            };
             let mut outcome =
                 ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
             // OW-WAR-0148 M17: in the ledger's agent mode, done asks for the
@@ -3994,14 +4043,31 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         }
         DailyCommand::Start {
             id,
+            worktree,
             print,
             base,
             actor,
         } => {
-            let repository = ctx.open_repo()?;
-            let opts = go::start::Options { actor, print, base };
-            let (report, result, human) = go::start::run(&repository, &id, &opts)?;
-            Ok(go_answer(mode, "start", &report, result, &human))
+            let id = (!id.is_empty()).then(|| id.join(" "));
+            if worktree {
+                let Some(id) = id else {
+                    let refusal = ticket::Outcome::refused(
+                        "start.worktree-needs-id",
+                        String::new(),
+                        "`war start --worktree` needs the node to start (`t-...`, `<alias>/<stage>`)",
+                    );
+                    return Ok(ticket_answer(mode, "start", &refusal));
+                };
+                let repository = ctx.open_repo()?;
+                let opts = go::start::Options { actor, print, base };
+                let (report, result, human) = go::start::run(&repository, &id, &opts)?;
+                return Ok(go_answer(mode, "start", &report, result, &human));
+            }
+            ticket::cache::permit();
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::start_cmd(&store, id.as_deref())?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "start", &outcome))
         }
         DailyCommand::Next { at } => {
             answer_at(at.as_deref())?;
@@ -4105,9 +4171,62 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             Ok(output::exit_code(&report))
         }
         DailyCommand::Check {
-            alias, generated, ..
+            alias,
+            generated,
+            changed,
+            since,
+            ..
         } => {
             let repository = ctx.open_repo()?;
+            let mut why_corpus = None;
+            if changed {
+                let shared = corpus::Corpus::new(&repository);
+                let scope = changed::scope(&shared, since.as_deref())?;
+                if scope.is_empty() {
+                    let mut report = diagnostic::Report::default();
+                    report.push(diagnostic::Diagnostic::pass(
+                        "check.changed",
+                        format!(
+                            "nothing OpenWarrant governs differs from {}, so nothing was checked",
+                            since.as_deref().unwrap_or("HEAD")
+                        ),
+                    ));
+                    return Ok(output::finish(mode, "check", &report, None));
+                }
+                match scope.corpus.clone() {
+                    Some(why) => why_corpus = Some(why),
+                    None => {
+                        gate_cmd::source::remember_tree_reads();
+                        let aliases = scope.all_warrants();
+                        let mut report = if aliases.is_empty() {
+                            diagnostic::Report::default()
+                        } else {
+                            check::run_in(&shared, Some(&aliases), generated)?
+                        };
+                        if scope.tickets {
+                            match ticket::Store::open(&repository, None) {
+                                Ok(store) => ticket::check(&store, None, &mut report)?,
+                                Err(e) => report.push(diagnostic::Diagnostic::error(
+                                    "tickets.config",
+                                    init::CONFIG_FILE.to_owned(),
+                                    e.to_string(),
+                                )),
+                            }
+                        }
+                        if scope.documents {
+                            check::check_documents(&shared, &mut report);
+                        }
+                        report.diagnostics.insert(
+                            0,
+                            diagnostic::Diagnostic::pass(
+                                "check.changed",
+                                changed::headline(&scope),
+                            ),
+                        );
+                        return Ok(output::finish(mode, "check", &report, None));
+                    }
+                }
+            }
             // A ticket is checked for its structure only (OW-WAR-0147): never
             // for a signature, evidence or verification it does not need.
             if let Some(a) = alias.as_deref().filter(|a| ticket::is_ticket_ref(a)) {
@@ -4135,6 +4254,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
             let mut report = check::run(&repository, alias.as_deref(), generated)?;
+            if let Some(why) = why_corpus {
+                report.push(diagnostic::Diagnostic::pass(
+                    "check.changed",
+                    format!("checked the corpus: {why}"),
+                ));
+            }
             if alias.is_none() {
                 match ticket::Store::open(&repository, None) {
                     Ok(store) => ticket::check(&store, None, &mut report)?,
@@ -6151,9 +6276,14 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         }
         ViewCommand::Prime {
             ticket: target,
+            session,
             actor,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            if session {
+                let outcome = ticket::session_start(&store)?;
+                return Ok(ticket_answer(mode, "prime", &outcome));
+            }
             let mut outcome = ticket::prime(&store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it
             // follows is newer than this binary (a WARN, on stderr in

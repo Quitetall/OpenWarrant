@@ -33,16 +33,18 @@ use crate::repo::{RepoError, Repository};
 pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. Ordinary work needs none of \
 this: edit, build and test as you would in any repository; no Warrant, ticket or signature is \
 needed to write code. These tools help when you want to track or plan work. Tickets: \
-`war_prime` shows what is open, `war_ready` what can start now, `war_claim` takes an item, \
-`war_done` ticks it off; `war_create`, `war_add` and `war_note` keep the ticket current. \
-`war_context` loads what a task needs: give it a Warrant, ticket, item, record id or file path. No \
-ticket step needs a signature. Warrants are optional work plans; a Warrant whose type has a \
+`war_start` takes the next ready Warrant, or the one its `target` names by id or by words of \
+its title, and returns only what its work needs (call it in the same turn as your first look at \
+the code); `war_done` closes it (in the same turn as your last test run); `war_prime` lists what \
+is open, one line each. `war_create`, `war_add` and `war_note` \
+keep a ticket current. No ticket step needs a signature. Warrants are optional work plans; a Warrant whose type has a \
 sign-off step is approved by a person. This server cannot authorize, resolve, verify, accept a \
 SAS, correct a delivered file, or sign anything, and no tool records a signed response: those \
 are human acts done at a terminal with `war sign`. Tools ending in `_request` draft the \
 document a person signs and write nothing. `war_next` lists what is ready and whose step each \
 item is. `war_pins` lists the files closed Warrants pin by digest; a change to one is drafted \
-with `war sign correct`. Every tool returns an `oh.war/report/v1` envelope as structured content: \
+with `war sign correct`. Every tool returns an `oh.war/report/v1` envelope as structured content \
+(a ticket tool's text is what the CLI prints): \
 `diagnostics[]` name a rule per finding, `verdict` is ready|not_ready, `exit_code` is what the \
 CLI would have exited with.";
 
