@@ -399,6 +399,10 @@
 > -
 - doc:docs/design/agent-stop-points.md · document · - · Stops, failures and changes · docs/design/agent-stop-points.md:1
 
+## docs/design/alpha6-implementation.md
+> -
+- doc:docs/design/alpha6-implementation.md · document · - · Alpha.6 implementation · docs/design/alpha6-implementation.md:1
+
 ## docs/design/amendment-review/README.md
 > -
 - doc:docs/design/amendment-review/README.md · document · - · Amendment review and publication evidence · docs/design/amendment-review/README.md:1
@@ -1767,6 +1771,10 @@
 ## docs/tickets/t-88d2/manifest.toml
 > war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check
 - t-88d2 · ticket · done · war prepare's commit carried only tree-bound paths, so HEAD's projections drifted from HEAD's records and every battery (a clone of HEAD) failed its clean-corpus check · docs/tickets/t-88d2/manifest.toml:1
+
+## docs/tickets/t-8956e/manifest.toml
+> Prepare alpha.6: one Warrant model and lean work loop
+- t-8956e · ticket · open · Prepare alpha.6: one Warrant model and lean work loop · docs/tickets/t-8956e/manifest.toml:1
 
 ## docs/tickets/t-8a2c/manifest.toml
 > Found by the verifier-fix agents: a whole-ticket claim hints a refused done; context_artifacts reads outside the repository; a one-line file (SECTIONS.json) travels in a bundle with no text
