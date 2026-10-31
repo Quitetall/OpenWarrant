@@ -58,6 +58,7 @@ pub mod init;
 pub mod install;
 pub mod instructions;
 pub mod interop;
+pub mod interview;
 pub mod invalidation;
 pub mod journal_cmd;
 pub mod kf;
@@ -626,6 +627,12 @@ pub fn group_member(group: &str, word: &str) -> bool {
 /// anything.
 #[derive(Subcommand)]
 enum DailyCommand {
+    /// Resume a Warrant or intake interview: unanswered blockers, ranked and counted.
+    /// Read-only; answers and authorization remain separate acts.
+    Interview {
+        /// Warrant alias or the intake key a drafting request reported.
+        target: String,
+    },
     /// Set up this repository: openwarrant.toml, record directories, AGENTS.md.
     ///
     /// Initialize repository configuration and directories (§71.1). Asks
@@ -3347,6 +3354,19 @@ fn check_action(
 fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        DailyCommand::Interview { target } => {
+            let repository = ctx.open_repo()?;
+            let (report, view) = interview::view(&repository, &target)?;
+            if mode == output::Mode::Human {
+                print!("{}", interview::render(&view));
+            }
+            Ok(output::finish(
+                mode,
+                "interview",
+                &report,
+                Some(output::value(&view)),
+            ))
+        }
         DailyCommand::Create {
             title,
             summary,

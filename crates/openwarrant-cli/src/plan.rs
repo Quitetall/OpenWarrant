@@ -275,11 +275,16 @@ pub fn validate_v2(
         &proposal.unresolved_questions,
         answers,
     ) {
+        let questions: Vec<_> =
+            openwarrant_core::drafting::minimum_question_set(&proposal.unresolved_questions)
+                .into_iter()
+                .filter(|question| !answers.contains(&question.id))
+                .collect();
         return Err(RepoError::Message(format!(
             "plan.interview-required: {e}. Answer with --answer <id>=<text>; the questions are:\n{}",
             serde_json::to_string_pretty(&serde_json::json!({
                 "schema": INTERVIEW_SCHEMA,
-                "questions": openwarrant_core::drafting::minimum_question_set(&proposal.unresolved_questions),
+                "questions": questions,
             }))
             .unwrap_or_default()
         )));
