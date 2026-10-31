@@ -43,7 +43,7 @@ use crate::repo::{RepoError, Repository};
 
 /// The journal events the ladder records in a ticket's journal.
 pub mod event {
-    /// `war add --test/--kpi/--milestone`.
+    /// `war plan add --test/--kpi/--milestone`.
     pub const PART_ADDED: &str = "work.part_added";
     /// A `war done --check` that did not tick: what ran and why.
     pub const CHECK_RUN: &str = "work.check_run";
@@ -70,6 +70,27 @@ pub fn checks_of(t: &Ticket) -> Checks {
 
 /// Absence is optional; an existing source that cannot be read is UNKNOWN.
 fn read_checks(t: &Ticket) -> Result<Checks, String> {
+    if t.format {
+        let doc = openwarrant_core::format::parse(t.checklist_text.as_bytes());
+        let mut checks = Checks::default();
+        for unit in doc.units.iter().filter(|u| u.record_type == "milestone") {
+            let min = unit
+                .fields
+                .get("min")
+                .and_then(|v| v.as_str())
+                .and_then(Level::parse);
+            for item in &unit.items {
+                if let Some(id) = &item.id {
+                    checks.milestones.push(openwarrant_core::ticks::Milestone {
+                        item: id.clone(),
+                        min,
+                        line: unit.line,
+                    });
+                }
+            }
+        }
+        return Ok(checks);
+    }
     let path = t.dir.join(ticks::CHECKS_FILE);
     match crate::vfs::metadata(&path) {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Checks::default()),
@@ -1038,7 +1059,7 @@ pub fn kpi_run(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             "kpi.none",
             store.rel(&t.dir.join(ticks::CHECKS_FILE)),
             format!(
-                "{what} has no KPI to run. Add one: `war add {} --kpi <name> --cmd \"<prints a \
+                "{what} has no KPI to run. Add one: `war plan add {} --kpi <name> --cmd \"<prints a \
                  number>\" --direction max` (or min), with `--target <N>` to pass or fail \
                  against",
                 t.id()
@@ -1194,7 +1215,7 @@ pub fn check_for_tick(
             store.rel(&t.dir.join(ticks::CHECKS_FILE)),
             format!(
                 "{what} has no test and no KPI with a target, so `--check` has nothing that \
-                 could fail. Add one (`war add {what} --test \"<command>\"`), or tick it as \
+                 could fail. Add one (`war plan add {what} --test \"<command>\"`), or tick it as \
                  claimed (`war done {what}`)"
             ),
         ))));

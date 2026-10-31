@@ -9,7 +9,7 @@
 //! path = "openspec"      # relative to the repository root, or absolute
 //! ```
 //!
-//! With an entry, `war view warrants`, `war show <id>`, `war status`,
+//! With an entry, `war view warrants`, `war view show <id>`, `war status`,
 //! `war plan model`, `war plan impact` and `war check` read the folder on every call
 //! with the same readers `war admin import` uses ([`super::openspec`],
 //! [`super::speckit`]): a repository that keeps working in those tools gets
@@ -224,7 +224,7 @@ impl Adapted {
     }
 }
 
-/// `war show <id>` (and `war status <id>`) for a Warrant read in place, or
+/// `war view show <id>` (and `war status <id>`) for a Warrant read in place, or
 /// one of its records: the Warrant as a person reads it, from the folder
 /// as it is now. Writes nothing.
 #[must_use]

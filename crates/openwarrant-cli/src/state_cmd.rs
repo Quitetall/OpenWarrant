@@ -13,7 +13,7 @@
 //!   - an obligation: `verified` (an admissible independent verdict on record
 //!     establishes it — the reading `war sign resolve` makes);
 //!   - a ticket and its items: `open`, `in_progress`, `done`, from the
-//!     checklist and the claims `war claim` holds;
+//!     checklist and the claims `war admin claim` holds;
 //!   - a roadmap phase: `achieved` (its exit Warrant's resolution is
 //!     recorded) and `accepted` (the roadmap record is accepted).
 //! - **Declared states** come from a profile's `[[states]]` and are entered
@@ -254,7 +254,7 @@ pub fn ticket_declared(
 }
 
 /// ` [in_review]` (or ` [in_review, lapsed]`) for a record that has a
-/// declared state on record, empty otherwise: what `war show` appends.
+/// declared state on record, empty otherwise: what `war view show` appends.
 #[must_use]
 pub fn annotate(declared: &[Declared], record: &str) -> String {
     declared
@@ -1055,10 +1055,10 @@ pub fn document_states(
     out
 }
 
-// ---- `war show <alias>` --------------------------------------------------
+// ---- `war view show <alias>` --------------------------------------------------
 
 /// The declared states on record for a Warrant and its records, as a short
-/// section for `war show`; `None` when its journal holds none, so a Warrant
+/// section for `war view show`; `None` when its journal holds none, so a Warrant
 /// without one renders exactly as before.
 pub fn warrant_section(repo: &Repository, alias: &str) -> Option<(String, Vec<Declared>)> {
     let dir = repo.warrant_dir(alias).ok()?;

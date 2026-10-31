@@ -145,7 +145,7 @@ pub fn run(
             "go.no-git",
             root.to_string(),
             "`war start` gives the work a git worktree of its own, and this is not a git \
-             checkout; claim it and work here instead (`war claim <id>`)",
+             checkout; claim it and work here instead (`war admin claim <id>`)",
         ));
         return Ok((report, serde_json::Value::Null, String::new()));
     };

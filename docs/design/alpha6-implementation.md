@@ -65,3 +65,16 @@ the authority for merged code; preservation copies make no assurance claim.
 
 Alpha.6 is a prerelease. Outstanding human studies, independent qualification
 and formal acceptance remain outstanding, and Stable 1.0 is not claimed.
+
+## Implementation checkpoint (not release qualification)
+
+The work-model branch contains the six-command surface, the all-required check
+rule, default single-file authoring, deterministic task-context delivery, and
+scoped cooperative claims. Focused positive and refusal tests cover these
+paths. W35's interview implementation is in this branch's ancestry.
+
+The remaining scope includes execution lifecycle wiring, safe managed-worktree
+cleanup, milestone-table import, watched regression and stale-source handling,
+legacy compatibility, schema generation, documentation, branch reconciliation,
+and the full receiving-commit release gate. These items are not delivered by
+this checkpoint. No independent disposition or human acceptance is asserted.

@@ -115,7 +115,7 @@ pub fn run(
     let cache = crate::ticket::cache::describe(&repo.root);
     report.note(match cache["dir"].as_str() {
         Some(dir) => format!(
-            "Ticket cache: in use by `war next`, `war view ready`, `war view tickets`, `war status` and `war claim`, at {dir} (local, never committed; it only answers what is unchanged since it was read). {}=1 turns it off.",
+            "Ticket cache: in use by `war view next`, `war view ready`, `war view tickets`, `war status` and `war admin claim`, at {dir} (local, never committed; it only answers what is unchanged since it was read). {}=1 turns it off.",
             crate::ticket::cache::DISABLE_ENV
         ),
         None => format!(

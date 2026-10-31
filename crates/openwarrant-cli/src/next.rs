@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war next` — what should happen next in this repository, and whose act it
+//! `war view next` — what should happen next in this repository, and whose act it
 //! is.
 //!
 //! Two lists exist already: `war sign --list` (the human's acts) and the
@@ -12,7 +12,7 @@
 //! human must, and how.
 //!
 //! t-67ed: ready ticket items come first. They are read from the ticket
-//! store with the same computation `war view ready` uses, carry `war claim`, and
+//! store with the same computation `war view ready` uses, carry `war admin claim`, and
 //! are never a signature; the Warrant acts follow them, still judged.
 
 use serde::Serialize;
@@ -22,7 +22,7 @@ use crate::sign::{self, Pending};
 
 pub const SCHEMA: &str = "oh.war/next/v1";
 
-/// The first line `war next` prints when nothing is tracked (M9): ordinary
+/// The first line `war view next` prints when nothing is tracked (M9): ordinary
 /// work needs no ticket and no Warrant, so an empty list is permission to
 /// carry on, said as such.
 pub const IDLE_UNTRACKED: &str = "nothing tracked; work freely";
@@ -77,7 +77,7 @@ pub struct Action {
 }
 
 /// A ticket item that can start now (`war view ready`'s row), offered before any
-/// Warrant act. Its command is always `war claim`: never a signature.
+/// Warrant act. Its command is always `war admin claim`: never a signature.
 #[derive(Debug, Clone, Serialize)]
 pub struct ReadyItem {
     pub actor: Actor,
@@ -91,7 +91,7 @@ pub struct ReadyItem {
 }
 
 impl ReadyItem {
-    /// The row as `war next` lists it, its text taken rather than copied.
+    /// The row as `war view next` lists it, its text taken rather than copied.
     fn of(r: crate::ticket::ReadyRow) -> Self {
         // A Warrant is taken whole: `war start` claims it and prints its work.
         let command = format!("war start {}", r.ticket);
@@ -141,7 +141,7 @@ pub struct Next {
     pub blocked: Vec<crate::go::BlockedNode>,
 }
 
-/// A finding carried into `war next`, in the envelope diagnostic's shape.
+/// A finding carried into `war view next`, in the envelope diagnostic's shape.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Finding {
     pub rule: String,
@@ -496,7 +496,7 @@ pub fn run_with(corpus: &crate::corpus::Corpus) -> Result<Next, RepoError> {
     })
 }
 
-/// What `war next` reads from the ticket store: the ready rows over the
+/// What `war view next` reads from the ticket store: the ready rows over the
 /// corpus's tickets (as [`ready_tickets`] reads them) and, when the tickets
 /// load, the nodes a run set aside.
 struct TicketSide {
@@ -616,7 +616,7 @@ fn judged(
     Ok(next)
 }
 
-/// The lines `war next` (and the console) print when nothing is ready: the
+/// The lines `war view next` (and the console) print when nothing is ready: the
 /// plain first line, the reason, and the one-line hint. `None` when there is
 /// something to list.
 #[must_use]
@@ -917,7 +917,7 @@ pub fn render(n: &Next) -> String {
                 k => format!(" and {k} more"),
             };
             s.push_str(&format!(
-                "{:<6} {:<12} {:<10} … also {}{tail} (`war next --verbose` lists each)\n",
+                "{:<6} {:<12} {:<10} … also {}{tail} (`war view next --verbose` lists each)\n",
                 if *human { "HUMAN" } else { "agent" },
                 "",
                 action,

@@ -2,7 +2,7 @@
 //! What `ssh-keygen -Y verify` already answered, so the daily read verbs do
 //! not ask it again.
 //!
-//! `war next` on this repository asked `ssh-keygen` about 140 times per run,
+//! `war view next` on this repository asked `ssh-keygen` about 140 times per run,
 //! once for each distinct signed response and batch (131), plus a few more
 //! when two threads asked the same question at once. The per-process memo in
 //! `authority_check` already kept the count to the distinct inputs; the cost
@@ -45,7 +45,7 @@
 //!   signature verifies would be seen by every judging command, which never
 //!   reads this cache, but not by the advice verbs until the binary or an
 //!   input changed. `OPENWARRANT_NO_CACHE=1` turns the cache off.
-//! - **Scope.** Only the commands that call [`permit`] use it: `war next`,
+//! - **Scope.** Only the commands that call [`permit`] use it: `war view next`,
 //!   `war status`, `war view overview` (plain and `--snapshot`) and `war view
 //!   board` — one-shot read-only advice. `war check` (and `--generated`),
 //!   compile, `war sign` (including `--list` and every dry run outside `war

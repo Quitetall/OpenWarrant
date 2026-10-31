@@ -8,7 +8,7 @@
 //!   reproduces from a fresh clone.
 //! - `CORPUS_PENDING.json` (`oh.war/corpus-pending/v1`): the human acts that
 //!   await a signature, each with the command that performs it. Derived from
-//!   the same records `war next` reads; tracked inputs only.
+//!   the same records `war view next` reads; tracked inputs only.
 //!
 //! Both are canonical JSON (RFC 8785), so two compilations of one tree are
 //! byte-identical.

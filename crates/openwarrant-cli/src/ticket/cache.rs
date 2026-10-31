@@ -2,7 +2,7 @@
 //! A local cache of parsed tickets: the daily read verbs at 10,000 Warrants
 //! (CONTRIBUTING.md, "The speed budget").
 //!
-//! Every run of `war next` or `war view ready` read and parsed every ticket:
+//! Every run of `war view next` or `war view ready` read and parsed every ticket:
 //! its `manifest.toml` (TOML), both atoms, and, for an open ticket, its
 //! journal. At 9,800 tickets that was most of the run. This module keeps what
 //! those reads produced — the manifest's fields, the atoms' text, the
@@ -32,7 +32,7 @@
 //!   nothing about the files inside, which an in-place edit changes without
 //!   touching any directory: every ticket is still judged by its own files'
 //!   stats, never by a directory's.
-//! - **Journals.** `war next` lists the nodes a run set aside, read from
+//! - **Journals.** `war view next` lists the nodes a run set aside, read from
 //!   each open ticket's journal ([`permit_with_journals`]); the nodes are
 //!   kept beside the journal's stat and the ticket entry they were read
 //!   with. A journal that was absent is keyed as absent.
@@ -42,8 +42,8 @@
 //!   store directory — and the ticket is read from its files, and the shard
 //!   rewritten. Nothing in a shard is trusted until its BLAKE3 checksum and
 //!   its key both match.
-//! - **Scope.** Only the commands that call [`permit`] use it (`war next`,
-//!   `war view ready`, `war view tickets`, `war status`, `war claim`): views of
+//! - **Scope.** Only the commands that call [`permit`] use it (`war view next`,
+//!   `war view ready`, `war view tickets`, `war status`, `war admin claim`): views of
 //!   the ticket loop. `war check`, compile, and every signing, authorizing,
 //!   resolving and verifying path never permit it, so nothing that judges a
 //!   record or authority reads it. It is off in a hosted (`war admin host`)
@@ -104,7 +104,7 @@ pub fn permit() {
 }
 
 /// [`permit`], and have each open ticket's set-aside nodes
-/// ([`crate::go::blocked_nodes`]) read with it: for `war next`, which lists
+/// ([`crate::go::blocked_nodes`]) read with it: for `war view next`, which lists
 /// them. Without this the journals are neither read nor stat'ed.
 pub fn permit_with_journals() {
     JOURNALS.store(true, Ordering::Relaxed);

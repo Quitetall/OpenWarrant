@@ -111,7 +111,7 @@ fn fingerprint(repo: &Repository) -> Option<String> {
         return None;
     }
     // A read-only command (t-eca6) computes it once: it stats every record of
-    // every Warrant, and `war next` asked once per pending act — ~15,000 stats
+    // every Warrant, and `war view next` asked once per pending act — ~15,000 stats
     // times ~250 acts at 1,000 Warrants (OW-WAR-0120's budget, t-f815).
     static ONCE: std::sync::OnceLock<
         std::sync::Mutex<std::collections::HashMap<camino::Utf8PathBuf, Option<String>>>,

@@ -911,6 +911,29 @@ def op_evaluate(world: World, actor: str):
     w = Writer(world, actor)
     for d in world.work:
         edits, events = [], []
+        planned = set()
+
+        def required_runs(item):
+            required = []
+            for check in d.records:
+                if check["type"] not in ("check", "kpi") or check["fields"].get("gating") == "false":
+                    continue
+                covers = any(r["from"] == check["id"] and r["kind"] == "evaluates"
+                             and reader.resolve_ref(world.repo, r["to"]) == item["id"]
+                             for r in world.repo.relations)
+                if not covers:
+                    continue
+                run = world.last_run(d, check)
+                if run is None or run["payload"].get("verdict") != "PASS":
+                    return []
+                payload = run["payload"]
+                subjects = {(sid if "/" in sid else f"{d.alias}/{sid}"): rev
+                            for sid, rev in payload.get("subjects", [])}
+                if subjects.get(item["id"]) != item["revision"]:
+                    return []
+                required.append(payload["run"])
+            return required
+
         for rec in d.records:
             if rec["type"] not in ("check", "kpi"):
                 continue
@@ -932,11 +955,17 @@ def op_evaluate(world: World, actor: str):
                 if not it or it["type"] != "item":
                     continue
                 if verdict == "PASS" and subjects.get(it["id"]) == it["revision"]:
+                    if rec["fields"].get("gating") == "false":
+                        continue
+                    runs = required_runs(it)
+                    if not runs or it["id"] in planned:
+                        continue
+                    planned.add(it["id"])
                     line = w.line_text(it)
                     if it["_box"] != "x":
                         edits.append(w.line_edit(d, it, w.done_line(line, "observed")))
                         events.append(("work.item_done", {"item": it["_iid"], "target": it["id"],
-                                       "on": world.at_text[:10], "level": "observed", "runs": [p.get("run")]}))
+                                       "on": world.at_text[:10], "level": "observed", "runs": runs}))
                     elif LEVEL_RANK[world.backed_level.get(it["id"], "claimed")] < LEVEL_RANK["observed"]:
                         edits.append(w.line_edit(d, it, w.raised_line(line, "observed")))
                         events.append(("work.tick_raised", {"item": it["_iid"], "target": it["id"],

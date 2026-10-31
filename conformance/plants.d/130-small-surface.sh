@@ -6,7 +6,7 @@
 # Each claim is paired with an observed refusal:
 # - The Commands section is exactly the daily verbs (clap's own `help` set
 #   aside), at most twelve: `war start` (M15) is the twelfth. The same reader
-#   over the help with a planted verb refuses a thirteenth.
+#   over the help with a planted verb refuses a seventh.
 # - "More:" names plan, sign, evidence, view and admin, each with a purpose.
 #   The same reader over the help with one group's line removed refuses it.
 # - Each group's help lists exactly its members. A member asked of the wrong
@@ -35,10 +35,10 @@ ss_reads_ok() {
     n=$(wc -w <<<"$daily")
     groups=$(ss_section "$1" "More:")
     purposes=$(awk '$0 == "More:" {f=1; next} /^[^ ]/ || /^$/ {f=0} f && NF >= 3' <<<"$1" | wc -l)
-    [[ $n -ge 1 && $n -le 12 && "$groups" == "plan sign evidence view admin" && $purposes -eq 5 ]]
+    [[ $n -ge 1 && $n -le 6 && "$groups" == "plan sign evidence view admin" && $purposes -eq 5 ]]
 }
 
-SS_DAILY_WANT="init create next start claim done add note edit show status check"
+SS_DAILY_WANT="init create start done status check"
 SS_HELP=$(sw --help 2>&1); SS_RC=$?
 SS_DAILY=$(ss_section "$SS_HELP" "Commands:")
 SS_LINES=$(wc -l <<<"$SS_HELP")
@@ -49,16 +49,16 @@ else
 fi
 
 # The reader's bound, seen both ways: the real help, twelve verbs with
-# `start`, is admitted; a planted thirteenth is refused; a More: block missing
+# `start`, is admitted; a planted seventh is refused; a More: block missing
 # a group is refused.
-SS_P13=$(sed 's/^  check /  frob    A planted thirteenth verb\n  check /' <<<"$SS_HELP")
+SS_P7=$(sed 's/^  check /  frob    A planted seventh verb\n  check /' <<<"$SS_HELP")
 SS_PMORE=$(awk '!/^  view /' <<<"$SS_HELP")
-if ss_reads_ok "$SS_HELP" && [[ $(wc -w <<<"$SS_DAILY") -eq 12 ]] \
-    && [[ $(wc -w <<<"$(ss_section "$SS_P13" "Commands:")") -eq 13 ]] \
-    && ! ss_reads_ok "$SS_P13" && ! ss_reads_ok "$SS_PMORE"; then
-    ss_ok "a planted 13th verb is refused" "12 admitted (start is the twelfth), 13 refused; More: without view refused"
+if ss_reads_ok "$SS_HELP" && [[ $(wc -w <<<"$SS_DAILY") -eq 6 ]] \
+    && [[ $(wc -w <<<"$(ss_section "$SS_P7" "Commands:")") -eq 7 ]] \
+    && ! ss_reads_ok "$SS_P7" && ! ss_reads_ok "$SS_PMORE"; then
+    ss_ok "a planted 7th verb is refused" "6 admitted, 7 refused; More: without view refused"
 else
-    ss_fail "a planted 13th verb is refused" "the reader did not tell 12, 13 and a missing group apart"
+    ss_fail "a planted 7th verb is refused" "the reader did not tell 6, 7 and a missing group apart"
 fi
 
 # Each group's members, as docs/COMMANDS.md lists them. `schemas` is in a
@@ -67,11 +67,11 @@ fi
 # and `admin score`, likewise; Format 1.0 draft 3 `admin reopen` (§11.2),
 # `plan spec` (§4.5) and `plan states` (§11.1).
 declare -A SS_MEMBERS=(
-    [plan]="new promote render impact spec model states state roadmap types type frontier estimate questions ask answer answers"
+    [plan]="add note edit interview new promote render impact spec model states state roadmap types type frontier estimate questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority native-resolve approve release"
     [evidence]="record gate verify prepare run perform go submit kpi mark document eval runtime"
-    [view]="ui tui board console watch overview warrants ready prime context timeline"
-    [admin]="compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release reopen renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset ledger score"
+    [view]="next show ui tui board console watch overview warrants ready prime context timeline"
+    [admin]="claim compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release reopen renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset ledger score"
 )
 SS_BAD=""
 for g in plan sign evidence view admin; do

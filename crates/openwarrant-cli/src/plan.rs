@@ -882,7 +882,7 @@ pub struct Asked {
 /// `docs/intake/<key>/` — beside the request and, for a ticket, its intake
 /// record — and no alias is allocated: a Warrant with nothing in it is the
 /// invented Warrant this path exists to prevent. `war plan questions`, `war
-/// answer` and `war next` read it from there.
+/// answer` and `war view next` read it from there.
 ///
 /// `None` when this is not that case, and the caller reports the error as
 /// it always did.

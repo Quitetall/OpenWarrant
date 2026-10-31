@@ -131,6 +131,7 @@ pub mod warrants;
 pub mod watch;
 pub mod webui;
 pub mod work_rules;
+pub mod worktrees;
 
 #[derive(clap::Subcommand, Debug)]
 enum KfCommand {
@@ -510,11 +511,8 @@ enum BridgeCommand {
 // subcommand overflowed a test thread's stack while clap assembled it.
 
 /// The daily verbs: the only commands `war --help` lists, in this order.
-/// At most twelve (a plant counts them); `war start` (M15) is the twelfth.
-pub const DAILY: &[&str] = &[
-    "init", "create", "next", "start", "claim", "done", "add", "note", "edit", "show", "status",
-    "check",
-];
+/// Six daily verbs; advanced operations remain available under their groups.
+pub const DAILY: &[&str] = &["init", "create", "start", "done", "status", "check"];
 
 /// The groups, named under "More:" in `war --help`, each with its purpose
 /// (the first line of its own help).
@@ -529,6 +527,9 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
     (
         "plan",
         &[
+            "add",
+            "note",
+            "edit",
             "new",
             "interview",
             "promote",
@@ -576,13 +577,15 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
     (
         "view",
         &[
-            "ui", "tui", "board", "console", "watch", "overview", "progress", "warrants",
-            "tickets", "ls", "ready", "prime", "context", "timeline",
+            "next", "show", "ui", "tui", "board", "console", "watch", "overview", "progress",
+            "warrants", "tickets", "ls", "ready", "prime", "context", "timeline",
         ],
     ),
     (
         "admin",
         &[
+            "worktrees",
+            "claim",
             "compile",
             "doctor",
             "pins",
@@ -632,7 +635,7 @@ pub fn group_member(group: &str, word: &str) -> bool {
 }
 
 /// The daily loop (OW-WAR-0147; OW-WAR-0148 M10, M12; docs/TICKETS.md):
-/// `war create`, `war claim`, `war done`, and the reads around them. A
+/// `war create`, `war admin claim`, `war done`, and the reads around them. A
 /// Warrant made here is in its light encoding (what earlier releases called
 /// a ticket). None of these commands asks a human for anything or signs
 /// anything.
@@ -702,11 +705,14 @@ enum DailyCommand {
         /// issue's title unless given.
         #[arg(required_unless_present_any = ["issue", "issue_file"])]
         title: Option<String>,
+        /// Keep the old manifest-and-atoms encoding for a legacy integration.
+        #[arg(long, hide = true)]
+        legacy: bool,
         /// One line (at most 200 bytes) saying what the work is for: what an
         /// agent reads in `war context` and docs/generated/llms.txt first.
         #[arg(long, value_name = "LINE")]
         summary: Option<String>,
-        /// A checklist item; repeat for more. Items can be added later with `war add`.
+        /// A checklist item; repeat for more. Items can be added later with `war plan add`.
         #[arg(long = "item", short = 'i', value_name = "TEXT")]
         items: Vec<String>,
         /// Context, decisions, links: Markdown for the Warrant's description.
@@ -754,24 +760,6 @@ enum DailyCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// What is ready, and whose step it is.
-    ///
-    /// Ready items of light Warrants first (what `war view ready` lists),
-    /// then an agent's acts, then the acts a person signs. With nothing
-    /// tracked it says "nothing tracked; work freely": ordinary work needs
-    /// no Warrant. A signing step is always a person's.
-    ///
-    /// The ready items are FORMAT-1.0 §11.5's order: due first (inherited
-    /// from what waits on an item), then the critical path, then priority,
-    /// then age, alias and position. It is a function of the documents,
-    /// journals, claims and the time, so agents asking at once get one
-    /// order.
-    Next {
-        /// Answer as of this time (RFC 3339, e.g. `2026-10-15T12:00:00Z`)
-        /// instead of now: which claims' leases have run out is judged then.
-        #[arg(long, value_name = "RFC3339")]
-        at: Option<String>,
-    },
     /// Take the next ready Warrant and print only what its work needs.
     ///
     /// Claims it whole and prints its brief: the description, the open
@@ -803,25 +791,6 @@ enum DailyCommand {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
-    /// Take an item or a whole Warrant, so no other agent works it.
-    ///
-    /// An item (`i-...`, `t-.../i-...`) or a whole Warrant (`t-...`).
-    /// Refused, by name, when someone else holds it.
-    Claim {
-        /// An item or Warrant id, or a unique prefix of one.
-        target: String,
-        /// Take a claim older than `[tickets] claim_ttl_minutes` (default 120). Journalled.
-        #[arg(long)]
-        steal: bool,
-        #[arg(long = "as", value_name = "ACTOR")]
-        actor: Option<String>,
-        /// Act as of this time (RFC 3339) instead of now: the claim's
-        /// `since`, a done date and the journal's `occurred_at` are this
-        /// time, and leases are judged then. For replaying a recorded
-        /// history, such as the conformance corpus (conformance/format/).
-        #[arg(long, value_name = "RFC3339", hide = true)]
-        at: Option<String>,
-    },
     /// Close a Warrant, or tick one item, and release the claim.
     ///
     /// A Warrant id ticks every open item in one write, or none (each judged
@@ -835,7 +804,7 @@ enum DailyCommand {
         #[arg(long)]
         note: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `work.stale-revision`
+        /// one `war view show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -854,68 +823,6 @@ enum DailyCommand {
         /// history, such as the conformance corpus (conformance/format/).
         #[arg(long, value_name = "RFC3339", hide = true)]
         at: Option<String>,
-    },
-    /// Add an item to a Warrant, or a test, KPI or milestone.
-    ///
-    /// Append an item to a Warrant's checklist, or attach an optional part to
-    /// any Warrant, a title-only one included: a test, a KPI, a milestone
-    /// (docs/TYPES.md, "Optional parts and the tick ladder").
-    Add {
-        /// The Warrant. For a test or KPI of one item, the item (`t-x/i-y`).
-        #[arg(value_name = "WARRANT")]
-        ticket: String,
-        /// The item, one line. Optional when a part is given; given with a
-        /// test or KPI, the part is the new item's.
-        #[arg(required_unless_present_any = ["tests", "kpi", "milestone", "min"])]
-        text: Option<String>,
-        /// What the item waits on: an item of this Warrant, a Warrant, or `t-x/i-y`. Repeatable.
-        #[arg(long, value_name = "ITEM|WARRANT")]
-        after: Vec<String>,
-        /// A test: a shell command whose exit code decides pass or fail.
-        /// Repeatable. `war done <item> --check` runs it.
-        #[arg(long = "test", value_name = "COMMAND")]
-        tests: Vec<String>,
-        /// The name of the one --test given (default `test-N`).
-        #[arg(long, value_name = "NAME", requires = "tests")]
-        name: Option<String>,
-        /// A KPI by name: `--cmd` prints one number, `--direction max|min`
-        /// says which way is better, `--target` and `--mode` are optional.
-        #[arg(long, value_name = "NAME")]
-        kpi: Option<String>,
-        /// The KPI's command; it prints one number.
-        #[arg(long, value_name = "COMMAND", requires = "kpi")]
-        cmd: Option<String>,
-        /// max or min: which way the KPI is better.
-        #[arg(long, value_name = "max|min", requires = "kpi")]
-        direction: Option<String>,
-        /// The value the KPI passes at (at or above for max, at or below for min).
-        #[arg(
-            long,
-            value_name = "N",
-            requires = "kpi",
-            allow_negative_numbers = true
-        )]
-        target: Option<f64>,
-        /// best (the default: pass or fail against the target, best value
-        /// kept), threshold (pass or fail only), optimise (a signal only;
-        /// never decides a tick).
-        #[arg(long, value_name = "MODE", requires = "kpi")]
-        mode: Option<String>,
-        /// A milestone: an item that ticks a marker on the progress tracker.
-        #[arg(long, value_name = "TEXT")]
-        milestone: Option<String>,
-        /// The least the milestone's tick must show: claimed, observed,
-        /// independent or signed. Alone, on an item, it makes that item a
-        /// milestone.
-        #[arg(long, value_name = "LEVEL")]
-        min: Option<String>,
-        /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `work.stale-revision`
-        /// otherwise, naming the current one.
-        #[arg(long = "if-rev", value_name = "DIGEST")]
-        if_rev: Option<String>,
-        #[arg(long = "as", value_name = "ACTOR")]
-        actor: Option<String>,
     },
     /// Read an edited package back into its documents (Format 1.0 §10.5).
     ///
@@ -939,74 +846,6 @@ enum DailyCommand {
         /// Date a ticked box as of this time (RFC 3339) instead of now.
         #[arg(long, value_name = "RFC3339")]
         at: Option<String>,
-    },
-    /// Append a dated note to a Warrant: context for whoever comes next.
-    ///
-    /// For the next agent or person; Markdown, may span lines.
-    Note {
-        /// The Warrant (or one of its items).
-        target: String,
-        /// The note; Markdown, may span lines.
-        text: String,
-        /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `work.stale-revision`
-        /// otherwise, naming the current one.
-        #[arg(long = "if-rev", value_name = "DIGEST")]
-        if_rev: Option<String>,
-        #[arg(long = "as", value_name = "ACTOR")]
-        actor: Option<String>,
-        /// Act as of this time (RFC 3339) instead of now: the claim's
-        /// `since`, a done date and the journal's `occurred_at` are this
-        /// time, and leases are judged then. For replaying a recorded
-        /// history, such as the conformance corpus (conformance/format/).
-        #[arg(long, value_name = "RFC3339", hide = true)]
-        at: Option<String>,
-    },
-    /// Change a Warrant's type, labels, epic or priority.
-    ///
-    /// One line of its manifest each, journalled. Nothing else moves.
-    Edit {
-        #[arg(value_name = "WARRANT")]
-        ticket: String,
-        /// The new type; `none` clears it.
-        #[arg(long = "type", value_name = "TYPE")]
-        kind: Option<String>,
-        /// Add a label; repeatable.
-        #[arg(long = "label", short = 'l', value_name = "LABEL")]
-        labels: Vec<String>,
-        /// Remove a label; repeatable.
-        #[arg(long = "unlabel", value_name = "LABEL")]
-        unlabels: Vec<String>,
-        /// The Warrant (epic) this one is part of; `none` detaches it.
-        #[arg(long = "part-of", value_name = "WARRANT")]
-        part_of: Option<String>,
-        #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
-        priority: Option<u8>,
-        /// When the work is due, YYYY-MM-DD; `none` clears it. A scheduler
-        /// runs work toward an earlier date first, and never before what it
-        /// waits on.
-        #[arg(long, value_name = "DATE")]
-        due: Option<String>,
-        /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `work.stale-revision`
-        /// otherwise, naming the current one.
-        #[arg(long = "if-rev", value_name = "DIGEST")]
-        if_rev: Option<String>,
-        #[arg(long = "as", value_name = "ACTOR")]
-        actor: Option<String>,
-    },
-    /// Show a Warrant by its id.
-    ///
-    /// A light one (`t-...`, or one of its items), a directory one (its
-    /// alias, as one of §17.5's projections), or one read in place
-    /// (`openspec:<change>`, `speckit:<feature>`).
-    Show {
-        /// The Warrant's id: `t-...`, an alias, `openspec:...` or `speckit:...`.
-        #[arg(value_name = "ID")]
-        alias: String,
-        /// Which projection. Defaults to the full Warrant.
-        #[arg(long, default_value = "full_warrant")]
-        view: String,
     },
     /// Where the work stands, from the records.
     ///
@@ -1131,6 +970,124 @@ enum CheckAction {
 /// `war plan …`: shaping the work. Also flattened, hidden, into the top level.
 #[derive(Subcommand)]
 enum PlanCommand {
+    /// Add an item to a Warrant, or a test, KPI or milestone.
+    ///
+    /// Append an item to a Warrant's checklist, or attach an optional part to
+    /// any Warrant, a title-only one included: a test, a KPI, a milestone
+    /// (docs/TYPES.md, "Optional parts and the tick ladder").
+    Add {
+        /// The Warrant. For a test or KPI of one item, the item (`t-x/i-y`).
+        #[arg(value_name = "WARRANT")]
+        ticket: String,
+        /// The item, one line. Optional when a part is given; given with a
+        /// test or KPI, the part is the new item's.
+        #[arg(required_unless_present_any = ["tests", "kpi", "milestone", "min"])]
+        text: Option<String>,
+        /// What the item waits on: an item of this Warrant, a Warrant, or `t-x/i-y`. Repeatable.
+        #[arg(long, value_name = "ITEM|WARRANT")]
+        after: Vec<String>,
+        /// A test: a shell command whose exit code decides pass or fail.
+        /// Repeatable. `war done <item> --check` runs it.
+        #[arg(long = "test", value_name = "COMMAND")]
+        tests: Vec<String>,
+        /// The name of the one --test given (default `test-N`).
+        #[arg(long, value_name = "NAME", requires = "tests")]
+        name: Option<String>,
+        /// A KPI by name: `--cmd` prints one number, `--direction max|min`
+        /// says which way is better, `--target` and `--mode` are optional.
+        #[arg(long, value_name = "NAME")]
+        kpi: Option<String>,
+        /// The KPI's command; it prints one number.
+        #[arg(long, value_name = "COMMAND", requires = "kpi")]
+        cmd: Option<String>,
+        /// max or min: which way the KPI is better.
+        #[arg(long, value_name = "max|min", requires = "kpi")]
+        direction: Option<String>,
+        /// The value the KPI passes at (at or above for max, at or below for min).
+        #[arg(
+            long,
+            value_name = "N",
+            requires = "kpi",
+            allow_negative_numbers = true
+        )]
+        target: Option<f64>,
+        /// best (the default: pass or fail against the target, best value
+        /// kept), threshold (pass or fail only), optimise (a signal only;
+        /// never decides a tick).
+        #[arg(long, value_name = "MODE", requires = "kpi")]
+        mode: Option<String>,
+        /// A milestone: an item that ticks a marker on the progress tracker.
+        #[arg(long, value_name = "TEXT")]
+        milestone: Option<String>,
+        /// The least the milestone's tick must show: claimed, observed,
+        /// independent or signed. Alone, on an item, it makes that item a
+        /// milestone.
+        #[arg(long, value_name = "LEVEL")]
+        min: Option<String>,
+        /// Write only if the item (or Warrant) is still at this revision, the
+        /// one `war view show --json` gave; refused `work.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Append a dated note to a Warrant: context for whoever comes next.
+    ///
+    /// For the next agent or person; Markdown, may span lines.
+    Note {
+        /// The Warrant (or one of its items).
+        target: String,
+        /// The note; Markdown, may span lines.
+        text: String,
+        /// Write only if the item (or Warrant) is still at this revision, the
+        /// one `war view show --json` gave; refused `work.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
+    },
+
+    /// Change a Warrant's type, labels, epic or priority.
+    ///
+    /// One line of its manifest each, journalled. Nothing else moves.
+    Edit {
+        #[arg(value_name = "WARRANT")]
+        ticket: String,
+        /// The new type; `none` clears it.
+        #[arg(long = "type", value_name = "TYPE")]
+        kind: Option<String>,
+        /// Add a label; repeatable.
+        #[arg(long = "label", short = 'l', value_name = "LABEL")]
+        labels: Vec<String>,
+        /// Remove a label; repeatable.
+        #[arg(long = "unlabel", value_name = "LABEL")]
+        unlabels: Vec<String>,
+        /// The Warrant (epic) this one is part of; `none` detaches it.
+        #[arg(long = "part-of", value_name = "WARRANT")]
+        part_of: Option<String>,
+        #[arg(long, short = 'p', value_parser = clap::value_parser!(u8).range(0..=4))]
+        priority: Option<u8>,
+        /// When the work is due, YYYY-MM-DD; `none` clears it. A scheduler
+        /// runs work toward an earlier date first, and never before what it
+        /// waits on.
+        #[arg(long, value_name = "DATE")]
+        due: Option<String>,
+        /// Write only if the item (or Warrant) is still at this revision, the
+        /// one `war view show --json` gave; refused `work.stale-revision`
+        /// otherwise, naming the current one.
+        #[arg(long = "if-rev", value_name = "DIGEST")]
+        if_rev: Option<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
     /// Resume an intake or Warrant interview: unanswered blockers, ranked and counted.
     /// Read-only; answers and authorization remain separate acts.
     Interview {
@@ -1728,6 +1685,38 @@ enum EvidenceCommand {
 /// hidden, into the top level.
 #[derive(Subcommand)]
 enum ViewCommand {
+    /// What is ready, and whose step it is.
+    ///
+    /// Ready items of light Warrants first (what `war view ready` lists),
+    /// then an agent's acts, then the acts a person signs. With nothing
+    /// tracked it says "nothing tracked; work freely": ordinary work needs
+    /// no Warrant. A signing step is always a person's.
+    ///
+    /// The ready items are FORMAT-1.0 §11.5's order: due first (inherited
+    /// from what waits on an item), then the critical path, then priority,
+    /// then age, alias and position. It is a function of the documents,
+    /// journals, claims and the time, so agents asking at once get one
+    /// order.
+    Next {
+        /// Answer as of this time (RFC 3339, e.g. `2026-10-15T12:00:00Z`)
+        /// instead of now: which claims' leases have run out is judged then.
+        #[arg(long, value_name = "RFC3339")]
+        at: Option<String>,
+    },
+
+    /// Show a Warrant by its id.
+    ///
+    /// A light one (`t-...`, or one of its items), a directory one (its
+    /// alias, as one of §17.5's projections), or one read in place
+    /// (`openspec:<change>`, `speckit:<feature>`).
+    Show {
+        /// The Warrant's id: `t-...`, an alias, `openspec:...` or `speckit:...`.
+        #[arg(value_name = "ID")]
+        alias: String,
+        /// Which projection. Defaults to the full Warrant.
+        #[arg(long, default_value = "full_warrant")]
+        view: String,
+    },
     /// The web UI: Progress on the canonical roadmap, the queue with each
     /// act's dry-run verdict, questions, frontier, corpus and help, served on
     /// 127.0.0.1 with a per-session token (OW-WAR-0116). A button starts
@@ -1874,7 +1863,7 @@ enum ViewCommand {
     },
     /// What can start now: open, unclaimed, unblocked items across
     /// Warrants, most urgent and oldest first. A directory Warrant's ready
-    /// stages are in `war next`.
+    /// stages are in `war view next`.
     Ready {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
@@ -1947,6 +1936,40 @@ enum ViewCommand {
 /// the top level.
 #[derive(Subcommand)]
 enum AdminCommand {
+    /// Inventory workspaces and conservatively reclaim only finished tool-owned ones.
+    Worktrees {
+        #[arg(long)]
+        prune: bool,
+        /// Perform the eligible removals; without this flag pruning is a dry run.
+        #[arg(long)]
+        apply: bool,
+        #[arg(long, conflicts_with = "apply")]
+        dry_run: bool,
+        #[arg(long, default_value = "HEAD")]
+        integration: String,
+    },
+    /// Take an item or a whole Warrant, so no other agent works it.
+    ///
+    /// An item (`i-...`, `t-.../i-...`) or a whole Warrant (`t-...`).
+    /// Refused, by name, when someone else holds it.
+    Claim {
+        /// An item or Warrant id, or a unique prefix of one.
+        target: String,
+        /// Declared write paths/globs; otherwise derive from the Warrant.
+        #[arg(long, num_args=1..)]
+        paths: Vec<String>,
+        /// Take a claim older than `[tickets] claim_ttl_minutes` (default 120). Journalled.
+        #[arg(long)]
+        steal: bool,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+        /// Act as of this time (RFC 3339) instead of now: the claim's
+        /// `since`, a done date and the journal's `occurred_at` are this
+        /// time, and leases are judged then. For replaying a recorded
+        /// history, such as the conformance corpus (conformance/format/).
+        #[arg(long, value_name = "RFC3339", hide = true)]
+        at: Option<String>,
+    },
     /// Compile the configured projections (§71.8).
     Compile {
         /// A single Warrant's local alias. Defaults to the whole corpus.
@@ -2105,7 +2128,7 @@ enum AdminCommand {
     },
     /// Renew the lease on your claims (or the one named), so no other agent
     /// reclaims them while you work. Every war command you run renews them
-    /// too; a claim whose lease runs out is taken by a plain `war claim`.
+    /// too; a claim whose lease runs out is taken by a plain `war admin claim`.
     Heartbeat {
         /// One claimed item or Warrant; omit for every claim you hold.
         target: Option<String>,
@@ -2116,7 +2139,7 @@ enum AdminCommand {
     Release {
         target: String,
         /// Write only if the item (or Warrant) is still at this revision, the
-        /// one `war show --json` gave; refused `work.stale-revision`
+        /// one `war view show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
         #[arg(long = "if-rev", value_name = "DIGEST")]
         if_rev: Option<String>,
@@ -2480,7 +2503,7 @@ enum SignGroup {
     /// Approve a Warrant as an official plan (docs/PRESETS.md).
     ///
     /// Without `--ssh-sign`, the request: what an approval binds, who may
-    /// sign it, recorded in the Warrant's journal so `war next` and `war
+    /// sign it, recorded in the Warrant's journal so `war view next` and `war
     /// sign inbox` list it, and `[notify]` run. Nothing is signed and no key
     /// is asked. With `--ssh-sign`, a person's approval, signed with their
     /// key and recorded only when the signature verifies as theirs, by a
@@ -2927,7 +2950,7 @@ pub fn entrypoint() -> ExitCode {
     code
 }
 
-/// OW-WAR-0148 M14: under a preset (or a `[roles]` table), `war show` and
+/// OW-WAR-0148 M14: under a preset (or a `[roles]` table), `war view show` and
 /// `war status <id>` of a light Warrant end with whether it is official, and
 /// why. Without one the answer is the bytes it always was.
 fn with_official(
@@ -3399,6 +3422,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
     match command {
         DailyCommand::Create {
             title,
+            legacy,
             summary,
             items,
             body,
@@ -3478,24 +3502,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 part_of,
                 issue,
             };
-            let outcome = ticket::create(&store, &args)?;
+            let outcome = if legacy {
+                ticket::create_legacy(&store, &args)?
+            } else {
+                ticket::create(&store, &args)?
+            };
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "create", &outcome))
-        }
-        DailyCommand::Claim {
-            target,
-            steal,
-            actor,
-            at,
-        } => {
-            answer_at(at.as_deref())?;
-            ticket::cache::permit();
-            let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(
-                mode,
-                "claim",
-                &ticket::claim_cmd(&store, &target, steal)?,
-            ))
         }
         DailyCommand::Done {
             target,
@@ -3533,58 +3546,6 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "done", &outcome))
-        }
-        DailyCommand::Add {
-            ticket: target,
-            text,
-            after,
-            tests,
-            name,
-            kpi,
-            cmd,
-            direction,
-            target: kpi_target,
-            mode: kpi_mode,
-            milestone,
-            min,
-            if_rev,
-            actor,
-        } => {
-            let (repository, store) = ctx.tickets(actor.as_deref())?;
-            let parts = ticket::parts::PartsArgs {
-                tests,
-                name,
-                kpi: kpi.map(|name| ticket::parts::KpiSpec {
-                    name,
-                    cmd,
-                    direction,
-                    target: kpi_target,
-                    mode: kpi_mode,
-                }),
-                milestone,
-                min,
-            };
-            // Without a part, `war add` is the item it always was.
-            let outcome = if parts.is_empty() {
-                ticket::add(
-                    &store,
-                    &target,
-                    text.as_deref().unwrap_or_default(),
-                    &after,
-                    if_rev.as_deref(),
-                )?
-            } else {
-                ticket::parts::add(
-                    &store,
-                    &target,
-                    text.as_deref(),
-                    &after,
-                    &parts,
-                    if_rev.as_deref(),
-                )?
-            };
-            refresh_index_after(&repository, &outcome, false);
-            Ok(ticket_answer(mode, "add", &outcome))
         }
         DailyCommand::Apply { package, actor, at } => {
             let secs = match &at {
@@ -3624,108 +3585,6 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 &report,
                 Some(output::value(&outcome)),
             ))
-        }
-        DailyCommand::Note {
-            target,
-            text,
-            if_rev,
-            actor,
-            at,
-        } => {
-            answer_at(at.as_deref())?;
-            let (repository, store) = ctx.tickets(actor.as_deref())?;
-            let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
-            refresh_index_after(&repository, &outcome, false);
-            Ok(ticket_answer(mode, "note", &outcome))
-        }
-        DailyCommand::Edit {
-            ticket: target,
-            kind,
-            labels,
-            unlabels,
-            part_of,
-            priority,
-            due,
-            if_rev,
-            actor,
-        } => {
-            let (repository, store) = ctx.tickets(actor.as_deref())?;
-            let none = |v: Option<String>| v.map(|v| Some(v).filter(|v| v != "none" && v != "-"));
-            let args = ticket::EditArgs {
-                kind: none(kind),
-                add_labels: labels,
-                remove_labels: unlabels,
-                part_of: none(part_of),
-                priority,
-                due: none(due),
-                if_rev,
-            };
-            let outcome = ticket::edit(&store, &target, &args)?;
-            refresh_index_after(&repository, &outcome, false);
-            Ok(ticket_answer(mode, "edit", &outcome))
-        }
-        // M10: one id space. A light Warrant's id shows it whole, wherever
-        // the command is `show` or `status`; an alias falls through to the
-        // directory Warrant's projections below.
-        DailyCommand::Show { alias, .. }
-            if warrants::kind_of(&alias) == warrants::IdKind::Light =>
-        {
-            let (repository, store) = ctx.tickets(None)?;
-            let shown = with_official(&repository, &alias, ticket::show(&store, &alias)?);
-            Ok(ticket_answer(mode, "show", &shown))
-        }
-        // M10: a Warrant read in place shows from its folder, written to
-        // never.
-        DailyCommand::Show { alias, .. }
-            if warrants::kind_of(&alias) == warrants::IdKind::ReadInPlace =>
-        {
-            let repository = ctx.open_repo()?;
-            Ok(ticket_answer(
-                mode,
-                "show",
-                &interop::adapters::show(&repository, &alias),
-            ))
-        }
-        DailyCommand::Show { alias, view } => {
-            let repository = ctx.open_repo()?;
-            let mut rendered = show::run(&repository, &alias, &view)?;
-            // OW-WAR-0137, OBL-004: the two views a reader opens to ask "who
-            // reviewed this?" end with who acted, from the records. Here rather
-            // than in show.rs, which OW-WAR-0033's resolution pins.
-            let review = if matches!(view.as_str(), "full_warrant" | "status") {
-                let review = status::review_of(&repository, &repository.warrant_dir(&alias)?)?;
-                rendered.push_str(&status::render_review(&review));
-                Some(review)
-            } else {
-                None
-            };
-            // OW-WAR-0148 M4: the declared states on record, only where any is.
-            let declared = if matches!(view.as_str(), "full_warrant" | "status") {
-                states::warrant_section(&repository, &alias).map(|(md, d)| {
-                    rendered.push_str(&md);
-                    d
-                })
-            } else {
-                None
-            };
-            // OW-WAR-0148 M14: whether it is official, under a preset only.
-            let official = if matches!(view.as_str(), "full_warrant" | "status") {
-                official_section(&repository, &alias).map(|(md, v)| {
-                    rendered.push_str(&md);
-                    v
-                })
-            } else {
-                None
-            };
-            let mut result = serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review});
-            if let Some(d) = declared {
-                result["declared_states"] = serde_json::json!(d);
-            }
-            if let Some(v) = official {
-                result["official"] = v;
-            }
-            output::emit(mode, "show", &rendered, result);
-            Ok(EXIT_OK)
         }
         DailyCommand::Status {
             alias: Some(alias), ..
@@ -4056,31 +3915,6 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let outcome = ticket::start_cmd(&store, id.as_deref())?;
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "start", &outcome))
-        }
-        DailyCommand::Next { at } => {
-            answer_at(at.as_deref())?;
-            let repository = ctx.open_repo()?;
-            // One-shot and read-only: the tree does not move under it (t-eca6).
-            gate_cmd::source::remember_tree_reads();
-            // A view of the ticket loop: the ticket cache may answer it,
-            // set-aside nodes included.
-            ticket::cache::permit_with_journals();
-            // Advice, not a judgement: a signature already verified over
-            // exactly these bytes is not asked again (ssh_verdicts).
-            ssh_verdicts::permit();
-            let next = next::run(&repository)?;
-            // Only the form this mode prints is built: `emit` prints the
-            // text in human mode and the value under `--json`, never both.
-            match mode {
-                output::Mode::Human => output::emit(
-                    mode,
-                    "next",
-                    next::render(&next).trim_end(),
-                    serde_json::Value::Null,
-                ),
-                output::Mode::Json => output::emit(mode, "next", "", output::value(&next)),
-            }
-            Ok(EXIT_OK)
         }
         DailyCommand::Check {
             action: Some(action),
@@ -4522,6 +4356,100 @@ fn run_plan(ctx: &Ctx, args: PlanArgs) -> Result<u8, Box<dyn std::error::Error>>
 fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        PlanCommand::Add {
+            ticket: target,
+            text,
+            after,
+            tests,
+            name,
+            kpi,
+            cmd,
+            direction,
+            target: kpi_target,
+            mode: kpi_mode,
+            milestone,
+            min,
+            if_rev,
+            actor,
+        } => {
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let parts = ticket::parts::PartsArgs {
+                tests,
+                name,
+                kpi: kpi.map(|name| ticket::parts::KpiSpec {
+                    name,
+                    cmd,
+                    direction,
+                    target: kpi_target,
+                    mode: kpi_mode,
+                }),
+                milestone,
+                min,
+            };
+            // Without a part, `war plan add` is the item it always was.
+            let outcome = if parts.is_empty() {
+                ticket::add(
+                    &store,
+                    &target,
+                    text.as_deref().unwrap_or_default(),
+                    &after,
+                    if_rev.as_deref(),
+                )?
+            } else {
+                ticket::parts::add(
+                    &store,
+                    &target,
+                    text.as_deref(),
+                    &after,
+                    &parts,
+                    if_rev.as_deref(),
+                )?
+            };
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "add", &outcome))
+        }
+        PlanCommand::Note {
+            target,
+            text,
+            if_rev,
+            actor,
+            at,
+        } => {
+            answer_at(at.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "note", &outcome))
+        }
+        PlanCommand::Edit {
+            ticket: target,
+            kind,
+            labels,
+            unlabels,
+            part_of,
+            priority,
+            due,
+            if_rev,
+            actor,
+        } => {
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let none = |v: Option<String>| v.map(|v| Some(v).filter(|v| v != "none" && v != "-"));
+            let args = ticket::EditArgs {
+                kind: none(kind),
+                add_labels: labels,
+                remove_labels: unlabels,
+                part_of: none(part_of),
+                priority,
+                due: none(due),
+                if_rev,
+            };
+            let outcome = ticket::edit(&store, &target, &args)?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "edit", &outcome))
+        }
+        // M10: one id space. A light Warrant's id shows it whole, wherever
+        // the command is `show` or `status`; an alias falls through to the
+        // directory Warrant's projections below.
         PlanCommand::Interview { target } => {
             let repository = ctx.open_repo()?;
             let (report, view) = interview::view(&repository, &target)?;
@@ -6269,6 +6197,89 @@ fn run_view(ctx: &Ctx, command: ViewGroup) -> Result<u8, Box<dyn std::error::Err
 fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        ViewCommand::Show { alias, .. } if warrants::kind_of(&alias) == warrants::IdKind::Light => {
+            let (repository, store) = ctx.tickets(None)?;
+            let shown = with_official(&repository, &alias, ticket::show(&store, &alias)?);
+            Ok(ticket_answer(mode, "show", &shown))
+        }
+        // M10: a Warrant read in place shows from its folder, written to
+        // never.
+        ViewCommand::Show { alias, .. }
+            if warrants::kind_of(&alias) == warrants::IdKind::ReadInPlace =>
+        {
+            let repository = ctx.open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "show",
+                &interop::adapters::show(&repository, &alias),
+            ))
+        }
+        ViewCommand::Show { alias, view } => {
+            let repository = ctx.open_repo()?;
+            let mut rendered = show::run(&repository, &alias, &view)?;
+            // OW-WAR-0137, OBL-004: the two views a reader opens to ask "who
+            // reviewed this?" end with who acted, from the records. Here rather
+            // than in show.rs, which OW-WAR-0033's resolution pins.
+            let review = if matches!(view.as_str(), "full_warrant" | "status") {
+                let review = status::review_of(&repository, &repository.warrant_dir(&alias)?)?;
+                rendered.push_str(&status::render_review(&review));
+                Some(review)
+            } else {
+                None
+            };
+            // OW-WAR-0148 M4: the declared states on record, only where any is.
+            let declared = if matches!(view.as_str(), "full_warrant" | "status") {
+                states::warrant_section(&repository, &alias).map(|(md, d)| {
+                    rendered.push_str(&md);
+                    d
+                })
+            } else {
+                None
+            };
+            // OW-WAR-0148 M14: whether it is official, under a preset only.
+            let official = if matches!(view.as_str(), "full_warrant" | "status") {
+                official_section(&repository, &alias).map(|(md, v)| {
+                    rendered.push_str(&md);
+                    v
+                })
+            } else {
+                None
+            };
+            let mut result = serde_json::json!({"alias": alias, "view": view, "rendered": rendered, "review": review});
+            if let Some(d) = declared {
+                result["declared_states"] = serde_json::json!(d);
+            }
+            if let Some(v) = official {
+                result["official"] = v;
+            }
+            output::emit(mode, "show", &rendered, result);
+            Ok(EXIT_OK)
+        }
+        ViewCommand::Next { at } => {
+            answer_at(at.as_deref())?;
+            let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
+            // A view of the ticket loop: the ticket cache may answer it,
+            // set-aside nodes included.
+            ticket::cache::permit_with_journals();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
+            let next = next::run(&repository)?;
+            // Only the form this mode prints is built: `emit` prints the
+            // text in human mode and the value under `--json`, never both.
+            match mode {
+                output::Mode::Human => output::emit(
+                    mode,
+                    "next",
+                    next::render(&next).trim_end(),
+                    serde_json::Value::Null,
+                ),
+                output::Mode::Json => output::emit(mode, "next", "", output::value(&next)),
+            }
+            Ok(EXIT_OK)
+        }
         ViewCommand::Ready { actor } => {
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
@@ -6786,6 +6797,35 @@ fn run_preset(
 fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        AdminCommand::Worktrees {
+            prune,
+            apply,
+            dry_run: _,
+            integration,
+        } => {
+            let repo = ctx.open_repo()?;
+            Ok(ticket_answer(
+                mode,
+                "worktrees",
+                &worktrees::run(&repo, prune, apply, &integration)?,
+            ))
+        }
+        AdminCommand::Claim {
+            target,
+            paths,
+            steal,
+            actor,
+            at,
+        } => {
+            answer_at(at.as_deref())?;
+            ticket::cache::permit();
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            Ok(ticket_answer(
+                mode,
+                "claim",
+                &ticket::claim_scoped(&store, &target, steal, &paths)?,
+            ))
+        }
         AdminCommand::Bridge {
             command:
                 BridgeCommand::ClaudeTasks {

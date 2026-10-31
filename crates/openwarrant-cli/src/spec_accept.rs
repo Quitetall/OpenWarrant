@@ -520,7 +520,7 @@ pub fn request(corpus: &Corpus, all: bool) -> Result<Option<AcceptRequest>, Repo
     Ok(Some(request_over(repo, &spec, &acts, records)))
 }
 
-/// The acceptance waiting on a person, for `war sign` and `war next`: under
+/// The acceptance waiting on a person, for `war sign` and `war view next`: under
 /// the authority profile, the specification's unaccepted records.
 pub fn pending_request(corpus: &Corpus) -> Result<Option<AcceptRequest>, RepoError> {
     if !authority_claimed(corpus.repo()) {

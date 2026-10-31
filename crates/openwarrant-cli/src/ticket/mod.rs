@@ -30,6 +30,7 @@
 //! repository.
 
 pub mod acts;
+mod authoring;
 pub mod cache;
 pub mod checks;
 pub mod claim;
@@ -39,6 +40,7 @@ pub mod merge;
 pub mod parts;
 pub mod remote;
 mod render;
+pub mod scopes;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -106,7 +108,7 @@ pub mod event {
     pub const ITEM_ADDED: &str = "work.item_added";
     pub const CLAIMED: &str = "work.claimed";
     pub const CLAIM_STOLEN: &str = "work.claim_stolen";
-    /// M11: a claim whose lease ran out, taken by a plain `war claim`; the
+    /// M11: a claim whose lease ran out, taken by a plain `war admin claim`; the
     /// payload names whom it was taken from and when their lease ended.
     pub const CLAIM_RECLAIMED: &str = "work.claim_reclaimed";
     pub const RELEASED: &str = "work.released";
@@ -123,7 +125,7 @@ pub mod event {
     pub const TRIGGER_FIRED: &str = "trigger.fired";
     pub const NOTE_ADDED: &str = "work.note_added";
     pub const PROMOTED: &str = "work.promoted";
-    /// OW-WAR-0148 M5: `war edit` changed the type, labels, epic or priority.
+    /// OW-WAR-0148 M5: `war plan edit` changed the type, labels, epic or priority.
     pub const EDITED: &str = "work.edited";
     /// OW-WAR-0148 M5: the linked issue was written back to (or could not
     /// be): `outcome` is `written` or `unknown`.
@@ -149,7 +151,7 @@ pub struct Policy {
     /// M11: how long a claim's lease runs from its last renewal (default 30;
     /// a fraction is allowed). The holder's `war admin heartbeat` and every `war`
     /// command the holder runs renew it; once it runs out, a plain
-    /// `war claim` takes the claim.
+    /// `war admin claim` takes the claim.
     #[serde(default)]
     pub claim_lease_minutes: Option<f64>,
     /// How many days a done ticket keeps its full block in `war view prime`
@@ -435,7 +437,7 @@ pub fn now_secs() -> u64 {
 static AT: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
 
 /// Answer as of `secs` (Unix seconds) for the rest of this process: what
-/// `war next --at <rfc3339>` sets, so its answer is a pure function of the
+/// `war view next --at <rfc3339>` sets, so its answer is a pure function of the
 /// documents, journals, claim store and that time (FORMAT-1.0 §11.5). A
 /// write given `--at` (`claim`, `done`, `note`) acts then: what it records
 /// is dated then, for replaying a recorded history. The first setting
@@ -556,7 +558,7 @@ impl Store {
                 crate::journal_cmd::FILE.to_owned(),
                 INTENT_FILE.to_owned(),
                 format!("atoms/{}", self.checklist_file()),
-                // OW-WAR-0148 M13: the optional parts `war add` writes.
+                // OW-WAR-0148 M13: the optional parts `war plan add` writes.
                 ticks::CHECKS_FILE.to_owned(),
             ],
         }
@@ -769,7 +771,7 @@ impl Store {
         Ok((tickets, faults))
     }
 
-    /// What `war claim <query>` reads: every readable ticket [`resolve`]
+    /// What `war admin claim <query>` reads: every readable ticket [`resolve`]
     /// could name for `query`, and every ticket their items wait on, which
     /// is all [`open_blockers`] looks up. For `t-x` or `t-x/i-y` those are
     /// the tickets whose directory name starts with `t-x` (a ticket's
@@ -916,6 +918,15 @@ impl Store {
             for path in claim::lock_files(dir) {
                 let name = path.file_name().unwrap_or_default().to_owned();
                 if only.is_some_and(|o| o != name) || seen.contains(&name) {
+                    continue;
+                }
+                if self
+                    .read_claim(&path)
+                    .ok()
+                    .flatten()
+                    .flatten()
+                    .is_some_and(|c| !owns_claim(self, &c))
+                {
                     continue;
                 }
                 if let Ok(Some(c)) = claim::renew(&path, &self.actor, self.lease_secs) {
@@ -1089,7 +1100,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
             },
             String::new(),
             if found.is_empty() {
-                format!("no {what} is {query:?}; `war next` and `war view warrants` list them")
+                format!("no {what} is {query:?}; `war view next` and `war view warrants` list them")
             } else {
                 format!(
                     "{query:?} names more than one {what}: {}. Give more of the id",
@@ -1279,7 +1290,7 @@ fn open_blockers_by<'a>(
 }
 
 /// The blockers of `item` in `t` that are not done, by name, looked up in
-/// `tickets`: FORMAT-1.0 §11.1's `blocked`, read as `war claim` reads it.
+/// `tickets`: FORMAT-1.0 §11.1's `blocked`, read as `war admin claim` reads it.
 #[must_use]
 pub fn waiting_on(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
     open_blockers(tickets, t, item)
@@ -1410,7 +1421,7 @@ fn stale_revision(
         store.rel(file),
         format!(
             "{what} changed since you read it: you passed revision {given}, and it is now \
-             {current}. Nothing was written. Read it again (`war show {} --json`) and retry \
+             {current}. Nothing was written. Read it again (`war view show {} --json`) and retry \
              with the revision it gives{}",
             t.id(),
             crate::work_rules::formerly(rule)
@@ -1730,13 +1741,26 @@ pub(crate) fn toml_of(m: &TicketManifest) -> Result<String, RepoError> {
         .map_err(|e| RepoError::Message(format!("could not render the ticket manifest: {e}")))?;
     Ok(format!(
         "# A Warrant in its light encoding (a ticket; OW-WAR-0147): the working form. The atoms\n\
-         # beside this file are the Warrant; `war show {}` renders them. Nothing here is signed.\n{body}",
+         # beside this file are the Warrant; `war view show {}` renders them. Nothing here is signed.\n{body}",
         m.id
     ))
 }
 
 /// `war create`: a ticket, workable at once.
 pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
+    create_with_encoding(store, args, false)
+}
+
+/// Explicit legacy writer for integrations retaining the directory encoding.
+pub fn create_legacy(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
+    create_with_encoding(store, args, true)
+}
+
+fn create_with_encoding(
+    store: &Store,
+    args: &CreateArgs,
+    legacy: bool,
+) -> Result<Outcome, RepoError> {
     let title = ticket::one_line(&args.title);
     if title.is_empty() {
         return Ok(Outcome::refused(
@@ -1816,6 +1840,13 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     let mut dir = None;
     for len in ticket::ticket_id_len(existing)..=16 {
         let candidate = store.dir.join(ticket::ticket_id(&uuid, len));
+        if crate::vfs::exists(
+            store
+                .dir
+                .join(format!("{}.md", candidate.file_name().unwrap_or_default())),
+        ) {
+            continue;
+        }
         match std::fs::create_dir(&candidate) {
             Ok(()) => {
                 dir = Some(candidate);
@@ -1897,11 +1928,23 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         checklist.push('\n');
         made.push(serde_json::json!({"id": item_id, "text": text}));
     }
-    std::fs::create_dir_all(dir.join("atoms"))
-        .map_err(io(format!("could not create {dir}/atoms")))?;
-    atomic::write(&dir.join(INTENT_FILE), intent)?;
-    atomic::write(&dir.join(&checklist_file), checklist)?;
-    atomic::write(&dir.join("manifest.toml"), toml_of(&manifest)?)?;
+    let source = if legacy {
+        std::fs::create_dir_all(dir.join("atoms"))
+            .map_err(io(format!("could not create {dir}/atoms")))?;
+        atomic::write(&dir.join(INTENT_FILE), intent)?;
+        atomic::write(&dir.join(&checklist_file), checklist)?;
+        atomic::write(&dir.join("manifest.toml"), toml_of(&manifest)?)?;
+        dir.join("manifest.toml")
+    } else {
+        let document = authoring::document(&manifest, &intent, &checklist);
+        match authoring::create(store, &dir, &document) {
+            Ok(source) => source,
+            Err(error) => {
+                let _ = std::fs::remove_dir(&dir);
+                return Err(error);
+            }
+        }
+    };
     let t = store
         .load(&dir)
         .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?;
@@ -1930,17 +1973,20 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
     }
     if made.is_empty() {
         human.push_str(&format!(
-            "\nno items yet: `war add {id} \"...\"`, or `war claim {id}` and work it whole"
+            "\nno items yet: `war plan add {id} \"...\"`, or `war admin claim {id}` and work it whole"
         ));
     } else {
-        human.push_str(&format!("\n{} item(s); `war next` lists them", made.len()));
+        human.push_str(&format!(
+            "\n{} item(s); `war view next` lists them",
+            made.len()
+        ));
     }
     // OW-WAR-0148 M13 (decision 2): one line, never a refusal, suggesting
     // the test a new Warrant does not have yet. `[warrants] hints = false`
     // turns it off.
     let hint = hints_enabled(&store.root).then(|| {
         format!(
-            "hint (optional): `war add {id} --test \"<command>\"` gives it a test, and `war \
+            "hint (optional): `war plan add {id} --test \"<command>\"` gives it a test, and `war \
              done <item> --check` then ticks only when it passes"
         )
     });
@@ -1954,6 +2000,7 @@ pub fn create(store: &Store, args: &CreateArgs) -> Result<Outcome, RepoError> {
         "uuid": uuid,
         "title": title,
         "dir": rel,
+        "source": store.rel(&source),
         "priority": priority,
         "items": made,
     });
@@ -2135,7 +2182,7 @@ pub fn drafted_items(
             crate::init::CONFIG_FILE,
             "`--draft` asks the configured drafter, and `[plan] drafter_argv` is not set; \
              nothing was invented. Give the items with `--item`, or add them later with \
-             `war add`",
+             `war plan add`",
         )));
     }
     let request = crate::plan::request(
@@ -2246,12 +2293,12 @@ pub struct ReadyRow {
     /// 1-based line of an unnamed item in the checklist.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub line: Option<usize>,
-    /// A claim past its TTL: `war claim --steal` may take it. Boxed, as is
+    /// A claim past its TTL: `war admin claim --steal` may take it. Boxed, as is
     /// `expired_claim`: a ready set holds a row per open item, and almost
     /// none carries a claim.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stale_claim: Option<Box<claim::Claim>>,
-    /// M11: a claim whose lease ran out: a plain `war claim` takes it.
+    /// M11: a claim whose lease ran out: a plain `war admin claim` takes it.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expired_claim: Option<Box<claim::Claim>>,
     /// FORMAT-1.0 §11.5: the earliest `due` of the row and of everything
@@ -2334,8 +2381,8 @@ pub fn ready_rows_at(
 ) -> Result<Vec<ReadyRow>, RepoError> {
     // A claim leaves its item in the ready set only when its lease ran out
     // (a plain claim takes it): a live claim holds its item out (§11.5),
-    // however old (a claim past the TTL is taken with `war claim --steal`,
-    // which `war show` and the refusal name).
+    // however old (a claim past the TTL is taken with `war admin claim --steal`,
+    // which `war view show` and the refusal name).
     type Takeable = (Option<claim::Claim>, Option<claim::Claim>);
     let stale = |c: Option<&claim::Claim>| -> Result<Takeable, ()> {
         match c {
@@ -2547,7 +2594,7 @@ pub fn ready_lines(rows: &[ReadyRow]) -> String {
             out.push_str(&format!("  [lease ran out: {} held it]", c.actor));
         } else if let Some(c) = rs.iter().find_map(|r| r.stale_claim.as_ref()) {
             out.push_str(&format!(
-                "  [stale claim: {}; `war claim --steal`]",
+                "  [stale claim: {}; `war admin claim --steal`]",
                 c.actor
             ));
         }
@@ -2573,7 +2620,7 @@ pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Out
     let rows = ready_rows_with(store, &tickets, claims?)?;
     let mut human = String::new();
     if human_too && rows.is_empty() {
-        // M9: the same plain first line `war next` prints; ordinary work
+        // M9: the same plain first line `war view next` prints; ordinary work
         // goes on either way.
         if tickets.iter().any(|t| !t.is_done()) {
             human.push_str(
@@ -2620,11 +2667,23 @@ fn new_claim(store: &Store, ticket: &str, item: Option<&str>, now: u64) -> claim
         since_unix: now,
         lease_until: Some(rfc3339(now + store.lease_secs)),
         lease_until_unix: Some(now + store.lease_secs),
+        coordination: None,
     }
 }
 
-/// `war claim <item|ticket> [--steal]`.
+/// `war admin claim <item|ticket> [--steal]`.
 pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, RepoError> {
+    claim_scoped(store, query, steal, &[])
+}
+
+/// One admission path for CLI, SDK/MCP and the start loop.
+pub fn claim_scoped(
+    store: &Store,
+    query: &str,
+    steal: bool,
+    paths: &[String],
+) -> Result<Outcome, RepoError> {
+    let _admission = scopes::AdmissionLock::acquire(store)?;
     let (mut tickets, _) = store.load_for(query)?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
@@ -2658,6 +2717,82 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
         Some(i) => format!("{}/{i}", t.id()),
         None => t.id().to_owned(),
     };
+    let mut coordination = match scopes::of(store, t, paths) {
+        Ok(value) => value,
+        Err(why) => {
+            return Ok(Outcome::refused(
+                "work.scope-invalid",
+                store.rel(&t.intent_path),
+                why,
+            ));
+        }
+    };
+    let mut overlaps = Vec::new();
+    for old in claims.values().flatten() {
+        let same_target =
+            old.ticket == t.id() && (old.item.is_none() || item.is_none() || old.item == item);
+        let ours = owns_claim(store, old);
+        if same_target
+            && !ours
+            && old.lease_expired(now)
+            && old
+                .coordination
+                .as_ref()
+                .is_some_and(|c| c.workspace == coordination.workspace)
+        {
+            return Ok(Outcome::unknown(
+                "work.writer-unfenced",
+                store.rel(&t.intent_path),
+                format!(
+                    "{} has an expired lease held by {}; expiry does not prove its writer stopped. Stop/release that writer, or recover into an isolated workspace before replacing it",
+                    old.target(),
+                    old.actor
+                ),
+            ));
+        }
+        if same_target
+            && ours
+            && paths.is_empty()
+            && let Some(previous) = &old.coordination
+        {
+            coordination = previous.clone();
+        }
+        if ours {
+            continue;
+        }
+        let Some(other) = &old.coordination else {
+            continue;
+        };
+        for wanted in &coordination.paths {
+            for held in &other.paths {
+                let overlap = scopes::overlaps(wanted, held);
+                if matches!(overlap, Ok(false)) {
+                    continue;
+                }
+                if other.workspace == coordination.workspace {
+                    let why = match overlap {
+                        Err(why) => format!("overlap cannot be ruled out: {why}"),
+                        _ => format!("{wanted} overlaps {held}"),
+                    };
+                    return Ok(Outcome::refused(
+                        "work.write-conflict",
+                        store.rel(&t.intent_path),
+                        format!(
+                            "{what}: {why}; {} holds {} in this checkout. Use disjoint paths or an isolated worktree",
+                            old.actor,
+                            old.target()
+                        ),
+                    ));
+                }
+                overlaps.push(format!(
+                    "{} ({}) touches {held} in {}; integration checks are required",
+                    old.actor,
+                    old.target(),
+                    other.workspace
+                ));
+            }
+        }
+    }
     if let Some(id) = &item {
         let it = t.item(id).expect("resolved");
         if it.done {
@@ -2679,7 +2814,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 "ticket.blocked",
                 store.rel(&t.checklist_path),
                 format!(
-                    "{what} waits on {}; `war next` lists what can start now",
+                    "{what} waits on {}; `war view next` lists what can start now",
                     waiting.join(", ")
                 ),
             ));
@@ -2687,7 +2822,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
         // The whole ticket held by someone else holds this item too, while
         // its lease is live (an expired claim holds nothing, §11.3).
         if let Some((_, c)) = claim_on(&claims, t.id(), None)
-            && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+            && c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
         {
             return Ok(claimed_by_other(
                 store.rel(&store.lock_path(t.id(), None)),
@@ -2713,7 +2848,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 "ticket.blocked",
                 store.rel(&t.checklist_path),
                 format!(
-                    "{what} waits on {}; `war next` lists what can start now",
+                    "{what} waits on {}; `war view next` lists what can start now",
                     waiting.join(", ")
                 ),
             ));
@@ -2726,7 +2861,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
             .filter(|(_, c)| {
                 c.as_ref()
-                    .is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+                    .is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
             })
             .map(|(k, c)| {
                 let who = c.as_ref().map_or_else(
@@ -2751,7 +2886,8 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
         }
     }
     let path = store.lock_path(t.id(), item.as_deref());
-    let mine = new_claim(store, t.id(), item.as_deref(), now);
+    let mut mine = new_claim(store, t.id(), item.as_deref(), now);
+    mine.coordination = Some(coordination.clone());
     // A claim from before claims were shared (M11) holds where it lies.
     let held_at = store.lock_of(t.id(), item.as_deref());
     let taken = if held_at == path {
@@ -2769,14 +2905,23 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     let mut reclaimed_from: Option<claim::Claim> = None;
     let stolen_from = match taken {
         claim::Taken::Won => None,
-        claim::Taken::Held(Some(c)) if c.actor == store.actor => {
+        claim::Taken::Held(Some(c)) if owns_claim(store, &c) => {
+            let mut c = c;
+            if !paths.is_empty() {
+                let previous = c.coordination.replace(coordination.clone());
+                atomic::write(
+                    &held_at,
+                    serde_json::to_string(&c).map_err(|e| RepoError::Message(e.to_string()))?,
+                )?;
+                store.journal(t,"x.scope-updated",&serde_json::json!({"target":what,"previous":previous,"coordination":coordination}))?;
+            }
             let c = store
                 .renew_held(Some(&claim::lock_name(t.id(), item.as_deref())))
                 .pop()
                 .unwrap_or(c);
             return Ok(Outcome::ok(
                 format!("{what} is already yours (since {})", c.since),
-                serde_json::json!({"schema": "oh.war/ticket-claim/v1", "target": what, "claim": c, "already_held": true}),
+                serde_json::json!({"schema": "oh.war/ticket-claim/v1", "target": what, "coordination":c.coordination,"claim": c, "already_held": true}),
             ));
         }
         claim::Taken::Held(Some(c)) if c.lease_expired(now) => {
@@ -2793,7 +2938,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                     return Ok(claimed_by_other(
                         store.rel(&held_at),
                         format!(
-                            "{what} was taken first by {}; pick another (`war next`)",
+                            "{what} was taken first by {}; pick another (`war view next`)",
                             holder(other.as_ref(), now)
                         ),
                     ));
@@ -2805,7 +2950,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
             if !steal || !is_stale {
                 let hint = if is_stale {
                     format!(
-                        ". The claim is past its {} TTL: `war claim {what} --steal` takes it",
+                        ". The claim is past its {} TTL: `war admin claim {what} --steal` takes it",
                         render::ago(store.ttl_secs)
                     )
                 } else if steal {
@@ -2821,7 +2966,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
                 } else {
                     c.as_ref().map_or_else(String::new, |c| {
                         format!(
-                            ". Its lease runs out in {} unless {} renews it; then `war claim \
+                            ". Its lease runs out in {} unless {} renews it; then `war admin claim \
                              {what}` takes it",
                             render::ago(c.lease_left(now)),
                             c.actor
@@ -2854,14 +2999,14 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     let after = store.claims()?;
     let conflict = match &item {
         Some(_) => claim_on(&after, t.id(), None)
-            .filter(|(_, c)| c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now)))
+            .filter(|(_, c)| c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now)))
             .map(|(_, c)| holder(c, now)),
         None => after
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
             .find(|(_, c)| {
                 c.as_ref()
-                    .is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+                    .is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
             })
             .map(|(_, c)| holder(c.as_ref(), now)),
     };
@@ -2961,6 +3106,7 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     let mut result = serde_json::json!({
         "schema": "oh.war/ticket-claim/v1",
         "target": what,
+        "coordination":coordination,
         "claim": mine,
         "stolen_from": stolen_from.flatten(),
         "named": named_now,
@@ -2968,7 +3114,27 @@ pub fn claim_cmd(store: &Store, query: &str, steal: bool) -> Result<Outcome, Rep
     if let Some(from) = &reclaimed_from {
         result["reclaimed_from"] = serde_json::json!(from);
     }
-    Ok(Outcome::ok(human, result))
+    let mut answer = Outcome::ok(human, result);
+    for overlap in overlaps {
+        answer.report.push(Diagnostic::warn(
+            "work.integration-overlap",
+            store.rel(&t.intent_path),
+            overlap,
+        ));
+    }
+    Ok(answer)
+}
+
+/// Session and optional nonce fence managed callers independently of display names.
+fn owns_claim(store: &Store, claim: &claim::Claim) -> bool {
+    claim.actor == store.actor
+        && match std::env::var("OPENWARRANT_CLAIM_ID").ok() {
+            Some(expected) => expected == claim.claim,
+            None => claim
+                .coordination
+                .as_ref()
+                .is_none_or(|c| c.session == scopes::session()),
+        }
 }
 
 /// The Warrants `store.actor` holds a live claim on (whole or on an item),
@@ -2979,7 +3145,7 @@ fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
         .claims()?
         .values()
         .flatten()
-        .filter(|c| c.actor == store.actor && !c.lease_expired(now))
+        .filter(|c| owns_claim(store, &c) && !c.lease_expired(now))
         .map(|c| c.ticket.clone())
         .collect();
     ids.sort();
@@ -3116,12 +3282,17 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
-    Ok(render::brief(
-        store,
-        &tickets,
-        &tickets[index],
-        &store.actor,
-    ))
+    let repository = Repository::discover(Some(
+        store
+            .check_root
+            .clone()
+            .unwrap_or_else(|| store.root.clone()),
+    ))?;
+    let context = crate::context::task::repository(&repository, tickets[index].id())?;
+    let mut answer = render::brief(store, &tickets, &tickets[index], &store.actor);
+    answer.result["context"] =
+        serde_json::to_value(context).map_err(|e| RepoError::Message(e.to_string()))?;
+    Ok(answer)
 }
 
 /// `war admin release <item|ticket>`: give a claim back without finishing.
@@ -3149,7 +3320,7 @@ pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outco
             store.rel(&path),
             format!("{what} is not claimed; nothing to release"),
         )),
-        Some(Some(c)) if c.actor == store.actor => {
+        Some(Some(c)) if owns_claim(store, &c) => {
             // M11: the remote's ref goes too, if it is still the one this
             // machine published (a lease that ran out there may be someone
             // else's claim now, and stays).
@@ -3173,7 +3344,7 @@ pub fn release(store: &Store, query: &str, if_rev: Option<&str>) -> Result<Outco
             store.rel(&path),
             format!(
                 "{what} is claimed by {}; only its holder releases it (a stale claim is taken \
-                 with `war claim --steal`)",
+                 with `war admin claim --steal`)",
                 holder(c.as_ref(), now_secs())
             ),
         )),
@@ -3203,7 +3374,7 @@ fn reopen_whole(store: &Store, t: &Ticket, reason: &str) -> Result<Outcome, Repo
     let now = now_secs();
     let claims = store.claims()?;
     if let Some((_, c)) = claim_on(&claims, t.id(), None)
-        && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+        && c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
     {
         return Ok(claimed_by_other(
             store.rel(&store.lock_of(t.id(), None)),
@@ -3300,7 +3471,7 @@ pub fn reopen(
     let claims = store.claims()?;
     for level in [Some(id.as_str()), None] {
         if let Some((_, c)) = claim_on(&claims, t.id(), level)
-            && c.is_none_or(|c| c.actor != store.actor && !c.lease_expired(now))
+            && c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
         {
             let whose = if level.is_some() {
                 "it"
@@ -3479,7 +3650,7 @@ impl Store {
                 Ok(remote::Held::At(sha, c)) => {
                     let c = c.map(|c| *c);
                     let how = match &c {
-                        Some(c) if c.actor == self.actor => Some(Takeover::Own),
+                        Some(c) if owns_claim(self, &c) => Some(Takeover::Own),
                         Some(c) if c.lease_expired(now) => Some(Takeover::Reclaimed),
                         Some(c) if steal && c.age(now) > self.ttl_secs => Some(Takeover::Stolen),
                         _ => None,
@@ -3499,7 +3670,7 @@ impl Store {
         }
         let hint = last_holder.as_ref().map_or_else(String::new, |c| {
             format!(
-                ". Its lease runs out in {} unless {} renews it; then `war claim {what}` takes it",
+                ". Its lease runs out in {} unless {} renews it; then `war admin claim {what}` takes it",
                 render::ago(c.lease_left(now)),
                 c.actor
             )
@@ -3539,7 +3710,7 @@ impl Store {
             Ok(remote::Held::At(sha, c)) => {
                 let c = c.map(|c| *c);
                 let published = remote::read_sidecar(lock).is_some_and(|p| p.commit == sha);
-                if published || c.as_ref().is_some_and(|c| c.actor == self.actor) {
+                if published || c.as_ref().is_some_and(|c| owns_claim(self, &c)) {
                     Ok(Some(sha))
                 } else {
                     Err(Box::new(claimed_by_other(
@@ -3582,7 +3753,7 @@ impl Store {
                 format!("{remote_name}:{refname}"),
                 format!(
                     "the claim's ref on `{remote_name}` was not deleted ({e}); it reads expired \
-                     once its lease runs out, and a plain `war claim` takes it then"
+                     once its lease runs out, and a plain `war admin claim` takes it then"
                 ),
             )),
         }
@@ -3755,12 +3926,12 @@ pub fn heartbeat(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
                         "ticket.not-claimed",
                         store.rel(&path),
                         format!(
-                            "{what} is not claimed, so there is no lease to renew; `war claim \
+                            "{what} is not claimed, so there is no lease to renew; `war admin claim \
                              {what}` takes it"
                         ),
                     ));
                 }
-                Some(c) if c.as_ref().is_none_or(|c| c.actor != store.actor) => {
+                Some(c) if c.as_ref().is_none_or(|c| !owns_claim(store, &c)) => {
                     return Ok(claimed_by_other(
                         store.rel(&path),
                         format!(
@@ -3833,7 +4004,7 @@ fn may_finish(
     let mine = |c: &Option<Option<claim::Claim>>| {
         c.as_ref()
             .and_then(Option::as_ref)
-            .is_some_and(|c| c.actor == store.actor)
+            .is_some_and(|c| owns_claim(store, &c))
     };
     if mine(&own) || mine(&whole) {
         return Ok(());
@@ -3860,7 +4031,7 @@ fn may_finish(
         "ticket.not-claimed",
         store.rel(&own_path),
         format!(
-            "{what} is not claimed by {}. Claim it first (`war claim {what}`), so two agents \
+            "{what} is not claimed by {}. Claim it first (`war admin claim {what}`), so two agents \
              never finish the same item",
             store.actor
         ),
@@ -4039,7 +4210,7 @@ fn finish(
     {
         return Ok(refusal);
     }
-    // The claim, as `war claim` takes it: refused when the item is blocked
+    // The claim, as `war admin claim` takes it: refused when the item is blocked
     // or someone took it meanwhile, journalled when it is taken.
     let mut auto_claimed = None;
     if auto_claim {
@@ -4073,7 +4244,7 @@ fn finish(
     if let Some(remote_name) = store.remote.as_deref() {
         let own = store.lock_of(t.id(), item_id.as_deref());
         let lock = match store.read_claim(&own) {
-            Ok(Some(Some(c))) if c.actor == store.actor => own,
+            Ok(Some(Some(c))) if owns_claim(store, &c) => own,
             _ => store.lock_of(t.id(), None),
         };
         match store.remote_holds_mine(remote_name, &lock, &what, "nothing was ticked") {
@@ -4292,7 +4463,7 @@ fn finish_ticket(
             .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))
     };
     let mut t = tickets[index].clone();
-    // Lines a human added without an id are named first, as `war claim`
+    // Lines a human added without an id are named first, as `war admin claim`
     // names them, so every item ticked is named in the journal.
     if t.checklist.items.iter().any(|i| !i.done && i.id.is_none()) {
         if let Err(refusal) = rewrite(&t.checklist_path, |text| Ok(named_in(&t, text)))? {
@@ -4663,7 +4834,7 @@ fn issue_writeback(
 
 // ---- add / note ------------------------------------------------------------
 
-/// `war add <ticket> "<text>" [--after <item|ticket>]...`.
+/// `war plan add <ticket> "<text>" [--after <item|ticket>]...`.
 pub fn add(
     store: &Store,
     query: &str,
@@ -4758,7 +4929,7 @@ pub fn add(
 
 // ---- edit (OW-WAR-0148 M5) ---------------------------------------------------
 
-/// What `war edit` changes; `None` leaves a field as it is.
+/// What `war plan edit` changes; `None` leaves a field as it is.
 #[derive(Debug, Clone, Default)]
 pub struct EditArgs {
     /// `Some(None)`: clear the type.
@@ -4775,7 +4946,7 @@ pub struct EditArgs {
     pub if_rev: Option<String>,
 }
 
-/// `war edit <ticket>`: set a ticket's type, labels, epic or priority. Each
+/// `war plan edit <ticket>`: set a ticket's type, labels, epic or priority. Each
 /// changes one line of `manifest.toml` (added, replaced or removed) and
 /// nothing else; journalled as `ticket.edited`.
 pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, RepoError> {
@@ -4786,15 +4957,14 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
             return Ok(Outcome::refused(
                 "ticket.edit-item",
                 String::new(),
-                format!("`war edit {query}` names an item; type, labels and epic are a Warrant's"),
+                format!(
+                    "`war plan edit {query}` names an item; type, labels and epic are a Warrant's"
+                ),
             ));
         }
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
-    if let Some(refusal) = format_unsupported(store, t, "a change to its manifest") {
-        return Ok(refusal);
-    }
     if let Some(refusal) = check_if_rev(store, t, None, t.id(), args.if_rev.as_deref()) {
         return Ok(refusal);
     }
@@ -4868,7 +5038,9 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
             changes.insert("due".into(), serde_json::json!(due));
         }
     }
-    if let Err(why) = m.validate(&store.definition.working_roles()) {
+    if !t.format
+        && let Err(why) = m.validate(&store.definition.working_roles())
+    {
         return Ok(Outcome::refused(
             "ticket.manifest",
             store.rel(&t.dir.join("manifest.toml")),
@@ -4880,6 +5052,9 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
             format!("{}: nothing to change", t.id()),
             serde_json::json!({"schema": "oh.war/ticket-edit/v1", "ticket": t.id(), "changed": {}}),
         ));
+    }
+    if t.format {
+        return authoring::edit(store, t, &changes, args.if_rev.as_deref());
     }
     let manifest_path = t.dir.join("manifest.toml");
     let edited = m.clone();
@@ -4974,11 +5149,11 @@ pub fn edit(store: &Store, query: &str, args: &EditArgs) -> Result<Outcome, Repo
     ))
 }
 
-/// The heading `war note` appends under, created at the end of the intent
+/// The heading `war plan note` appends under, created at the end of the intent
 /// atom the first time.
 pub const NOTES_HEADING: &str = "## Notes";
 
-/// `war note <ticket|item> "<text>"`: a dated note in the ticket's intent, the
+/// `war plan note <ticket|item> "<text>"`: a dated note in the ticket's intent, the
 /// durable context the next agent or human reads.
 pub fn note(
     store: &Store,
@@ -5258,7 +5433,7 @@ pub fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
     )
 }
 
-/// Every ticket as `war view tickets` lists it, each with `war show`'s items,
+/// Every ticket as `war view tickets` lists it, each with `war view show`'s items,
 /// notes and Markdown, and which of its items `war view ready` offers now. The
 /// TUI and the web page render this and compute nothing of their own.
 pub fn board(store: &Store) -> Result<serde_json::Value, RepoError> {

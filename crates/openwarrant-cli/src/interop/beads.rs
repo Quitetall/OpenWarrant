@@ -539,7 +539,7 @@ fn split_body(body: &str) -> [String; 4] {
     parts.map(|p| p.join("\n").trim().to_owned())
 }
 
-/// `**2026-01-02 03:04:05 UTC, alice:** text`, as `war note` writes it
+/// `**2026-01-02 03:04:05 UTC, alice:** text`, as `war plan note` writes it
 /// (minutes) or an import does (seconds): (timestamp, author, text).
 fn parse_note(note: &str) -> Option<(String, String, String)> {
     let rest = note.strip_prefix("**")?;

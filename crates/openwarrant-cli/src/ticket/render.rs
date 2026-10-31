@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! What a person or an arriving agent reads: `war view prime`, `war show`,
+//! What a person or an arriving agent reads: `war view prime`, `war view show`,
 //! `war view tickets`. Plain Markdown, in the words of the work — no rule names,
 //! no section numbers.
 
@@ -810,7 +810,7 @@ const fn fixed_word(s: TicketState) -> &'static str {
     }
 }
 
-/// `war show <ticket>`: the ticket as a person reads it, with who holds what.
+/// `war view show <ticket>`: the ticket as a person reads it, with who holds what.
 pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let index = match resolve(&tickets, query) {
@@ -882,7 +882,7 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     if t.checklist.items.is_empty() && r.tickets.is_some() {
         md.push_str("(no items of its own: the work is its Warrants, below)\n");
     } else if t.checklist.items.is_empty() {
-        md.push_str("(no items: the Warrant is the work — `war add` breaks it down)\n");
+        md.push_str("(no items: the Warrant is the work — `war plan add` breaks it down)\n");
     }
     for item in &t.checklist.items {
         if item.done {
@@ -1047,7 +1047,7 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     Ok(out)
 }
 
-/// `## Checks` in `war show`: each test, each KPI with its latest, best and
+/// `## Checks` in `war view show`: each test, each KPI with its latest, best and
 /// target, each milestone with its minimum and where its tick stands.
 fn checks_section(
     t: &Ticket,
@@ -1282,7 +1282,9 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         .collect();
     md.push_str("\n## Remaining\n\n");
     if remaining.is_empty() && n == 0 {
-        md.push_str("No items: the Warrant is the work (`war claim` it whole, `war done` it).\n");
+        md.push_str(
+            "No items: the Warrant is the work (`war admin claim` it whole, `war done` it).\n",
+        );
     } else if remaining.is_empty() {
         md.push_str("Nothing: every item is done.\n");
     } else {
@@ -1290,7 +1292,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
     }
     if d > 0 {
         md.push_str(&format!(
-            "\n{d} item(s) done; `war show {}` lists them.\n",
+            "\n{d} item(s) done; `war view show {}` lists them.\n",
             t.id()
         ));
     }
@@ -1315,7 +1317,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
     )
 }
 
-/// Every note on `t`, oldest first: those in its intent (`war note` on a
+/// Every note on `t`, oldest first: those in its intent (`war plan note` on a
 /// directory ticket) and its journal's (`work.note_added` on a Format 1.0
 /// one).
 fn all_notes(t: &Ticket) -> Vec<String> {

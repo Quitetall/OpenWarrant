@@ -166,15 +166,19 @@ pub fn ensure_branch(dir: &Utf8Path, branch: &str) -> Result<String, String> {
 }
 
 /// Add a worktree at `path` on a new branch `branch` from `base`. A worktree
-/// or branch of that name left by an earlier attempt is removed first: an
-/// attempt starts from the integration branch, never from a dead one.
+/// or branch of that name left by an earlier attempt is preserved. Recovery
+/// must inspect that progress rather than silently starting over.
 pub fn add_worktree(
     root: &Utf8Path,
     path: &Utf8Path,
     branch: &str,
     base: &str,
 ) -> Result<(), String> {
-    remove_worktree(root, path, Some(branch));
+    if path.exists() || branch_tip(root, branch).is_some() {
+        return Err(format!(
+            "workspace or branch already exists; progress retained: {path} ({branch})"
+        ));
+    }
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
@@ -185,11 +189,13 @@ pub fn add_worktree(
     if !r.ok {
         return Err(format!("could not add the worktree {path}: {}", r.why()));
     }
-    Ok(())
+    crate::worktrees::register(root, path, branch, base)
 }
 
 /// Add a worktree at `path` on an existing `branch`.
 pub fn add_worktree_on(root: &Utf8Path, path: &Utf8Path, branch: &str) -> Result<(), String> {
+    let base =
+        rev(root, branch).ok_or_else(|| format!("branch does not name a commit: {branch}"))?;
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
@@ -197,28 +203,14 @@ pub fn add_worktree_on(root: &Utf8Path, path: &Utf8Path, branch: &str) -> Result
     if !r.ok {
         return Err(format!("could not add the worktree {path}: {}", r.why()));
     }
-    Ok(())
+    crate::worktrees::register(root, path, branch, &base)
 }
 
-/// Remove the worktree at `path` (forcefully: its work has landed or been
-/// given up) and, when named, its branch. Best effort: what is already gone
-/// is fine.
+/// Reclaim only a managed, clean, integrated and inactive worktree. Retain its
+/// branch: callers may still need its commits or recovery history.
 pub fn remove_worktree(root: &Utf8Path, path: &Utf8Path, branch: Option<&str>) {
-    if path.exists() {
-        let _ = git(
-            root,
-            &["worktree", "remove", "--force", "--force", path.as_str()],
-        );
-        if path.exists() {
-            let _ = std::fs::remove_dir_all(path);
-        }
-    }
-    let _ = git(root, &["worktree", "prune"]);
-    if let Some(b) = branch
-        && branch_tip(root, b).is_some()
-    {
-        let _ = git(root, &["branch", "-D", b]);
-    }
+    let _ = branch;
+    let _ = crate::worktrees::remove_if_safe(root, path, "HEAD");
 }
 
 /// The identity a commit by the scheduler is written under: the

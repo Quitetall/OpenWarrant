@@ -488,6 +488,7 @@ struct Plan {
     target: String,
     check: String,
     run: String,
+    runs: Vec<String>,
     /// The revision the run names for the item: the compare-and-set's base.
     base: String,
     action: Action,
@@ -570,6 +571,10 @@ fn evaluate_one(
                 continue;
             }
         }
+        if verdict == "PASS" && !c.gating {
+            // Informational checks supply observations, never completion.
+            continue;
+        }
         for g in &c.evaluates {
             let local = g.rsplit('/').next().unwrap_or(g);
             let Some(it) = t.item(local) else { continue };
@@ -598,6 +603,46 @@ fn evaluate_one(
                 ("FAIL", true) => Action::Reopen,
                 _ => continue,
             };
+            let mut runs = vec![run.run.clone()];
+            if matches!(action, Action::Tick | Action::Raise(_)) {
+                let required: Vec<_> = checks
+                    .iter()
+                    .filter(|check| check.gating && check.evaluates.contains(g))
+                    .collect();
+                let mut current_runs = Vec::new();
+                let all_pass = required.iter().all(|check| {
+                    let Some(other) = last_run(&journal, check) else {
+                        return false;
+                    };
+                    if !other.verdict.eq_ignore_ascii_case("PASS")
+                        || !other.subjects.iter().any(|(id, revision)| {
+                            (id == g || format!("{}/{id}", t.id()) == *g) && revision == &current
+                        })
+                    {
+                        return false;
+                    }
+                    current_runs.push(other.run);
+                    true
+                });
+                if !all_pass || required.is_empty() {
+                    out.effects.push(effect("required-results-pending"));
+                    continue;
+                }
+                let (minimum, _) = ladder::minimum(store, t, &parts, Some(local));
+                if minimum > Level::Observed {
+                    report.push(Diagnostic::warn(
+                        "check.minimum-pending",
+                        &file,
+                        format!(
+                            "{g}: checks passed; completion requires {}: {}",
+                            minimum.as_str(),
+                            ladder::command_for(minimum, g)
+                        ),
+                    ));
+                    continue;
+                }
+                runs = current_runs;
+            }
             if plans.iter().any(|p| p.target == *g) {
                 continue;
             }
@@ -606,6 +651,7 @@ fn evaluate_one(
                 target: g.clone(),
                 check: c.global.clone(),
                 run: run.run.clone(),
+                runs,
                 base: current,
                 action,
             });
@@ -685,7 +731,7 @@ fn evaluate_one(
                 event::ITEM_DONE,
                 serde_json::json!({
                     "item": p.item, "target": p.target, "on": on, "level": "observed",
-                    "runs": [p.run],
+                    "runs": p.runs,
                     "episode": episode(&journal, event::ITEM_DONE, &p.target),
                 }),
                 "ticked",
@@ -694,7 +740,7 @@ fn evaluate_one(
                 ladder::event::TICK_RAISED,
                 serde_json::json!({
                     "item": p.item, "target": p.target, "from": from.as_str(),
-                    "to": "observed", "runs": [p.run],
+                    "to": "observed", "runs": p.runs,
                 }),
                 "raised",
             ),

@@ -324,7 +324,7 @@ pub struct Foreign {
     /// Its tasks file, shown, when it has one.
     pub tasks_file: Option<String>,
     pub tasks: Vec<Task>,
-    /// Lines `war show` prints under "Changes" (OpenSpec's deltas).
+    /// Lines `war view show` prints under "Changes" (OpenSpec's deltas).
     pub changes: Vec<String>,
 }
 

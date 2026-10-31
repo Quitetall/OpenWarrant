@@ -820,7 +820,7 @@ fn run_program_with_output(
         "scaffolded {program}: {sas_path}, docs/authority/*.example, {gate_path}, {alias}"
     ));
     emit(
-        "next: edit the SAS, `war sign sas propose 0.1.0`, then a human signs it — `war next` says the rest"
+        "next: edit the SAS, `war sign sas propose 0.1.0`, then a human signs it — `war view next` says the rest"
         .to_owned(),
     );
     Ok(root)

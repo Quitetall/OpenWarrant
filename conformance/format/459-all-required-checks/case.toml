@@ -1,0 +1,4 @@
+id = "459-all-required-checks"
+kind = "accept"
+section = "12"
+says = "An item advances only when every gating check evaluating it has a current PASS."

@@ -1348,7 +1348,7 @@ fn spec_acceptor(corpus: &Corpus, revision: &str) -> Option<String> {
 /// unit and item of `SPEC.md` and its parts, and each document's own
 /// `doc:<path>` record, with the revision and `content_digest` the full
 /// model gives them. Read from the specification's documents alone, so a
-/// caller that needs only these (an acceptance, `war next`) does not pay
+/// caller that needs only these (an acceptance, `war view next`) does not pay
 /// for the whole model.
 #[must_use]
 pub fn spec_records(corpus: &Corpus) -> Vec<Record> {

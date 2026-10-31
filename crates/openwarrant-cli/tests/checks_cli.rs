@@ -126,6 +126,57 @@ fn doc(root: &Path) -> String {
     std::fs::read_to_string(root.join("docs/tickets/t-0c01.md")).unwrap()
 }
 
+#[test]
+fn every_required_check_must_pass_and_optional_checks_cannot_complete_work() {
+    let root = scratch("all-required");
+    ticket(
+        &root,
+        "## CHK-a · check — first condition\nrun: true\nevaluates i-0c01\n\n## CHK-b · check — second condition\nrun: false\nevaluates i-0c01\n\n## CHK-optional · check — informational\nrun: true\ngating: false\nevaluates i-0c02\n",
+    );
+    let _ = json(&root, None, &["check", "run", "t-0c01"]);
+    assert!(
+        doc(&root).contains("- [ ] first (i-0c01)"),
+        "one passing condition cannot override the other required failure: {}",
+        doc(&root)
+    );
+    assert!(
+        doc(&root).contains("- [ ] second (i-0c02)"),
+        "an optional result cannot complete work"
+    );
+    let original = doc(&root);
+    std::fs::write(
+        root.join("docs/tickets/t-0c01.md"),
+        original.replace("run: false", "run: true"),
+    )
+    .unwrap();
+    let _ = json(&root, None, &["check", "evaluate", "t-0c01"]);
+    assert!(
+        doc(&root).contains("- [ ] first (i-0c01)"),
+        "a changed check has no current result"
+    );
+    let v = json(&root, None, &["check", "run", "t-0c01/CHK-b"]);
+    assert_eq!(v["exit_code"], 0, "{v}");
+    assert!(
+        doc(&root).contains("- [x] first (i-0c01)"),
+        "all current required results complete their target: {}",
+        doc(&root)
+    );
+    let before = events(&root)
+        .iter()
+        .filter(|e| e["type"] == "work.item_done")
+        .count();
+    let _ = json(&root, None, &["check", "evaluate", "t-0c01"]);
+    assert_eq!(
+        events(&root)
+            .iter()
+            .filter(|e| e["type"] == "work.item_done")
+            .count(),
+        before,
+        "repeated evaluation is idempotent"
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
 fn events(root: &Path) -> Vec<serde_json::Value> {
     std::fs::read_to_string(root.join("docs/tickets/t-0c01/journal.jsonl"))
         .unwrap_or_default()

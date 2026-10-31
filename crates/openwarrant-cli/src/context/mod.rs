@@ -25,6 +25,7 @@
 //! environment, no claim locks, no directory order.
 
 pub mod adapter;
+pub mod task;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -52,7 +53,7 @@ pub const RULE_TARGET_UNREAD: &str = "format.target-unknown";
 // ---- The seam -------------------------------------------------------------
 
 /// One record as the compiler reads it.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, serde::Deserialize)]
 pub struct Unit {
     /// Global id (`OW-WAR-0146/OBL-001`, `t-0d61d/i-de0e`, `REQ-pr1`).
     pub id: String,
@@ -96,7 +97,7 @@ pub struct Unit {
 }
 
 /// One relation, `{from, kind, to}`.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, serde::Deserialize)]
 pub struct Edge {
     pub from: String,
     pub kind: String,
@@ -104,7 +105,7 @@ pub struct Edge {
 }
 
 /// What the compiler reads.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, serde::Deserialize)]
 pub struct Graph {
     /// The repository's name, for the index heading.
     pub name: String,
@@ -120,7 +121,7 @@ pub struct Graph {
 /// The journals, claims and time a preset that reads state answers at
 /// (section 10.4). The adapter fills it; the compiler only renders it, so
 /// [`compile`] stays a function of its graph.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, serde::Deserialize)]
 pub struct Tracking {
     /// The time, as given (`--at`) or read from the clock, RFC 3339.
     pub at: String,
@@ -144,7 +145,7 @@ impl Graph {
 
 /// A diagnostic, `{rule, record, message}`.
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, serde::Deserialize)]
 pub struct Finding {
     pub rule: String,
     pub record: String,
@@ -963,8 +964,35 @@ fn is_field_name(n: &str) -> bool {
 
 /// `war context <target>`: the packet, or a refusal with nothing emitted.
 pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Refusal> {
-    let preset = &opts.preset;
+    compile_seeds(graph, target, opts, resolve(graph, target)?)
+}
+
+/// Render an explicit required selection through the same compiler as `context`.
+/// Callers determine applicability; this function never truncates required text.
+pub fn compile_selected(
+    graph: &Graph,
+    target: &str,
+    ids: &BTreeSet<String>,
+) -> Result<Packet, Refusal> {
     let mut seeds = resolve(graph, target)?;
+    seeds.zero = ids.clone();
+    seeds.one.clear();
+    seeds.roots = ids.iter().cloned().collect();
+    let mut preset = Preset::builtin("agent").expect("built-in agent preset");
+    preset.name = "task.required".into();
+    preset.walk = "task.required".into();
+    preset.budget = None;
+    preset.depth = 0;
+    compile_seeds(graph, target, &Options::of(preset), seeds)
+}
+
+fn compile_seeds(
+    graph: &Graph,
+    target: &str,
+    opts: &Options,
+    mut seeds: Seeds,
+) -> Result<Packet, Refusal> {
+    let preset = &opts.preset;
     let own = target_document(graph, &seeds);
     if preset.resume {
         // The target's record and items (section 10.4).

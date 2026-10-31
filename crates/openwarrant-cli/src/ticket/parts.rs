@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-//! `war add <id> --test/--kpi/--milestone/--min` (OW-WAR-0148 M13): the
+//! `war plan add <id> --test/--kpi/--milestone/--min` (OW-WAR-0148 M13): the
 //! optional parts any Warrant may carry, a title-only one included.
 //!
 //! A ticket's parts live in its optional checks atom, `atoms/30-checks.md`
@@ -25,7 +25,7 @@ use openwarrant_core::ticks::{self, Direction, Kpi, KpiMode, Level, Milestone, S
 use super::{Outcome, Store, Target, rewrite_or_create};
 use crate::repo::RepoError;
 
-/// A KPI as `war add --kpi` gives it.
+/// A KPI as `war plan add --kpi` gives it.
 #[derive(Debug, Clone, Default)]
 pub struct KpiSpec {
     pub name: String,
@@ -35,7 +35,7 @@ pub struct KpiSpec {
     pub mode: Option<String>,
 }
 
-/// What `war add` is asked for beside an item's text.
+/// What `war plan add` is asked for beside an item's text.
 #[derive(Debug, Clone, Default)]
 pub struct PartsArgs {
     pub tests: Vec<String>,
@@ -63,9 +63,9 @@ fn refused(rule: &str, message: impl Into<String>) -> Outcome {
     Outcome::refused(rule, String::new(), message)
 }
 
-/// `war add <ticket|item> [text] --test/--kpi/--milestone/--min`: the parts
+/// `war plan add <ticket|item> [text] --test/--kpi/--milestone/--min`: the parts
 /// written to the checks atom, and the item (when there is text or a
-/// milestone) to the checklist through `war add`'s own path.
+/// milestone) to the checklist through `war plan add`'s own path.
 pub fn add(
     store: &Store,
     query: &str,
@@ -84,18 +84,15 @@ pub fn add(
     let what = target_item
         .as_ref()
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
-    if let Some(refusal) = super::format_unsupported(
-        store,
-        t,
-        "a checks atom beside the document (FORMAT-1.0 §12: a check is a record in the document)",
-    ) {
-        return Ok(refusal);
-    }
     // M11: a stale `--if-rev` writes nothing, part or item.
     if let Some(refusal) = super::check_if_rev(store, t, target_item.as_deref(), &what, if_rev) {
         return Ok(refusal);
     }
-    let checks_path = t.dir.join(ticks::CHECKS_FILE);
+    let checks_path = if t.format {
+        t.intent_path.clone()
+    } else {
+        t.dir.join(ticks::CHECKS_FILE)
+    };
     let existing = super::ladder::checks_of(t);
 
     // Refusals first: nothing is written unless every part is well-formed.
@@ -103,7 +100,7 @@ pub fn add(
         return Ok(refused(
             "ticket.add-two-items",
             "an item's text and --milestone each add an item; give one (a milestone is an item \
-             with a minimum: `war add <ticket> --milestone \"<text>\" --min observed`)",
+             with a minimum: `war plan add <ticket> --milestone \"<text>\" --min observed`)",
         ));
     }
     let min = match args.min.as_deref() {
@@ -124,7 +121,7 @@ pub fn add(
             "ticket.min-needs-item",
             format!(
                 "--min sets a milestone's minimum: give it with --milestone \"<text>\", or name \
-                 an existing item (`war add {}/<item> --min {}`)",
+                 an existing item (`war plan add {}/<item> --min {}`)",
                 t.id(),
                 min.map_or("observed", Level::as_str)
             ),
@@ -159,6 +156,13 @@ pub fn add(
         ));
     }
     let mut names = existing.names();
+    if t.format {
+        names.extend(
+            super::checks::of_ticket(t)
+                .iter()
+                .map(|c| c.id.strip_prefix("CHK-").unwrap_or(&c.id).to_owned()),
+        );
+    }
     let mut test_names = Vec::new();
     for _ in &tests {
         let name = match &args.name {
@@ -193,7 +197,7 @@ pub fn add(
         },
     };
 
-    // The item, when the command adds one: through `war add`'s own path, so
+    // The item, when the command adds one: through `war plan add`'s own path, so
     // it is named, journalled and placed exactly as any other item.
     let mut item_added = None;
     let mut human = Vec::new();
@@ -255,6 +259,20 @@ pub fn add(
         return Ok(refused(
             "ticket.add-nothing",
             "nothing to add: give an item's text, --test, --kpi or --milestone",
+        ));
+    }
+    if t.format {
+        let values: Vec<_> = lines
+            .iter()
+            .map(|(_, _, payload)| payload.clone())
+            .collect();
+        super::authoring::append_parts(store, t, &values)?;
+        for value in &values {
+            store.journal(t, super::ladder::event::PART_ADDED, value)?;
+        }
+        return Ok(Outcome::ok(
+            format!("{}: added parts to {}", t.id(), store.rel(&checks_path)),
+            serde_json::json!({"schema":"oh.war/ticket-parts/v1","ticket":t.id(),"item":item_added,"scope":scope,"parts":values,"file":store.rel(&checks_path)}),
         ));
     }
     let written = rewrite_or_create(&checks_path, ticks::CHECKS_STUB, |current| {
