@@ -319,6 +319,11 @@ fn execute_gate(
     let spawned = Command::new(&def.argv[0])
         .args(&def.argv[1..])
         .current_dir(&repo.root)
+        // A gate's streams are evidence, read later by a verifier whose
+        // bundle keeps the lines that name its Warrant. A `war` the gate runs
+        // prints every finding, PASS lines included, rather than the brief
+        // rendering an agent's context gets.
+        .env("OPENWARRANT_VERBOSE", "1")
         // §44.6 requires stdout and stderr REFS on the receipt, so the streams
         // are captured to files rather than discarded. Piping without draining
         // can deadlock a chatty child on a full pipe buffer, so they go straight

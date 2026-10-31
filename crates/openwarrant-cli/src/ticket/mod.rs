@@ -156,9 +156,11 @@ pub struct Policy {
     /// before it collapses to one line.
     #[serde(default)]
     pub compact_after_days: Option<u64>,
-    /// Opt in to `war view prime --session` (the plugin's SessionStart hook):
-    /// the agent's session starts with the Warrant it holds, or the overview,
-    /// already in front of it. Off by default: then the hook adds nothing.
+    /// `war view prime --session` (the plugin's SessionStart hook): the
+    /// agent's session starts with the Warrant it holds, or the overview,
+    /// already in front of it, so finding its work costs no call. On by
+    /// default; it says nothing when no tracked work is open, so an ordinary
+    /// session carries nothing. `false` turns it off.
     #[serde(default)]
     pub session_start: Option<bool>,
 }
@@ -398,7 +400,7 @@ pub struct Store {
     pub remote: Option<String>,
     pub compact_days: u64,
     /// `[tickets] session_start`: whether `war view prime --session` says
-    /// anything (opt-in; default off).
+    /// anything (default on; `false` silences it).
     pub session_start: bool,
     pub definition: ProfileDefinition,
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
@@ -515,7 +517,7 @@ impl Store {
             ),
             remote: claims_policy.remote.filter(|r| !r.trim().is_empty()),
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
-            session_start: policy.session_start.unwrap_or(false),
+            session_start: policy.session_start.unwrap_or(true),
             definition,
             actor,
             project: repo.config.project.name.clone(),
@@ -3019,7 +3021,7 @@ pub const LOOP_HINT: &str = "Run `war start` in the same command as your first l
      `<your tests> && war done --note \"what you did\"`.";
 
 /// `war view prime --session`: what a harness shows an agent as its session
-/// starts, when `[tickets] session_start = true`. Holding a Warrant, its
+/// starts, unless `[tickets] session_start = false`. Holding a Warrant, its
 /// brief (a resumed session needs no call to find its work); else the
 /// overview and [`LOOP_HINT`]; nothing when no tracked work is open, so an
 /// ordinary session carries nothing. Not enabled, it says nothing at all.

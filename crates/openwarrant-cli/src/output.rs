@@ -105,6 +105,278 @@ const fn severity_name(s: Severity) -> &'static str {
     }
 }
 
+static VERBOSE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+static QUIET: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Set once from the global `--quiet` flag.
+pub fn set_quiet(on: bool) {
+    QUIET.store(on, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Whether the brief rendering keeps only what blocks (`--quiet`).
+#[must_use]
+pub fn quiet() -> bool {
+    QUIET.load(std::sync::atomic::Ordering::Relaxed)
+}
+
+/// Set once from the global `--verbose` flag.
+pub fn set_verbose(on: bool) {
+    VERBOSE.store(on, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// Whether the human rendering lists every finding (`--verbose`, or
+/// `OPENWARRANT_VERBOSE=1` for a harness such as the conformance battery that
+/// asserts on PASS lines) instead of the brief one.
+#[must_use]
+pub fn verbose() -> bool {
+    VERBOSE.load(std::sync::atomic::Ordering::Relaxed)
+        || std::env::var_os("OPENWARRANT_VERBOSE").is_some_and(|v| !v.is_empty() && v != "0")
+}
+
+/// Passes the brief rendering prints: they say what the run covered.
+const HEADLINE_RULES: &[&str] = &["check.changed"];
+
+/// `OW-WAR-0001`, or the alias part of `OW-WAR-0001/D-002`.
+fn is_alias(token: &str) -> bool {
+    let head = token.split('/').next().unwrap_or(token);
+    let mut parts = head.splitn(3, '-');
+    let (Some(ns), Some(war), Some(n)) = (parts.next(), parts.next(), parts.next()) else {
+        return false;
+    };
+    ns.chars().next().is_some_and(|c| c.is_ascii_uppercase())
+        && ns
+            .chars()
+            .all(|c| c.is_ascii_uppercase() || c.is_ascii_digit())
+        && war == "WAR"
+        && n.len() == 4
+        && n.chars().all(|c| c.is_ascii_digit())
+}
+
+/// One remedy line for a command that answers findings in several Warrants:
+/// aliases become `<alias>`, and a pin refresh named for several Warrants is
+/// the refresh of all of them, which is what `pins --refresh` without
+/// `--alias` does (it never moves a resolved Warrant's pins).
+fn folded(argv: &[String]) -> String {
+    if argv.starts_with(&["war", "admin", "pins", "--refresh"].map(String::from)) {
+        return "war admin pins --refresh".to_owned();
+    }
+    argv.iter()
+        .map(|t| match (is_alias(t), t.contains('/')) {
+            (false, _) => t.clone(),
+            (true, false) => "<alias>".to_owned(),
+            (true, true) => "<alias>/<D-id>".to_owned(),
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// `text` with each run of whitespace one space, cut at a word boundary to
+/// at most `max` characters and marked when cut, so a cut never ends inside
+/// a word.
+#[must_use]
+pub fn clipped(text: &str, max: usize) -> String {
+    let flat = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    if flat.chars().count() <= max {
+        return flat;
+    }
+    let cut: String = flat.chars().take(max).collect();
+    let at = cut.rfind(' ').filter(|&i| i > max / 2).unwrap_or(cut.len());
+    format!("{}…", cut[..at].trim_end_matches([',', ';', ':', ' ']))
+}
+
+/// What a finding is about: the id its message starts with (`OW-WAR-0001:`,
+/// `OW-ADR-0005:`, `SAS-0.1.0-draft.1:`), else the Warrant its file is in.
+fn subject(d: &crate::diagnostic::Diagnostic) -> Option<String> {
+    if let Some((head, _)) = d.message.split_once(':')
+        && !head.is_empty()
+        && head.len() <= 40
+        && !head.contains(char::is_whitespace)
+        && head.contains('-')
+    {
+        return Some(head.to_owned());
+    }
+    d.file
+        .as_deref()?
+        .split('/')
+        .find(|seg| is_alias(seg))
+        .map(str::to_owned)
+}
+
+/// Up to `max` names, then how many more.
+fn listed<'a>(names: impl IntoIterator<Item = &'a str>, max: usize) -> String {
+    let all: Vec<&str> = names.into_iter().collect();
+    let shown = all[..all.len().min(max)].join(", ");
+    match all.len().saturating_sub(max) {
+        0 => shown,
+        more => format!("{shown} and {more} more"),
+    }
+}
+
+/// The brief human rendering, the default. A clean `war check` on a
+/// 147-Warrant corpus printed 481 KB, 1,891 lines of them PASS, and an agent
+/// paid for every byte. Errors and unknowns print in full, exactly as
+/// `--verbose` prints them. A warning rule that fires once prints in full;
+/// one that fires many times is one line with its count and first message.
+/// Passes are a count. The same remedy for many Warrants is one line. What
+/// the run did not check is still named on every run, by label.
+#[must_use]
+pub fn brief(report: &Report) -> String {
+    brief_with(report, quiet())
+}
+
+/// [`brief`], or under `quiet` only what blocks: errors, unknowns, their
+/// remedies, the counts and the verdict.
+#[must_use]
+pub fn brief_with(report: &Report, quiet: bool) -> String {
+    use crate::diagnostic::Diagnostic;
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    // A pass that says what the run covered is the one a reader needs.
+    let mut headlines = 0;
+    for d in &report.diagnostics {
+        if d.severity == Severity::Pass && HEADLINE_RULES.contains(&d.rule.as_str()) {
+            headlines += 1;
+            let _ = writeln!(out, "{d}");
+        }
+    }
+    for d in &report.diagnostics {
+        if matches!(d.severity, Severity::Error | Severity::Unknown) {
+            let _ = writeln!(out, "{d}");
+        }
+    }
+    let mut warn_rules: Vec<(&str, Vec<&Diagnostic>)> = Vec::new();
+    for d in report
+        .diagnostics
+        .iter()
+        .filter(|d| d.severity == Severity::Warn)
+    {
+        match warn_rules.iter_mut().find(|(r, _)| *r == d.rule) {
+            Some((_, all)) => all.push(d),
+            None => warn_rules.push((&d.rule, vec![d])),
+        }
+    }
+    if quiet {
+        warn_rules.clear();
+    }
+    let mut folded_warns = 0;
+    for (rule, all) in &warn_rules {
+        if let [only] = all.as_slice() {
+            let _ = writeln!(out, "{only}");
+        } else {
+            folded_warns += all.len();
+            let _ = writeln!(
+                out,
+                "{:<7} {:<34} ×{}  {}",
+                Severity::Warn,
+                rule,
+                all.len(),
+                clipped(&all[0].message, 200)
+            );
+            let mut names: Vec<String> = Vec::new();
+            for s in all.iter().filter_map(|d| subject(d)) {
+                if !names.contains(&s) {
+                    names.push(s);
+                }
+            }
+            if !names.is_empty() {
+                let _ = writeln!(
+                    out,
+                    "{:<7} {:<34}   → {}",
+                    "",
+                    "",
+                    listed(names.iter().map(String::as_str), 8)
+                );
+            }
+        }
+    }
+    // (kind, argv with aliases blanked) → (distinct commands, findings).
+    type Key = (&'static str, Vec<String>);
+    let mut remedies: Vec<(Key, std::collections::BTreeSet<Vec<String>>, usize)> = Vec::new();
+    for d in report.diagnostics.iter().filter(|d| match d.severity {
+        Severity::Pass => false,
+        Severity::Warn => !quiet,
+        Severity::Error | Severity::Unknown => true,
+    }) {
+        let Some(r) = crate::remedy::remedy_for(d) else {
+            continue;
+        };
+        let template: Vec<String> = r
+            .argv
+            .iter()
+            .map(|t| {
+                if is_alias(t) {
+                    "<alias>".to_owned()
+                } else {
+                    t.clone()
+                }
+            })
+            .collect();
+        let key = (r.kind.label(), template);
+        match remedies.iter_mut().find(|(k, _, _)| *k == key) {
+            Some((_, commands, n)) => {
+                commands.insert(r.argv.clone());
+                *n += 1;
+            }
+            None => remedies.push((key, [r.argv.clone()].into(), 1)),
+        }
+    }
+    if !remedies.is_empty() {
+        let _ = writeln!(out, "\nREMEDIES:");
+        for ((kind, _), commands, n) in &remedies {
+            let (line, scope) = match commands.iter().next() {
+                Some(only) if commands.len() == 1 => (only.join(" "), String::new()),
+                Some(first) => {
+                    let mut names: Vec<&str> = Vec::new();
+                    for t in commands.iter().flatten().filter(|t| is_alias(t)) {
+                        let a = t.split('/').next().unwrap_or(t);
+                        if !names.contains(&a) {
+                            names.push(a);
+                        }
+                    }
+                    let names = match names.as_slice() {
+                        [] => String::new(),
+                        _ => format!(": {}", listed(names, 5)),
+                    };
+                    (
+                        folded(first),
+                        format!(", {} Warrants{names}", commands.len()),
+                    )
+                }
+                None => continue,
+            };
+            let _ = writeln!(out, "  {kind:<5} {line}   (×{n}{scope})");
+        }
+    }
+    let _ = writeln!(
+        out,
+        "\n{} pass · {} warn · {} unknown · {} error   (worst: {})",
+        report.count(Severity::Pass),
+        report.count(Severity::Warn),
+        report.count(Severity::Unknown),
+        report.count(Severity::Error),
+        report.worst(),
+    );
+    if !report.notes.is_empty() && !quiet {
+        let labels: Vec<String> = report
+            .notes
+            .iter()
+            .map(|n| clipped(n.split(" — ").next().unwrap_or(n), 100))
+            .collect();
+        let _ = writeln!(out, "NOT CHECKED: {}", labels.join(" · "));
+    }
+    let _ = writeln!(out, "\n{}", report.verdict_line());
+    let folded = report.count(Severity::Pass) - headlines + folded_warns;
+    if !quiet && (folded > 0 || !report.notes.is_empty()) {
+        let _ = writeln!(
+            out,
+            "(`--verbose` lists all {} findings and what each unchecked aspect means)",
+            report.diagnostics.len()
+        );
+    }
+    out
+}
+
 /// The exit code a report earns: 0 when well-formed, 2 otherwise. One place,
 /// so the fifteen command arms that used to spell this ladder cannot drift.
 #[must_use]
@@ -314,5 +586,101 @@ mod tests {
         let v: serde_json::Value = serde_json::from_str(&envelope("gate", &r, None)).unwrap();
         assert_eq!(v["verdict"], "not_ready");
         assert_eq!(v["counts"]["worst"], "unknown");
+    }
+
+    fn noisy() -> Report {
+        let mut r = Report::default();
+        for i in 0..40 {
+            r.push(Diagnostic::pass(
+                "manifest.valid",
+                format!("OW-WAR-{i:04}: ok"),
+            ));
+        }
+        for i in 1..=5 {
+            r.push(Diagnostic::warn(
+                "deliverable.pin-stale",
+                format!("docs/warrants/OW-WAR-{i:04}/deliverables.toml"),
+                format!(
+                    "OW-WAR-{i:04}: D-001 records sha256:aa for x.rs and the file is now sha256:bb"
+                ),
+            ));
+        }
+        r.push(Diagnostic::warn(
+            "authority.unprotected",
+            "openwarrant.toml".to_owned(),
+            "no store",
+        ));
+        r.push(Diagnostic::error(
+            "atom.header",
+            "docs/warrants/OW-WAR-0062/atoms/10-intent.md".to_owned(),
+            "the header's `order` is \"11\"",
+        ));
+        r.note("gate execution — `war check` does not run gates");
+        r
+    }
+
+    #[test]
+    fn the_brief_rendering_keeps_errors_whole_and_folds_what_repeats() {
+        let text = brief_with(&noisy(), false);
+        // The error, its file and its line are all there.
+        assert!(text.contains("ERROR atom.header"), "{text}");
+        assert!(
+            text.contains("→ docs/warrants/OW-WAR-0062/atoms/10-intent.md"),
+            "{text}"
+        );
+        // No PASS line, but every pass counted.
+        assert!(!text.contains("PASS "), "{text}");
+        assert!(
+            text.contains("40 pass · 6 warn · 0 unknown · 1 error"),
+            "{text}"
+        );
+        // A warning rule that fires once is whole; five of one rule are one line.
+        assert!(text.contains("WARN authority.unprotected"), "{text}");
+        assert_eq!(text.matches("deliverable.pin-stale").count(), 1, "{text}");
+        assert!(text.contains("×5  OW-WAR-0001: D-001"), "{text}");
+        // The folded line still names every Warrant it stands for.
+        assert!(
+            text.contains("→ OW-WAR-0001, OW-WAR-0002, OW-WAR-0003, OW-WAR-0004, OW-WAR-0005"),
+            "{text}"
+        );
+        // Five refreshes are the one refresh of all of them, by name.
+        assert!(
+            text.contains(
+                "war admin pins --refresh   (×5, 5 Warrants: OW-WAR-0001, OW-WAR-0002, \
+                 OW-WAR-0003, OW-WAR-0004, OW-WAR-0005)"
+            ),
+            "{text}"
+        );
+        assert!(!text.contains("--alias OW-WAR-0002"), "{text}");
+        // What was not checked is still named on every run, by label.
+        assert!(text.contains("NOT CHECKED: gate execution"), "{text}");
+        assert!(text.contains("`--verbose` lists all 47 findings"), "{text}");
+    }
+
+    #[test]
+    fn a_quiet_brief_rendering_is_only_what_blocks() {
+        let text = brief_with(&noisy(), true);
+        assert!(text.contains("ERROR atom.header"), "{text}");
+        assert!(!text.contains("WARN"), "{text}");
+        assert!(!text.contains("pins --refresh"), "{text}");
+        assert!(!text.contains("NOT CHECKED"), "{text}");
+        assert!(text.contains("1 error"), "{text}");
+    }
+
+    #[test]
+    fn an_alias_is_a_namespace_war_and_four_digits() {
+        assert!(is_alias("OW-WAR-0001"));
+        assert!(is_alias("LQ2-WAR-0130/D-002"));
+        assert!(!is_alias("OW-SAS-0001"));
+        assert!(!is_alias("ow-WAR-0001"));
+        assert!(!is_alias("OW-WAR-01"));
+        assert!(!is_alias("--alias"));
+    }
+
+    #[test]
+    fn a_cut_ends_at_a_word_and_runs_of_space_are_one() {
+        assert_eq!(clipped("a   b\n c", 80), "a b c");
+        assert_eq!(clipped("alpha beta gamma delta", 14), "alpha beta…");
+        assert!(!clipped(&"word ".repeat(60), 100).ends_with(" …"));
     }
 }

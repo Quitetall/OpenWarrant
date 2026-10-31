@@ -1,20 +1,30 @@
 #!/usr/bin/env bash
-# Stop diagnostic: report corpus problems without confusing an agent/harness
-# stop with completed work. A global legacy corpus error cannot require another
-# approval loop or block a read-only/prototype turn. Explicit action gates and
-# the immutable-history edit guard remain enforced at their actual boundaries.
+# Stop: check what the work changed, and say nothing when it holds.
+#
+# `war check --changed` checks only the Warrants whose records or pinned
+# files differ from HEAD (the corpus, when a shared file such as the SAS or
+# openwarrant.toml moved); a tree with nothing OpenWarrant governs changed is
+# not checked at all. A clean result prints nothing, so a turn that broke
+# nothing costs the agent no context and no `war check` call of its own.
+#
+# An ERROR or UNKNOWN holds the stop once: exit 2 with the brief report on
+# stderr, which is what Claude Code hands the agent. The same findings do not
+# hold a later stop of the same session (their fingerprint is kept under the
+# git directory), and a stop that is already the answer to a hold is let
+# through, so a finding only a person can answer never loops a session. A
+# `war` that cannot run is said and never holds.
 set -uo pipefail
 
 input=$(cat)
-read -r active cwd < <(printf '%s' "$input" | python3 -c 'import sys, json
-try:
-    v = json.load(sys.stdin)
-    print(str(v.get("stop_hook_active", False)).lower(), v.get("cwd", ""))
-except Exception:
-    print("false", "")')
-[[ "$active" == "true" ]] && exit 0
+case "$input" in
+    *'"stop_hook_active":true'* | *'"stop_hook_active": true'*) exit 0 ;;
+esac
+field() {
+    printf '%s' "$input" | sed -n "s/.*\"$1\"[[:space:]]*:[[:space:]]*\"\\([^\"]*\\)\".*/\\1/p" | head -n 1
+}
+cwd=$(field cwd)
 if [[ -n "$cwd" ]] && ! cd "$cwd" 2>/dev/null; then
-    printf 'openwarrant stop-check: cannot enter %s; the check did not run\n' "$cwd" >&2
+    printf 'openwarrant stop-check: cannot enter %s; nothing was checked\n' "$cwd" >&2
     exit 0
 fi
 [[ -f openwarrant.toml ]] || exit 0
@@ -23,27 +33,47 @@ if [[ -x ./target/debug/war ]]; then
 elif command -v war >/dev/null 2>&1; then
     war_cmd=war
 else
-    printf 'OpenWarrant: war unavailable; corpus check UNKNOWN.\n' >&2
+    printf 'OpenWarrant: war unavailable; what changed was not checked.\n' >&2
     exit 0
 fi
 
-reason=$("$war_cmd" --json check 2>/dev/null | python3 -c 'import sys, json
-try:
-    v = json.load(sys.stdin)
-except Exception:
-    print("OpenWarrant: invalid check output; corpus check UNKNOWN.")
-    sys.exit(0)
-if not isinstance(v, dict) or not isinstance(v.get("exit_code"), int):
-    print("OpenWarrant: missing check result; corpus check UNKNOWN.")
-    sys.exit(0)
-if v["exit_code"] == 0:
-    sys.exit(0)
-errs = [d for d in v.get("diagnostics", []) if d.get("severity") in ("error", "unknown")]
-first = "; ".join(d.get("rule", "?") + ": " + d.get("message", "")[:120] for d in errs[:3])
-print("OpenWarrant: `war check` is %s with %d error(s); this does not hold the turn. If you change a record, fix the cause rather than the checker. First: %s" % (v.get("verdict_line", "not ready"), len(errs), first))')
-if [[ -n "$reason" ]]; then
-    printf '%s\n' "$reason" >&2
+# What changed since the session began (session-start.sh records the commit),
+# so work committed during the session is in scope too; else since HEAD.
+session=$(field session_id)
+dir=$(git rev-parse --git-path openwarrant-stop 2>/dev/null) || dir=""
+since=()
+if [[ -n "$dir" && -s "$dir/${session:-default}.base" ]]; then
+    base=$(head -n 1 "$dir/${session:-default}.base")
+    if git rev-parse --verify --quiet "$base^{commit}" >/dev/null 2>&1; then
+        since=(--since "$base")
+    fi
 fi
+out=$("$war_cmd" --quiet check --changed ${since[@]+"${since[@]}"} 2>&1)
+status=$?
+case $status in
+    0) ;;
+    2)
+        print=$(printf '%s' "$out" | cksum | cut -d' ' -f1)
+        mark="$dir/${session:-default}"
+        if [[ -n "$dir" && -f "$mark" && "$(cat "$mark" 2>/dev/null)" == "$print" ]]; then
+            : # said once this session; nothing has moved since
+        else
+            if [[ -n "$dir" ]]; then
+                mkdir -p "$dir" 2>/dev/null && printf '%s\n' "$print" > "$mark" 2>/dev/null
+            fi
+            {
+                printf 'OpenWarrant: what changed does not check clean. Fix what you caused; a finding whose remedy is `human` is a person'"'"'s act: say so and stop.\n'
+                printf '%s\n' "$out" | head -c 6000
+            } >&2
+            exit 2
+        fi
+        ;;
+    *)
+        printf 'OpenWarrant: `war check --changed` exited %s; what changed was not checked: %s\n' \
+            "$status" "$(printf '%s' "$out" | head -c 300)" >&2
+        exit 0
+        ;;
+esac
 
 # OW-WAR-0148 M14: the end-of-session summary. Under a repo preset, what
 # waits on a person (`war next` lists it) is shown to the person when the

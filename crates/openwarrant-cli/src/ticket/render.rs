@@ -1192,8 +1192,17 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     if open.is_empty() {
         md.push_str("Nothing open. `war create \"...\"` starts a Warrant.\n");
     }
-    for t in &open {
+    // The first screenful, in order; the rest are a count. The overview is
+    // what a session starts with, so it may not grow with the backlog.
+    const OPEN_SHOWN: usize = 15;
+    for t in open.iter().take(OPEN_SHOWN) {
         md.push_str(&overview_line(store, &all, t, &claims, now));
+    }
+    if open.len() > OPEN_SHOWN {
+        md.push_str(&format!(
+            "- … and {} more open (`war view tickets`)\n",
+            open.len() - OPEN_SHOWN
+        ));
     }
     // A claim on something no open Warrant holds (an unreadable lock, or a
     // Warrant done meanwhile) is still named, once.

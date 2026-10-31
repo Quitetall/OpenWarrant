@@ -173,7 +173,9 @@ sign-off, not your work.
 - Claude Code plugin (`.claude-plugin/`): the skills, this MCP server, an edit
   guard that turns back an edit to a generated file or to a file a closed
   Warrant pins (only in a repository with `openwarrant.toml`), and an
-  end-of-turn check that reports `war check` errors without holding the turn.
+  end-of-turn check of what the session changed (`war check --changed`):
+  silent when it holds; when it does not, it hands you the finding once,
+  before the turn ends. You need not run `war check` yourself.
 
 <!-- openwarrant:begin -->
 <!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->

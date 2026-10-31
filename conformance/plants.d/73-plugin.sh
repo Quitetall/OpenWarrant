@@ -69,17 +69,62 @@ plant_hook "edit to an unpinned file is silent" guard-pins.sh "$HKFX/edit-free.j
 # The stop check lets a stop through when it already blocked once this turn.
 plant_hook "stop after a block is allowed" stop-check.sh "$HKFX/stop-active.json" '' empty
 
-# A red corpus is reported, but it cannot block an unrelated harness stop.
-# The checker itself must still refuse the planted drift.
+# The stop checks what the work changed (`war check --changed`). A tree in
+# which nothing OpenWarrant governs moved stops in silence: no output, no
+# context spent.
+HK_MARK=$(git rev-parse --git-path openwarrant-stop)
+rm -rf "$HK_MARK"
+plant_hook "an unchanged tree stops in silence" stop-check.sh "$HKFX/stop.json" '' empty
+
+# A change that breaks a Warrant holds the stop once, with the finding on
+# stderr where the agent reads it. The same findings do not hold the next
+# stop of the session, so a finding only a person can answer cannot loop.
 sed -i 's/^order: 10$/order: 11/' docs/warrants/OW-WAR-0062/atoms/10-intent.md
 assert_present 'order: 11' docs/warrants/OW-WAR-0062/atoms/10-intent.md
-plant_hook "red corpus does not block a turn" stop-check.sh "$HKFX/stop.json" '' empty
-stop_diagnostic=$(PATH="$PWD/target/debug:$PATH" bash "$HOOKS/stop-check.sh" < "$HKFX/stop.json" 2>&1)
-if [[ "$stop_diagnostic" == *"OpenWarrant:"* ]]; then
-    printf 'ok    stop diagnostic retains corpus error\n'
+hk_said=$(PATH="$PWD/target/debug:$PATH" bash "$HOOKS/stop-check.sh" < "$HKFX/stop.json" 2>&1)
+hk_status=$?
+if [[ $hk_status -eq 2 && "$hk_said" == *"OpenWarrant: what changed does not check clean"* && "$hk_said" == *"ERROR"* ]]; then
+    printf 'ok    a broken change holds the stop, naming it\n'
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  stop diagnostic lost corpus error\n'
+    printf 'FAIL  a broken change did not hold the stop: exit %s\n      out: %s\n' "$hk_status" "$(cut -c1-300 <<< "$hk_said")"
+    FAILED=$((FAILED + 1))
+fi
+hk_again=$(PATH="$PWD/target/debug:$PATH" bash "$HOOKS/stop-check.sh" < "$HKFX/stop.json" 2>&1)
+hk_status=$?
+if [[ $hk_status -eq 0 && -z "$hk_again" ]]; then
+    printf 'ok    the same findings hold one stop only\n'
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  the same findings held a second stop: exit %s\n      out: %s\n' "$hk_status" "$(cut -c1-300 <<< "$hk_again")"
     FAILED=$((FAILED + 1))
 fi
 restore
+rm -rf "$HK_MARK"
+unset HK_MARK hk_said hk_again hk_status
+
+# Work the agent committed during the session is checked too: session-start
+# records the commit the session began at, and the stop checks what changed
+# since it, not only what is uncommitted. In a scratch repository, since a
+# plant may not commit to this one.
+HK_S=$(mktemp -d)
+git -C "$HK_S" init -q .
+(cd "$HK_S" && OPENWARRANT_NO_PROJECTS=1 "$REPO_ROOT/target/debug/war" init --program "Hook" --namespace HK >/dev/null 2>&1)
+git -C "$HK_S" add -A
+git -C "$HK_S" -c user.email=plant@example.invalid -c user.name=plant commit -qm scaffold
+printf '{"session_id":"plant-s","hook_event_name":"SessionStart","cwd":"%s"}' "$HK_S" \
+    | PATH="$REPO_ROOT/target/debug:$PATH" bash "$HOOKS/session-start.sh" >/dev/null 2>&1
+sed -i 's/^order: 20$/order: 21/' "$HK_S/docs/warrants/HK-WAR-0001/atoms/20-basis.md"
+git -C "$HK_S" -c user.email=plant@example.invalid -c user.name=plant commit -qam "a broken atom, committed"
+hk_said=$(printf '{"session_id":"plant-s","hook_event_name":"Stop","stop_hook_active":false,"cwd":"%s"}' "$HK_S" \
+    | PATH="$REPO_ROOT/target/debug:$PATH" bash "$HOOKS/stop-check.sh" 2>&1)
+hk_status=$?
+if [[ $hk_status -eq 2 && "$hk_said" == *"atom.header"* && "$hk_said" == *"HK-WAR-0001"* ]]; then
+    printf 'ok    work committed in the session is checked\n'
+    PASSED=$((PASSED + 1))
+else
+    printf 'FAIL  work committed in the session was not checked: exit %s\n      out: %s\n' "$hk_status" "$(cut -c1-300 <<< "$hk_said")"
+    FAILED=$((FAILED + 1))
+fi
+rm -rf "$HK_S"
+unset HK_S hk_said hk_status

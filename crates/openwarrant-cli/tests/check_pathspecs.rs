@@ -53,10 +53,10 @@ fn git_argvs(root: &Path, args: &[&str]) -> Vec<Vec<String>> {
         .collect()
 }
 
-#[test]
-fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
+/// A committed `war init` scaffold with a held-out tree beside it.
+fn scaffold(tag: &str) -> std::path::PathBuf {
     let root = std::env::temp_dir().join(format!(
-        "ow-pathspec-{}-{}",
+        "ow-pathspec-{tag}-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
@@ -81,8 +81,17 @@ fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
     std::fs::write(root.join("heldout/sample.txt"), "not war's to read\n").unwrap();
     git(&root, &["add", "-A"]);
     git(&root, &["commit", "-qm", "fixture"]);
+    root
+}
 
-    for args in [&["check"][..], &["check", "--generated"][..]] {
+#[test]
+fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
+    let root = scaffold("tree");
+    for args in [
+        &["check"][..],
+        &["check", "--generated"][..],
+        &["check", "--changed"][..],
+    ] {
         let argvs = git_argvs(&root, args);
         assert!(
             !argvs.is_empty(),
@@ -108,4 +117,165 @@ fn a_check_with_no_work_journals_never_diffs_the_whole_tree() {
     }
     std::fs::remove_dir_all(&root).unwrap();
     let _ = std::fs::remove_file(root.with_extension("trace2.jsonl"));
+}
+
+fn check_changed(root: &Path) -> (i32, String) {
+    check_changed_with(root, &[])
+}
+
+fn check_changed_with(root: &Path, extra: &[&str]) -> (i32, String) {
+    let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        .env("OPENWARRANT_NO_CACHE", "1")
+        .env_remove("OPENWARRANT_VERBOSE")
+        .args(["check", "--changed"])
+        .args(extra)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    (
+        out.status.code().unwrap_or(-1),
+        format!(
+            "{}{}",
+            String::from_utf8_lossy(&out.stdout),
+            String::from_utf8_lossy(&out.stderr)
+        ),
+    )
+}
+
+fn war_in(root: &Path, args: &[&str]) {
+    let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(args)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        out.status.success(),
+        "war {args:?}: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+}
+
+/// `war check --changed` (the end-of-turn hook's check) checks what the
+/// working tree changed and nothing else: nothing governed changed is
+/// nothing checked; a Warrant's record is that Warrant; a file every
+/// Warrant reads is the corpus; an unrelated file is nothing.
+#[test]
+fn check_changed_checks_only_what_changed() {
+    let root = scaffold("changed");
+    let (code, out) = check_changed(&root);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("nothing OpenWarrant governs differs from HEAD"),
+        "{out}"
+    );
+    assert!(
+        !out.contains("--verbose"),
+        "a run that folded nothing offers nothing: {out}"
+    );
+
+    std::fs::write(
+        root.join("heldout/sample.txt"),
+        "moved, and not war's business\n",
+    )
+    .unwrap();
+    let (code, out) = check_changed(&root);
+    assert_eq!(code, 0, "{out}");
+    assert!(
+        out.contains("nothing OpenWarrant governs differs from HEAD"),
+        "{out}"
+    );
+
+    let manifest = root.join("docs/warrants/HO-WAR-0001/manifest.toml");
+    let before = std::fs::read_to_string(&manifest).unwrap();
+    std::fs::write(&manifest, format!("{before}\n# touched\n")).unwrap();
+    let (_, out) = check_changed(&root);
+    assert!(out.contains("checked what changed: HO-WAR-0001"), "{out}");
+    std::fs::write(&manifest, before).unwrap();
+
+    let config = root.join("openwarrant.toml");
+    let before = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(&config, format!("{before}\n# touched\n")).unwrap();
+    let (_, out) = check_changed(&root);
+    assert!(
+        out.contains("checked the corpus: openwarrant.toml changed"),
+        "{out}"
+    );
+    std::fs::remove_dir_all(&root).unwrap();
+}
+
+/// What `--changed` must not miss: work committed since the session began
+/// (`--since`), a Warrant that cites a changed parent, a ticket and a
+/// document; and a `--since` that names no commit is refused, never read as
+/// "nothing changed".
+#[test]
+fn check_changed_reaches_commits_dependents_tickets_and_documents() {
+    let root = scaffold("reach");
+    let head = |root: &Path| {
+        let out = Command::new("git")
+            .args(["rev-parse", "HEAD"])
+            .current_dir(root)
+            .output()
+            .unwrap();
+        String::from_utf8_lossy(&out.stdout).trim().to_owned()
+    };
+    let base = head(&root);
+    let manifest = root.join("docs/warrants/HO-WAR-0001/manifest.toml");
+    let parent = std::fs::read_to_string(&manifest).unwrap();
+    std::fs::write(&manifest, format!("{parent}\n# committed in the turn\n")).unwrap();
+    git(&root, &["commit", "-qam", "turn"]);
+    let (_, out) = check_changed(&root);
+    assert!(
+        out.contains("nothing OpenWarrant governs differs from HEAD"),
+        "{out}"
+    );
+    let (_, out) = check_changed_with(&root, &["--since", &base]);
+    assert!(out.contains("checked what changed: HO-WAR-0001"), "{out}");
+    let (code, out) = check_changed_with(&root, &["--since", "no-such-rev"]);
+    assert_eq!(code, 1, "{out}");
+    assert!(out.contains("names no commit"), "{out}");
+
+    // A child citing HO-WAR-0001 is checked when its parent changes.
+    war_in(&root, &["new", "Child work"]);
+    let uuid = parent
+        .lines()
+        .find_map(|l| l.strip_prefix("uuid = \""))
+        .and_then(|l| l.strip_suffix('"'))
+        .expect("the scaffold's Warrant has a uuid")
+        .to_owned();
+    let child = root.join("docs/warrants/HO-WAR-0002/manifest.toml");
+    let text = std::fs::read_to_string(&child).unwrap();
+    std::fs::write(
+        &child,
+        format!("{text}\n[[parents]]\nref = \"war://{uuid}\"\ncontract_revision = 1\n"),
+    )
+    .unwrap();
+    git(&root, &["add", "-A"]);
+    git(&root, &["commit", "-qm", "child"]);
+    std::fs::write(&manifest, format!("{parent}\n# again\n")).unwrap();
+    let (_, out) = check_changed(&root);
+    assert!(
+        out.contains("checked what changed: HO-WAR-0001; HO-WAR-0002 (they cite a changed parent)"),
+        "{out}"
+    );
+    git(
+        &root,
+        &[
+            "checkout",
+            "-q",
+            "--",
+            "docs/warrants/HO-WAR-0001/manifest.toml",
+        ],
+    );
+
+    // A ticket is the tickets, and not a document; a document is the documents.
+    war_in(&root, &["create", "A ticket"]);
+    let (_, out) = check_changed(&root);
+    assert!(out.contains("checked what changed: the tickets"), "{out}");
+    assert!(!out.contains("the documents"), "{out}");
+    git(&root, &["add", "-A"]);
+    git(&root, &["commit", "-qm", "ticket"]);
+    std::fs::write(root.join("docs/notes.md"), "# Notes\n").unwrap();
+    let (_, out) = check_changed(&root);
+    assert!(out.contains("checked what changed: the documents"), "{out}");
+    std::fs::remove_dir_all(&root).unwrap();
 }
