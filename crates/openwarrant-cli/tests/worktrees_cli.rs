@@ -185,3 +185,54 @@ fn execution_never_discards_an_existing_workspace_on_retry() {
         "foreign work is retained"
     );
 }
+
+#[test]
+fn native_worktree_start_delivers_context_and_preserves_its_session() {
+    let tmp = tempfile::tempdir().unwrap();
+    let root = tmp.path();
+    git(root, &["init", "-q"]);
+    assert_eq!(war(root, &["init", "--namespace", "NS"])["exit_code"], 0);
+    let created = war(
+        root,
+        &["create", "Native isolated work", "--item", "Deliver"],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    git(root, &["add", "-A"]);
+    git(root, &["commit", "-qm", "baseline"]);
+    let args = [
+        "start",
+        id,
+        "--worktree",
+        "--print",
+        "--as",
+        "isolated-builder",
+    ];
+    let started = war(root, &args);
+    assert_eq!(started["exit_code"], 0, "{started}");
+    assert_eq!(
+        started["result"]["context"]["schema"],
+        "oh.war/task-context/v1"
+    );
+    let worktree = started["result"]["worktree"].as_str().unwrap();
+    let nonce = started["result"]["claim_id"]
+        .as_str()
+        .expect("managed claim nonce");
+    let inventory = war(root, &["admin", "worktrees"]);
+    assert!(
+        inventory["result"]["worktrees"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["path"] == worktree && r["managed"] == true),
+        "{inventory}"
+    );
+    let settings: Value = serde_json::from_slice(
+        &std::fs::read(Path::new(worktree).join(".claude/settings.local.json")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(settings["env"]["OPENWARRANT_CLAIM_ID"], nonce);
+    let resumed = war(root, &args);
+    assert_eq!(resumed["exit_code"], 0, "{resumed}");
+    assert_eq!(resumed["result"]["resumed"], true);
+    assert_eq!(resumed["result"]["claim_id"], nonce);
+}

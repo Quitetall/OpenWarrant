@@ -289,3 +289,88 @@ fn single_source_checks_execute_multiword_commands_as_authored() {
     let done = war(root.path(), &["done", id]);
     assert_eq!(done["exit_code"], 0, "{done}");
 }
+
+#[test]
+fn native_completion_refreshes_the_same_index_as_full_compilation() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "NI"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &[
+            "create",
+            "Keep the context index current",
+            "--item",
+            "Deliver result",
+        ],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    assert_eq!(war(root.path(), &["admin", "compile"])["exit_code"], 0);
+    assert_eq!(war(root.path(), &["start", id])["exit_code"], 0);
+    assert_eq!(war(root.path(), &["done", id])["exit_code"], 0);
+    let path = root.path().join("docs/generated/llms.txt");
+    let incremental = std::fs::read_to_string(&path).unwrap();
+    assert!(
+        incremental.contains(&format!("{id} · ticket · done")),
+        "{incremental}"
+    );
+    assert_eq!(war(root.path(), &["admin", "compile"])["exit_code"], 0);
+    assert_eq!(std::fs::read_to_string(path).unwrap(), incremental);
+}
+
+#[test]
+fn native_label_lists_can_be_created_replaced_and_cleared() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "NL"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &[
+            "create",
+            "Labelled work",
+            "--label",
+            "api",
+            "--label",
+            "accounts",
+        ],
+    );
+    assert_eq!(created["exit_code"], 0, "{created}");
+    let id = created["result"]["id"].as_str().unwrap();
+    let path = root
+        .path()
+        .join(created["result"]["source"].as_str().unwrap());
+    assert!(
+        std::fs::read_to_string(&path)
+            .unwrap()
+            .contains("labels:\n  - ")
+    );
+    let edited = war(
+        root.path(),
+        &[
+            "plan",
+            "edit",
+            id,
+            "--unlabel",
+            "api",
+            "--unlabel",
+            "accounts",
+            "--label",
+            "storage",
+        ],
+    );
+    assert_eq!(edited["exit_code"], 0, "{edited}");
+    let parsed = openwarrant_core::format::parse(&std::fs::read(&path).unwrap());
+    assert_eq!(
+        parsed.fields["labels"],
+        openwarrant_core::format::FieldValue::Many(vec!["storage".into()])
+    );
+    let cleared = war(root.path(), &["plan", "edit", id, "--unlabel", "storage"]);
+    assert_eq!(cleared["exit_code"], 0, "{cleared}");
+    let parsed = openwarrant_core::format::parse(&std::fs::read(path).unwrap());
+    assert!(!parsed.fields.contains_key("labels"));
+    assert!(!parsed.refused());
+}

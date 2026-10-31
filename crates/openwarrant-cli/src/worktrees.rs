@@ -49,13 +49,14 @@ fn local_marker(path: &Utf8Path) -> Result<Utf8PathBuf, String> {
 pub fn register(root: &Utf8Path, path: &Utf8Path, branch: &str, base: &str) -> Result<(), String> {
     let path = path.canonicalize_utf8().map_err(|e| e.to_string())?;
     let (dir, common) = registry(root)?;
+    let base = git::rev(root, base).ok_or("workspace base does not name an available commit")?;
     std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
     let record = Ownership {
         schema: SCHEMA.into(),
         id: openwarrant_core::WarUuid::mint().to_string(),
         path: path.to_string(),
         branch: branch.into(),
-        base: base.into(),
+        base,
         common,
     };
     let name = marker(root, &path)?;
@@ -165,7 +166,7 @@ fn process_references() -> (BTreeSet<PathBuf>, bool) {
         ) {
             Ok(observed) if observed.success && observed.stderr.is_empty() => {
                 let mut paths = BTreeSet::new();
-                for field in observed.stdout.split(|b| matches!(b, 0 | b'\n')) {
+                for field in observed.stdout.split(|b| matches!(*b, 0 | b'\n')) {
                     if let Some(name) = field.strip_prefix(b"n") {
                         let Ok(name) = std::str::from_utf8(name) else {
                             return (paths, false);
@@ -185,6 +186,12 @@ fn process_references() -> (BTreeSet<PathBuf>, bool) {
     {
         (BTreeSet::new(), false)
     }
+}
+
+pub fn is_managed(root: &Utf8Path, path: &Utf8Path, branch: &str) -> bool {
+    path.canonicalize_utf8()
+        .ok()
+        .is_some_and(|path| ownership(root, &path, Some(branch)).is_some())
 }
 
 fn ownership(root: &Utf8Path, path: &Utf8Path, branch: Option<&str>) -> Option<Ownership> {
@@ -354,6 +361,10 @@ pub fn inventory(repo: &Repository, probe: bool, integration: &str) -> Result<Ve
 /// Cleanup used by the execution lifecycle too. Never force, recursively
 /// delete, or discard a branch with unique commits. Unknown state is retained.
 pub fn remove_if_safe(root: &Utf8Path, path: &Utf8Path, integration: &str) -> bool {
+    let Ok(path) = path.canonicalize_utf8() else {
+        return false;
+    };
+    let path = path.as_path();
     let Ok(repo) = Repository::open(root.to_owned()) else {
         return false;
     };

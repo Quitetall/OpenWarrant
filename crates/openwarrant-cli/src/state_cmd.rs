@@ -177,7 +177,7 @@ pub fn ticket_holding(
         return out;
     }
     let now = ticket::now_secs();
-    let live = |c: Option<&Claim>| c.is_none_or(|c| !c.lease_expired(now));
+    let live = |c: Option<&Claim>| c.is_none_or(|c| c.reserves(now));
     let tid = t.id();
     out.push(Holding {
         record: tid.to_owned(),
@@ -968,8 +968,7 @@ fn format_warrant_phases(corpus: &Corpus, claims: Option<&Claims>) -> Vec<Holdin
     let now = ticket::now_secs();
     let live = |alias: &str, item: Option<&str>| {
         claims.is_some_and(|c| {
-            ticket::claim_on(c, alias, item)
-                .is_some_and(|(_, c)| c.is_none_or(|c| !c.lease_expired(now)))
+            ticket::claim_on(c, alias, item).is_some_and(|(_, c)| c.is_none_or(|c| c.reserves(now)))
         })
     };
     let mut out = Vec::new();

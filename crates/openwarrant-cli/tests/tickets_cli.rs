@@ -102,8 +102,7 @@ fn create_ready_claim_done_needs_no_signature_and_no_human() {
 
     // The file is the state: both boxes ticked, by whom and when.
     let checklist =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{id}/atoms/15-checklist.md")))
-            .unwrap();
+        std::fs::read_to_string(root.join(created["result"]["source"].as_str().unwrap())).unwrap();
     assert_eq!(checklist.matches("- [x] ").count(), 2, "{checklist}");
     assert!(checklist.contains("— done by claude, "), "{checklist}");
     assert!(checklist.contains(": did one"), "{checklist}");
@@ -202,6 +201,8 @@ fn start_takes_the_next_warrant_and_prints_only_it() {
         .as_str()
         .unwrap()
         .to_owned();
+    declare_scope(&root, &first, "work/first/**");
+    declare_scope(&root, &second, "work/second/**");
     assert_eq!(
         json(&root, &["note", &first, "use the old parser"])["exit_code"],
         0
@@ -592,11 +593,7 @@ fn of_concurrent_claim_processes_exactly_one_wins() {
     // The winner's claim is journalled once.
     let journal =
         std::fs::read_to_string(root.join(format!("docs/tickets/{id}/journal.jsonl"))).unwrap();
-    assert_eq!(
-        journal.matches("\"ticket.claimed\"").count(),
-        1,
-        "{journal}"
-    );
+    assert_eq!(journal.matches("\"work.claimed\"").count(), 1, "{journal}");
     let _ = std::fs::remove_dir_all(&root);
 }
 
@@ -630,6 +627,7 @@ fn after_done_ready_and_claim_agree_under_concurrency() {
                     let title = format!("{actor} round {n}");
                     let created = step(&["create", &title, "--item", "Foundation"]);
                     let t = created["result"]["id"].as_str().unwrap().to_owned();
+                    declare_scope(&root, &t, &format!("work/{actor}/round-{n}/**"));
                     let f = created["result"]["items"][0]["id"]
                         .as_str()
                         .unwrap()
@@ -664,7 +662,7 @@ fn after_done_ready_and_claim_agree_under_concurrency() {
 #[test]
 fn check_validates_structure_and_never_asks_for_authority() {
     let root = scratch("check");
-    let id = json(&root, &["create", "Checked", "--item", "a"])["result"]["id"]
+    let id = json(&root, &["create", "--legacy", "Checked", "--item", "a"])["result"]["id"]
         .as_str()
         .unwrap()
         .to_owned();
@@ -837,4 +835,18 @@ fn an_agent_works_a_ticket_over_mcp() {
             .contains("## Checklist")
     );
     let _ = std::fs::remove_dir_all(&root);
+}
+
+// The concurrent workers declare disjoint payload scopes. Their tracker writes
+// are serialized separately; a missing scope must never imply disjoint files.
+fn declare_scope(root: &Path, id: &str, paths: &str) {
+    let file = root.join(format!("docs/tickets/{id}.md"));
+    let text = std::fs::read_to_string(&file).unwrap();
+    let staged = file.with_extension("scope-tmp");
+    std::fs::write(
+        &staged,
+        text.replacen("\n---\n", &format!("\npaths: {paths}\n---\n"), 1),
+    )
+    .unwrap();
+    std::fs::rename(staged, file).unwrap();
 }

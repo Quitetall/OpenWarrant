@@ -2386,9 +2386,7 @@ pub fn ready_rows_at(
     type Takeable = (Option<claim::Claim>, Option<claim::Claim>);
     let stale = |c: Option<&claim::Claim>| -> Result<Takeable, ()> {
         match c {
-            Some(c) if c.coordination.is_none() && c.lease_expired(now) => {
-                Ok((None, Some(c.clone())))
-            }
+            Some(c) if !c.reserves(now) => Ok((None, Some(c.clone()))),
             _ => Err(()),
         }
     };
@@ -2413,7 +2411,7 @@ pub fn ready_rows_at(
         if claims
             .values()
             .flatten()
-            .filter(|c| c.ticket != t.id() && !owns_claim(store, c))
+            .filter(|c| !owns_claim(store, c))
             .filter_map(|c| c.coordination.as_ref())
             .any(|other| {
                 other.workspace == candidate.workspace
@@ -2749,19 +2747,12 @@ pub fn claim_scoped(
         let same_target =
             old.ticket == t.id() && (old.item.is_none() || item.is_none() || old.item == item);
         let ours = owns_claim(store, old);
-        if same_target
-            && !ours
-            && old.lease_expired(now)
-            && old
-                .coordination
-                .as_ref()
-                .is_some_and(|c| c.workspace == coordination.workspace)
-        {
+        if same_target && !ours && old.lease_expired(now) && old.coordination.is_some() {
             return Ok(Outcome::unknown(
                 "work.writer-unfenced",
                 store.rel(&t.intent_path),
                 format!(
-                    "{} has an expired lease held by {}; expiry does not prove its writer stopped. Stop/release that writer, or recover into an isolated workspace before replacing it",
+                    "{} has an expired lease held by {}; expiry does not prove its writer stopped. Stop and release that writer before replacing it; an isolated workspace alone is not proof of writer stop",
                     old.target(),
                     old.actor
                 ),
@@ -2845,7 +2836,7 @@ pub fn claim_scoped(
         // The whole ticket held by someone else holds this item too, while
         // its lease is live (an expired claim holds nothing, §11.3).
         if let Some((_, c)) = claim_on(&claims, t.id(), None)
-            && c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
+            && c.is_none_or(|c| !owns_claim(store, c) && c.reserves(now))
         {
             return Ok(claimed_by_other(
                 store.rel(&store.lock_path(t.id(), None)),

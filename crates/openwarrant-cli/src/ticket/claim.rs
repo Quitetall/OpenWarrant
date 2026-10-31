@@ -87,6 +87,13 @@ impl Claim {
         now.saturating_sub(self.since_unix)
     }
 
+    /// A managed writer keeps its reservation until released or fenced.
+    /// Only retained legacy claims use expiry alone as reclamation evidence.
+    #[must_use]
+    pub fn reserves(&self, now: u64) -> bool {
+        self.coordination.is_some() || !self.lease_expired(now)
+    }
+
     /// Whether the lease has run out at `now`. A claim with no lease (one
     /// read without [`read`]'s lease, which every reader here supplies)
     /// never has.

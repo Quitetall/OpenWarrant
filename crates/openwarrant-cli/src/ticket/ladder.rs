@@ -73,6 +73,48 @@ fn read_checks(t: &Ticket) -> Result<Checks, String> {
     if t.format {
         let doc = openwarrant_core::format::parse(t.checklist_text.as_bytes());
         let mut checks = Checks::default();
+        for record in super::checks::records_in(t.id(), t.checklist_text.as_bytes()) {
+            for target in &record.evaluates {
+                let item = (target != t.id())
+                    .then(|| target.rsplit('/').next().unwrap_or(target).to_owned());
+                let name = record
+                    .id
+                    .strip_prefix("CHK-")
+                    .unwrap_or(&record.id)
+                    .to_owned();
+                let cmd = record.run.clone().unwrap_or_default();
+                if record.kind == "kpi" {
+                    checks.kpis.push(ticks::Kpi {
+                        name,
+                        cmd,
+                        item,
+                        direction: record
+                            .direction
+                            .as_deref()
+                            .and_then(ticks::Direction::parse)
+                            .unwrap_or(ticks::Direction::Max),
+                        target: record.target,
+                        mode: if record.gating {
+                            record
+                                .mode
+                                .as_deref()
+                                .and_then(ticks::KpiMode::parse)
+                                .unwrap_or_default()
+                        } else {
+                            ticks::KpiMode::Optimise
+                        },
+                        line: record.line.saturating_sub(1),
+                    });
+                } else if record.gating {
+                    checks.tests.push(ticks::Test {
+                        name,
+                        cmd,
+                        item,
+                        line: record.line.saturating_sub(1),
+                    });
+                }
+            }
+        }
         for unit in doc.units.iter().filter(|u| u.record_type == "milestone") {
             let min = unit
                 .fields

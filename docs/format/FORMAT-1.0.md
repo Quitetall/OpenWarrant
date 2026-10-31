@@ -1007,7 +1007,7 @@ every working copy of a clone: `<git common dir>/openwarrant/claims/`, or
 `.openwarrant/state/claims/` outside version control. The file
 `<alias>.lock` or `<alias>--<item>.lock` holds `oh.war/ticket-claim/v1`
 JSON `{schema, claim, ticket, item?, actor, since, since_unix,
-lease_until?, lease_until_unix?}` and is created atomically (create a
+lease_until?, lease_until_unix?, coordination?}` and is created atomically (create a
 temporary file, then hard-link it to the name; the link fails if the name
 exists). The store is never committed.
 
@@ -1019,8 +1019,13 @@ exists). The store is never committed.
 - **Leases.** A claim's lease runs `claim_lease_minutes` (default 30) past
   the later of `lease_until` and the file's modification time; the holder
   renews it by touching the file (`war heartbeat`, or any command the
-  holder runs). A claim whose lease has run out is reclaimable by a plain
-  claim, recorded as `work.claim_reclaimed`. A live claim whose `since`
+  holder runs). A retained legacy claim without coordination metadata whose
+  lease has run out is reclaimable by a plain claim, recorded as
+  `work.claim_reclaimed`. A managed claim with coordination metadata retains
+  its writer reservation after expiry: expiry alone does not establish that
+  the writer stopped. Replacement MUST wait for release or established
+  fencing; an isolated replacement workspace alone is not such proof.
+  A live legacy claim whose `since`
   is more than `claim_ttl_minutes` (default 120) ago may be taken only on
   request (`--steal`), recorded as `work.claim_stolen`. Both settings live
   in `openwarrant.toml` under `[claims]`.
@@ -1066,7 +1071,8 @@ minimum is `done` for `next` and is listed as below its minimum.
 `next` answers, for an actor, what to work on, as a pure function of the
 documents, journals, claim store and a time. Its **candidates** are the
 items whose state is `open` (so neither blocked, claimed under a live
-claim, nor done; an expired claim does not count), and each work document
+claim, nor done; only an expired legacy claim without coordination metadata
+ceases to count), and each work document
 with no items whose phase is `open`. A work document `part_of` another
 counts as an item of it. An item has its document's `due`, `priority`,
 `created_at` and labels. Candidates are ordered by:
@@ -1204,6 +1210,26 @@ required context is explicit; it cannot be silently omitted to meet a budget.
 The reference document compiler works without AI or an external provider.
 Providers can enrich context through the SDK without replacing core rules or
 creating a separate progress or authority model.
+
+### 12.3 Bundled workflow coordination and import
+
+Managed claims carry `coordination: {workspace, session, base_revision, paths,
+display_name}`. Names grant no authority. Derive path scopes from the Warrant;
+explicit expansion does not grant additional permissions. Cooperative writers
+in a shared checkout MUST NOT hold overlapping scopes. Separate worktrees may
+have overlapping scopes, with visible integration warnings. Scheduling and
+admission use the same reservation rules. A resumed owner retains its claim
+identity; a replacement cannot use an expired lease as evidence of writer stop.
+
+Worktree cleanup is a dry run unless applied explicitly. It removes only managed,
+clean, integrated and inactive worktrees. Dirty files, unique commits, foreign
+workspaces and uncertain ownership or activity are retained.
+
+Milestone-table import preserves original documents and source provenance. Stable
+row keys map to stable Warrant IDs. Repeated unchanged rows are no-ops; changed
+rows produce reviewable diffs and preserve maintained Warrant edits. Ambiguous
+mappings are refused with an actionable explanation. Imported completion claims
+are unverified and do not supply assurance or authority.
 
 ## 13. Conformance
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+// Legacy layout fixtures opt in explicitly; native authoring is covered by alpha6_loop.
 //! `war context` through the shipped binary (Format 1.0 section 10): the
 //! same bytes twice and in a moved clone, the budget's refusal and its [S]
 //! lines, `--strict`, path targets, an unknown target, `--json`, the index
@@ -103,6 +104,7 @@ fn scratch(tag: &str) -> PathBuf {
         &root,
         &[
             "create",
+            "--legacy",
             "Ship the parser",
             "--summary",
             "The parser reads manifests and refuses duplicates.",
@@ -403,6 +405,7 @@ fn prime_stays_a_briefing_however_much_has_been_written() {
         &[
             "--json",
             "create",
+            "--legacy",
             "Open job",
             "--summary",
             "A job with a long history of notes.",
@@ -424,6 +427,7 @@ fn prime_stays_a_briefing_however_much_has_been_written() {
             &[
                 "--json",
                 "create",
+                "--legacy",
                 &format!("Old job {n}"),
                 "--item",
                 "Old work",
@@ -566,7 +570,10 @@ fn ticket_acts_splice_their_blocks_and_each_equals_a_full_compile() {
         compiled
     };
     let t = ticket_id(&root);
-    let created = ok(&war(&root, &["create", "Second ticket", "--item", "One"]));
+    let created = ok(&war(
+        &root,
+        &["create", "--legacy", "Second ticket", "--item", "One"],
+    ));
     let t2 = created.split_whitespace().next().unwrap().to_owned();
     let shown = ok(&war(&root, &["show", t2.as_str()]));
     let item = shown
@@ -615,11 +622,21 @@ fn a_summary_is_written_bounded_and_required_of_a_format_1_work_document() {
         std::fs::read_to_string(root.join(format!("docs/tickets/{ticket}/manifest.toml"))).unwrap();
     assert!(manifest.contains("summary = \"The parser reads manifests and refuses duplicates.\""));
     let long = "x".repeat(201);
-    let out = war(&root, &["--json", "create", "Too long", "--summary", &long]);
+    let out = war(
+        &root,
+        &[
+            "--json",
+            "create",
+            "--legacy",
+            "Too long",
+            "--summary",
+            &long,
+        ],
+    );
     assert_ne!(out.status.code(), Some(0));
     assert!(String::from_utf8_lossy(&out.stdout).contains("\"ticket.summary\""));
     // A ticket written without one reads as it did: no `summary` key.
-    ok(&war(&root, &["create", "No summary"]));
+    ok(&war(&root, &["create", "--legacy", "No summary"]));
     let missing = |root: &Path| -> Vec<String> {
         let out = war(root, &["--json", "check"]);
         let v: serde_json::Value = serde_json::from_slice(&out.stdout).unwrap();

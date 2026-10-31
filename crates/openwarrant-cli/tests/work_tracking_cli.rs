@@ -200,7 +200,11 @@ fn a_format_ticket_is_worked_with_a_v2_journal() {
 #[test]
 fn a_legacy_journal_stays_v1_and_a_mixed_journal_reads() {
     let root = scratch("v1");
-    let created = json(&root, None, &["create", "Legacy", "--item", "one"]);
+    let created = json(
+        &root,
+        None,
+        &["create", "--legacy", "Legacy", "--item", "one"],
+    );
     let id = created["result"]["id"].as_str().unwrap().to_owned();
     let target = format!(
         "{id}/{}",

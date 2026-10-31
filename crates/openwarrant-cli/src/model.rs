@@ -1128,6 +1128,14 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
 pub fn build_tickets(corpus: &Corpus, record_atoms: bool) -> Result<Model, RepoError> {
     let mut b = Builder::default();
     lower_tickets(&mut b, corpus);
+    for d in corpus
+        .format_docs()
+        .docs
+        .iter()
+        .filter(|d| d.admitted() && d.place == crate::format_doc::Place::Ticket)
+    {
+        lower_document(&mut b, d);
+    }
     if record_atoms {
         lower_record_atoms(&mut b, corpus);
     }

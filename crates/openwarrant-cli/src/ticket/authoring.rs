@@ -38,14 +38,10 @@ pub(crate) fn document(m: &TicketManifest, intent: &str, checklist: &str) -> Str
         }
     }
     if !m.labels.is_empty() {
-        out.push_str(&format!(
-            "labels: [{}]\n",
-            m.labels
-                .iter()
-                .map(|v| quote(v))
-                .collect::<Vec<_>>()
-                .join(", ")
-        ));
+        out.push_str("labels:\n");
+        for label in &m.labels {
+            out.push_str(&format!("  - {}\n", quote(label)));
+        }
     }
     if let Some(issue) = m.issue {
         out.push_str(&format!("issue: {issue}\n"));
@@ -111,23 +107,35 @@ fn field(text: &str, key: &str, value: Option<&str>) -> String {
     let mut out = String::new();
     let mut inside = false;
     let mut matched = false;
+    let mut skip_continuation = false;
+    let emit = |out: &mut String, value: &str| {
+        out.push_str(&format!(
+            "{key}:{}{value}{nl}",
+            if value.starts_with('\n') { "" } else { " " }
+        ));
+    };
     for (index, line) in text.split_inclusive('\n').enumerate() {
         if index == 0 {
             inside = line.trim() == "---";
             out.push_str(line);
             continue;
         }
+        if inside && skip_continuation && line.starts_with("  ") {
+            continue;
+        }
+        skip_continuation = false;
         if inside && line.trim() == "---" {
             if !matched && let Some(value) = value {
-                out.push_str(&format!("{key}: {value}{nl}"));
+                emit(&mut out, value);
             }
             inside = false;
         }
         if inside && line.starts_with(&format!("{key}:")) {
             if let Some(value) = value {
-                out.push_str(&format!("{key}: {value}{nl}"));
+                emit(&mut out, value);
             }
             matched = true;
+            skip_continuation = true;
         } else {
             out.push_str(line);
         }
@@ -162,14 +170,18 @@ pub(crate) fn edit(
             let rendered = match value {
                 serde_json::Value::Null => None,
                 serde_json::Value::String(value) => Some(quote(value)),
-                serde_json::Value::Array(values) => Some(format!(
-                    "[{}]",
-                    values
-                        .iter()
-                        .map(|v| quote(v.as_str().unwrap_or_default()))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                )),
+                serde_json::Value::Array(values) => {
+                    if values.is_empty() {
+                        None
+                    } else {
+                        Some(
+                            values
+                                .iter()
+                                .map(|v| format!("\n  - {}", quote(v.as_str().unwrap_or_default())))
+                                .collect::<String>(),
+                        )
+                    }
+                }
                 _ => Some(value.to_string()),
             };
             next = field(&next, key, rendered.as_deref());

@@ -227,7 +227,7 @@ fn human_gives_everything_editable_its_own_units_first_and_the_document_record_u
 }
 
 #[test]
-fn resume_shows_holder_and_lease_while_a_claim_lives_and_offers_the_item_once_it_ran_out() {
+fn resume_keeps_a_scoped_writer_reserved_until_release() {
     let root = scratch("resume");
     ok(&war(&root, &["claim", "t-0d61d/i-5e02", "--as", "bob"]));
     let at = "2099-01-01T00:00:00Z";
@@ -253,15 +253,18 @@ fn resume_shows_holder_and_lease_while_a_claim_lives_and_offers_the_item_once_it
     assert!(live.contains("state blocked\n"), "{live}");
     let next = live.split("## Next\n").nth(1).unwrap();
     assert!(!next.contains("i-5e02"), "a held item is not next\n{next}");
-    assert!(next.contains("- t-0d61d/i-4d11 · Email template"), "{next}");
-    // At a time past its lease, the claim holds nothing: open, and next.
+    assert!(
+        !next.contains("t-0d61d/i-4d11"),
+        "one writer reserves the overlapping Warrant scope: {next}"
+    );
+    // Expiry is not evidence that this managed writer stopped.
     let later = ok(&war(
         &root,
         &["context", "t-0d61d", "--preset", "resume", "--at", at],
     ));
-    assert!(!later.contains("holder bob"), "{later}");
+    assert!(later.contains("holder bob"), "{later}");
     assert!(
-        later
+        !later
             .split("## Next\n")
             .nth(1)
             .unwrap()

@@ -98,7 +98,16 @@ fn rules(v: &serde_json::Value) -> Vec<String> {
 #[test]
 fn completion_and_required_milestone_proof_remain_separate_in_progress() {
     let root = scratch("completion-minimum");
-    let created = json(&root, &["create", "Guarded result", "--item", "Deliver it"]);
+    let created = json(
+        &root,
+        &[
+            "create",
+            "--legacy",
+            "Guarded result",
+            "--item",
+            "Deliver it",
+        ],
+    );
     let t = created["result"]["id"].as_str().unwrap();
     let item = created["result"]["items"][0]["id"].as_str().unwrap();
     let target = format!("{t}/{item}");
@@ -144,11 +153,14 @@ fn completion_and_required_milestone_proof_remain_separate_in_progress() {
 #[test]
 fn a_title_only_warrant_ticks_at_observed_only_when_its_test_passes() {
     let root = scratch("title");
-    let created = json(&root, &["create", "Make the parser fast"]);
+    let created = json(&root, &["create", "--legacy", "Make the parser fast"]);
     let t = created["result"]["id"].as_str().unwrap().to_owned();
     // The hint is one line, and says how to add a test.
     let hint = created["result"]["hint"].as_str().unwrap_or_default();
-    assert!(hint.contains(&format!("war add {t} --test")), "{created}");
+    assert!(
+        hint.contains(&format!("war plan add {t} --test")),
+        "{created}"
+    );
     assert!(
         !root
             .join(format!("docs/tickets/{t}/atoms/30-checks.md"))
@@ -240,7 +252,15 @@ fn claimed_and_observed_ticks_read_differently_and_a_forged_marker_reads_claimed
     let root = scratch("words");
     let created = json(
         &root,
-        &["create", "Two items", "-i", "plain", "-i", "checked"],
+        &[
+            "create",
+            "--legacy",
+            "Two items",
+            "-i",
+            "plain",
+            "-i",
+            "checked",
+        ],
     );
     let t = created["result"]["id"].as_str().unwrap().to_owned();
     let items = created["result"]["items"].as_array().unwrap().clone();
@@ -328,7 +348,7 @@ fn kpis_keep_best_latest_and_target_and_no_number_is_unknown() {
     assert_eq!(k["runs"], 3, "{k}");
     let journal =
         std::fs::read_to_string(root.join(format!("docs/tickets/{t}/journal.jsonl"))).unwrap();
-    assert_eq!(journal.matches("ticket.kpi_run").count(), 3);
+    assert_eq!(journal.matches("work.kpi_run").count(), 3);
 
     // A KPI that prints words is UNKNOWN, never a pass or a fail.
     json(
@@ -367,10 +387,7 @@ fn kpis_keep_best_latest_and_target_and_no_number_is_unknown() {
         None,
     );
     let held: serde_json::Value = serde_json::from_slice(&held.stdout).unwrap();
-    assert!(
-        rules(&held).contains(&"ticket.check-unknown".to_owned()),
-        "{held}"
-    );
+    assert!(rules(&held).contains(&"check.unknown".to_owned()), "{held}");
 }
 
 #[test]
@@ -426,7 +443,7 @@ fn an_independent_verdict_by_the_performer_is_refused_and_by_another_ticks() {
 #[test]
 fn the_bridge_does_nothing_for_a_task_that_names_nothing() {
     let root = scratch("bridge");
-    let created = json(&root, &["create", "Bridge", "-i", "one"]);
+    let created = json(&root, &["create", "--legacy", "Bridge", "-i", "one"]);
     let t = created["result"]["id"].as_str().unwrap().to_owned();
     let item = created["result"]["items"][0]["id"]
         .as_str()

@@ -59,6 +59,8 @@ pub struct Session {
     /// it only while it is still these bytes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub settings_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claim_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -80,6 +82,9 @@ pub struct Started {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub exit: Option<i32>,
     pub brief: String,
+    pub context: crate::context::task::TaskPacket,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub claim_id: Option<String>,
 }
 
 /// Claude Code's permission rules for what a Warrant declares: each tool by
@@ -163,7 +168,11 @@ pub fn run(
                 let t = &tickets[n];
                 (
                     format!("{}/{item}", t.id()),
-                    t.dir.clone(),
+                    if t.format {
+                        t.intent_path.clone()
+                    } else {
+                        t.dir.join("manifest.toml")
+                    },
                     packet::allowed_of_ticket(t),
                     format!(
                         "{}: {}",
@@ -176,7 +185,11 @@ pub fn run(
                 let t = &tickets[n];
                 (
                     t.id().to_owned(),
-                    t.dir.clone(),
+                    if t.format {
+                        t.intent_path.clone()
+                    } else {
+                        t.dir.join("manifest.toml")
+                    },
                     packet::allowed_of_ticket(t),
                     t.manifest.title.clone(),
                 )
@@ -191,7 +204,7 @@ pub fn run(
         let dir = repo.warrant_dir(alias)?;
         (
             id.to_owned(),
-            dir,
+            dir.join("manifest.toml"),
             packet::allowed_of_warrant(repo, alias),
             id.to_owned(),
         )
@@ -210,11 +223,15 @@ pub fn run(
     };
     // The Warrant has to be in the commit the worktree is made from.
     let manifest_rel = warrant_dir
-        .join("manifest.toml")
         .strip_prefix(&top)
         .map(Utf8Path::to_string)
         .unwrap_or_default();
     let resumed = worktree.join(".git").exists();
+    if resumed && !crate::worktrees::is_managed(&root, &worktree, &branch) {
+        report.push(Diagnostic::error("go.workspace-unmanaged", repo.relative(&worktree), "existing workspace ownership is unknown; it was retained without starting or rewriting it"));
+        return Ok((report, serde_json::Value::Null, String::new()));
+    }
+
     if !resumed
         && !git::git(
             &root,
@@ -240,23 +257,7 @@ pub fn run(
             // Work from an earlier session is on the branch: keep it.
             git::add_worktree_on(&root, &worktree, &branch)
         } else {
-            let parent = worktree.parent().map(Utf8Path::to_owned);
-            if let Some(p) = parent {
-                let _ = std::fs::create_dir_all(p);
-            }
-            let r = git::git(
-                &root,
-                &[
-                    "worktree",
-                    "add",
-                    "-q",
-                    "-b",
-                    &branch,
-                    worktree.as_str(),
-                    &base,
-                ],
-            );
-            if r.ok { Ok(()) } else { Err(r.why()) }
+            git::add_worktree(&root, &worktree, &branch, &base)
         };
         if let Err(e) = made {
             report.push(Diagnostic::error(
@@ -287,6 +288,7 @@ pub fn run(
             report.note("the worktree made for it was removed again".to_owned());
         }
     };
+    let mut claim_id = None;
     if crate::ticket::is_ticket_ref(&node) {
         let claimed = crate::ticket::claim_cmd(&store, &node, false)?;
         if claimed.is_refused() {
@@ -296,7 +298,26 @@ pub fn run(
             undo(&mut report);
             return Ok((report, serde_json::Value::Null, String::new()));
         }
+        claim_id = claimed.result["claim"]["claim"].as_str().map(str::to_owned);
     }
+    // Legacy stages are carried in their parent's exact milestone source.
+    // The full parent contract is conservative context for that stage.
+    let context_target = if crate::ticket::is_ticket_ref(&node) {
+        node.as_str()
+    } else {
+        node.split('/').next().unwrap_or(&node)
+    };
+    let context = match crate::context::task::repository(&wt_repo, context_target) {
+        Ok(packet) => packet,
+        Err(error) => {
+            report.push(Diagnostic::error(
+                "context.required-missing",
+                node.clone(),
+                error.to_string(),
+            ));
+            return Ok((report, serde_json::Value::Null, String::new()));
+        }
+    };
     // The session's settings: inside the worktree, and nowhere else.
     let mut wrote = Vec::new();
     let allowed = if crate::ticket::is_ticket_ref(&node) {
@@ -327,9 +348,11 @@ pub fn run(
                 .is_some_and(|d| d == sha(&bytes)),
         };
         let settings_sha = if ours {
-            let body = serde_json::to_string_pretty(&claude_settings(&allowed, &actor))
-                .unwrap_or_default()
-                + "\n";
+            let mut settings = claude_settings(&allowed, &actor);
+            if let Some(id) = &claim_id {
+                settings["env"]["OPENWARRANT_CLAIM_ID"] = serde_json::json!(id);
+            }
+            let body = serde_json::to_string_pretty(&settings).unwrap_or_default() + "\n";
             let _ = std::fs::create_dir_all(wt_root.join(".claude"));
             std::fs::write(&settings_path, &body).map_err(|source| RepoError::Io {
                 context: format!("could not write {settings_path}"),
@@ -356,6 +379,7 @@ pub fn run(
             base: base.clone(),
             allowed: allowed.clone(),
             settings_sha256: settings_sha,
+            claim_id: claim_id.clone(),
         };
         let _ = std::fs::create_dir_all(wt_root.join(".openwarrant"));
         std::fs::write(
@@ -434,16 +458,19 @@ pub fn run(
         human.push_str(&format!("{command_line}\n\n{brief}"));
     } else {
         human.push_str(&format!("{command_line}\n"));
-        let status = std::process::Command::new(&argv[0])
+        let mut command = std::process::Command::new(&argv[0]);
+        command
             .args(&argv[1..])
             .current_dir(&wt_root)
             .env("OPENWARRANT_ACTOR", &actor)
-            .env("WAR_GO_NODE", &node)
-            .status()
-            .map_err(|source| RepoError::Io {
-                context: format!("could not run {}", argv[0]),
-                source,
-            })?;
+            .env("WAR_GO_NODE", &node);
+        if let Some(id) = &claim_id {
+            command.env("OPENWARRANT_CLAIM_ID", id);
+        }
+        let status = command.status().map_err(|source| RepoError::Io {
+            context: format!("could not run {}", argv[0]),
+            source,
+        })?;
         ran = true;
         exit = status.code();
     }
@@ -469,6 +496,8 @@ pub fn run(
         ran,
         exit,
         brief,
+        context,
+        claim_id,
     };
     Ok((
         report,
