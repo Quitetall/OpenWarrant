@@ -297,15 +297,16 @@ fn a_fail_reopens_only_when_the_check_says_so() {
     let root = scratch("reopen");
     ticket(
         &root,
-        "## CHK-keep · check — keeps\nrun: false\non: manual\nevaluates i-0c01\n\n\
-         ## CHK-back · check — reopens\nrun: false\non: manual\nreopen: true\nevaluates i-0c02\n",
+        "## CHK-keep · check — keeps\nrun: test -f permit-pass\non: manual\nevaluates i-0c01\n\n\
+         ## CHK-back · check — reopens\nrun: test -f permit-pass\non: manual\nreopen: true\nevaluates i-0c02\n",
     );
+    std::fs::write(root.join("permit-pass"), "permit baseline checks").unwrap();
     commit(&root, "ticket");
     for item in ["t-0c01/i-0c01", "t-0c01/i-0c02"] {
         assert!(war(&root, Some("bob"), &["claim", item]).status.success());
     }
-    // `war done` fires `done`: these checks declare `manual`, so the ticks
-    // are claimed, nothing run.
+    // Completion enforces every required condition, including checks whose
+    // normal automatic trigger is manual. Both pass before the regression.
     for item in ["t-0c01/i-0c01", "t-0c01/i-0c02"] {
         let out = war(&root, Some("bob"), &["done", item]);
         assert!(
@@ -314,7 +315,8 @@ fn a_fail_reopens_only_when_the_check_says_so() {
             String::from_utf8_lossy(&out.stderr)
         );
     }
-    assert!(events(&root).iter().all(|e| e["type"] != "check.run"));
+    assert_eq!(of_type(&events(&root), "check.run").len(), 2);
+    std::fs::remove_file(root.join("permit-pass")).unwrap();
     let v = json(&root, Some("ci"), &["check", "run"]);
     assert_eq!(v["exit_code"], 2, "{v}");
     let d = doc(&root);

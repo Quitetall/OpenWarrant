@@ -30,7 +30,7 @@
 //! repository.
 
 pub mod acts;
-mod authoring;
+pub(crate) mod authoring;
 pub mod cache;
 pub mod checks;
 pub mod claim;
@@ -2386,7 +2386,9 @@ pub fn ready_rows_at(
     type Takeable = (Option<claim::Claim>, Option<claim::Claim>);
     let stale = |c: Option<&claim::Claim>| -> Result<Takeable, ()> {
         match c {
-            Some(c) if c.lease_expired(now) => Ok((None, Some(c.clone()))),
+            Some(c) if c.coordination.is_none() && c.lease_expired(now) => {
+                Ok((None, Some(c.clone())))
+            }
             _ => Err(()),
         }
     };
@@ -2403,6 +2405,21 @@ pub fn ready_rows_at(
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
         let mut rows = Vec::new();
         if t.is_done() {
+            return rows;
+        }
+        let Ok(candidate) = scopes::of(store, t, &[]) else {
+            return rows;
+        };
+        if claims
+            .values()
+            .flatten()
+            .filter(|c| c.ticket != t.id() && !owns_claim(store, c))
+            .filter_map(|c| c.coordination.as_ref())
+            .any(|other| {
+                other.workspace == candidate.workspace
+                    && scopes::conflict(&candidate, other).is_some()
+            })
+        {
             return rows;
         }
         let whole = claim_on(&claims, t.id(), None);
@@ -2752,12 +2769,18 @@ pub fn claim_scoped(
         }
         if same_target
             && ours
-            && paths.is_empty()
             && let Some(previous) = &old.coordination
         {
-            coordination = previous.clone();
+            if paths.is_empty() {
+                coordination = *previous.clone();
+            } else {
+                // Expansion preserves the previous writer's covered paths.
+                coordination.paths.extend(previous.paths.iter().cloned());
+                coordination.paths.sort();
+                coordination.paths.dedup();
+            }
         }
-        if ours {
+        if ours || same_target {
             continue;
         }
         let Some(other) = &old.coordination else {
@@ -2822,7 +2845,7 @@ pub fn claim_scoped(
         // The whole ticket held by someone else holds this item too, while
         // its lease is live (an expired claim holds nothing, §11.3).
         if let Some((_, c)) = claim_on(&claims, t.id(), None)
-            && c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
+            && c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
         {
             return Ok(claimed_by_other(
                 store.rel(&store.lock_path(t.id(), None)),
@@ -2842,7 +2865,21 @@ pub fn claim_scoped(
             ));
         }
         let by_id = first_by_id(&tickets);
-        let waiting = document_blockers_by(&|id| by_id.get(id).copied(), t);
+        let mut waiting = document_blockers_by(&|id| by_id.get(id).copied(), t);
+        let unfinished: Vec<_> = t.checklist.items.iter().filter(|it| !it.done).collect();
+        if !unfinished.is_empty()
+            && unfinished
+                .iter()
+                .all(|it| !open_blockers(&tickets, t, it).is_empty())
+        {
+            waiting.extend(
+                unfinished
+                    .iter()
+                    .flat_map(|it| open_blockers(&tickets, t, it)),
+            );
+            waiting.sort();
+            waiting.dedup();
+        }
         if !waiting.is_empty() {
             return Ok(Outcome::refused(
                 "ticket.blocked",
@@ -2861,7 +2898,7 @@ pub fn claim_scoped(
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
             .filter(|(_, c)| {
                 c.as_ref()
-                    .is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
+                    .is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
             })
             .map(|(k, c)| {
                 let who = c.as_ref().map_or_else(
@@ -2887,7 +2924,7 @@ pub fn claim_scoped(
     }
     let path = store.lock_path(t.id(), item.as_deref());
     let mut mine = new_claim(store, t.id(), item.as_deref(), now);
-    mine.coordination = Some(coordination.clone());
+    mine.coordination = Some(Box::new(coordination.clone()));
     // A claim from before claims were shared (M11) holds where it lies.
     let held_at = store.lock_of(t.id(), item.as_deref());
     let taken = if held_at == path {
@@ -2908,7 +2945,7 @@ pub fn claim_scoped(
         claim::Taken::Held(Some(c)) if owns_claim(store, &c) => {
             let mut c = c;
             if !paths.is_empty() {
-                let previous = c.coordination.replace(coordination.clone());
+                let previous = c.coordination.replace(Box::new(coordination.clone()));
                 atomic::write(
                     &held_at,
                     serde_json::to_string(&c).map_err(|e| RepoError::Message(e.to_string()))?,
@@ -2999,14 +3036,14 @@ pub fn claim_scoped(
     let after = store.claims()?;
     let conflict = match &item {
         Some(_) => claim_on(&after, t.id(), None)
-            .filter(|(_, c)| c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now)))
+            .filter(|(_, c)| c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now)))
             .map(|(_, c)| holder(c, now)),
         None => after
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
             .find(|(_, c)| {
                 c.as_ref()
-                    .is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
+                    .is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
             })
             .map(|(_, c)| holder(c.as_ref(), now)),
     };
@@ -3145,7 +3182,7 @@ fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
         .claims()?
         .values()
         .flatten()
-        .filter(|c| owns_claim(store, &c) && !c.lease_expired(now))
+        .filter(|c| owns_claim(store, c) && !c.lease_expired(now))
         .map(|c| c.ticket.clone())
         .collect();
     ids.sort();
@@ -3230,7 +3267,7 @@ pub fn session_start(store: &Store) -> Result<Outcome, RepoError> {
 /// With an id, that Warrant (or item). Without one: the Warrant this actor
 /// already holds, so an interrupted session resumes where it was; else the
 /// first ready Warrant in FORMAT-1.0 §11.5's order that it can claim whole.
-/// The answer is [`render::brief`]: no context packet, no other Warrant.
+/// Human output is a brief; machine output also carries required task context.
 pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoError> {
     let chosen = if let Some(q) = query {
         let claimed = claim_cmd(store, q, false)?;
@@ -3374,7 +3411,7 @@ fn reopen_whole(store: &Store, t: &Ticket, reason: &str) -> Result<Outcome, Repo
     let now = now_secs();
     let claims = store.claims()?;
     if let Some((_, c)) = claim_on(&claims, t.id(), None)
-        && c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
+        && c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
     {
         return Ok(claimed_by_other(
             store.rel(&store.lock_of(t.id(), None)),
@@ -3471,7 +3508,7 @@ pub fn reopen(
     let claims = store.claims()?;
     for level in [Some(id.as_str()), None] {
         if let Some((_, c)) = claim_on(&claims, t.id(), level)
-            && c.is_none_or(|c| !owns_claim(store, &c) && !c.lease_expired(now))
+            && c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
         {
             let whose = if level.is_some() {
                 "it"
@@ -3650,7 +3687,7 @@ impl Store {
                 Ok(remote::Held::At(sha, c)) => {
                     let c = c.map(|c| *c);
                     let how = match &c {
-                        Some(c) if owns_claim(self, &c) => Some(Takeover::Own),
+                        Some(c) if owns_claim(self, c) => Some(Takeover::Own),
                         Some(c) if c.lease_expired(now) => Some(Takeover::Reclaimed),
                         Some(c) if steal && c.age(now) > self.ttl_secs => Some(Takeover::Stolen),
                         _ => None,
@@ -3710,7 +3747,7 @@ impl Store {
             Ok(remote::Held::At(sha, c)) => {
                 let c = c.map(|c| *c);
                 let published = remote::read_sidecar(lock).is_some_and(|p| p.commit == sha);
-                if published || c.as_ref().is_some_and(|c| owns_claim(self, &c)) {
+                if published || c.as_ref().is_some_and(|c| owns_claim(self, c)) {
                     Ok(Some(sha))
                 } else {
                     Err(Box::new(claimed_by_other(
@@ -3931,7 +3968,7 @@ pub fn heartbeat(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
                         ),
                     ));
                 }
-                Some(c) if c.as_ref().is_none_or(|c| !owns_claim(store, &c)) => {
+                Some(c) if c.as_ref().is_none_or(|c| !owns_claim(store, c)) => {
                     return Ok(claimed_by_other(
                         store.rel(&path),
                         format!(
@@ -4004,7 +4041,7 @@ fn may_finish(
     let mine = |c: &Option<Option<claim::Claim>>| {
         c.as_ref()
             .and_then(Option::as_ref)
-            .is_some_and(|c| owns_claim(store, &c))
+            .is_some_and(|c| owns_claim(store, c))
     };
     if mine(&own) || mine(&whole) {
         return Ok(());
@@ -4188,10 +4225,10 @@ fn finish(
     // or an UNKNOWN run ticks nothing. `--check` runs every check that
     // evaluates it.
     if t.format
-        && let Some(id) = &item_id
+        && (item_id.is_some() || t.checklist.items.is_empty())
         && matches!(how, How::Claimed | How::Check)
     {
-        match checks::on_done(store, t, id, matches!(how, How::Check))? {
+        match checks::on_done(store, t, item_id.as_deref(), matches!(how, How::Check))? {
             None => {}
             Some(Ok(round)) => how = How::Ran(round),
             Some(Err(refusal)) => return Ok(*refusal),
@@ -4537,7 +4574,7 @@ fn finish_ticket(
     for id in &open {
         let mut round = whole_round.clone();
         if t.format && judged_here {
-            match checks::on_done(store, &t, id, checking)? {
+            match checks::on_done(store, &t, Some(id), checking)? {
                 None => {}
                 Some(Ok(r)) => round = Some(r),
                 Some(Err(refusal)) => return Ok(*refusal),

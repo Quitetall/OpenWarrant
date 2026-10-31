@@ -2213,6 +2213,9 @@ enum AdminCommand {
         /// Who is acting (default: $OPENWARRANT_ACTOR, else `[project] performer`, named for its worktree in a linked one).
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// For Markdown milestone tables: select the exact heading containing the table.
+        #[arg(long)]
+        section: Option<String>,
     },
 
     /// §68 portable export and round trip; or, as `war admin export beads`, every
@@ -7239,9 +7242,26 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             format,
             path,
             actor,
+            section,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let path = interop::resolve(&repository, &path);
+            if matches!(format.as_str(), "table" | "milestones") {
+                let outcome = interop::table::run(&repository, &store, &path, section.as_deref())?;
+                return Ok(ticket_answer(mode, "import", &outcome));
+            }
+            if section.is_some() {
+                return Ok(ticket_answer(
+                    mode,
+                    "import",
+                    &interop::write::refused(&[interop::Fault::new(
+                        "import.option-invalid",
+                        "",
+                        0,
+                        "--section applies only to table imports",
+                    )]),
+                ));
+            }
             let read = match format.as_str() {
                 "beads" => interop::beads::read(&repository, &store, &path),
                 "openspec" => interop::openspec::import(&repository, &store, &path),
@@ -7256,7 +7276,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                             0,
                             format!(
                                 "{other:?} is not a format this build imports: beads, \
-                                 openspec, speckit"
+                                 openspec, speckit, table"
                             ),
                         )]),
                     ));

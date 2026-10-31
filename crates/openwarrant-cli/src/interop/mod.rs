@@ -24,6 +24,7 @@ pub mod adapters;
 pub mod beads;
 pub mod openspec;
 pub mod speckit;
+pub mod table;
 pub mod write;
 
 use camino::{Utf8Path, Utf8PathBuf};

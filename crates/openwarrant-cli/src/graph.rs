@@ -365,7 +365,7 @@ pub fn ticket_nodes(
         match c {
             // A lock nobody can read still holds (fail closed).
             None => Some("somebody (the lock does not parse)".to_owned()),
-            Some(c) if c.lease_expired(now) => None,
+            Some(c) if c.coordination.is_none() && c.lease_expired(now) => None,
             Some(c) => Some(c.actor.clone()),
         }
     };

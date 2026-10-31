@@ -115,6 +115,16 @@ fn expired_scoped_lease_is_not_proof_that_its_writer_stopped() {
         )["exit_code"],
         0
     );
+    let ready = war(
+        root.path(),
+        &["view", "next", "--at", "2100-01-01T00:00:00Z"],
+    );
+    assert!(
+        ready["result"]["ready"]
+            .as_array()
+            .is_none_or(|rows| rows.iter().all(|r| r["ticket"] != id)),
+        "expired scoped writers require fencing before scheduling: {ready}"
+    );
     let next = war(
         root.path(),
         &[

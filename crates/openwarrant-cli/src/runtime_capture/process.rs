@@ -106,7 +106,7 @@ pub(super) fn run_with_stdin(
     Ok((observed.success, observed.stdout))
 }
 
-pub(super) struct Completed {
+pub(crate) struct Completed {
     pub success: bool,
     pub stdout: Vec<u8>,
     pub stderr: Vec<u8>,
@@ -114,7 +114,7 @@ pub(super) struct Completed {
 
 /// Preserve both bounded streams so protocol adapters can distinguish a verdict
 /// from a verifier unable to produce one. Transport itself assigns no verdict.
-pub(super) fn observe_with_stdin(
+pub(crate) fn observe_with_stdin(
     mut command: Command,
     timeout: Duration,
     limit: usize,

@@ -2064,8 +2064,8 @@ mod tests {
             !text.iter().any(|t| t.contains("Reset endpoint")),
             "a done item is listed"
         );
-        assert_eq!(rows[1].command, "war claim t-0001/i-0002");
-        assert_eq!(rows[2].command, "war show t-0001");
+        assert_eq!(rows[1].command, "war admin claim t-0001/i-0002");
+        assert_eq!(rows[2].command, "war view show t-0001");
         assert!(rows[0].detail.as_deref().unwrap().contains("## Notes"));
         for r in &rows {
             assert!(r.sign_target.is_none() && r.auto.is_none(), "{r:?}");

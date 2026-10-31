@@ -3,7 +3,7 @@
 **Tickets are Warrants.** A ticket is a Warrant in its light encoding: a
 title is enough, and everything else is optional. `war view warrants` (also
 `war view tickets`, `war view ls`) lists every Warrant, light, directory or read in
-place, and `war show <id>` shows any of them; docs/TYPES.md, "One Warrant,
+place, and `war view show <id>` shows any of them; docs/TYPES.md, "One Warrant,
 three encodings", is the whole picture, with import and export for Beads,
 OpenSpec and Spec Kit. This page keeps the word "ticket" for the light one.
 
@@ -13,9 +13,11 @@ one with a sentence, break it into a checklist, and tick items off as they are
 done. No step needs a signature, a review or anyone's approval, and tickets
 themselves are optional: ordinary coding needs none.
 
-Sign-off is still there when you want it: `war plan promote` turns a ticket into a
-Warrant, and the review and signing path in the rest of these docs applies from
-that point. Most work never needs it.
+A ticket is the compatibility name for an ordinary Warrant. New Warrants use
+one Markdown source and keep their ID as checklists, checks and requirements
+are added. Existing manifest-and-atoms records remain supported. Optional
+human sign-off supplies assurance; it does not define whether work exists.
+`war plan promote` is retained for legacy directory-workflow interoperability.
 
 ## The loop in three commands
 
@@ -25,33 +27,33 @@ war start                                   # takes the next ready ticket; print
 war done --note "POST /reset, rate-limited" # closes the ticket you hold: every item, in one call
 ```
 
-`war start` claims the ticket whole, so nobody else takes it, and prints its
-description, open items, notes and what it depends on: nothing else. Run again,
+`war start` claims the ticket whole, so nobody else takes it, and prints a short human brief. With `--json`, it also returns the complete
+required task-context packet, including exact rules and source revisions. Run again,
 it prints the one you hold, so an interrupted session resumes there.
 `war view prime` lists what is open, one line per ticket. The finer steps stay:
-`war claim t-3f2a/i-9c01` takes one item and `war done t-3f2a/i-9c01` ticks it.
+`war admin claim t-3f2a/i-9c01` takes one item and `war done t-3f2a/i-9c01` ticks it.
 
 `war create` prints the ticket's id (`t-3f2a`). Items have ids too (`i-9c01`).
-Any command takes an id or a unique prefix of one: `war claim i-9c`,
-`war show t-3f`. When an item id appears in two tickets, name it with its
+Any command takes an id or a unique prefix of one: `war admin claim i-9c`,
+`war view show t-3f`. When an item id appears in two tickets, name it with its
 ticket: `t-3f2a/i-9c01`.
 
 More, when you need them:
 
 | command | what it does |
 |---|---|
-| `war add <ticket> "text" [--after <item>]` | append an item; `--after` makes it wait on another item, a ticket (`t-...`) or another ticket's item (`t-.../i-...`) |
-| `war note <ticket> "text"` | a dated note under the ticket's **Notes**: a decision, a dead end, a link |
-| `war show <ticket>` | the ticket as a person reads it, with who holds what |
+| `war plan add <ticket> "text" [--after <item>]` | append an item; `--after` makes it wait on another item, a ticket (`t-...`) or another ticket's item (`t-.../i-...`) |
+| `war plan note <ticket> "text"` | a dated note under the ticket's **Notes**: a decision, a dead end, a link |
+| `war view show <ticket>` | the ticket as a person reads it, with who holds what |
 | `war view warrants` (or `war view tickets`, `war view ls`) | every Warrant: the tickets first (open, in progress or done, and how far along), then the directory Warrants and those read in place, each with its type; filters below |
-| `war edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
-| `war edit <ticket> --due 2026-11-01` | a due date: a scheduler runs work toward it first, never before what it waits on (`--due none` clears it) |
+| `war plan edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
+| `war plan edit <ticket> --due 2026-11-01` | a due date: a scheduler runs work toward it first, never before what it waits on (`--due none` clears it) |
 | `war start <item>` | claim it and open it in a worktree of its own, with the Warrant's declared tools, paths and commands as the session's settings (docs/GO.md) |
 | `war evidence go` | run every ready item, critical path first, each in its own worktree, landing on `war-go/integration` (docs/GO.md) |
 | `war plan estimate` | how long each open item should take, learned from claim-to-done times in the journals, and the critical path |
 | `war admin release <item>` | give a claim back without finishing |
 | `war admin heartbeat [<item>]` | renew the lease on your claims (any `war` command does too) |
-| `war claim <item> --steal` | take a claim older than the TTL whose lease is still live |
+| `war admin claim <item> --steal` | take a claim older than the TTL whose lease is still live |
 | `war create "..." --draft` | ask the configured drafter (`[plan] drafter_argv`) to propose the items |
 | `war create "..." --draft --records` | the drafter proposes typed records too (requirements, constraints, decisions, outcomes), and the items implement them; see "From a sentence to records" |
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
@@ -59,7 +61,7 @@ More, when you need them:
 | `war plan promote <ticket>` | draft a Warrant from the ticket when someone wants sign-off |
 | `war admin import beads <file.jsonl>` | bring Beads issues in as tickets; also `war admin import openspec <dir>`, `war admin import speckit <dir>` (docs/TYPES.md, "Bringing work in") |
 | `war admin export beads` | every ticket as Beads issue JSONL, on stdout |
-| `war add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
+| `war plan add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
 | `war done <item> --check` | run the item's tests and KPIs and tick at **observed** only when they pass; a plain `war done` ticks as **claimed** |
 | `war evidence kpi run <ticket>` | run every KPI, journal each value, and say latest, best and target |
 | `war evidence verify <item>` / `war sign <item> --ssh-sign` | an independent verdict, or a human's sign-off, of one item: the **independent** and **signed** levels |
@@ -68,26 +70,16 @@ Every command takes `--json` and answers with the same `oh.war/report/v1`
 envelope as the rest of `war`. Each reads only the ticket files and the claims,
 so each answers in milliseconds on a repository of any size.
 
-## What a ticket is on disk
+## Work on disk
 
-```
-docs/tickets/t-3f2a/
-  manifest.toml          id, title, priority, who created it and when; type,
-                         labels, epic and issue link when it has them
-  atoms/10-intent.md     the description: the sentence, context, decisions, notes
-  atoms/15-checklist.md  the checklist
-  journal.jsonl          what happened, one line per event (append-only)
-```
+New work is `docs/tickets/t-xxxx.md`: metadata, description, checklist and
+optional typed records in one document. Its append-only journal lives beside
+it under `docs/tickets/t-xxxx/journal.jsonl`. A title is enough to start;
+`war plan add` adds items or checks to that same source.
 
-The two Markdown files are the ticket. Open them in an editor or on GitHub:
-
-```markdown
-# Checklist
-
-- [x] Reset endpoint (i-9c01) — done by claude, 2026-09-25: POST /reset, rate-limited
-- [ ] Email template (i-4d11)
-- [ ] Docs (i-77be, after i-4d11)
-```
+Legacy records keep their existing `manifest.toml`, intent and checklist atoms.
+`war create --legacy` selects that older layout explicitly. The tool reads
+both; no bulk migration or signed-history rewrite is required.
 
 **The file is the state.** A ticked box is a done item; the order of the lines
 is the order of the work; `after` is what an item waits on. Edit it by hand and
@@ -104,7 +96,7 @@ A ticket may say what kind of work it is and carry labels:
 
 ```bash
 war create "Login crashes on an empty password" --type bug -l auth -l backend
-war edit t-3f2a --type feature --unlabel backend -l ui
+war plan edit t-3f2a --type feature --unlabel backend -l ui
 ```
 
 The types are the ticket profile's: `profiles/ticket.toml` ships `task`,
@@ -124,10 +116,10 @@ An **epic** is a ticket other tickets are part of:
 ```bash
 war create "Password reset" --type epic                     # t-e9a1
 war create "Reset endpoint" --part-of t-e9a1 -i "POST /reset"
-war show t-e9a1                                             # its tickets, and 0/1 done
+war view show t-e9a1                                             # its tickets, and 0/1 done
 ```
 
-`war show <epic>` lists its tickets with each one's state and progress, and
+`war view show <epic>` lists its tickets with each one's state and progress, and
 the epic's progress over them; `war view tickets` marks it `[epic: 1/3 done]`. An
 epic with no items of its own is worked through its tickets: `war view ready` never
 offers it whole. `--part-of none` detaches a ticket; a cycle (an epic part of
@@ -216,7 +208,7 @@ An agent arrives knowing nothing:
 ```bash
 war start       # takes the next ready ticket and prints what its work needs
 # ... the work ...
-war note t-77c1 "root cause is the unchecked empty string in login.rs"
+war plan note t-77c1 "root cause is the unchecked empty string in login.rs"
 war done --note "repro: empty POST body"
 ```
 
@@ -225,7 +217,7 @@ A second agent, in parallel, runs `war start` too and gets the next ticket
 #12 gets the summary and is closed. Late afternoon the person looks:
 
 ```bash
-war show t-e9a1                   # the epic: 1/2 done
+war view show t-e9a1                   # the epic: 1/2 done
 war view tickets --state in_progress # what is moving
 war view tickets --search "reset" # everything about reset
 ```
@@ -261,7 +253,7 @@ probably stopped: `war view ready` offers the item again (`lease ran out`), and 
 plain `war claim` takes it, journalled as `ticket.claim_reclaimed` with whom
 it was taken from and when their lease ended. A claim with a live lease that
 is older than two hours (`claim_ttl_minutes`, counted from when it was
-taken, whatever its renewals) can still be taken with `war claim --steal`,
+taken, whatever its renewals) can still be taken with `war admin claim --steal`,
 journalled with whom it was taken from.
 
 ### Claims across machines
@@ -312,7 +304,7 @@ merges these files as text, as before.
 
 `war done`, `edit`, `note`, `add` and `release` take `--if-rev <revision>`
 (`if_rev` over MCP): write only if the target is still what the caller read.
-`war show <ticket> --json` gives the revisions, the same digests `war plan model`
+`war view show <ticket> --json` gives the revisions, the same digests `war plan model`
 reports: `revision` for the ticket (its manifest's sha256; `edit` changes it)
 and `items[].revision` for each item (its checklist line's; ticking or
 rewording the item changes it). Pass the item's for an item, the ticket's for
@@ -368,14 +360,14 @@ holding `alias`, `uuid`, `summary` and the ticket keys (`priority`, `type`,
 admin reopen`, `war next` and `war view ready` work it exactly as they work
 a directory ticket: the same claims, the same `--if-rev`, the same order.
 A Format 1.0 ticket with no items is worked as itself: it is a `war next`
-candidate, `war claim t-x` and `war done t-x` act on the document, no line
+candidate, `war admin claim t-x` and `war done t-x` act on the document, no line
 is added, and its done is a `work.item_done` naming the document (`war
 admin reopen t-x` undoes it the same way). An item waits on what its
 document `depends_on` as well as on its own `after`. Each item's revision is the sha256 of its line; the ticket's is the sha256
 of its frontmatter and preamble, the revisions `war plan model` gives. Its
 journal lies in `docs/tickets/<id>/journal.jsonl` and is written in the
 Format 1.0 envelope (below). A command that writes what such a ticket does
-not have — `war edit` (a manifest), `war plan promote`, `war add --test` (a
+not have — `war edit` (a manifest), `war plan promote`, `war plan add --test` (a
 checks atom) — is refused by name (`ticket.format-document`): edit the
 document itself.
 

@@ -122,6 +122,9 @@ pub fn of(store: &Store, t: &Ticket, provided: &[String]) -> Result<Coordination
         }
     }
     if paths.is_empty() {
+        paths = crate::go::packet::allowed_of_ticket(t).paths;
+    }
+    if paths.is_empty() {
         paths.push("**".into());
     }
     let mut paths = paths
@@ -249,4 +252,19 @@ pub fn overlaps(a: &str, b: &str) -> Result<bool, String> {
         }
     }
     Ok(false)
+}
+
+/// Shared by admission and scheduling. An unsupported pattern is a conflict
+/// until a caller can establish that the scopes are disjoint.
+pub fn conflict(a: &Coordination, b: &Coordination) -> Option<String> {
+    for wanted in &a.paths {
+        for held in &b.paths {
+            match overlaps(wanted, held) {
+                Ok(false) => {}
+                Ok(true) => return Some(format!("{wanted} overlaps {held}")),
+                Err(why) => return Some(format!("overlap cannot be ruled out: {why}")),
+            }
+        }
+    }
+    None
 }

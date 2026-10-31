@@ -77,7 +77,7 @@ pub struct Claim {
     pub lease_until_unix: Option<u64>,
     /// Alpha.6 coordination metadata; absent on retained legacy claims.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub coordination: Option<super::scopes::Coordination>,
+    pub coordination: Option<Box<super::scopes::Coordination>>,
 }
 
 impl Claim {

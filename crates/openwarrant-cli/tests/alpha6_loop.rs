@@ -228,3 +228,64 @@ fn six_daily_commands_and_grouped_compatibility() {
         assert!(old.status.success(), "legacy {member}");
     }
 }
+
+#[test]
+fn title_only_work_cannot_bypass_a_required_check() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "TC"])["exit_code"],
+        0
+    );
+    let created = war(root.path(), &["create", "Preserve required checks"]);
+    let id = created["result"]["id"].as_str().unwrap();
+    assert_eq!(
+        war(root.path(), &["plan", "add", id, "--test", "false"])["exit_code"],
+        0
+    );
+    assert_eq!(war(root.path(), &["start", id])["exit_code"], 0);
+    let done = war(root.path(), &["done", id]);
+    assert_ne!(done["exit_code"], 0, "{done}");
+    assert!(
+        done["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "check.failed"),
+        "{done}"
+    );
+    let shown = war(root.path(), &["view", "show", id]);
+    assert_ne!(shown["result"]["state"], "done", "{shown}");
+    let path = root
+        .path()
+        .join(created["result"]["source"].as_str().unwrap());
+    let text = std::fs::read_to_string(&path).unwrap();
+    assert!(text.contains("run: false"));
+    std::fs::write(path, text.replace("run: false", "run: true")).unwrap();
+    let done = war(root.path(), &["done", id]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["level"], "observed", "{done}");
+}
+
+#[test]
+fn single_source_checks_execute_multiword_commands_as_authored() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "CM"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &["create", "Run a real command", "--item", "Deliver result"],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    assert_eq!(
+        war(
+            root.path(),
+            &["plan", "add", id, "--test", "printf 'command passed\\n'"]
+        )["exit_code"],
+        0
+    );
+    assert_eq!(war(root.path(), &["start", id])["exit_code"], 0);
+    let done = war(root.path(), &["done", id]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+}

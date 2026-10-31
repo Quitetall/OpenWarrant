@@ -1,61 +1,41 @@
 # The command surface
 
-`war --help` lists twelve daily verbs and, below them, five groups. Every
-other command lives in one of the groups. Every spelling `war` has ever
-accepted still works, with the same behaviour and the same output; it is
-only absent from help (OW-WAR-0148 M12).
+`war --help` lists six daily commands, then five advanced groups. Earlier
+spellings remain compatible and keep their report envelope's command name.
 
-```text
-Commands:
-  init    Set up this repository: openwarrant.toml, record directories, AGENTS.md
-  create  Create a Warrant (a ticket) and print its id: a title is enough
-  next    What is ready, and whose step it is
-  start   Take the next ready Warrant and print only what its work needs
-  claim   Take an item or a whole Warrant, so no other agent works it
-  done    Tick an item done in its Warrant's checklist and release the claim
-  add     Add an item to a Warrant, or a test, KPI or milestone
-  note    Append a dated note to a Warrant: context for whoever comes next
-  edit    Change a Warrant's type, labels, epic or priority
-  show    Show a Warrant by its id
-  status  Where the work stands, from the records
-  check   Check the records deterministically, without any agent
-  help    Print this message or the help of the given subcommand(s)
+| Daily command | Purpose |
+| --- | --- |
+| `war init` | Set up a repository |
+| `war create "Outcome"` | Create one Markdown Warrant with a stable ID |
+| `war start` | Claim ready work and receive its context |
+| `war done --note "Result"` | Record completion under the declared conditions |
+| `war status` | Read progress |
+| `war check` | Check record integrity; this does not run all acceptance checks |
 
-More:
-  plan      Shape the work: drafts, records, projections, roadmap, questions
-  sign      The human acts: sign, authorize, resolve, correct, amend, attest
-  evidence  Prove the work: gates, verification, stage runs, KPIs, prepare
-  view      Look at the work: web UI, terminal app, board, lists, timeline
-  admin     Set up and maintain: compile, doctor, pins, import, export, hooks
-```
+Bare `war` opens the human TUI. Agents use explicit commands with `--json`.
+Advanced operations are grouped by purpose:
 
-A new repository reaches its first done with four of the daily verbs:
+| Group | Common commands |
+| --- | --- |
+| `plan` | `add`, `note`, `edit`, `interview`, drafting and roadmap |
+| `view` | `next`, `show`, `prime`, lists, web overview and timeline |
+| `admin` | `claim`, `worktrees`, setup, import/export and maintenance |
+| `evidence` | Executable checks, verification and execution |
+| `sign` | Optional authority and secure human acceptance |
 
-```sh
-war init
-war create "Fix the login redirect"     # prints its id, t-xxxx
-war claim t-xxxx                        # so no other agent finishes it too
-war done t-xxxx
-```
+`war next`, `show`, `claim`, `add`, `note` and `edit` still work. New messages
+use their grouped spellings. `war create --legacy` explicitly requests the
+older manifest-and-atoms layout; existing records keep their encoding.
 
-The M12 target was three, as in Beads. `war done` ticks only what you have
-claimed (OW-WAR-0147 OBL-003: a done that needed no claim would let two
-agents finish one item), and M12 changes placement and help only, so the
-claim stays. Under the vibe preset (M14, docs/PRESETS.md) it is three:
-
-```sh
-war init --vibe
-war create "Fix the login redirect"
-war done t-xxxx                         # claims it first: nobody held it
-```
-
-Plant 132 records both paths.
+For table import use `war admin import table roadmap.md --section "Queue"`.
+See [milestone tables](MILESTONE-TABLES.md) for mapping and preservation rules.
+`war admin worktrees --prune` is a dry run; `--apply` requests conservative
+cleanup. Unknown ownership or process activity keeps the workspace.
 
 ## The rules
 
-- **At most twelve daily verbs.** Twelve: `war start` (M15) is the
-  twelfth, and a thirteenth needs one of them to move into a group. `help` is clap's own and is not counted. Plant 130 counts them,
-  and every group's members.
+- **Six daily commands.** Plant 130 checks the six-command cap and grouped
+  membership. New advanced operations belong in the existing groups.
 - **Every earlier spelling is a hidden alias.** `war board` and `war view
   board` parse to the same clap variant and run the same code, so their
   output is the same bytes. There is no deprecation warning on stdout or
@@ -75,7 +55,10 @@ Plant 132 records both paths.
 - **MCP tool names do not change** (`war_create`, `war_next`, …); only their
   descriptions name the new spellings.
 
-## Where every command went
+## Historical command inventory
+
+The following inventory and M12 discussion describe the earlier surface. The
+six-command table above governs current help placement.
 
 The inventory below is every top-level spelling of `war` at 9dc413e2 (86
 commands, three aliases), with its home now. "Envelope" is the `command`

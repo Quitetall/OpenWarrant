@@ -145,7 +145,7 @@ pub(crate) fn edit(
     let written = super::rewrite(&t.intent_path, |text| {
         if let Some(given) = if_rev {
             let doc = openwarrant_core::format::parse(text.as_bytes());
-            let current = super::revision_of(text[..doc.head_end].as_bytes());
+            let current = super::revision_of(&text.as_bytes()[..doc.head_end]);
             if !super::same_revision(given, &current) {
                 return Err(Box::new(super::stale_revision(
                     store,
@@ -260,10 +260,17 @@ pub(crate) fn append_parts(
                 }
                 continue;
             }
+            let command = part["cmd"].as_str().unwrap_or_default();
+            if command.contains(['\r', '\n']) {
+                return Err(Box::new(Outcome::refused(
+                    "ticket.part-malformed",
+                    store.rel(&t.intent_path),
+                    "a run is one command line; put a multiline program in a script file",
+                )));
+            }
             next.push_str(&format!(
-                "\n## CHK-{name} · {} — {name}\nrun: {}\non: done\n",
-                if kind == "kpi" { "kpi" } else { "check" },
-                quote(part["cmd"].as_str().unwrap_or_default())
+                "\n## CHK-{name} · {} — {name}\nrun: {command}\non: done\n",
+                if kind == "kpi" { "kpi" } else { "check" }
             ));
             let targets = part["item"]
                 .as_str()

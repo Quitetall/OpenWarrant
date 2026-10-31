@@ -64,16 +64,21 @@ pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
     for (k, v) in env {
         cmd.env(k, v);
     }
-    match cmd.output() {
+    match crate::runtime_capture::process::observe_with_stdin(
+        cmd,
+        std::time::Duration::from_secs(30),
+        8 * 1024 * 1024,
+        Stdio::null(),
+    ) {
         Ok(out) => Ran {
-            ok: out.status.success(),
+            ok: out.success,
             stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
             stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
         },
         Err(e) => Ran {
             ok: false,
             stdout: String::new(),
-            stderr: format!("could not run git: {e}"),
+            stderr: format!("could not complete bounded git operation: {e:?}"),
         },
     }
 }

@@ -54,6 +54,8 @@ mod inbox_cli;
 mod json_envelope;
 #[path = "mcp_stdio.rs"]
 mod mcp_stdio;
+#[path = "milestone_table_cli.rs"]
+mod milestone_table_cli;
 #[path = "model_cli.rs"]
 mod model_cli;
 #[path = "normative_completeness_cli.rs"]

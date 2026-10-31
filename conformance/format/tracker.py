@@ -958,6 +958,10 @@ def op_evaluate(world: World, actor: str):
                     if rec["fields"].get("gating") == "false":
                         continue
                     runs = required_runs(it)
+                    milestone = world.repo.by_id.get(it.get("_unit"), {})
+                    minimum = milestone.get("fields", {}).get("min", "claimed") if milestone.get("type") == "milestone" else "claimed"
+                    if LEVEL_RANK.get(minimum, 0) > LEVEL_RANK["observed"]:
+                        continue
                     if not runs or it["id"] in planned:
                         continue
                     planned.add(it["id"])

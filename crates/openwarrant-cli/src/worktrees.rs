@@ -147,7 +147,41 @@ fn process_references() -> (BTreeSet<PathBuf>, bool) {
         }
         (paths, known)
     }
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(target_os = "macos")]
+    {
+        let mut command = std::process::Command::new("/usr/sbin/lsof");
+        command.args([
+            "-nP",
+            "-F0pn",
+            "-a",
+            "-u",
+            &rustix::process::geteuid().as_raw().to_string(),
+        ]);
+        match crate::runtime_capture::process::observe_with_stdin(
+            command,
+            std::time::Duration::from_secs(10),
+            8 * 1024 * 1024,
+            std::process::Stdio::null(),
+        ) {
+            Ok(observed) if observed.success && observed.stderr.is_empty() => {
+                let mut paths = BTreeSet::new();
+                for field in observed.stdout.split(|b| matches!(b, 0 | b'\n')) {
+                    if let Some(name) = field.strip_prefix(b"n") {
+                        let Ok(name) = std::str::from_utf8(name) else {
+                            return (paths, false);
+                        };
+                        let path = PathBuf::from(name);
+                        if path.is_absolute() {
+                            paths.insert(path);
+                        }
+                    }
+                }
+                (paths, true)
+            }
+            _ => (BTreeSet::new(), false),
+        }
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
     {
         (BTreeSet::new(), false)
     }
@@ -201,10 +235,10 @@ fn inspect(
     branch: Option<String>,
     head: String,
     store: &ticket::Store,
-    references: &BTreeSet<PathBuf>,
-    known: bool,
+    activity: &(BTreeSet<PathBuf>, bool),
     integration: &str,
 ) -> Row {
+    let (references, known) = activity;
     let own = ownership(&repo.root, path, branch.as_deref());
     let mut row = Row {
         path: path.to_string(),
@@ -268,7 +302,7 @@ fn inspect(
         row.reasons
             .push("writer claim retained; expiry alone does not establish inactivity".into());
     }
-    if !known {
+    if !*known {
         row.reasons.push("process activity unknown".into());
     }
     if references.iter().any(|p| p.starts_with(path.as_std_path())) {
@@ -287,7 +321,7 @@ pub fn inventory(repo: &Repository, probe: bool, integration: &str) -> Result<Ve
             listed.why()
         )));
     }
-    let (refs, known) = if probe {
+    let activity = if probe {
         process_references()
     } else {
         (BTreeSet::new(), false)
@@ -310,8 +344,7 @@ pub fn inventory(repo: &Repository, probe: bool, integration: &str) -> Result<Ve
             value("branch ").map(|b| b.trim_start_matches("refs/heads/").to_owned()),
             value("HEAD ").unwrap_or_default(),
             &store,
-            &refs,
-            known,
+            &activity,
             integration,
         ));
     }

@@ -128,7 +128,9 @@ pub fn records_in(alias: &str, bytes: &[u8]) -> Vec<CheckRecord> {
                     .strip_prefix(&format!("{alias}/"))
                     .unwrap_or(id)
                     .to_owned();
-                if items.contains(&local) {
+                if id == alias {
+                    evaluates.push(alias.to_owned());
+                } else if items.contains(&local) {
                     evaluates.push(format!("{alias}/{local}"));
                 } else {
                     elsewhere.push(id.to_owned());
@@ -253,6 +255,10 @@ fn subjects(t: &Ticket, text: &str, c: &CheckRecord) -> Vec<(String, String)> {
     c.evaluates
         .iter()
         .filter_map(|g| {
+            if g == t.id() {
+                let doc = format::parse(text.as_bytes());
+                return Some((g.clone(), format::sha256(&text.as_bytes()[..doc.head_end])));
+            }
             let local = g.rsplit('/').next()?;
             let it = list.item(local)?;
             Some((g.clone(), super::item_revision(text, it)))
@@ -950,23 +956,22 @@ pub fn fire(store: &Store, sel: &Select<'_>) -> Result<(Firing, Report), RepoErr
     Ok((firing, report))
 }
 
-/// The `done` trigger (§12) for `war done <item>` on a Format 1.0 ticket:
-/// `None` when no check evaluates the item with `on: done` (the tick is
-/// `claimed`); else each such check runs now, and the tick is `observed`
-/// when every gating one passed, or refused with nothing ticked when one
-/// failed (`check.failed`) or could not complete (`check.unknown`). `all`
-/// (`war done --check`) runs every check that evaluates the item, whatever
-/// it declares.
+/// Completion runs all required checks covering the item or title-only
+/// Warrant, plus optional checks triggered by `done` (`all` runs every optional
+/// check too). A failed or unknown required result refuses completion. Optional
+/// observations alone do not raise the claimed completion level.
 pub fn on_done(
     store: &Store,
     t: &Ticket,
-    item: &str,
+    item: Option<&str>,
     all: bool,
 ) -> Result<Option<Result<ladder::CheckRound, Box<Outcome>>>, RepoError> {
-    let target = format!("{}/{item}", t.id());
+    let target = item.map_or_else(|| t.id().to_owned(), |item| format!("{}/{item}", t.id()));
     let selected: Vec<CheckRecord> = of_ticket(t)
         .into_iter()
-        .filter(|c| c.evaluates.contains(&target) && (all || c.on.iter().any(|o| o == "done")))
+        .filter(|c| {
+            c.evaluates.contains(&target) && (c.gating || all || c.on.iter().any(|o| o == "done"))
+        })
         .collect();
     if selected.is_empty() {
         return Ok(None);
@@ -1042,7 +1047,7 @@ pub fn on_done(
             kind: if c.kind == "kpi" { "kpi" } else { "test" },
             name: c.global.clone(),
             cmd: c.run.clone().unwrap_or_default(),
-            item: Some(item.to_owned()),
+            item: item.map(str::to_owned),
             verdict: "pass",
             gating: true,
             status: "completed".to_owned(),
