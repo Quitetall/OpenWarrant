@@ -238,6 +238,10 @@ pub struct CheckParams {
     /// Also drift-check the generated projections (`war check --generated`).
     #[serde(default)]
     pub generated: bool,
+    /// Every finding, passes included. Without it a large result keeps every
+    /// error, three warnings per rule and no passes, with `folded` counts.
+    #[serde(default)]
+    pub verbose: bool,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
@@ -555,6 +559,18 @@ fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -
     Ok(CallToolResult::structured(value))
 }
 
+/// [`envelope`] with every finding: what `verbose: true` asks for.
+fn envelope_whole(command: &str, report: &Report, result: Option<serde_json::Value>) -> ToolResult {
+    let text = crate::output::envelope(command, report, result);
+    let value: serde_json::Value = serde_json::from_str(&text)
+        .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
+    Ok(CallToolResult::structured(value))
+}
+
+/// A result this small is returned whole: its passes are the answer (a
+/// request emitted, a view rendered), not noise around one.
+const LEAN_ABOVE: usize = 25;
+
 /// Warnings of one rule an agent is shown before the rest become a count.
 const WARNINGS_PER_RULE: usize = 3;
 
@@ -570,6 +586,9 @@ fn lean(value: &mut serde_json::Value) {
     else {
         return;
     };
+    if all.len() <= LEAN_ABOVE {
+        return;
+    }
     let mut seen: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
     let mut folded: std::collections::BTreeMap<String, usize> = std::collections::BTreeMap::new();
     all.retain(|d| {
@@ -713,14 +732,15 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_check(&self, Parameters(p): Parameters<CheckParams>) -> ToolResult {
-        report_of(
-            "check",
-            crate::check::run_with(
-                &crate::corpus::held(&self.repo),
-                p.alias.as_deref(),
-                p.generated,
-            ),
-        )
+        let r = crate::check::run_with(
+            &crate::corpus::held(&self.repo),
+            p.alias.as_deref(),
+            p.generated,
+        );
+        match (r, p.verbose) {
+            (Ok(report), true) => envelope_whole("check", &report, None),
+            (r, _) => report_of("check", r),
+        }
     }
 
     #[tool(

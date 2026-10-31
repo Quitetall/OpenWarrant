@@ -653,6 +653,12 @@ pub fn run_in(
 /// documents author (OW-WAR-0148 M3), Format 1.0 documents (FORMAT-1.0,
 /// OW-ADR-0032), declared documents (M6), and `docs/types.toml` with the
 /// document index (M18). Each is silent where there is nothing of its kind.
+/// The document rules alone (records, Format 1.0 documents, renderings,
+/// types), for `war check --changed` when only a document moved.
+pub fn check_documents(shared_corpus: &crate::corpus::Corpus, report: &mut Report) {
+    document_checks(shared_corpus, report);
+}
+
 fn document_checks(shared_corpus: &crate::corpus::Corpus, report: &mut Report) {
     crate::records::check(shared_corpus, report);
     crate::format_doc::check(shared_corpus, report);

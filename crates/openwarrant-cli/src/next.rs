@@ -851,14 +851,6 @@ fn order(next: &mut Next) {
 /// Rows of one kind of act the brief rendering shows before counting the rest.
 const BRIEF_PER_ACT: usize = 3;
 
-fn clip(text: &str, max: usize) -> String {
-    if text.chars().count() <= max {
-        return text.to_owned();
-    }
-    let cut: String = text.chars().take(max).collect();
-    format!("{}…", cut.trim_end())
-}
-
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
@@ -885,19 +877,19 @@ pub fn render(n: &Next) -> String {
     // each with its whole unmet list, 41 KB for one question. Each kind of
     // act shows its first few Warrants; the rest are a count.
     let verbose = crate::output::verbose();
-    let mut shown: std::collections::BTreeMap<(bool, String), usize> =
+    let mut shown: std::collections::BTreeMap<(bool, String), Vec<&str>> =
         std::collections::BTreeMap::new();
     for a in &n.actions {
         let key = (matches!(a.actor, Actor::Human), a.action.to_string());
         let seen = shown.entry(key).or_default();
-        *seen += 1;
-        if !verbose && *seen > BRIEF_PER_ACT {
+        seen.push(&a.warrant);
+        if !verbose && seen.len() > BRIEF_PER_ACT {
             continue;
         }
         let why = if verbose {
             a.why.clone()
         } else {
-            clip(&a.why, 120)
+            crate::output::clipped(&a.why, 160)
         };
         s.push_str(&format!(
             "{:<6} {:<12} {:<10} {}{}\n{:>6} {}\n",
@@ -916,14 +908,20 @@ pub fn render(n: &Next) -> String {
             why
         ));
     }
-    for ((human, action), k) in &shown {
-        if !verbose && *k > BRIEF_PER_ACT {
+    for ((human, action), warrants) in &shown {
+        if !verbose && warrants.len() > BRIEF_PER_ACT {
+            let rest = &warrants[BRIEF_PER_ACT..];
+            let named: Vec<&str> = rest.iter().take(6).copied().collect();
+            let tail = match rest.len().saturating_sub(named.len()) {
+                0 => String::new(),
+                k => format!(" and {k} more"),
+            };
             s.push_str(&format!(
-                "{:<6} {:<12} {:<10} … and {} more (`war next --verbose` lists them)\n",
+                "{:<6} {:<12} {:<10} … also {}{tail} (`war next --verbose` lists each)\n",
                 if *human { "HUMAN" } else { "agent" },
                 "",
                 action,
-                k - BRIEF_PER_ACT
+                named.join(", ")
             ));
         }
     }

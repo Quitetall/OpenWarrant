@@ -171,14 +171,46 @@ fn folded(argv: &[String]) -> String {
         .join(" ")
 }
 
-/// The first line of `text`, at most `max` characters, marked when cut.
-fn clipped(text: &str, max: usize) -> String {
-    let first = text.lines().next().unwrap_or("");
-    if first.chars().count() <= max && first.len() == text.len() {
-        return first.to_owned();
+/// `text` with each run of whitespace one space, cut at a word boundary to
+/// at most `max` characters and marked when cut, so a cut never ends inside
+/// a word.
+#[must_use]
+pub fn clipped(text: &str, max: usize) -> String {
+    let flat = text.split_whitespace().collect::<Vec<_>>().join(" ");
+    if flat.chars().count() <= max {
+        return flat;
     }
-    let cut: String = first.chars().take(max).collect();
-    format!("{}…", cut.trim_end())
+    let cut: String = flat.chars().take(max).collect();
+    let at = cut.rfind(' ').filter(|&i| i > max / 2).unwrap_or(cut.len());
+    format!("{}…", cut[..at].trim_end_matches([',', ';', ':', ' ']))
+}
+
+/// What a finding is about: the id its message starts with (`OW-WAR-0001:`,
+/// `OW-ADR-0005:`, `SAS-0.1.0-draft.1:`), else the Warrant its file is in.
+fn subject(d: &crate::diagnostic::Diagnostic) -> Option<String> {
+    if let Some((head, _)) = d.message.split_once(':')
+        && !head.is_empty()
+        && head.len() <= 40
+        && !head.contains(char::is_whitespace)
+        && head.contains('-')
+    {
+        return Some(head.to_owned());
+    }
+    d.file
+        .as_deref()?
+        .split('/')
+        .find(|seg| is_alias(seg))
+        .map(str::to_owned)
+}
+
+/// Up to `max` names, then how many more.
+fn listed<'a>(names: impl IntoIterator<Item = &'a str>, max: usize) -> String {
+    let all: Vec<&str> = names.into_iter().collect();
+    let shown = all[..all.len().min(max)].join(", ");
+    match all.len().saturating_sub(max) {
+        0 => shown,
+        more => format!("{shown} and {more} more"),
+    }
 }
 
 /// The brief human rendering, the default. A clean `war check` on a
@@ -239,8 +271,23 @@ pub fn brief_with(report: &Report, quiet: bool) -> String {
                 Severity::Warn,
                 rule,
                 all.len(),
-                clipped(&all[0].message, 140)
+                clipped(&all[0].message, 200)
             );
+            let mut names: Vec<String> = Vec::new();
+            for s in all.iter().filter_map(|d| subject(d)) {
+                if !names.contains(&s) {
+                    names.push(s);
+                }
+            }
+            if !names.is_empty() {
+                let _ = writeln!(
+                    out,
+                    "{:<7} {:<34}   → {}",
+                    "",
+                    "",
+                    listed(names.iter().map(String::as_str), 8)
+                );
+            }
         }
     }
     // (kind, argv with aliases blanked) → (distinct commands, findings).
@@ -279,7 +326,23 @@ pub fn brief_with(report: &Report, quiet: bool) -> String {
         for ((kind, _), commands, n) in &remedies {
             let (line, scope) = match commands.iter().next() {
                 Some(only) if commands.len() == 1 => (only.join(" "), String::new()),
-                Some(first) => (folded(first), format!(", {} Warrants", commands.len())),
+                Some(first) => {
+                    let mut names: Vec<&str> = Vec::new();
+                    for t in commands.iter().flatten().filter(|t| is_alias(t)) {
+                        let a = t.split('/').next().unwrap_or(t);
+                        if !names.contains(&a) {
+                            names.push(a);
+                        }
+                    }
+                    let names = match names.as_slice() {
+                        [] => String::new(),
+                        _ => format!(": {}", listed(names, 5)),
+                    };
+                    (
+                        folded(first),
+                        format!(", {} Warrants{names}", commands.len()),
+                    )
+                }
                 None => continue,
             };
             let _ = writeln!(out, "  {kind:<5} {line}   (×{n}{scope})");
@@ -298,7 +361,7 @@ pub fn brief_with(report: &Report, quiet: bool) -> String {
         let labels: Vec<String> = report
             .notes
             .iter()
-            .map(|n| clipped(n.split(" — ").next().unwrap_or(n), 48))
+            .map(|n| clipped(n.split(" — ").next().unwrap_or(n), 100))
             .collect();
         let _ = writeln!(out, "NOT CHECKED: {}", labels.join(" · "));
     }
@@ -575,9 +638,17 @@ mod tests {
         assert!(text.contains("WARN authority.unprotected"), "{text}");
         assert_eq!(text.matches("deliverable.pin-stale").count(), 1, "{text}");
         assert!(text.contains("×5  OW-WAR-0001: D-001"), "{text}");
-        // Five refreshes are the one refresh of all of them.
+        // The folded line still names every Warrant it stands for.
         assert!(
-            text.contains("war admin pins --refresh   (×5, 5 Warrants)"),
+            text.contains("→ OW-WAR-0001, OW-WAR-0002, OW-WAR-0003, OW-WAR-0004, OW-WAR-0005"),
+            "{text}"
+        );
+        // Five refreshes are the one refresh of all of them, by name.
+        assert!(
+            text.contains(
+                "war admin pins --refresh   (×5, 5 Warrants: OW-WAR-0001, OW-WAR-0002, \
+                 OW-WAR-0003, OW-WAR-0004, OW-WAR-0005)"
+            ),
             "{text}"
         );
         assert!(!text.contains("--alias OW-WAR-0002"), "{text}");
@@ -604,5 +675,12 @@ mod tests {
         assert!(!is_alias("ow-WAR-0001"));
         assert!(!is_alias("OW-WAR-01"));
         assert!(!is_alias("--alias"));
+    }
+
+    #[test]
+    fn a_cut_ends_at_a_word_and_runs_of_space_are_one() {
+        assert_eq!(clipped("a   b\n c", 80), "a b c");
+        assert_eq!(clipped("alpha beta gamma delta", 14), "alpha beta…");
+        assert!(!clipped(&"word ".repeat(60), 100).ends_with(" …"));
     }
 }

@@ -1047,6 +1047,11 @@ enum DailyCommand {
         /// those paths alone. What the end-of-turn hook runs.
         #[arg(long, conflicts_with = "alias")]
         changed: bool,
+        /// With --changed: compare against <REV> instead of HEAD, so work
+        /// committed since then is in scope too (the stop hook passes the
+        /// commit its session started at).
+        #[arg(long, value_name = "REV", requires = "changed")]
+        since: Option<String>,
         /// The PR gate (docs/PRESETS.md): read PR <NUMBER> through `gh api`
         /// and pass only when it cites a Warrant official at its author's
         /// level. This reads the network; a call that fails is UNKNOWN,
@@ -4149,45 +4154,57 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             alias,
             generated,
             changed,
+            since,
             ..
         } => {
             let repository = ctx.open_repo()?;
             let mut why_corpus = None;
             if changed {
-                match changed::scope(&repository)? {
-                    changed::Scope::Nothing => {
-                        let mut report = diagnostic::Report::default();
-                        report.push(diagnostic::Diagnostic::pass(
-                            "check.changed",
-                            "nothing OpenWarrant governs differs from HEAD, so nothing was checked",
-                        ));
-                        return Ok(output::finish(mode, "check", &report, None));
-                    }
-                    changed::Scope::Warrants(aliases) => {
+                let shared = corpus::Corpus::new(&repository);
+                let scope = changed::scope(&shared, since.as_deref())?;
+                if scope.is_empty() {
+                    let mut report = diagnostic::Report::default();
+                    report.push(diagnostic::Diagnostic::pass(
+                        "check.changed",
+                        format!(
+                            "nothing OpenWarrant governs differs from {}, so nothing was checked",
+                            since.as_deref().unwrap_or("HEAD")
+                        ),
+                    ));
+                    return Ok(output::finish(mode, "check", &report, None));
+                }
+                match scope.corpus.clone() {
+                    Some(why) => why_corpus = Some(why),
+                    None => {
                         gate_cmd::source::remember_tree_reads();
-                        let aliases: Vec<String> = aliases.into_iter().collect();
-                        let mut report = check::run_in(
-                            &corpus::Corpus::new(&repository),
-                            Some(&aliases),
-                            generated,
-                        )?;
+                        let aliases = scope.all_warrants();
+                        let mut report = if aliases.is_empty() {
+                            diagnostic::Report::default()
+                        } else {
+                            check::run_in(&shared, Some(&aliases), generated)?
+                        };
+                        if scope.tickets {
+                            match ticket::Store::open(&repository, None) {
+                                Ok(store) => ticket::check(&store, None, &mut report)?,
+                                Err(e) => report.push(diagnostic::Diagnostic::error(
+                                    "tickets.config",
+                                    init::CONFIG_FILE.to_owned(),
+                                    e.to_string(),
+                                )),
+                            }
+                        }
+                        if scope.documents {
+                            check::check_documents(&shared, &mut report);
+                        }
                         report.diagnostics.insert(
                             0,
                             diagnostic::Diagnostic::pass(
                                 "check.changed",
-                                match aliases.len() {
-                                    n if n > 8 => format!(
-                                        "checked what changed: {} and {} more",
-                                        aliases[..8].join(", "),
-                                        n - 8
-                                    ),
-                                    _ => format!("checked what changed: {}", aliases.join(", ")),
-                                },
+                                changed::headline(&scope),
                             ),
                         );
                         return Ok(output::finish(mode, "check", &report, None));
                     }
-                    changed::Scope::Corpus(why) => why_corpus = Some(why),
                 }
             }
             // A ticket is checked for its structure only (OW-WAR-0147): never

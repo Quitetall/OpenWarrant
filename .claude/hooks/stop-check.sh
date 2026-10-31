@@ -37,13 +37,22 @@ else
     exit 0
 fi
 
-out=$("$war_cmd" --quiet check --changed 2>&1)
+# What changed since the session began (session-start.sh records the commit),
+# so work committed during the session is in scope too; else since HEAD.
+session=$(field session_id)
+dir=$(git rev-parse --git-path openwarrant-stop 2>/dev/null) || dir=""
+since=()
+if [[ -n "$dir" && -s "$dir/${session:-default}.base" ]]; then
+    base=$(head -n 1 "$dir/${session:-default}.base")
+    if git rev-parse --verify --quiet "$base^{commit}" >/dev/null 2>&1; then
+        since=(--since "$base")
+    fi
+fi
+out=$("$war_cmd" --quiet check --changed ${since[@]+"${since[@]}"} 2>&1)
 status=$?
 case $status in
     0) ;;
     2)
-        session=$(field session_id)
-        dir=$(git rev-parse --git-path openwarrant-stop 2>/dev/null) || dir=""
         print=$(printf '%s' "$out" | cksum | cut -d' ' -f1)
         mark="$dir/${session:-default}"
         if [[ -n "$dir" && -f "$mark" && "$(cat "$mark" 2>/dev/null)" == "$print" ]]; then
