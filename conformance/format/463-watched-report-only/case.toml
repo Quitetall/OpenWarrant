@@ -1,0 +1,4 @@
+id = "463-watched-report-only"
+kind = "accept"
+section = "12.1"
+says = "An explicit reopen: false retains report-only regression behaviour."

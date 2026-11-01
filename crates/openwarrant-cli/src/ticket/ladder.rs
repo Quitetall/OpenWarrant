@@ -225,6 +225,12 @@ pub struct Backing {
     pub kpi_runs: Vec<KpiRun>,
 }
 
+impl Backing {
+    pub fn signoff(&self, item: &str) -> Option<&SignedOff> {
+        self.signed.get(item)
+    }
+}
+
 /// The journal's ladder records for `t`. Cheap for a ticket that has none:
 /// the file is scanned for the event names before it is parsed.
 #[must_use]

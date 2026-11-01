@@ -432,7 +432,20 @@ pub struct CheckRun {
     #[serde(default)]
     pub output_sha256: Option<String>,
     #[serde(default)]
+    pub source_basis: Option<crate::ticket::source_basis::Basis>,
+    #[serde(default)]
     pub value: Option<f64>,
+}
+
+impl CheckRun {
+    /// Retained observations without a commit have only their recorded bound.
+    /// A recorded code identity must match before it can govern current work.
+    #[must_use]
+    pub fn at_commit(&self, current: Option<&str>) -> bool {
+        self.commit
+            .as_deref()
+            .is_none_or(|recorded| Some(recorded) == current)
+    }
 }
 
 /// The payload of a `trigger.fired` event (FORMAT-1.0 §12), as read.
@@ -488,6 +501,7 @@ fn failing(corpus: &Corpus) -> Vec<Holding> {
         let Some(alias) = d.doc.alias.as_deref() else {
             continue;
         };
+        let head = crate::ticket::ladder::head_commit(&repo.root);
         // Each check with its current revision: a run on an older one says
         // nothing about it now (§11.1, §12).
         let checks: BTreeMap<&str, String> = d
@@ -516,9 +530,14 @@ fn failing(corpus: &Corpus) -> Vec<Holding> {
         let Ok(journal) = crate::journal_cmd::load(&dir) else {
             continue;
         };
+        let basis = crate::ticket::source_basis::capture(&repo.root, &dir).ok();
         let current = |r: &CheckRun| {
             let local = r.check.rsplit('/').next().unwrap_or(&r.check);
             checks.get(local).is_some_and(|rev| *rev == r.revision)
+                && r.at_commit(head.as_deref())
+                && r.source_basis
+                    .as_ref()
+                    .is_none_or(|recorded| Some(recorded) == basis.as_ref())
         };
         let runs = last_runs_where(&journal, &current);
         for c in checks.keys() {

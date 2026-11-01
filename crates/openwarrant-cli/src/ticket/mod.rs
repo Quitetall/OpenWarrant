@@ -40,7 +40,9 @@ pub mod merge;
 pub mod parts;
 pub mod remote;
 mod render;
+pub mod repair;
 pub mod scopes;
+pub mod source_basis;
 
 use std::collections::{BTreeMap, BTreeSet};
 

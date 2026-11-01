@@ -374,3 +374,571 @@ fn native_label_lists_can_be_created_replaced_and_cleared() {
     assert!(!parsed.fields.contains_key("labels"));
     assert!(!parsed.refused());
 }
+
+#[test]
+fn a_required_pass_from_an_old_code_commit_does_not_complete_new_work() {
+    let root = tempfile::tempdir().unwrap();
+    let git = |args: &[&str]| {
+        let out = Command::new("git")
+            .args([
+                "-c",
+                "user.name=fixture",
+                "-c",
+                "user.email=fixture@invalid",
+                "-c",
+                "commit.gpgsign=false",
+            ])
+            .args(args)
+            .current_dir(root.path())
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+    };
+    git(&["init", "-q"]);
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "SB"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &[
+            "create",
+            "Require current source observations",
+            "--item",
+            "Deliver",
+        ],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    for name in ["first", "second"] {
+        assert_eq!(
+            war(
+                root.path(),
+                &[
+                    "plan",
+                    "add",
+                    id,
+                    "--test",
+                    "test -s src/code.txt",
+                    "--name",
+                    name
+                ]
+            )["exit_code"],
+            0
+        );
+    }
+    std::fs::create_dir(root.path().join("src")).unwrap();
+    std::fs::write(root.path().join("src/code.txt"), "version one").unwrap();
+    git(&["add", "-A"]);
+    git(&["commit", "-qm", "baseline"]);
+    assert_eq!(
+        war(root.path(), &["check", "run", &format!("{id}/CHK-first")])["exit_code"],
+        0
+    );
+    let source = root
+        .path()
+        .join(created["result"]["source"].as_str().unwrap());
+    std::fs::write(root.path().join("src/code.txt"), "version two").unwrap();
+    git(&["add", "src/code.txt"]);
+    git(&["commit", "-qm", "new source"]);
+    assert_eq!(
+        war(root.path(), &["check", "run", &format!("{id}/CHK-second")])["exit_code"],
+        0
+    );
+    assert!(
+        std::fs::read_to_string(&source)
+            .unwrap()
+            .contains("- [ ] Deliver")
+    );
+    assert_eq!(
+        war(root.path(), &["check", "run", &format!("{id}/CHK-first")])["exit_code"],
+        0
+    );
+    assert!(
+        std::fs::read_to_string(&source)
+            .unwrap()
+            .contains("- [x] Deliver")
+    );
+}
+
+#[test]
+fn dirty_and_untracked_source_changes_require_fresh_required_results() {
+    for mode in ["tracked", "untracked", "non-git"] {
+        let root = tempfile::tempdir().unwrap();
+        let git = |args: &[&str]| {
+            let out = Command::new("git")
+                .args([
+                    "-c",
+                    "user.name=fixture",
+                    "-c",
+                    "user.email=fixture@invalid",
+                    "-c",
+                    "commit.gpgsign=false",
+                ])
+                .args(args)
+                .current_dir(root.path())
+                .output()
+                .unwrap();
+            assert!(
+                out.status.success(),
+                "{}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        };
+        if mode != "non-git" {
+            git(&["init", "-q"]);
+        }
+        assert_eq!(
+            war(root.path(), &["init", "--namespace", "DB"])["exit_code"],
+            0
+        );
+        let created = war(
+            root.path(),
+            &[
+                "create",
+                "Require current dirty source",
+                "--item",
+                "Deliver",
+            ],
+        );
+        let id = created["result"]["id"].as_str().unwrap();
+        for name in ["first", "second"] {
+            assert_eq!(
+                war(
+                    root.path(),
+                    &[
+                        "plan",
+                        "add",
+                        id,
+                        "--test",
+                        "test -s src/code.txt",
+                        "--name",
+                        name
+                    ]
+                )["exit_code"],
+                0
+            );
+        }
+        std::fs::create_dir(root.path().join("src")).unwrap();
+        if mode != "untracked" {
+            std::fs::write(root.path().join("src/code.txt"), "version one").unwrap();
+        }
+        if mode != "non-git" {
+            git(&["add", "-A"]);
+            git(&["commit", "-qm", "baseline"]);
+        }
+        if mode == "untracked" {
+            std::fs::write(root.path().join("src/code.txt"), "version one").unwrap();
+        }
+        let first = war(root.path(), &["check", "run", &format!("{id}/CHK-first")]);
+        assert_eq!(first["exit_code"], 0, "{mode}: {first}");
+        std::fs::write(root.path().join("src/code.txt"), "uncommitted version two").unwrap();
+        let second = war(root.path(), &["check", "run", &format!("{id}/CHK-second")]);
+        assert_eq!(second["exit_code"], 0, "{mode}: {second}");
+        let source = root
+            .path()
+            .join(created["result"]["source"].as_str().unwrap());
+        assert!(
+            std::fs::read_to_string(&source)
+                .unwrap()
+                .contains("- [ ] Deliver"),
+            "{mode}: an old required pass must not complete edited source"
+        );
+        let fresh = war(root.path(), &["check", "run", &format!("{id}/CHK-first")]);
+        assert_eq!(fresh["exit_code"], 0, "{mode}: {fresh}");
+        assert!(
+            std::fs::read_to_string(source)
+                .unwrap()
+                .contains("- [x] Deliver"),
+            "{mode}: fresh required passes complete work"
+        );
+    }
+}
+
+#[test]
+fn a_check_that_changes_its_source_is_unknown_and_duplicate_events_do_not_reuse_old_passes() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "MC"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &[
+            "create",
+            "Keep source observations honest",
+            "--item",
+            "Deliver",
+        ],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    std::fs::write(root.path().join("source.txt"), "old source").unwrap();
+    assert_eq!(
+        war(
+            root.path(),
+            &[
+                "plan",
+                "add",
+                id,
+                "--test",
+                "printf new > source.txt",
+                "--name",
+                "mutation"
+            ]
+        )["exit_code"],
+        0
+    );
+    let result = war(root.path(), &["check", "run", id]);
+    assert_eq!(
+        result["result"]["firing"]["runs"][0]["verdict"], "UNKNOWN",
+        "{result}"
+    );
+    assert_eq!(
+        result["result"]["firing"]["runs"][0]["reason"], "source-changed-during-check",
+        "{result}"
+    );
+    let source = root
+        .path()
+        .join(created["result"]["source"].as_str().unwrap());
+    assert!(
+        std::fs::read_to_string(&source)
+            .unwrap()
+            .contains("- [ ] Deliver")
+    );
+    let text = std::fs::read_to_string(&source).unwrap();
+    std::fs::write(
+        &source,
+        text.replace("run: printf new > source.txt", "run: true\non: ci:fixture")
+            .replace("on: done\n", ""),
+    )
+    .unwrap();
+    let first = war(
+        root.path(),
+        &["check", "fire", "ci:fixture", "--subject", "build-1"],
+    );
+    assert_eq!(
+        first["result"]["firing"]["runs"][0]["verdict"], "PASS",
+        "{first}"
+    );
+    std::fs::write(root.path().join("source.txt"), "changed after event").unwrap();
+    let duplicate = war(
+        root.path(),
+        &["check", "fire", "ci:fixture", "--subject", "build-1"],
+    );
+    assert_eq!(
+        duplicate["result"]["firing"]["runs"][0]["verdict"], "UNKNOWN",
+        "{duplicate}"
+    );
+    assert_eq!(duplicate["result"]["firing"]["runs"][0]["recorded"], false);
+    assert_eq!(
+        duplicate["result"]["firing"]["runs"][0]["reason"],
+        "stale-source-basis"
+    );
+}
+
+#[test]
+fn a_whole_outcome_completes_only_after_all_required_current_checks() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "WA"])["exit_code"],
+        0
+    );
+    let created = war(root.path(), &["create", "Finish a whole bounded outcome"]);
+    let id = created["result"]["id"].as_str().unwrap();
+    for name in ["first", "second"] {
+        assert_eq!(
+            war(
+                root.path(),
+                &["plan", "add", id, "--test", "true", "--name", name]
+            )["exit_code"],
+            0
+        );
+    }
+    assert_eq!(
+        war(root.path(), &["check", "run", &format!("{id}/CHK-first")])["exit_code"],
+        0
+    );
+    let pending = war(root.path(), &["view", "show", id]);
+    assert_eq!(pending["result"]["ticket"]["state"], "open", "{pending}");
+    assert_eq!(
+        war(root.path(), &["check", "run", &format!("{id}/CHK-second")])["exit_code"],
+        0
+    );
+    let completed = war(root.path(), &["view", "show", id]);
+    assert_eq!(
+        completed["result"]["ticket"]["state"], "done",
+        "{completed}"
+    );
+    let journal = root.path().join(format!("docs/tickets/{id}/journal.jsonl"));
+    let before = std::fs::read(&journal).unwrap();
+    assert_eq!(war(root.path(), &["check", "evaluate", id])["exit_code"], 0);
+    assert_eq!(
+        std::fs::read(journal).unwrap(),
+        before,
+        "repeat evaluation is not another completion"
+    );
+    assert!(
+        !std::fs::read_to_string(
+            root.path()
+                .join(created["result"]["source"].as_str().unwrap())
+        )
+        .unwrap()
+        .contains("- ["),
+        "whole progress needs no synthetic checklist item"
+    );
+}
+
+#[test]
+fn watched_root_regressions_reopen_unaccepted_work_unless_reporting_only() {
+    for report_only in [false, true] {
+        let root = tempfile::tempdir().unwrap();
+        assert_eq!(
+            war(root.path(), &["init", "--namespace", "WR"])["exit_code"],
+            0
+        );
+        let created = war(root.path(), &["create", "Watch one complete outcome"]);
+        let id = created["result"]["id"].as_str().unwrap();
+        assert_eq!(
+            war(
+                root.path(),
+                &["plan", "add", id, "--test", "test -f current.flag"]
+            )["exit_code"],
+            0
+        );
+        let source = root
+            .path()
+            .join(created["result"]["source"].as_str().unwrap());
+        let text = std::fs::read_to_string(&source).unwrap().replace(
+            "on: done",
+            if report_only {
+                "on: ci:build\nreopen: false"
+            } else {
+                "on: ci:build"
+            },
+        );
+        std::fs::write(&source, &text).unwrap();
+        std::fs::write(root.path().join("current.flag"), "available").unwrap();
+        let pass = war(
+            root.path(),
+            &["check", "fire", "ci:build", "--subject", "build-1"],
+        );
+        assert_eq!(pass["exit_code"], 0, "{pass}");
+        assert_eq!(
+            war(root.path(), &["view", "show", id])["result"]["ticket"]["state"],
+            "done"
+        );
+        std::fs::remove_file(root.path().join("current.flag")).unwrap();
+        let fail = war(
+            root.path(),
+            &["check", "fire", "ci:build", "--subject", "build-2"],
+        );
+        assert_ne!(fail["exit_code"], 0, "{fail}");
+        assert_eq!(
+            war(root.path(), &["view", "show", id])["result"]["ticket"]["state"],
+            if report_only { "done" } else { "open" }
+        );
+        assert_eq!(
+            std::fs::read_to_string(&source).unwrap(),
+            text,
+            "progress remains in append-only history"
+        );
+        let events =
+            std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}/journal.jsonl")))
+                .unwrap();
+        assert_eq!(events.matches("\"type\":\"work.item_done\"").count(), 1);
+        assert_eq!(
+            events.matches("\"type\":\"work.item_reopened\"").count(),
+            usize::from(!report_only)
+        );
+    }
+}
+
+#[test]
+fn prior_signoff_history_is_preserved_with_verified_or_missing_evidence() {
+    for verified in [false, true] {
+        let root = tempfile::tempdir().unwrap();
+        assert_eq!(
+            war(root.path(), &["init", "--namespace", "RP"])["exit_code"],
+            0
+        );
+        let created = war(
+            root.path(),
+            &[
+                "create",
+                "Retain an earlier signed result",
+                "--item",
+                "Deliver",
+            ],
+        );
+        let id = created["result"]["id"].as_str().unwrap();
+        let item = created["result"]["items"][0]["id"].as_str().unwrap();
+        assert_eq!(
+            war(
+                root.path(),
+                &["plan", "add", id, "--test", "test -f current.flag"]
+            )["exit_code"],
+            0
+        );
+        let source = root
+            .path()
+            .join(created["result"]["source"].as_str().unwrap());
+        let text = std::fs::read_to_string(&source)
+            .unwrap()
+            .replace("on: done", "on: ci:build");
+        std::fs::write(&source, text).unwrap();
+        std::fs::write(root.path().join("current.flag"), "available").unwrap();
+        assert_eq!(
+            war(
+                root.path(),
+                &["check", "fire", "ci:build", "--subject", "first"]
+            )["exit_code"],
+            0
+        );
+        // Synthetic retained metadata with deliberately missing evidence. This is
+        // not a signature, human consent, enrollment, or a project assurance act.
+        let repo = openwarrant_cli::repo::Repository::open(
+            camino::Utf8PathBuf::from_path_buf(root.path().to_owned()).unwrap(),
+        )
+        .unwrap();
+        let store = openwarrant_cli::ticket::Store::open(&repo, None).unwrap();
+        let old = store.load(&store.dir.join(id)).unwrap();
+        let digest = openwarrant_cli::ticket::ladder::statement_digest(&old, item, "Deliver");
+        let subject = openwarrant_cli::ticket::ladder::signoff_subject(&old, item);
+        let response = openwarrant_cli::authority_check::response_path(
+            &repo,
+            openwarrant_cli::authority_check::Act::SignOff,
+            &subject,
+        );
+        let response_relative = response.strip_prefix(&repo.root).unwrap().to_string();
+        if verified {
+            // Real cryptography over synthetic fixture data only. This does not
+            // claim operator presence or grant authority in the actual project.
+            let keys = tempfile::tempdir().unwrap();
+            let key = keys.path().join("fixture-key");
+            let generated = Command::new("ssh-keygen")
+                .args(["-q", "-t", "ed25519", "-N", "", "-f"])
+                .arg(&key)
+                .output()
+                .unwrap();
+            assert!(
+                generated.status.success(),
+                "{}",
+                String::from_utf8_lossy(&generated.stderr)
+            );
+            std::fs::create_dir_all(root.path().join("docs/authority")).unwrap();
+            std::fs::write(root.path().join("docs/authority/roles.toml"), "[[assignment]]\nactor = \"missing-evidence-fixture\"\nactor_kind = \"human\"\nroles = [\"resolver\"]\nassigned_by = \"synthetic-test-bootstrap\"\neffective_time = \"2026-01-01T00:00:00Z\"\nssh_principal = \"missing-evidence-fixture\"\n").unwrap();
+            let public = std::fs::read_to_string(key.with_extension("pub")).unwrap();
+            std::fs::write(
+                root.path().join("docs/authority/allowed_signers"),
+                format!("missing-evidence-fixture {public}"),
+            )
+            .unwrap();
+            std::fs::create_dir_all(response.parent().unwrap()).unwrap();
+            let signed_body = format!(
+                "schema = \"oh.war/tick-signoff-response/v1\"\nticket = \"{id}\"\nticket_uuid = \"{}\"\nitem = \"{item}\"\ntext = \"Deliver\"\nsha256 = \"{digest}\"\nperformer = \"claude\"\nsigned_by = \"missing-evidence-fixture\"\nsigned_at = \"2026-10-31T00:00:00Z\"\nmeaning = \"Synthetic test signature; no operator consent asserted\"\n",
+                old.manifest.uuid
+            );
+            std::fs::write(&response, signed_body).unwrap();
+            let signed = Command::new("ssh-keygen")
+                .args(["-Y", "sign", "-n", "oh.war/response", "-f"])
+                .arg(key)
+                .arg(&response)
+                .output()
+                .unwrap();
+            assert!(
+                signed.status.success(),
+                "{}",
+                String::from_utf8_lossy(&signed.stderr)
+            );
+        }
+        openwarrant_cli::journal_cmd::record(&old.dir, &old.manifest.uuid, "work.tick_signed", "fixture-observer", &serde_json::json!({"item":item,"signer":"missing-evidence-fixture","response":response_relative,"digest":digest}).to_string()).unwrap();
+        let text = std::fs::read_to_string(&source)
+            .unwrap()
+            .replace("[observed]", "[signed]");
+        std::fs::write(&source, &text).unwrap();
+        let shown = war(root.path(), &["view", "show", id]);
+        assert_eq!(
+            shown["result"]["items"][0]["tick"]["level"],
+            if verified { "signed" } else { "observed" },
+            "{shown}"
+        );
+        std::fs::remove_file(root.path().join("current.flag")).unwrap();
+        let failed = war(
+            root.path(),
+            &["check", "fire", "ci:build", "--subject", "regression"],
+        );
+        assert_ne!(failed["exit_code"], 0, "{failed}");
+        assert_eq!(
+            std::fs::read_to_string(&source).unwrap(),
+            text,
+            "uncertain prior history is preserved"
+        );
+        let journal =
+            std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}/journal.jsonl")))
+                .unwrap();
+        let proposal = journal
+            .lines()
+            .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
+            .find(|event| event["type"] == "work.repair_proposed")
+            .expect("linked repair proposal");
+        assert_eq!(
+            proposal["payload"]["acceptance_status"],
+            if verified {
+                "verified-legacy-signoff"
+            } else {
+                "unestablished"
+            }
+        );
+        assert_eq!(proposal["payload"]["qualification_established"], false);
+        assert!(proposal["payload"]["accepted_code_revision"].is_null());
+        let repair = proposal["payload"]["repair"].as_str().unwrap();
+        let draft = root.path().join(format!("docs/tickets/{repair}.md"));
+        let repair_text = std::fs::read_to_string(&draft).unwrap();
+        assert!(
+            repair_text.contains(&format!("x.repairs {id}/{item}")),
+            "{repair_text}"
+        );
+        assert!(
+            repair_text.contains("test -f current.flag"),
+            "the original required condition remains present"
+        );
+        let guidance = "Keep this reviewer's repair guidance.";
+        assert_eq!(
+            war(root.path(), &["plan", "note", repair, guidance])["exit_code"],
+            0
+        );
+        let before_repeat = std::fs::read(&draft).unwrap();
+        let _ = war(
+            root.path(),
+            &["check", "fire", "ci:build", "--subject", "regression-again"],
+        );
+        assert_eq!(
+            std::fs::read(&draft).unwrap(),
+            before_repeat,
+            "a repeated failure does not overwrite the repair draft"
+        );
+        let history =
+            std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}/journal.jsonl")))
+                .unwrap();
+        assert_eq!(
+            history.matches("\"type\":\"work.repair_proposed\"").count(),
+            1,
+            "one prior result has one linked proposal"
+        );
+        let started = war(root.path(), &["start", repair]);
+        assert_eq!(started["exit_code"], 0, "{started}");
+        let context = started["result"]["context"]["projection"]["markdown"]
+            .as_str()
+            .unwrap();
+        assert!(
+            context.contains("Retain an earlier signed result") && context.contains(guidance),
+            "original={}, notes={}, sources={}",
+            context.contains("Retain an earlier signed result"),
+            context.contains(guidance),
+            started["result"]["context"]["source_manifest"]
+        );
+    }
+}

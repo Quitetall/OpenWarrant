@@ -137,6 +137,17 @@ pub fn records_in(alias: &str, bytes: &[u8]) -> Vec<CheckRecord> {
                 }
             }
             let on = list(&u.fields, "on");
+            let reopen = field(&u.fields, "reopen").map_or_else(
+                || {
+                    on.iter().any(|trigger| {
+                        matches!(trigger.as_str(), "commit" | "pr.merged")
+                            || trigger.starts_with("paths:")
+                            || trigger.starts_with("ci:")
+                            || trigger.starts_with("schedule:")
+                    })
+                },
+                |value| value == "true",
+            );
             CheckRecord {
                 id: u.id.clone(),
                 global: format!("{alias}/{}", u.id),
@@ -152,7 +163,7 @@ pub fn records_in(alias: &str, bytes: &[u8]) -> Vec<CheckRecord> {
                     .and_then(|t| t.parse().ok())
                     .unwrap_or(DEFAULT_TIMEOUT),
                 gating: field(&u.fields, "gating") != Some("false"),
-                reopen: field(&u.fields, "reopen") == Some("true"),
+                reopen,
                 evaluates,
                 evaluates_elsewhere: elsewhere,
                 direction: field(&u.fields, "direction").map(str::to_owned),
@@ -338,8 +349,16 @@ pub fn run_check(
         let recorded = crate::states::last_runs_where(&journal, &|r| r.run == run);
         match recorded.into_values().next() {
             Some(r) => {
-                result.verdict = r.verdict.to_ascii_uppercase();
-                result.value = r.value;
+                let head = ladder::head_commit(&repo.root);
+                let current = r.source_basis.as_ref().is_none_or(|recorded| {
+                    super::source_basis::capture(&repo.root, &t.dir).as_ref() == Ok(recorded)
+                });
+                if r.at_commit(head.as_deref()) && current {
+                    result.verdict = r.verdict.to_ascii_uppercase();
+                    result.value = r.value;
+                } else {
+                    result.reason = Some("stale-source-basis".to_owned());
+                }
             }
             None => result.reason = Some("not-recorded".to_owned()),
         }
@@ -351,7 +370,12 @@ pub fn run_check(
     let subjects = subjects(t, &text, c);
     let commit = ladder::head_commit(&repo.root);
     let mut output_sha256 = None;
-    match c.run.as_deref() {
+    let basis = super::source_basis::capture(&repo.root, &t.dir);
+    match if basis.is_ok() {
+        c.run.as_deref()
+    } else {
+        None
+    } {
         None => result.reason = Some("no-run".to_owned()),
         Some(cmd) => {
             let def = match cmd.strip_prefix("gate://") {
@@ -414,6 +438,18 @@ pub fn run_check(
             }
         }
     }
+    match &basis {
+        Err(error) => {
+            result.verdict = "UNKNOWN".into();
+            result.reason = Some(format!("source-basis-unavailable: {error}"));
+        }
+        Ok(before) => {
+            if super::source_basis::capture(&repo.root, &t.dir).as_ref() != Ok(before) {
+                result.verdict = "UNKNOWN".into();
+                result.reason = Some("source-changed-during-check".into());
+            }
+        }
+    }
     let mut payload = serde_json::json!({
         "check": c.id,
         "run": run,
@@ -421,6 +457,9 @@ pub fn run_check(
         "revision": c.revision,
         "subjects": subjects,
     });
+    if let Ok(basis) = basis {
+        payload["source_basis"] = serde_json::json!(basis);
+    }
     if let Some(commit) = commit {
         payload["commit"] = serde_json::json!(commit);
     }
@@ -462,9 +501,16 @@ pub struct Evaluation {
 fn last_run(
     journal: &openwarrant_core::journal::Journal,
     c: &CheckRecord,
+    head: Option<&str>,
+    basis: Option<&super::source_basis::Basis>,
 ) -> Option<crate::states::CheckRun> {
     let current = |r: &crate::states::CheckRun| {
-        (r.check == c.id || r.check == c.global) && r.revision == c.revision
+        (r.check == c.id || r.check == c.global)
+            && r.revision == c.revision
+            && r.at_commit(head)
+            && r.source_basis
+                .as_ref()
+                .is_none_or(|recorded| Some(recorded) == basis)
     };
     crate::states::last_runs_where(journal, &current)
         .into_values()
@@ -538,8 +584,28 @@ fn evaluate_one(
     let backing = ladder::backing(t);
     let file = store.rel(&t.checklist_path);
     let mut plans: Vec<Plan> = Vec::new();
+    let head = ladder::head_commit(store.check_root.as_deref().unwrap_or(&store.root));
+    let basis =
+        super::source_basis::capture(store.check_root.as_deref().unwrap_or(&store.root), &t.dir)
+            .ok();
     for c in &checks {
-        let Some(run) = last_run(&journal, c) else {
+        let Some(run) = last_run(&journal, c, head.as_deref(), basis.as_ref()) else {
+            let old = crate::states::last_runs_where(&journal, &|r| {
+                (r.check == c.id || r.check == c.global) && r.revision == c.revision
+            })
+            .into_values()
+            .next();
+            if let Some(old) = old {
+                for target in &c.evaluates {
+                    out.effects.push(Effect {
+                        target: target.clone(),
+                        check: c.global.clone(),
+                        run: old.run.clone(),
+                        effect: "stale",
+                    });
+                }
+                report.push(Diagnostic::warn("check.source-stale", &file, format!("{} has no observation for the current local source; rerun `war check run {}`", c.global, c.global)));
+            }
             continue;
         };
         let verdict = run.verdict.to_ascii_uppercase();
@@ -609,6 +675,20 @@ fn evaluate_one(
                 ("FAIL", true) => Action::Reopen,
                 _ => continue,
             };
+            if action == Action::Reopen
+                && let Some(signed) = backing.signoff(local)
+            {
+                let verified = level() == Level::Signed;
+                match super::repair::propose(store, t, local, signed, verified, c, &run.run) {
+                    Ok(repair) => {
+                        out.effects.push(effect("repair-proposed"));
+                        report.push(Diagnostic::warn("check.repair-proposed", &file, format!("{g}: prior sign-off record retained; proposed repair {repair}. New work is unverified")));
+                        if !verified { report.push(Diagnostic::unknown("check.acceptance-unestablished", &file, format!("{g}: prior sign-off evidence cannot currently be established; history was retained and no acceptance was awarded"))); }
+                    }
+                    Err(error) => report.push(Diagnostic::unknown("check.repair-unavailable", &file, format!("{g}: prior sign-off record retained; repair proposal unavailable: {error}"))),
+                }
+                continue;
+            }
             let mut runs = vec![run.run.clone()];
             if matches!(action, Action::Tick | Action::Raise(_)) {
                 let required: Vec<_> = checks
@@ -617,7 +697,8 @@ fn evaluate_one(
                     .collect();
                 let mut current_runs = Vec::new();
                 let all_pass = required.iter().all(|check| {
-                    let Some(other) = last_run(&journal, check) else {
+                    let Some(other) = last_run(&journal, check, head.as_deref(), basis.as_ref())
+                    else {
                         return false;
                     };
                     if !other.verdict.eq_ignore_ascii_case("PASS")
@@ -662,6 +743,9 @@ fn evaluate_one(
                 action,
             });
         }
+    }
+    if t.checklist.items.is_empty() {
+        evaluate_document(store, t, &checks, out, report)?;
     }
     if plans.is_empty() {
         return Ok(());
@@ -765,6 +849,117 @@ fn evaluate_one(
             target: p.target.clone(),
             check: p.check.clone(),
             run: p.run.clone(),
+            effect,
+        });
+    }
+    Ok(())
+}
+
+/// A work document without checklist items is itself the completion target.
+/// Its progress stays in the journal; no synthetic checklist or new ID is needed.
+fn evaluate_document(
+    store: &Store,
+    t: &Ticket,
+    checks: &[CheckRecord],
+    out: &mut Evaluation,
+    report: &mut Report,
+) -> Result<(), RepoError> {
+    let required: Vec<_> = checks
+        .iter()
+        .filter(|c| c.gating && c.evaluates.iter().any(|g| g == t.id()))
+        .collect();
+    if required.is_empty() {
+        return Ok(());
+    }
+    let journal = crate::journal_cmd::load(&t.dir)?;
+    let root = store.check_root.as_deref().unwrap_or(&store.root);
+    let head = ladder::head_commit(root);
+    let basis = super::source_basis::capture(root, &t.dir).ok();
+    let doc = format::parse(t.checklist_text.as_bytes());
+    let revision = format::sha256(&t.checklist_text.as_bytes()[..doc.head_end]);
+    let observations: Vec<_> = required
+        .iter()
+        .filter_map(|c| {
+            let run = last_run(&journal, c, head.as_deref(), basis.as_ref())?;
+            run.subjects
+                .iter()
+                .any(|(target, seen)| target == t.id() && seen == &revision)
+                .then_some((*c, run))
+        })
+        .collect();
+    let failure = observations
+        .iter()
+        .find(|(c, run)| c.reopen && run.verdict.eq_ignore_ascii_case("FAIL"));
+    let (kind, mut payload, check, run, effect) = if t.is_done() {
+        let Some((check, run)) = failure else {
+            return Ok(());
+        };
+        (
+            event::ITEM_REOPENED,
+            serde_json::json!({"item":t.id(),"target":t.id(),"reason":format!("{} failed (run {})",check.global,run.run),"episode":episode(&journal,event::ITEM_REOPENED,t.id())}),
+            check.global.clone(),
+            run.run.clone(),
+            "reopened",
+        )
+    } else {
+        if observations.len() != required.len()
+            || observations
+                .iter()
+                .any(|(_, r)| !r.verdict.eq_ignore_ascii_case("PASS"))
+        {
+            return Ok(());
+        }
+        let parts = ladder::checks_of(t);
+        let (minimum, _) = ladder::minimum(store, t, &parts, None);
+        if minimum > Level::Observed {
+            report.push(Diagnostic::warn(
+                "check.minimum-pending",
+                store.rel(&t.intent_path),
+                format!(
+                    "{} requires {}; passing checks do not satisfy that act",
+                    t.id(),
+                    minimum.as_str()
+                ),
+            ));
+            return Ok(());
+        }
+        let runs: Vec<_> = observations.iter().map(|(_, r)| r.run.clone()).collect();
+        (
+            event::ITEM_DONE,
+            serde_json::json!({"item":t.id(),"target":t.id(),"on":super::date_of(super::now_secs()),"level":"observed","runs":runs,"episode":episode(&journal,event::ITEM_DONE,t.id())}),
+            required[0].global.clone(),
+            runs.join(","),
+            "ticked",
+        )
+    };
+    // Re-read the contract while holding the same document write mechanism as
+    // checklist progress. A concurrent contract edit cannot inherit the result.
+    let written = super::rewrite(&t.checklist_path, |text| {
+        if text != t.checklist_text || super::format::done_whole(&t.dir, t.id()) != t.is_done() {
+            return Ok((text.to_owned(), false));
+        }
+        let latest = crate::journal_cmd::load(&t.dir).map_err(|e| {
+            Box::new(Outcome::refused(
+                "check.progress-write",
+                store.rel(&t.intent_path),
+                e.to_string(),
+            ))
+        })?;
+        payload["episode"] = serde_json::json!(episode(&latest, kind, t.id()));
+        store.journal(t, kind, &payload).map_err(|e| {
+            Box::new(Outcome::refused(
+                "check.progress-write",
+                store.rel(&t.intent_path),
+                e.to_string(),
+            ))
+        })?;
+        Ok((text.to_owned(), true))
+    })?;
+    if matches!(written, Ok(true)) {
+        out.effects.push(Effect {
+            target: t.id().into(),
+            check,
+            run,
             effect,
         });
     }
@@ -920,6 +1115,20 @@ pub fn fire(store: &Store, sel: &Select<'_>) -> Result<(Firing, Report), RepoErr
                 continue;
             }
             let r = run_check(store, &repo, t, &c, sel.trigger, sel.subject)?;
+            if r.verdict != "PASS" && r.verdict != "FAIL" {
+                let at = format!("{doc}:{}", c.line);
+                let message = format!(
+                    "{} could not establish a current result (run {}): {}",
+                    c.global,
+                    r.run,
+                    r.reason.as_deref().unwrap_or("unknown execution result")
+                );
+                report.push(if c.gating {
+                    Diagnostic::unknown(UNKNOWN_RULE, at, message)
+                } else {
+                    Diagnostic::warn(UNKNOWN_RULE, at, message)
+                });
+            }
             if r.recorded && r.verdict == "FAIL" {
                 let message = format!(
                     "{} failed (run {}); nothing it evaluates was ticked{}",

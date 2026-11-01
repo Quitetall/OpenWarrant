@@ -68,53 +68,7 @@ pub fn compile(
     target: &str,
     mut source: impl FnMut(&str) -> Result<String, String>,
 ) -> Result<TaskPacket, Refusal> {
-    let seeds = super::resolve(graph, target)?;
-    let mut selected = seeds.zero;
-    selected.extend(seeds.roots);
-    selected.extend(seeds.one.into_keys());
-    loop {
-        let before = selected.len();
-        let current: Vec<_> = selected.iter().cloned().collect();
-        for id in current {
-            let unit = graph
-                .units
-                .get(&id)
-                .ok_or_else(|| missing(format!("{target}: required record {id} is unavailable")))?;
-            if let Some(parent) = &unit.document {
-                selected.insert(parent.clone());
-                for shared in graph.units.values().filter(|u| {
-                    u.document.as_ref() == Some(parent)
-                        && !matches!(u.kind.as_str(), "stage" | "milestone" | "item")
-                }) {
-                    selected.insert(shared.id.clone());
-                }
-            }
-            if unit.work {
-                selected.extend(
-                    graph
-                        .units
-                        .values()
-                        .filter(|u| u.document.as_deref() == Some(&id))
-                        .map(|u| u.id.clone()),
-                );
-            }
-        }
-        for edge in &graph.edges {
-            if selected.contains(&edge.from)
-                && matches!(edge.kind.as_str(), "depends_on" | "implements")
-            {
-                selected.insert(edge.to.clone());
-            }
-            if selected.contains(&edge.to)
-                && matches!(edge.kind.as_str(), "constrains" | "evaluates")
-            {
-                selected.insert(edge.from.clone());
-            }
-        }
-        if selected.len() == before {
-            break;
-        }
-    }
+    let selected = required_ids(graph, target)?;
     let mut manifest = Vec::new();
     let mut supplemental: BTreeMap<String, String> = BTreeMap::new();
     for id in &selected {
@@ -123,7 +77,14 @@ pub fn compile(
             .get(id)
             .ok_or_else(|| missing(format!("{target}: required record {id} is unavailable")))?;
         let (payload, coverage) = if let Some(text) = &unit.text {
-            (text.clone(), "record")
+            (
+                text.clone(),
+                if unit.kind == "x.journal-notes" {
+                    "derived-journal-notes"
+                } else {
+                    "record"
+                },
+            )
         } else {
             let text = if let Some(text) = supplemental.get(&unit.source) {
                 text.clone()
@@ -177,6 +138,63 @@ pub fn compile(
     })
 }
 
+fn required_ids(
+    graph: &Graph,
+    target: &str,
+) -> Result<std::collections::BTreeSet<String>, Refusal> {
+    let seeds = super::resolve(graph, target)?;
+    let mut selected = seeds.zero;
+    selected.extend(seeds.roots);
+    selected.extend(seeds.one.into_keys());
+    loop {
+        let before = selected.len();
+        let current: Vec<_> = selected.iter().cloned().collect();
+        for id in current {
+            let unit = graph
+                .units
+                .get(&id)
+                .ok_or_else(|| missing(format!("{target}: required record {id} is unavailable")))?;
+            if let Some(parent) = &unit.document {
+                selected.insert(parent.clone());
+                for shared in graph.units.values().filter(|u| {
+                    u.document.as_ref() == Some(parent)
+                        && !matches!(u.kind.as_str(), "stage" | "milestone" | "item")
+                }) {
+                    selected.insert(shared.id.clone());
+                }
+            }
+            if unit.work {
+                selected.extend(
+                    graph
+                        .units
+                        .values()
+                        .filter(|u| u.document.as_deref() == Some(&id))
+                        .map(|u| u.id.clone()),
+                );
+            }
+        }
+        for edge in &graph.edges {
+            if selected.contains(&edge.from)
+                && matches!(
+                    edge.kind.as_str(),
+                    "depends_on" | "implements" | "x.repairs"
+                )
+            {
+                selected.insert(edge.to.clone());
+            }
+            if selected.contains(&edge.to)
+                && matches!(edge.kind.as_str(), "constrains" | "evaluates")
+            {
+                selected.insert(edge.from.clone());
+            }
+        }
+        if selected.len() == before {
+            break;
+        }
+    }
+    Ok(selected)
+}
+
 /// Filesystem adapter. A provider can use `compile` with its own exact sources.
 pub fn repository(
     repo: &crate::repo::Repository,
@@ -221,6 +239,86 @@ pub fn repository(
                 kind: "constrains".into(),
                 to: root,
             });
+        }
+    }
+    let selected =
+        required_ids(&graph, target).map_err(|e| crate::repo::RepoError::Message(e.to_string()))?;
+    let works: Vec<_> = selected
+        .iter()
+        .filter_map(|id| graph.units.get(id))
+        .filter(|u| u.work)
+        .map(|u| (u.id.clone(), u.source.clone()))
+        .collect();
+    for (alias, document) in works {
+        let Some(journal) = super::adapter::evidence_journal(&alias, &document) else {
+            continue;
+        };
+        let path = repo.root.join(&journal);
+        if !crate::vfs::exists(&path) {
+            continue;
+        }
+        let notes = (|| -> Result<Option<(String, String)>, String> {
+            let raw = crate::vfs::read_anchored_limited(
+                repo.root.as_std_path(),
+                std::path::Path::new(&journal),
+                8 * 1024 * 1024,
+            )
+            .map_err(|e| e.to_string())?;
+            let text = std::str::from_utf8(&raw).map_err(|e| e.to_string())?;
+            let parsed = crate::journal_cmd::parse(text).map_err(|e| e.to_string())?;
+            let mut projection = String::new();
+            for event in parsed
+                .events
+                .iter()
+                .filter(|e| crate::journal_cmd::work_type(&e.event_type) == "work.note_added")
+            {
+                let Ok(payload) = serde_json::from_str::<serde_json::Value>(&event.payload) else {
+                    continue;
+                };
+                let Some(note) = payload["note"].as_str() else {
+                    continue;
+                };
+                let Some(note_target) = payload["target"].as_str() else {
+                    continue;
+                };
+                if note_target != alias && !selected.contains(note_target) {
+                    continue;
+                }
+                if projection.is_empty() {
+                    projection.push_str("# Recorded task notes\n\nDeterministic projection of recorded experience; it grants no authority.\n\n");
+                }
+                projection.push_str(&format!(
+                    "## {} · {} · {}\n\n{}\n\n",
+                    event.id, event.actor_ref, event.occurred_at, note
+                ));
+            }
+            Ok((!projection.is_empty())
+                .then(|| (openwarrant_core::format::sha256(&raw), projection)))
+        })();
+        match notes {
+            Ok(Some((revision, text))) => {
+                let id = format!("runtime-notes:{alias}:{revision}");
+                if graph.units.contains_key(&id) {
+                    return Err(crate::repo::RepoError::Message("context.required-missing: runtime note projection ID collides with an authored record".into()));
+                }
+                graph.add(super::Unit {
+                    id,
+                    kind: "x.journal-notes".into(),
+                    title: Some("Recorded task notes".into()),
+                    document: Some(alias),
+                    source: journal,
+                    line: 1,
+                    revision,
+                    text: Some(text),
+                    ..Default::default()
+                });
+            }
+            Ok(None) => {}
+            Err(message) => graph.diagnostics.push(super::Finding {
+                rule: "context.notes-unavailable".into(),
+                record: alias,
+                message,
+            }),
         }
     }
     compile(&graph, target, |path| {

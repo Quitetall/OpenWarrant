@@ -41,6 +41,38 @@ pub fn git(dir: &Utf8Path, args: &[&str]) -> Ran {
 
 /// Run git in `dir` with extra environment.
 pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
+    match observe_git(dir, args, env) {
+        Ok(out) => Ran {
+            ok: out.success,
+            stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        },
+        Err(e) => Ran {
+            ok: false,
+            stdout: String::new(),
+            stderr: format!("could not complete bounded git operation: {e:?}"),
+        },
+    }
+}
+
+pub(crate) fn git_raw(
+    dir: &Utf8Path,
+    args: &[&str],
+) -> Result<
+    crate::runtime_capture::process::Completed,
+    openwarrant_core::document::runtime::ProviderFailure,
+> {
+    observe_git(dir, args, &[])
+}
+
+fn observe_git(
+    dir: &Utf8Path,
+    args: &[&str],
+    env: &[(&str, &str)],
+) -> Result<
+    crate::runtime_capture::process::Completed,
+    openwarrant_core::document::runtime::ProviderFailure,
+> {
     let mut cmd = Command::new("git");
     cmd.args([
         "-c",
@@ -57,6 +89,7 @@ pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
     .args(args)
     .current_dir(dir)
     .env("GIT_TERMINAL_PROMPT", "0")
+    .env("GIT_NO_REPLACE_OBJECTS", "1")
     .env_remove("GIT_DIR")
     .env_remove("GIT_WORK_TREE")
     .env_remove("GIT_INDEX_FILE")
@@ -64,23 +97,12 @@ pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
     for (k, v) in env {
         cmd.env(k, v);
     }
-    match crate::runtime_capture::process::observe_with_stdin(
+    crate::runtime_capture::process::observe_with_stdin(
         cmd,
         std::time::Duration::from_secs(30),
         8 * 1024 * 1024,
         Stdio::null(),
-    ) {
-        Ok(out) => Ran {
-            ok: out.success,
-            stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
-            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
-        },
-        Err(e) => Ran {
-            ok: false,
-            stdout: String::new(),
-            stderr: format!("could not complete bounded git operation: {e:?}"),
-        },
-    }
+    )
 }
 
 /// `git check-ref-format --branch`, without running git: the subset of the

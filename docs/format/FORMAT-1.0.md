@@ -1178,7 +1178,18 @@ tool that does not understand it.
 
 A Warrant with declared completion conditions completes when all its required
 conditions and required items or stages are satisfied on their current subjects.
-A title-only Warrant remains workable and completes by an explicit `done` act.
+A result naming a code commit applies only while that commit is current. A
+changed code revision requires a new observation; the earlier result stays in
+history. Legacy observations without code identity remain explicitly unqualified.
+The bundled runner records `source_basis: {schema, commit, digest}` using
+`oh.war/local-check-basis/v1`. It captures the committed base, tracked changes,
+nonignored new files and governing contract prose. A non-Git workspace uses a
+bounded regular-file snapshot. Check output, progress bits and each check's own
+definition are handled separately from code inputs. A changed or unavailable
+basis blocks reuse; source changing during execution produces UNKNOWN. This is
+local source identity, not isolation or an attestation of external inputs.
+A title-only Warrant without required executable conditions completes by an
+explicit `done` act.
 Completion is not verification or acceptance. Explicit action gates remain
 binding; qualification-only requirements impose no universal signing step.
 
@@ -1186,7 +1197,18 @@ For checks configured to watch completed work, a required regression reopens
 unaccepted current work and preserves the earlier completion event. A securely
 accepted result remains bound to its exact version: retain that result and
 propose linked repair work instead of rewriting its acceptance or history.
-A check's explicit `reopen: false` retains report-only regression behaviour.
+A required check triggered by `commit`, `paths:`, `pr.merged`, `ci:` or
+`schedule:` watches completed work by default. `reopen: false` explicitly keeps
+regressions report-only; manual and `done` checks retain that default unless
+`reopen: true` is declared.
+
+The bundled workflow preserves any retained sign-off record before proposing
+repair. When its evidence cannot be established, it flags that uncertainty and
+awards no acceptance. A legacy sign-off of item text is not a code-revision
+attestation. A linked repair is new unverified work with its own ID; required
+checks and declared minimums are carried forward. Repeated findings reuse that
+proposal and retain edits. The `x.repairs` relation requires the original task's
+context without making the original result new work to complete again.
 
 Custom executable checks may implement complex conditions. They return results;
 the tracker applies progress and the authority profile evaluates permissions.

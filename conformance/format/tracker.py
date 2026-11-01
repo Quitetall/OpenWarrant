@@ -293,6 +293,8 @@ class World:
         self.claims: list[dict] = []
         self.warnings: set[str] = set()
         self.unknowns: set[str] = set()
+        self.code_head = None
+        self.code_head_read = False
         if read_state:
             for d in self.work:
                 self.journals[d.alias] = read_journal(root, d)
@@ -459,11 +461,29 @@ class World:
             if LEVEL_RANK[done["level"]] > LEVEL_RANK[backed]:
                 self.warnings.add(f"work.tick-unbacked {d.source}:{it['line']}")
 
+    def code_matches(self, payload):
+        recorded = payload.get("commit")
+        if recorded is not None:
+            if not self.code_head_read:
+                env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+                env.update(GIT_TERMINAL_PROMPT="0", GIT_NO_REPLACE_OBJECTS="1")
+                p = subprocess.run(["git", "-C", self.root, "rev-parse", "--verify", "HEAD"], capture_output=True, env=env, timeout=30)
+                self.code_head = p.stdout.decode().strip() if p.returncode == 0 else None
+                self.code_head_read = True
+            if recorded != self.code_head:
+                return False
+        if payload.get("source_basis") is not None:
+            # This minimal independent tracker does not implement the bundled
+            # local-workspace snapshot extension. It cannot treat it as pass.
+            self.unknowns.add("check.unknown")
+            return False
+        return True
+
     def check_runs(self, d, rec, current=True) -> list[dict]:
         local = rec["id"].split("/", 1)[-1]
         return [e for e in self.events(d.alias, "check.run")
                 if e["payload"].get("check") in (rec["id"], local)
-                and (not current or e["payload"].get("revision") == rec["revision"])]
+                and (not current or (e["payload"].get("revision") == rec["revision"] and self.code_matches(e["payload"])))]
 
     def last_run(self, d, rec):
         """12: the last run on the check's current revision, by `occurred_at` then `id`."""
@@ -900,6 +920,14 @@ def op_note(world: World, target: str, actor: str, note: str):
     w.append(doc, "work.note_added", {"target": target, "note": note})
 
 
+def watches_completed(record):
+    fields = record["fields"]
+    if "reopen" in fields:
+        return fields["reopen"] == "true"
+    return any(t in ("commit", "pr.merged") or t.startswith(("paths:", "ci:", "schedule:"))
+               for t in fields.get("on", "done").split(", "))
+
+
 def op_evaluate(world: World, actor: str):
     """12: what the last run on each check's current revision does.
 
@@ -974,7 +1002,7 @@ def op_evaluate(world: World, actor: str):
                         edits.append(w.line_edit(d, it, w.raised_line(line, "observed")))
                         events.append(("work.tick_raised", {"item": it["_iid"], "target": it["id"],
                                        "from": world.backed_level.get(it["id"], "claimed"), "to": "observed"}))
-                elif (verdict == "FAIL" and rec["fields"].get("reopen") == "true"
+                elif (verdict == "FAIL" and watches_completed(rec)
                       and rec["fields"].get("gating") != "false" and it["_box"] == "x"
                       and subjects.get(it["id"]) == it["revision"]):
                     edits.append(w.line_edit(d, it, w.open_line(w.line_text(it))))

@@ -280,10 +280,17 @@ pub(crate) fn append_parts(
                     "a run is one command line; put a multiline program in a script file",
                 )));
             }
+            let triggers = part["on"].as_str().unwrap_or("done");
             next.push_str(&format!(
-                "\n## CHK-{name} · {} — {name}\nrun: {command}\non: done\n",
+                "\n## CHK-{name} · {} — {name}\nrun: {command}\non: {triggers}\n",
                 if kind == "kpi" { "kpi" } else { "check" }
             ));
+            if let Some(timeout) = part["timeout"].as_u64() {
+                next.push_str(&format!("timeout: {timeout}\n"));
+            }
+            if let Some(reopen) = part["reopen"].as_bool() {
+                next.push_str(&format!("reopen: {reopen}\n"));
+            }
             let targets = part["item"]
                 .as_str()
                 .map_or_else(|| ids.clone(), |id| vec![id]);
