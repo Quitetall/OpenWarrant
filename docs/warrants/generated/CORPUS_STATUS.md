@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 91 |
+| artifact digests verify | 92 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -164,7 +164,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0010` Implement the autonomy envelope and amendment records | resolved | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0011` Implement prerequisites and Preflight | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
 | `OW-WAR-0012` Implement the context model, context manifest, and trust classes | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
-| `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | unknown | 0 | 0 of 3 | every required obligation is dispositioned |
+| `OW-WAR-0013` Validate SAS and Roadmap traceability | draft | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0014` Implement the rationale model, assumptions, and unknowns | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0015` Implement deliverables, artifacts, and artifact provenance | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
 | `OW-WAR-0016` Implement acceptance obligations and bounded claims | resolved | unknown | 0 | 0 of 4 | every required obligation is dispositioned |

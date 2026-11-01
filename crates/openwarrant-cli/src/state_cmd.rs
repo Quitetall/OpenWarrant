@@ -13,7 +13,7 @@
 //!   - an obligation: `verified` (an admissible independent verdict on record
 //!     establishes it — the reading `war sign resolve` makes);
 //!   - a ticket and its items: `open`, `in_progress`, `done`, from the
-//!     checklist and the claims `war claim` holds;
+//!     checklist and the claims `war admin claim` holds;
 //!   - a roadmap phase: `achieved` (its exit Warrant's resolution is
 //!     recorded) and `accepted` (the roadmap record is accepted).
 //! - **Declared states** come from a profile's `[[states]]` and are entered
@@ -177,7 +177,7 @@ pub fn ticket_holding(
         return out;
     }
     let now = ticket::now_secs();
-    let live = |c: Option<&Claim>| c.is_none_or(|c| !c.lease_expired(now));
+    let live = |c: Option<&Claim>| c.is_none_or(|c| c.reserves(now));
     let tid = t.id();
     out.push(Holding {
         record: tid.to_owned(),
@@ -254,7 +254,7 @@ pub fn ticket_declared(
 }
 
 /// ` [in_review]` (or ` [in_review, lapsed]`) for a record that has a
-/// declared state on record, empty otherwise: what `war show` appends.
+/// declared state on record, empty otherwise: what `war view show` appends.
 #[must_use]
 pub fn annotate(declared: &[Declared], record: &str) -> String {
     declared
@@ -432,7 +432,20 @@ pub struct CheckRun {
     #[serde(default)]
     pub output_sha256: Option<String>,
     #[serde(default)]
+    pub source_basis: Option<crate::ticket::source_basis::Basis>,
+    #[serde(default)]
     pub value: Option<f64>,
+}
+
+impl CheckRun {
+    /// Retained observations without a commit have only their recorded bound.
+    /// A recorded code identity must match before it can govern current work.
+    #[must_use]
+    pub fn at_commit(&self, current: Option<&str>) -> bool {
+        self.commit
+            .as_deref()
+            .is_none_or(|recorded| Some(recorded) == current)
+    }
 }
 
 /// The payload of a `trigger.fired` event (FORMAT-1.0 §12), as read.
@@ -488,6 +501,7 @@ fn failing(corpus: &Corpus) -> Vec<Holding> {
         let Some(alias) = d.doc.alias.as_deref() else {
             continue;
         };
+        let head = crate::ticket::ladder::head_commit(&repo.root);
         // Each check with its current revision: a run on an older one says
         // nothing about it now (§11.1, §12).
         let checks: BTreeMap<&str, String> = d
@@ -516,9 +530,14 @@ fn failing(corpus: &Corpus) -> Vec<Holding> {
         let Ok(journal) = crate::journal_cmd::load(&dir) else {
             continue;
         };
+        let basis = crate::ticket::source_basis::capture(&repo.root, &dir).ok();
         let current = |r: &CheckRun| {
             let local = r.check.rsplit('/').next().unwrap_or(&r.check);
             checks.get(local).is_some_and(|rev| *rev == r.revision)
+                && r.at_commit(head.as_deref())
+                && r.source_basis
+                    .as_ref()
+                    .is_none_or(|recorded| Some(recorded) == basis.as_ref())
         };
         let runs = last_runs_where(&journal, &current);
         for c in checks.keys() {
@@ -968,8 +987,7 @@ fn format_warrant_phases(corpus: &Corpus, claims: Option<&Claims>) -> Vec<Holdin
     let now = ticket::now_secs();
     let live = |alias: &str, item: Option<&str>| {
         claims.is_some_and(|c| {
-            ticket::claim_on(c, alias, item)
-                .is_some_and(|(_, c)| c.is_none_or(|c| !c.lease_expired(now)))
+            ticket::claim_on(c, alias, item).is_some_and(|(_, c)| c.is_none_or(|c| c.reserves(now)))
         })
     };
     let mut out = Vec::new();
@@ -1055,10 +1073,10 @@ pub fn document_states(
     out
 }
 
-// ---- `war show <alias>` --------------------------------------------------
+// ---- `war view show <alias>` --------------------------------------------------
 
 /// The declared states on record for a Warrant and its records, as a short
-/// section for `war show`; `None` when its journal holds none, so a Warrant
+/// section for `war view show`; `None` when its journal holds none, so a Warrant
 /// without one renders exactly as before.
 pub fn warrant_section(repo: &Repository, alias: &str) -> Option<(String, Vec<Declared>)> {
     let dir = repo.warrant_dir(alias).ok()?;

@@ -10,6 +10,8 @@
 //!
 //! A new test file is a module here, or `cargo test` will not run it.
 
+#[path = "alpha6_loop.rs"]
+mod alpha6_loop;
 #[path = "authority_transition_cli.rs"]
 mod authority_transition_cli;
 #[path = "board_cli.rs"]
@@ -52,12 +54,16 @@ mod inbox_cli;
 mod json_envelope;
 #[path = "mcp_stdio.rs"]
 mod mcp_stdio;
+#[path = "milestone_table_cli.rs"]
+mod milestone_table_cli;
 #[path = "model_cli.rs"]
 mod model_cli;
 #[path = "normative_completeness_cli.rs"]
 mod normative_completeness_cli;
 #[path = "overview.rs"]
 mod overview;
+#[path = "plan_interview.rs"]
+mod plan_interview;
 #[path = "preflight_cli.rs"]
 mod preflight_cli;
 #[path = "preservation.rs"]
@@ -76,6 +82,8 @@ mod render_cli;
 mod root_flag;
 #[path = "runtime_capture.rs"]
 mod runtime_capture;
+#[path = "scoped_claims_cli.rs"]
+mod scoped_claims_cli;
 #[path = "sdk_cli.rs"]
 mod sdk_cli;
 #[path = "single_actor_cli.rs"]
@@ -102,6 +110,8 @@ mod verification_subject_cli;
 mod work_states_cli;
 #[path = "work_tracking_cli.rs"]
 mod work_tracking_cli;
+#[path = "worktrees_cli.rs"]
+mod worktrees_cli;
 
 /// A file under tests/ that is not a module here would never run. This test
 /// fails until it is added.

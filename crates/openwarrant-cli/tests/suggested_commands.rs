@@ -425,6 +425,7 @@ fn a_suggestion_clap_refuses_is_caught() {
         // included.
         let words = |line: &str| normalize(line).0;
         for hidden in [
+            "war --json next",
             "war compile",
             "war board --html",
             "war resolve {alias} --dry-run",
@@ -446,7 +447,7 @@ fn a_suggestion_clap_refuses_is_caught() {
             "war plan \"add a changelog\"",
             "war evidence record {alias}",
             "war view tickets",
-            "war --json next",
+            "war --json view next",
             "war done {id}",
         ] {
             assert_eq!(canonical(&cmd, &words(shown)), Ok(()), "{shown}");

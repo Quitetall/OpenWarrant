@@ -320,7 +320,7 @@ pub fn tracking(corpus: &Corpus, graph: &Graph, at: &str, now: u64) -> super::Tr
 /// A work document's journal (section 11.2): `journal.jsonl` in its
 /// evidence directory, `<dir>/<alias>/` beside a one-file document, the
 /// document's own directory otherwise.
-fn evidence_journal(alias: &str, source: &str) -> Option<String> {
+pub(super) fn evidence_journal(alias: &str, source: &str) -> Option<String> {
     let (dir, file) = source.rsplit_once('/').unwrap_or(("", source));
     let join = |d: &str| {
         if d.is_empty() {

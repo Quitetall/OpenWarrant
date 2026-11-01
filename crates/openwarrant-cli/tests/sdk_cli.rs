@@ -24,6 +24,64 @@ fn invoke(request: &Value) -> (bool, Value) {
             .unwrap_or_else(|_| panic!("{}", String::from_utf8_lossy(&out.stderr))),
     )
 }
+
+#[test]
+fn task_context_is_offline_and_refuses_a_missing_required_rule() {
+    use openwarrant_cli::context::{Edge, Graph, Unit};
+    let body = "# Task\nKeep accounts compatible.\n";
+    let rule = "## CON-keep · constraint — Keep identities\nExisting account identities must not change.\n";
+    let mut graph = Graph {
+        name: "Offline fixture".into(),
+        ..Default::default()
+    };
+    graph.add(Unit {
+        id: "t-abcd".into(),
+        kind: "ticket".into(),
+        work: true,
+        document: Some("t-abcd".into()),
+        source: "task.md".into(),
+        line: 1,
+        span: [0, body.len()],
+        revision: openwarrant_core::format::sha256(body.as_bytes()),
+        text: Some(body.into()),
+        ..Default::default()
+    });
+    graph.add(Unit {
+        id: "CON-keep".into(),
+        kind: "constraint".into(),
+        source: "rules.md".into(),
+        line: 1,
+        span: [0, rule.len()],
+        revision: openwarrant_core::format::sha256(rule.as_bytes()),
+        text: Some(rule.into()),
+        ..Default::default()
+    });
+    graph.edges.push(Edge {
+        from: "CON-keep".into(),
+        kind: "constrains".into(),
+        to: "t-abcd".into(),
+    });
+    let (ok, out) = invoke(
+        &json!({"schema":"oh.war/sdk-request/v1","operation":"task-context","graph":graph,"target":"t-abcd"}),
+    );
+    assert!(ok, "{out}");
+    assert!(
+        out["result"]["projection"]["markdown"]
+            .as_str()
+            .unwrap()
+            .contains(rule)
+    );
+    assert_eq!(out["result"]["qualification_established"], false);
+    graph.units.remove("CON-keep");
+    let (ok, out) = invoke(
+        &json!({"schema":"oh.war/sdk-request/v1","operation":"task-context","graph":graph,"target":"t-abcd"}),
+    );
+    assert!(
+        !ok,
+        "a missing binding rule cannot produce a ready packet: {out}"
+    );
+    assert_eq!(out["diagnostics"][0]["code"], "context.required-missing");
+}
 #[test]
 fn parse_matches_library_outside_repository_and_refuses_bad_source() {
     use openwarrant_core::document::{Dialect, ParseLimits, parse_document};

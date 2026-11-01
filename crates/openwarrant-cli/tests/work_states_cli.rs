@@ -502,7 +502,7 @@ fn a_done_based_on_a_revision_needs_no_prior_claim() {
 
 /// §11.3: a claim on a work document covers its items, so it is refused
 /// while another actor holds one of them, naming that claim's file; an
-/// item claim whose lease ran out holds nothing.
+/// managed item claim keeps its reservation after expiry until released.
 #[test]
 fn a_document_claim_is_refused_while_another_holds_an_item() {
     let root = scratch("whole");
@@ -533,7 +533,23 @@ fn a_document_claim_is_refused_while_another_holds_an_item() {
         Some("alice"),
         &["claim", "t-0d61d", "--at", "2026-10-14T11:00:00Z"],
     );
-    assert_eq!(later["exit_code"], 0, "{later}");
+    assert_eq!(later["exit_code"], 2, "{later}");
+    assert!(
+        later["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "work.writer-unfenced"),
+        "{later}"
+    );
+    let released = json(&root, Some("bob"), &["release", "t-0d61d/i-4d11"]);
+    assert_eq!(released["exit_code"], 0, "{released}");
+    let after_release = json(
+        &root,
+        Some("alice"),
+        &["claim", "t-0d61d", "--at", "2026-10-14T11:00:00Z"],
+    );
+    assert_eq!(after_release["exit_code"], 0, "{after_release}");
 }
 
 /// §3.8, Appendix A: a done suffix's tick level is observed, independent

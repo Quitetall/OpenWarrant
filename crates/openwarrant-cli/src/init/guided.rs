@@ -352,8 +352,8 @@ impl Machine {
                 self.adopt_alias().unwrap_or("?")
             ),
             Step::Done => "Setup is complete. Work starts as a ticket: `war create \"...\"`, \
-                 then `war next`, `war claim <id>`, `war done <id>` — no signature needed. \
-                 `war next` lists ready items first, then any act awaiting a human."
+                 then `war view next`, `war admin claim <id>`, `war done <id>` — no signature needed. \
+                 `war view next` lists ready items first, then any act awaiting a human."
                 .to_owned(),
         }
     }
@@ -468,7 +468,7 @@ impl Machine {
             } else {
                 vec![
                     Effect::Say(format!(
-                        "Later: `war sign {} --ssh-sign`. `war next` will keep saying so.",
+                        "Later: `war sign {} --ssh-sign`. `war view next` will keep saying so.",
                         self.latest_sas().unwrap_or("0.1.0")
                     )),
                     Effect::Stop,

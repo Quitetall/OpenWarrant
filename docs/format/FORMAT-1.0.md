@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.3`, revision 2). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
+| Status | **Draft** (`1.0.0-draft.3`, revision 3). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
@@ -319,7 +319,9 @@ rollback; **Milestones** the records below; **Assurance** the obligations;
 **Checklist** the items.
 
 A **milestone** is a record of type `milestone` (`## M-1 · milestone —
-…`). A **stage** is a record of type `stage`, `part_of` its milestone, with
+…`). Its optional `min` is `claimed`, `observed`, `independent` or `signed`;
+each checklist item contained in it must meet that level before completion.
+A passing check cannot supply independent verification or a human signature. A **stage** is a record of type `stage`, `part_of` its milestone, with
 fields `executor` (e.g. `agent://claude-code`), `tier` (`T0`–`T3`),
 `budget_tokens` (integer) and `context` (comma-separated ids). An
 obligation is `part_of` the milestone it gates.
@@ -1005,7 +1007,7 @@ every working copy of a clone: `<git common dir>/openwarrant/claims/`, or
 `.openwarrant/state/claims/` outside version control. The file
 `<alias>.lock` or `<alias>--<item>.lock` holds `oh.war/ticket-claim/v1`
 JSON `{schema, claim, ticket, item?, actor, since, since_unix,
-lease_until?, lease_until_unix?}` and is created atomically (create a
+lease_until?, lease_until_unix?, coordination?}` and is created atomically (create a
 temporary file, then hard-link it to the name; the link fails if the name
 exists). The store is never committed.
 
@@ -1017,8 +1019,13 @@ exists). The store is never committed.
 - **Leases.** A claim's lease runs `claim_lease_minutes` (default 30) past
   the later of `lease_until` and the file's modification time; the holder
   renews it by touching the file (`war heartbeat`, or any command the
-  holder runs). A claim whose lease has run out is reclaimable by a plain
-  claim, recorded as `work.claim_reclaimed`. A live claim whose `since`
+  holder runs). A retained legacy claim without coordination metadata whose
+  lease has run out is reclaimable by a plain claim, recorded as
+  `work.claim_reclaimed`. A managed claim with coordination metadata retains
+  its writer reservation after expiry: expiry alone does not establish that
+  the writer stopped. Replacement MUST wait for release or established
+  fencing; an isolated replacement workspace alone is not such proof.
+  A live legacy claim whose `since`
   is more than `claim_ttl_minutes` (default 120) ago may be taken only on
   request (`--steal`), recorded as `work.claim_stolen`. Both settings live
   in `openwarrant.toml` under `[claims]`.
@@ -1064,7 +1071,8 @@ minimum is `done` for `next` and is listed as below its minimum.
 `next` answers, for an actor, what to work on, as a pure function of the
 documents, journals, claim store and a time. Its **candidates** are the
 items whose state is `open` (so neither blocked, claimed under a live
-claim, nor done; an expired claim does not count), and each work document
+claim, nor done; only an expired legacy claim without coordination metadata
+ceases to count), and each work document
 with no items whose phase is `open`. A work document `part_of` another
 counts as an item of it. An item has its document's `due`, `priority`,
 `created_at` and labels. Candidates are ordered by:
@@ -1088,6 +1096,9 @@ can, and 11.3 makes exactly one claim win. After the candidates, `next`
 lists acts that wait on a person (Appendix C).
 
 ## 12. Checks and triggers
+
+Revision 3 incorporates the owner-directed alpha.6 model (2026-10-31). It remains
+a candidate edition, not signed adoption.
 
 Work can finish itself. A **check** is a record saying what to run to
 establish something and when to run it; when it passes, the items it
@@ -1142,9 +1153,13 @@ tool that does not understand it.
   (4.3). Both events' idempotency keys (11.2) contain the check's revision
   and the subject (commit or time), so several evaluators firing the same
   trigger record it once.
-- A **pass** on the check's current revision ticks every open item it
-  evaluates at `observed` (11.4) and raises a done item it evaluates to
-  `observed` when it was below, through the compare-and-set of 11.3, and
+- A **pass** contributes to the items it evaluates. An item advances only
+  when **every gating check** evaluating it has a current `PASS`, bound to
+  that item and the relevant source revision. A missing, stale, failing or
+  `UNKNOWN` required result prevents advancement. A `gating: false` result
+  is reported and cannot complete or block an item. When the required set
+  passes, open items are ticked at `observed` (11.4) and a done item below `observed` is raised
+  to `observed`, through the compare-and-set of 11.3, and
   records an observation for every obligation it evaluates. A check never
   sets a disposition; that is Appendix C's verdict.
 - A **fail** ticks nothing and makes the check `failing`; with `reopen:
@@ -1158,6 +1173,85 @@ tool that does not understand it.
   `revision`, or whose `subjects` revision for an item or record, is not
   the current one ticks nothing for it. `failing` looks only at runs on the
   check's current revision, the last by `occurred_at`.
+
+### 12.1 Completion, regressions and extensions
+
+A Warrant with declared completion conditions completes when all its required
+conditions and required items or stages are satisfied on their current subjects.
+A result naming a code commit applies only while that commit is current. A
+changed code revision requires a new observation; the earlier result stays in
+history. Legacy observations without code identity remain explicitly unqualified.
+The bundled runner records `source_basis: {schema, commit, digest}` using
+`oh.war/local-check-basis/v1`. It captures the committed base, tracked changes,
+nonignored new files and governing contract prose. A non-Git workspace uses a
+bounded regular-file snapshot. Check output, progress bits and each check's own
+definition are handled separately from code inputs. A changed or unavailable
+basis blocks reuse; source changing during execution produces UNKNOWN. This is
+local source identity, not isolation or an attestation of external inputs.
+A title-only Warrant without required executable conditions completes by an
+explicit `done` act.
+Completion is not verification or acceptance. Explicit action gates remain
+binding; qualification-only requirements impose no universal signing step.
+
+For checks configured to watch completed work, a required regression reopens
+unaccepted current work and preserves the earlier completion event. A securely
+accepted result remains bound to its exact version: retain that result and
+propose linked repair work instead of rewriting its acceptance or history.
+A required check triggered by `commit`, `paths:`, `pr.merged`, `ci:` or
+`schedule:` watches completed work by default. `reopen: false` explicitly keeps
+regressions report-only; manual and `done` checks retain that default unless
+`reopen: true` is declared.
+
+The bundled workflow preserves any retained sign-off record before proposing
+repair. When its evidence cannot be established, it flags that uncertainty and
+awards no acceptance. A legacy sign-off of item text is not a code-revision
+attestation. A linked repair is new unverified work with its own ID; required
+checks and declared minimums are carried forward. Repeated findings reuse that
+proposal and retain edits. The `x.repairs` relation requires the original task's
+context without making the original result new work to complete again.
+
+Custom executable checks may implement complex conditions. They return results;
+the tracker applies progress and the authority profile evaluates permissions.
+A script cannot award a human signature or independent verdict. Errors and
+execution limits produce UNKNOWN. No embedded scripting language is required.
+
+### 12.2 Authoring and context delivery
+
+The bundled writer defaults new work to one expandable Markdown source in the
+existing Format 1.0 grammar. Keep its stable ID as details, milestones and
+optional authority requirements grow. Evidence and journals remain beside it.
+Readers continue to support legacy encodings and retain signed historical bytes.
+
+The normal CLI lists six daily commands: `init`, `create`, `start`, `done`,
+`status`, `check`. Advanced operations live under `plan`, `sign`, `evidence`,
+`view`, `admin`; old spellings remain callable. The human TUI is bare `war`.
+
+`start` supplies a short human brief and a complete required task packet to
+machine callers, including source revisions and selection digest. Missing
+required context is explicit; it cannot be silently omitted to meet a budget.
+The reference document compiler works without AI or an external provider.
+Providers can enrich context through the SDK without replacing core rules or
+creating a separate progress or authority model.
+
+### 12.3 Bundled workflow coordination and import
+
+Managed claims carry `coordination: {workspace, session, base_revision, paths,
+display_name}`. Names grant no authority. Derive path scopes from the Warrant;
+explicit expansion does not grant additional permissions. Cooperative writers
+in a shared checkout MUST NOT hold overlapping scopes. Separate worktrees may
+have overlapping scopes, with visible integration warnings. Scheduling and
+admission use the same reservation rules. A resumed owner retains its claim
+identity; a replacement cannot use an expired lease as evidence of writer stop.
+
+Worktree cleanup is a dry run unless applied explicitly. It removes only managed,
+clean, integrated and inactive worktrees. Dirty files, unique commits, foreign
+workspaces and uncertain ownership or activity are retained.
+
+Milestone-table import preserves original documents and source provenance. Stable
+row keys map to stable Warrant IDs. Repeated unchanged rows are no-ops; changed
+rows produce reviewable diffs and preserve maintained Warrant edits. Ambiguous
+mappings are refused with an actionable explanation. Imported completion claims
+are unverified and do not supply assurance or authority.
 
 ## 13. Conformance
 

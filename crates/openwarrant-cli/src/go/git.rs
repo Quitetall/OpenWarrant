@@ -41,6 +41,38 @@ pub fn git(dir: &Utf8Path, args: &[&str]) -> Ran {
 
 /// Run git in `dir` with extra environment.
 pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
+    match observe_git(dir, args, env) {
+        Ok(out) => Ran {
+            ok: out.success,
+            stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
+            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
+        },
+        Err(e) => Ran {
+            ok: false,
+            stdout: String::new(),
+            stderr: format!("could not complete bounded git operation: {e:?}"),
+        },
+    }
+}
+
+pub(crate) fn git_raw(
+    dir: &Utf8Path,
+    args: &[&str],
+) -> Result<
+    crate::runtime_capture::process::Completed,
+    openwarrant_core::document::runtime::ProviderFailure,
+> {
+    observe_git(dir, args, &[])
+}
+
+fn observe_git(
+    dir: &Utf8Path,
+    args: &[&str],
+    env: &[(&str, &str)],
+) -> Result<
+    crate::runtime_capture::process::Completed,
+    openwarrant_core::document::runtime::ProviderFailure,
+> {
     let mut cmd = Command::new("git");
     cmd.args([
         "-c",
@@ -57,6 +89,7 @@ pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
     .args(args)
     .current_dir(dir)
     .env("GIT_TERMINAL_PROMPT", "0")
+    .env("GIT_NO_REPLACE_OBJECTS", "1")
     .env_remove("GIT_DIR")
     .env_remove("GIT_WORK_TREE")
     .env_remove("GIT_INDEX_FILE")
@@ -64,18 +97,12 @@ pub fn git_env(dir: &Utf8Path, args: &[&str], env: &[(&str, &str)]) -> Ran {
     for (k, v) in env {
         cmd.env(k, v);
     }
-    match cmd.output() {
-        Ok(out) => Ran {
-            ok: out.status.success(),
-            stdout: String::from_utf8_lossy(&out.stdout).into_owned(),
-            stderr: String::from_utf8_lossy(&out.stderr).into_owned(),
-        },
-        Err(e) => Ran {
-            ok: false,
-            stdout: String::new(),
-            stderr: format!("could not run git: {e}"),
-        },
-    }
+    crate::runtime_capture::process::observe_with_stdin(
+        cmd,
+        std::time::Duration::from_secs(30),
+        8 * 1024 * 1024,
+        Stdio::null(),
+    )
 }
 
 /// `git check-ref-format --branch`, without running git: the subset of the
@@ -166,15 +193,19 @@ pub fn ensure_branch(dir: &Utf8Path, branch: &str) -> Result<String, String> {
 }
 
 /// Add a worktree at `path` on a new branch `branch` from `base`. A worktree
-/// or branch of that name left by an earlier attempt is removed first: an
-/// attempt starts from the integration branch, never from a dead one.
+/// or branch of that name left by an earlier attempt is preserved. Recovery
+/// must inspect that progress rather than silently starting over.
 pub fn add_worktree(
     root: &Utf8Path,
     path: &Utf8Path,
     branch: &str,
     base: &str,
 ) -> Result<(), String> {
-    remove_worktree(root, path, Some(branch));
+    if path.exists() || branch_tip(root, branch).is_some() {
+        return Err(format!(
+            "workspace or branch already exists; progress retained: {path} ({branch})"
+        ));
+    }
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
@@ -185,11 +216,13 @@ pub fn add_worktree(
     if !r.ok {
         return Err(format!("could not add the worktree {path}: {}", r.why()));
     }
-    Ok(())
+    crate::worktrees::register(root, path, branch, base)
 }
 
 /// Add a worktree at `path` on an existing `branch`.
 pub fn add_worktree_on(root: &Utf8Path, path: &Utf8Path, branch: &str) -> Result<(), String> {
+    let base =
+        rev(root, branch).ok_or_else(|| format!("branch does not name a commit: {branch}"))?;
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("could not create {parent}: {e}"))?;
     }
@@ -197,28 +230,14 @@ pub fn add_worktree_on(root: &Utf8Path, path: &Utf8Path, branch: &str) -> Result
     if !r.ok {
         return Err(format!("could not add the worktree {path}: {}", r.why()));
     }
-    Ok(())
+    crate::worktrees::register(root, path, branch, &base)
 }
 
-/// Remove the worktree at `path` (forcefully: its work has landed or been
-/// given up) and, when named, its branch. Best effort: what is already gone
-/// is fine.
+/// Reclaim only a managed, clean, integrated and inactive worktree. Retain its
+/// branch: callers may still need its commits or recovery history.
 pub fn remove_worktree(root: &Utf8Path, path: &Utf8Path, branch: Option<&str>) {
-    if path.exists() {
-        let _ = git(
-            root,
-            &["worktree", "remove", "--force", "--force", path.as_str()],
-        );
-        if path.exists() {
-            let _ = std::fs::remove_dir_all(path);
-        }
-    }
-    let _ = git(root, &["worktree", "prune"]);
-    if let Some(b) = branch
-        && branch_tip(root, b).is_some()
-    {
-        let _ = git(root, &["branch", "-D", b]);
-    }
+    let _ = branch;
+    let _ = crate::worktrees::remove_if_safe(root, path, "HEAD");
 }
 
 /// The identity a commit by the scheduler is written under: the

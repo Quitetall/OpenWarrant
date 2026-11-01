@@ -314,7 +314,7 @@ pub struct Signer {
     pub principal: Option<String>,
 }
 
-/// One act awaiting a human, as `war next` hands it over, judged.
+/// One act awaiting a human, as `war view next` hands it over, judged.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Awaiting {
     pub warrant: String,

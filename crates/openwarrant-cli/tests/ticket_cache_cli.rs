@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+// Legacy layout fixtures opt in explicitly; native authoring is covered by alpha6_loop.
 //! The ticket cache (`ticket::cache`) through the shipped binary: it answers
 //! exactly what the files answer — cold, warm and disabled give the same
 //! bytes — and it is refused wherever it could be wrong: an in-place edit
@@ -104,18 +105,34 @@ fn program(tag: &str) -> PathBuf {
     for args in [
         vec![
             "create",
+            "--legacy",
             "Alpha ticket",
             "--item",
             "first",
             "--item",
             "second",
         ],
-        vec!["create", "Bravo ticket"],
-        vec!["create", "Charlie ticket", "--item", "only"],
-        vec!["create", "Delta ticket", "--item", "one", "--item", "two"],
+        vec!["create", "--legacy", "Bravo ticket"],
+        vec!["create", "--legacy", "Charlie ticket", "--item", "only"],
+        vec![
+            "create",
+            "--legacy",
+            "Delta ticket",
+            "--item",
+            "one",
+            "--item",
+            "two",
+        ],
     ] {
         let out = run(&root, &args, &[]);
         assert!(out.status.success(), "{args:?}: {}", text(&out.stderr));
+        let output = text(&out.stdout);
+        let id = output.split_whitespace().next().unwrap();
+        std::fs::write(
+            root.join(format!("docs/tickets/{id}/atoms/35-allowed.md")),
+            format!("# Allowed\n\n## Paths\n- payload/{id}/**\n"),
+        )
+        .unwrap();
     }
     let ready = run(
         &root,
@@ -123,7 +140,12 @@ fn program(tag: &str) -> PathBuf {
         &[("OPENWARRANT_NO_CACHE", "1")],
     );
     let v: serde_json::Value = serde_json::from_slice(&ready.stdout).unwrap();
-    let r = &v["result"]["ready"][0];
+    let r = v["result"]["ready"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|r| r["title"] == "Bravo ticket")
+        .unwrap();
     let target = format!(
         "{}{}",
         r["ticket"].as_str().unwrap(),

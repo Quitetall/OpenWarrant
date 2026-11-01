@@ -539,7 +539,7 @@ pub fn keys(repo: &Repository) -> Vec<String> {
 }
 
 /// Quote one argument for a POSIX shell, so a re-draft command copied from
-/// `war next` runs the sentence it names and nothing else.
+/// `war view next` runs the sentence it names and nothing else.
 #[must_use]
 pub fn shell_quote(s: &str) -> String {
     if !s.is_empty()

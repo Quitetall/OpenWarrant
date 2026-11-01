@@ -96,6 +96,9 @@ pub struct ClaimParams {
     /// and so do words from one Warrant's title or labels (`T8`).
     #[serde(alias = "ticket", alias = "id")]
     pub target: String,
+    /// Write scopes for cooperative collision admission; never permissions.
+    #[serde(default)]
+    pub paths: Vec<String>,
     /// Take a claim older than the TTL (`[tickets] claim_ttl_minutes`). Journalled.
     #[serde(default)]
     pub steal: bool,
@@ -257,7 +260,7 @@ pub struct StatusParams {
 pub struct ShowParams {
     /// A Warrant's id: an alias, a light one (`t-...`), or one read in place (`openspec:...`, `speckit:...`).
     pub alias: String,
-    /// View name: `full_warrant` (default), `status`, or another `war show --view`.
+    /// View name: `full_warrant` (default), `status`, or another `war view show --view`.
     #[serde(default = "default_view")]
     pub view: String,
 }
@@ -766,7 +769,7 @@ impl WarServer {
 
     #[tool(
         name = "war_show",
-        description = "Show a Warrant by its id as the document a person reads: an alias as one of its views (`war show <alias> --view <view>`), a light Warrant (`war show t-...`), or one read in place (`openspec:...`, `speckit:...`). Read-only.",
+        description = "Show a Warrant by its id as the document a person reads: an alias as one of its views (`war view show <alias> --view <view>`), a light Warrant (`war view show t-...`), or one read in place (`openspec:...`, `speckit:...`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {
@@ -906,7 +909,7 @@ impl WarServer {
 
     #[tool(
         name = "war_next",
-        description = "What is ready and whose step each item is, agent or human, with the command for it (`war next`). A signing step is always a human's. Read-only.",
+        description = "What is ready and whose step each item is, agent or human, with the command for it (`war view next`). A signing step is always a human's. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_next(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
@@ -1312,12 +1315,12 @@ impl WarServer {
 
     #[tool(
         name = "war_claim",
-        description = "Claim an item or a whole light Warrant (`war claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
+        description = "Claim an item or a whole light Warrant (`war admin claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
         annotations(read_only_hint = false)
     )]
     fn war_claim(&self, Parameters(p): Parameters<ClaimParams>) -> ToolResult {
         self.ticket("claim", p.actor.as_deref(), |s| {
-            crate::ticket::claim_cmd(s, &p.target, p.steal)
+            crate::ticket::claim_scoped(s, &p.target, p.steal, &p.paths)
         })
     }
 
@@ -1363,7 +1366,7 @@ impl WarServer {
 
     #[tool(
         name = "war_add",
-        description = "Append an item to a Warrant's checklist (`war add`), optionally waiting on other items or Warrants (`after`).",
+        description = "Append an item to a Warrant's checklist (`war plan add`), optionally waiting on other items or Warrants (`after`).",
         annotations(read_only_hint = false)
     )]
     fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
@@ -1374,7 +1377,7 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a Warrant (`war note`): the durable context the next agent or person reads in `war view prime`.",
+        description = "Append a dated note to a Warrant (`war plan note`): the durable context the next agent or person reads in `war view prime`.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {

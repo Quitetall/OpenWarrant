@@ -6,7 +6,7 @@ derived from a sentence of the specification. None was derived from a tool's
 output. Another implementation of the format can run these cases to show
 that it reads documents the way the specification says.
 
-The corpus follows draft 3, revision 2 (`1.0.0-draft.3`).
+The corpus follows draft 3, revision 3 (`1.0.0-draft.3`).
 
 Licence: the corpus, `reader.py`, `context.py`, `tracker.py` and `run.py`
 are Apache-2.0, the same as the schemas. The specification's text is
@@ -216,3 +216,9 @@ FORMAT-1.0.md and are listed in the report that introduced this corpus:
     written, and over its type as written (`ticket.*`).
   - Claim files outside the claim store are not read; the journal digest of
     10.4 names a claim file by its path from the repository root.
+
+The reference tracker checks recorded code commits. It reports UNKNOWN for the
+bundled runner's `oh.war/local-check-basis/v1` extension, which it does not
+implement. Rust CLI integration tests cover dirty, untracked and non-Git source
+snapshots, plus source mutation during a check and stale event replay. This is
+not a claim that the reference tracker implements every workflow extension.

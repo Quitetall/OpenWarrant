@@ -3,8 +3,8 @@
 //!
 //! Two agents on two branches tick two adjacent items of one checklist.
 //! Each changed one line; git's text merge reads two changes that touch and
-//! stops with a conflict. The same happens to two `war add`s (both append
-//! after the last item) and two `war note`s (both append to the intent).
+//! stops with a conflict. The same happens to two `war plan add`s (both append
+//! after the last item) and two `war plan note`s (both append to the intent).
 //! The files keep their layout and their bytes: what changes is how git
 //! merges them, through this driver, named in `.gitattributes`
 //! (`merge=war-ticket`) and configured once per clone by `war init` or
@@ -92,7 +92,7 @@ fn lines(text: &str) -> Result<Lines<'_>, String> {
     for item in &c.items {
         let Some(id) = &item.id else {
             return Err(format!(
-                "line {} is an item without an id; `war claim` names it",
+                "line {} is an item without an id; `war admin claim` names it",
                 item.line + 1
             ));
         };

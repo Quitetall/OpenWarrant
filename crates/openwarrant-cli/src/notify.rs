@@ -84,7 +84,7 @@ pub fn run(root: &Utf8Path, notify: &NotifyPolicy, wait: &Wait<'_>) -> Diagnosti
             "openwarrant.toml",
             format!(
                 "[notify] for {} ({}) did not complete: {why}. Nothing else changes: what it \
-                 announced stands, and `war next` lists what waits on a person",
+                 announced stands, and `war view next` lists what waits on a person",
                 wait.event, wait.subject
             ),
         )

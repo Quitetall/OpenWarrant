@@ -65,3 +65,30 @@ the authority for merged code; preservation copies make no assurance claim.
 
 Alpha.6 is a prerelease. Outstanding human studies, independent qualification
 and formal acceptance remain outstanding, and Stable 1.0 is not claimed.
+
+## Implementation checkpoint (not release qualification)
+
+The work-model branch contains the six-command surface, the all-required check
+rule, default single-file authoring, deterministic task-context delivery, and
+scoped cooperative claims. Focused positive and refusal tests cover these
+paths. W35's interview implementation is in this branch's ancestry.
+
+The remaining scope includes execution lifecycle wiring, safe managed-worktree
+cleanup, milestone-table import, watched regression and stale-source handling,
+legacy compatibility, schema generation, documentation, branch reconciliation,
+and the full receiving-commit release gate. These items are not delivered by
+this checkpoint. No independent disposition or human acceptance is asserted.
+
+
+The table-import checkpoint preserves full source snapshots and stable row IDs,
+uses explicit dependency columns, refuses bad mappings before writes, and returns
+changed-row proposals without overwriting maintained work. Its import/start/done
+controls pass. Scoped scheduling retains expired managed claims, and required
+checks also bind title-only completion. Twenty-four focused controls pass; this
+is component evidence, not workspace or release qualification.
+
+PR #371 remains a draft. Its first fast-CI run found legacy-layout fixture
+assumptions and default-native behavior still needing reconciliation. Those
+failures and interrupted local full-suite attempts are retained in the evidence
+directory; no overall green gate is claimed. The fast-CI policy itself passed on
+receiving main `3c6b6b139dce1b13c88b098765407b517012e20e` (run 41241899398).

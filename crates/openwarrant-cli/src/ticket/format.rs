@@ -7,14 +7,14 @@
 //! as the same [`Ticket`] a directory ticket is: its frontmatter stands for
 //! the manifest, the document for both atoms, and its items (§3.8: list
 //! lines in a unit's body, outside a fence and a continuation) for the
-//! checklist. So `war claim`, `war done`, `war admin release`, `war admin
-//! reopen`, `war add`, `war note`, `war next` and `war view ready` work it
+//! checklist. So `war admin claim`, `war done`, `war admin release`, `war admin
+//! reopen`, `war plan add`, `war plan note`, `war view next` and `war view ready` work it
 //! exactly as they work a directory ticket, through the same claims and the
 //! same compare-and-set.
 //!
 //! What it never is: a manifest written back. Nothing here writes a
 //! `manifest.toml` or an atom beside the document; a command that would
-//! (`war edit`, `war plan promote`, `war add --test`) is refused for a
+//! (`war plan edit`, `war plan promote`, `war plan add --test`) is refused for a
 //! Format 1.0 ticket by name (`ticket.format-document`), and the frontmatter
 //! is edited as the text it is.
 

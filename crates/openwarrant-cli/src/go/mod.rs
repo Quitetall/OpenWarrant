@@ -18,7 +18,7 @@
 //! A crash, a timeout, a merge conflict or a failed check leaves the node
 //! open and unclaimed, with a note saying what happened, and it goes back to
 //! the frontier; after `[go] max_attempts` in a row it is blocked for a
-//! person, and `war next` lists it. The run stops when nothing is ready, or
+//! person, and `war view next` lists it. The run stops when nothing is ready, or
 //! a cap or a budget is reached, and says which.
 //!
 //! Parallelism is by isolation. Several performers at once write several
@@ -131,7 +131,7 @@ pub struct RunResult {
     pub stop: Stop,
 }
 
-/// A node set aside for a person, as `war next` lists it.
+/// A node set aside for a person, as `war view next` lists it.
 #[derive(Debug, Clone, Serialize)]
 pub struct BlockedNode {
     pub node: String,
@@ -466,7 +466,7 @@ pub fn run(
     };
     run.overlay(&tickets);
     let mut history_report = Report::default();
-    // `[next] prior_secs` first (FORMAT-1.0 §11.5), so `war next` and this
+    // `[next] prior_secs` first (FORMAT-1.0 §11.5), so `war view next` and this
     // run estimate alike.
     let prior = crate::estimate::prior_secs(&run.store.root, Some(run.policy.prior_secs));
     let history = crate::estimate::learn(&tickets, prior, &mut history_report);
@@ -1431,6 +1431,7 @@ impl Run<'_> {
                 now + self.store.lease_secs,
             )),
             lease_until_unix: Some(now + self.store.lease_secs),
+            coordination: None,
         };
         match crate::ticket::claim::take(&lock, &claim) {
             Ok(crate::ticket::claim::Taken::Won) => {}
@@ -1923,7 +1924,7 @@ impl Run<'_> {
     }
 
     /// Set a node aside for a person: journalled, noted, blocked in the
-    /// graph, and listed by `war next`.
+    /// graph, and listed by `war view next`.
     fn set_aside(
         &mut self,
         t: &Ticket,

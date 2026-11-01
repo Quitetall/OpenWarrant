@@ -4,12 +4,12 @@
 
 ## AGENTS.md
 > -
-- md:AGENTS.md#tickets-the-default-work-loop · instruction · - · Tickets: the default work loop · AGENTS.md:11
-- md:AGENTS.md#read-the-context-needed-for-this-task · instruction · - · Read the context needed for this task · AGENTS.md:27
-- md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:69
-- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:90
-- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:103
-- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:115
+- md:AGENTS.md#the-default-work-loop · instruction · - · The default work loop · AGENTS.md:11
+- md:AGENTS.md#read-the-context-needed-for-this-task · instruction · - · Read the context needed for this task · AGENTS.md:32
+- md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:74
+- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:95
+- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:108
+- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:120
 
 ## CHANGELOG.md
 > -
@@ -115,6 +115,10 @@
 > -
 - doc:docs/INSTALL.md · document · - · Installing and updating `war` · docs/INSTALL.md:1
 
+## docs/INTERVIEWS.md
+> -
+- doc:docs/INTERVIEWS.md · document · - · Resume a planning interview · docs/INTERVIEWS.md:1
+
 ## docs/INVALIDATION.md
 > -
 - doc:docs/INVALIDATION.md · document · - · Custody, invalidation and dispute · docs/INVALIDATION.md:1
@@ -126,6 +130,10 @@
 ## docs/LIMINAL_HOST.md
 > -
 - doc:docs/LIMINAL_HOST.md · document · - · Hosting the WAR domain in Liminal: `oh.war/liminal-v1` · docs/LIMINAL_HOST.md:1
+
+## docs/MILESTONE-TABLES.md
+> -
+- doc:docs/MILESTONE-TABLES.md · document · - · Import milestone tables · docs/MILESTONE-TABLES.md:1
 
 ## docs/PERFORM.md
 > -
@@ -326,6 +334,10 @@
 ## docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md
 > -
 - OW-ADR-0032 · adr · - · ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale · docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md:1
+
+## docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md
+> -
+- OW-ADR-alpha6-unified-work-8956e · adr · - · One Warrant model and a small daily loop · docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md:1
 
 ## docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md
 > -
@@ -1774,7 +1786,7 @@
 
 ## docs/tickets/t-8956e/manifest.toml
 > Prepare alpha.6: one Warrant model and lean work loop
-- t-8956e · ticket · open · Prepare alpha.6: one Warrant model and lean work loop · docs/tickets/t-8956e/manifest.toml:1
+- t-8956e · ticket · in_progress · Prepare alpha.6: one Warrant model and lean work loop · docs/tickets/t-8956e/manifest.toml:1
 
 ## docs/tickets/t-8a2c/manifest.toml
 > Found by the verifier-fix agents: a whole-ticket claim hints a refused done; context_artifacts reads outside the repository; a one-line file (SECTIONS.json) travels in a bundle with no text

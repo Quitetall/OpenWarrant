@@ -939,7 +939,7 @@ fn remedy(policy: &Policy, author_role: Option<Role>, cited: &[Cited], n: &str) 
                 .to_owned(),
         ),
         Some(Kind::Tested) => ways.push(
-            "a Warrant with a test (`war create \"...\"`, then `war add <id> --test \
+            "a Warrant with a test (`war create \"...\"`, then `war plan add <id> --test \
              \"<command>\"`) cited as `Warrant: <id>` in the PR body"
                 .to_owned(),
         ),

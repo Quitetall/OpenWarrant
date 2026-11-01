@@ -16,7 +16,7 @@
 //! the history is in the repository even though the lock is not.
 //!
 //! A claim older than the TTL (`[tickets] claim_ttl_minutes`, 120 by default)
-//! is stale: its holder probably stopped. `war claim --steal` takes it, and
+//! is stale: its holder probably stopped. `war admin claim --steal` takes it, and
 //! the steal is journalled with whom it was taken from.
 //!
 //! # One lock set per clone (M11)
@@ -42,7 +42,7 @@
 //! claim's lease length. A renewal never rewrites a lock: it touches the
 //! inode it opened and read as the holder's, so a renewal racing a reclaim
 //! extends nothing but the claim it read. A claim whose lease ran out is
-//! reclaimed by a plain `war claim`, journalled with whom it was taken from;
+//! reclaimed by a plain `war admin claim`, journalled with whom it was taken from;
 //! `--steal` is for a claim whose lease is live and which is older than the
 //! TTL, as before. A claim from before leases has the configured lease from
 //! when it was taken.
@@ -75,6 +75,9 @@ pub struct Claim {
     pub lease_until: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub lease_until_unix: Option<u64>,
+    /// Alpha.6 coordination metadata; absent on retained legacy claims.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub coordination: Option<Box<super::scopes::Coordination>>,
 }
 
 impl Claim {
@@ -82,6 +85,13 @@ impl Claim {
     #[must_use]
     pub fn age(&self, now: u64) -> u64 {
         now.saturating_sub(self.since_unix)
+    }
+
+    /// A managed writer keeps its reservation until released or fenced.
+    /// Only retained legacy claims use expiry alone as reclamation evidence.
+    #[must_use]
+    pub fn reserves(&self, now: u64) -> bool {
+        self.coordination.is_some() || !self.lease_expired(now)
     }
 
     /// Whether the lease has run out at `now`. A claim with no lease (one
@@ -228,7 +238,7 @@ pub fn take(path: &Utf8Path, claim: &Claim) -> std::io::Result<Taken> {
     if !ignore.exists() {
         let _ = std::fs::write(
             &ignore,
-            "# war claim locks: runtime state, never committed\n*\n",
+            "# war admin claim locks: runtime state, never committed\n*\n",
         );
     }
     let bytes = serde_json::to_vec_pretty(claim).map_err(std::io::Error::other)?;
@@ -577,6 +587,7 @@ mod tests {
             since_unix,
             lease_until: None,
             lease_until_unix: None,
+            coordination: None,
         }
     }
 

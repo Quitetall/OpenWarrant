@@ -69,7 +69,7 @@ pub fn refuse_json() -> u8 {
         JSON,
         "-".to_owned(),
         "the app is a rendering and has no envelope; for a script use `war status --json`, \
-         `war view console --json`, `war next --json` or `war check --json`",
+         `war view console --json`, `war view next --json` or `war check --json`",
     ));
     println!("{}", crate::output::envelope("tui", &report, None));
     crate::output::exit_code(&report)
@@ -83,7 +83,7 @@ pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, Rep
             NO_TTY,
             "-".to_owned(),
             "the app needs a terminal on stdin and stdout; for a script use `war status \
-             --json`, `war view console --json`, `war next --json` or `war check --json`",
+             --json`, `war view console --json`, `war view next --json` or `war check --json`",
         ));
         crate::check::print(&report);
         return Ok(crate::EXIT_NOT_READY);
@@ -672,7 +672,7 @@ impl Model {
         self.rows.insert(Pane::Roadmap as u8, roadmap);
 
         // Tickets (t-67ed): `ticket::board`, the same answer `war tickets`,
-        // `war show` and `war ready` give. Read-only: no row signs or runs.
+        // `war view show` and `war ready` give. Read-only: no row signs or runs.
         let tickets = crate::ticket::Store::open(&repo, None)
             .and_then(|store| crate::ticket::board(&store))
             .map_or_else(
@@ -721,7 +721,7 @@ impl Model {
         );
     }
 
-    /// What next: the Setup step if incomplete, then `war next`'s actions
+    /// What next: the Setup step if incomplete, then `war view next`'s actions
     /// (human first), then doctor's non-passes, then `war check`'s errors
     /// deduped by rule with counts — each with its remedy.
     fn help_rows(
@@ -744,7 +744,7 @@ impl Model {
             });
         }
         if let Some(n) = next {
-            // t-67ed: ready ticket items first, as `war next` lists them.
+            // t-67ed: ready ticket items first, as `war view next` lists them.
             // Shown, never run from here: no auto, no signature.
             for r in &n.ready {
                 rows.push(Row {
@@ -788,11 +788,11 @@ impl Model {
             if let Some(why) = &n.nothing {
                 rows.push(Row {
                     text: match &n.idle {
-                        // M9: the plain line `war next` prints first.
+                        // M9: the plain line `war view next` prints first.
                         Some(idle) => format!("{idle}: {why}"),
                         None => format!("no Warrant act waits: {why}"),
                     },
-                    command: "war next".to_owned(),
+                    command: "war view next".to_owned(),
                     sign_target: None,
                     auto: None,
                     detail: None,
@@ -826,8 +826,8 @@ impl Model {
         }
         if rows.len() == 1 {
             rows.push(Row {
-                text: "nothing pending, nothing red — `war next` agrees".to_owned(),
-                command: "war next".to_owned(),
+                text: "nothing pending, nothing red — `war view next` agrees".to_owned(),
+                command: "war view next".to_owned(),
                 sign_target: None,
                 auto: None,
                 detail: None,
@@ -1760,7 +1760,7 @@ fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
 }
 
 /// The Tickets pane from `ticket::board`: one row per ticket (state,
-/// progress, priority, title; Enter shows `war show`'s checklist and notes),
+/// progress, priority, title; Enter shows `war view show`'s checklist and notes),
 /// then one row per REMAINING item beneath it. Done items are in the detail,
 /// not the list. No row carries a signature or an auto remedy.
 fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
@@ -1801,7 +1801,7 @@ fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
                     format!("  [claimed: {}]", holders.join(", "))
                 }
             ),
-            command: format!("war show {id}"),
+            command: format!("war view show {id}"),
             sign_target: None,
             auto: None,
             detail: detail.clone(),
@@ -1823,9 +1823,9 @@ fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
                     if ready { "  ready" } else { "" }
                 ),
                 command: if ready {
-                    format!("war claim {target}")
+                    format!("war admin claim {target}")
                 } else {
-                    format!("war show {id}")
+                    format!("war view show {id}")
                 },
                 sign_target: None,
                 auto: None,
@@ -2064,8 +2064,8 @@ mod tests {
             !text.iter().any(|t| t.contains("Reset endpoint")),
             "a done item is listed"
         );
-        assert_eq!(rows[1].command, "war claim t-0001/i-0002");
-        assert_eq!(rows[2].command, "war show t-0001");
+        assert_eq!(rows[1].command, "war admin claim t-0001/i-0002");
+        assert_eq!(rows[2].command, "war view show t-0001");
         assert!(rows[0].detail.as_deref().unwrap().contains("## Notes"));
         for r in &rows {
             assert!(r.sign_target.is_none() && r.auto.is_none(), "{r:?}");

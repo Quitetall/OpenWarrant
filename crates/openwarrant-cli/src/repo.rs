@@ -469,7 +469,7 @@ impl Repository {
             context: format!("could not read {path}"),
             source,
         })?;
-        // Every authority verdict reads the register, and `war next` asked
+        // Every authority verdict reads the register, and `war view next` asked
         // ~1,400 times (t-280c). The parse is a function of this path and
         // these bytes only, so it is memoized for the process keyed by both:
         // an edited register is a different key, never a stale grant. The
@@ -672,7 +672,7 @@ impl Repository {
         // The same answer as the scan below, without it: the Warrant is the
         // directory named `alias` holding a manifest. The scan read and
         // sorted every entry per call, and callers ask per Warrant, so a
-        // 1,000-Warrant `war next` spent most of its time here. Only a plain
+        // 1,000-Warrant `war view next` spent most of its time here. Only a plain
         // one-component name takes the direct path.
         let plain =
             !alias.is_empty() && alias != "." && alias != ".." && !alias.contains(['/', '\\']);
@@ -966,7 +966,7 @@ impl Repository {
             })?;
             texts.push((path, text));
         }
-        // Every `load_warrant` asks for its SAS pin, and `war next` loaded
+        // Every `load_warrant` asks for its SAS pin, and `war view next` loaded
         // a Warrant ~1,300 times: parsing the same few revision files each
         // time was 40% of its run (t-280c). The parse is a function of
         // exactly these paths and bytes, so it is memoized for the process
@@ -1855,7 +1855,7 @@ static REGISTERS: std::sync::OnceLock<std::sync::Mutex<RegisterMemo>> = std::syn
 /// One verification record decoded, remembered for the life of the process
 /// while the file's length and modification time stand. One command assesses
 /// a Warrant more than once (`war status` reads its obligations and its
-/// assessment; `war next` both again), and the records are the largest files
+/// assessment; `war view next` both again), and the records are the largest files
 /// a Warrant holds; an unchanged file decodes the same each time.
 fn decoded_verification(
     path: &Utf8Path,

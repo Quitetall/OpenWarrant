@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Writing imported work as Warrants in the light encoding (OW-WAR-0148
 //! M10): the same three files `war create` writes, so an imported Warrant
-//! is worked with `war next`, `claim` and `done` like any other.
+//! is worked with `war view next`, `claim` and `done` like any other.
 //!
 //! Deterministic: a Warrant's id is derived from where it came from
 //! (`beads:bd-a1b2`), its UUID from that and when it was created, its item
@@ -445,6 +445,12 @@ pub fn apply(repo: &Repository, store: &Store, import: &Import) -> Result<Outcom
             }
         }
         let intent = intent_of(p.incoming);
+        if import.format == "table" {
+            let document = crate::ticket::authoring::document(&manifest, &intent, &checklist);
+            if let Err(why) = crate::ticket::authoring::validate(&document) {
+                faults.push(super::Fault::new("import.invalid", &file, 0, why));
+            }
+        }
         rendered.push((p, manifest, intent, checklist));
     }
     // Record atoms: a new one, or one already there with the same bytes.
@@ -481,16 +487,21 @@ pub fn apply(repo: &Repository, store: &Store, import: &Import) -> Result<Outcom
             context: format!("could not create {dir}"),
             source,
         })?;
-        std::fs::create_dir_all(dir.join("atoms")).map_err(|source| RepoError::Io {
-            context: format!("could not create {dir}/atoms"),
-            source,
-        })?;
-        crate::compile::atomic::write(&dir.join(INTENT_FILE), intent.clone())?;
-        crate::compile::atomic::write(
-            &dir.join(format!("atoms/{}", store.checklist_file())),
-            checklist.clone(),
-        )?;
-        crate::compile::atomic::write(&dir.join("manifest.toml"), toml_of(manifest)?)?;
+        if import.format == "table" {
+            let text = crate::ticket::authoring::document(manifest, intent, checklist);
+            crate::ticket::authoring::create(store, &dir, &text)?;
+        } else {
+            std::fs::create_dir_all(dir.join("atoms")).map_err(|source| RepoError::Io {
+                context: format!("could not create {dir}/atoms"),
+                source,
+            })?;
+            crate::compile::atomic::write(&dir.join(INTENT_FILE), intent.clone())?;
+            crate::compile::atomic::write(
+                &dir.join(format!("atoms/{}", store.checklist_file())),
+                checklist.clone(),
+            )?;
+            crate::compile::atomic::write(&dir.join("manifest.toml"), toml_of(manifest)?)?;
+        }
         let t = store
             .load(&dir)
             .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?;
@@ -560,7 +571,7 @@ pub fn apply(repo: &Repository, store: &Store, import: &Import) -> Result<Outcom
         human.push_str(&format!("\nrecords: {rel}"));
     }
     if !created.is_empty() {
-        human.push_str("\n`war next` lists their open items");
+        human.push_str("\n`war view next` lists their open items");
     }
     let mut out = Outcome::ok(
         human,

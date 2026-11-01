@@ -70,6 +70,7 @@ sp_same() {
 
 # --- same subcommand: the help, every moved spelling ---------------------------
 declare -A SP_HOME=(
+    [add]=plan [note]=plan [edit]=plan [interview]=plan [next]=view [show]=view [claim]=admin
     [new]=plan [promote]=plan [render]=plan [impact]=plan [model]=plan [state]=plan [roadmap]=plan
     [frontier]=plan [questions]=plan [ask]=plan [answer]=plan [answers]=plan
     [authorize]=sign [resolve]=sign [correct]=sign [amend]=sign [attest]=sign [standing]=sign

@@ -125,6 +125,12 @@ pub fn parse_allowed(text: &str) -> Allowed {
 /// What a light Warrant declares, from its allowed-acts atom.
 #[must_use]
 pub fn allowed_of_ticket(t: &Ticket) -> Allowed {
+    if t.format {
+        return Allowed {
+            paths: crate::ticket::checks::paths_of(t.checklist_text.as_bytes()),
+            ..Allowed::default()
+        };
+    }
     crate::vfs::read_to_string(t.dir.join(ALLOWED_FILE))
         .map(|text| parse_allowed(&text))
         .unwrap_or_default()

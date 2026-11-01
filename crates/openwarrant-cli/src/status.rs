@@ -977,7 +977,7 @@ pub fn review_of(
     .counted())
 }
 
-/// The review record as a trailer for `war show` and `war status <alias>`.
+/// The review record as a trailer for `war view show` and `war status <alias>`.
 #[must_use]
 pub fn render_review(r: &openwarrant_core::status::ReviewView) -> String {
     let who = |list: &[openwarrant_core::status::ActorView]| {

@@ -1128,6 +1128,14 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
 pub fn build_tickets(corpus: &Corpus, record_atoms: bool) -> Result<Model, RepoError> {
     let mut b = Builder::default();
     lower_tickets(&mut b, corpus);
+    for d in corpus
+        .format_docs()
+        .docs
+        .iter()
+        .filter(|d| d.admitted() && d.place == crate::format_doc::Place::Ticket)
+    {
+        lower_document(&mut b, d);
+    }
     if record_atoms {
         lower_record_atoms(&mut b, corpus);
     }
@@ -1348,7 +1356,7 @@ fn spec_acceptor(corpus: &Corpus, revision: &str) -> Option<String> {
 /// unit and item of `SPEC.md` and its parts, and each document's own
 /// `doc:<path>` record, with the revision and `content_digest` the full
 /// model gives them. Read from the specification's documents alone, so a
-/// caller that needs only these (an acceptance, `war next`) does not pay
+/// caller that needs only these (an acceptance, `war view next`) does not pay
 /// for the whole model.
 #[must_use]
 pub fn spec_records(corpus: &Corpus) -> Vec<Record> {
