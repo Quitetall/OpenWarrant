@@ -942,3 +942,102 @@ fn prior_signoff_history_is_preserved_with_verified_or_missing_evidence() {
         );
     }
 }
+
+#[test]
+fn managed_executor_receives_native_contract_and_recorded_notes() {
+    let root = tempfile::tempdir().unwrap();
+    let output = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "GX"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &[
+            "create",
+            "Implement one bounded feature",
+            "--body",
+            "Keep the public API stable.",
+            "--item",
+            "Make the change",
+        ],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    assert_eq!(
+        war(
+            root.path(),
+            &[
+                "plan",
+                "note",
+                id,
+                "Preserve the known compatibility edge case"
+            ]
+        )["exit_code"],
+        0
+    );
+    let fixture = output.path().join("executor.py");
+    let packet = output.path().join("received.json");
+    std::fs::write(
+        &fixture,
+        format!(
+            r#"import json, sys
+from pathlib import Path
+p = json.load(sys.stdin)
+Path({:?}).write_text(json.dumps(p))
+a = p["answer"]
+a["requested_next_action"] = "block"
+a["claims"] = []
+print(json.dumps(a))
+"#,
+            packet.to_str().unwrap()
+        ),
+    )
+    .unwrap();
+    let config = root.path().join("openwarrant.toml");
+    let mut text = std::fs::read_to_string(&config).unwrap();
+    text.push_str(&format!(
+        "\n[go]\nharness_argv = [\"python3\", {:?}]\nmax_parallel = 1\nisolation = \"shared\"\n",
+        fixture.to_str().unwrap()
+    ));
+    std::fs::write(config, text).unwrap();
+    for args in [
+        &["init", "-q"][..],
+        &["add", "-A"][..],
+        &[
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "-qm",
+            "native work baseline",
+        ][..],
+    ] {
+        let result = Command::new("git")
+            .args(args)
+            .current_dir(root.path())
+            .output()
+            .unwrap();
+        assert!(
+            result.status.success(),
+            "{}",
+            String::from_utf8_lossy(&result.stderr)
+        );
+    }
+    let run = war(root.path(), &["evidence", "go", "--prototype"]);
+    assert!(
+        packet.is_file(),
+        "native work must reach the configured executor: {run}"
+    );
+    let p: serde_json::Value = serde_json::from_slice(&std::fs::read(packet).unwrap()).unwrap();
+    let context = p["context"]["projection"]["markdown"]
+        .as_str()
+        .expect("complete task packet");
+    assert!(context.contains("Keep the public API stable."), "{p}");
+    assert!(
+        context.contains("Preserve the known compatibility edge case"),
+        "{p}"
+    );
+}

@@ -2700,6 +2700,44 @@ pub fn claim_scoped(
     steal: bool,
     paths: &[String],
 ) -> Result<Outcome, RepoError> {
+    claim_scoped_at(store, query, steal, paths, &store.root)
+}
+
+/// The controller keeps the journal; managed execution reserves its actual
+/// checkout. A different clone cannot silently become this claim's workspace.
+pub(crate) fn claim_scoped_at(
+    store: &Store,
+    query: &str,
+    steal: bool,
+    paths: &[String],
+    workspace: &Utf8Path,
+) -> Result<Outcome, RepoError> {
+    let workspace = workspace
+        .canonicalize_utf8()
+        .map_err(io("could not resolve execution workspace".into()))?;
+    if workspace
+        != store
+            .root
+            .canonicalize_utf8()
+            .unwrap_or_else(|_| store.root.clone())
+    {
+        let source = claim::git_layout(&store.root);
+        let destination = claim::git_layout(&workspace);
+        let same_clone = source.zip(destination).is_some_and(|(a, b)| {
+            a.common_dir
+                .canonicalize_utf8()
+                .ok()
+                .zip(b.common_dir.canonicalize_utf8().ok())
+                .is_some_and(|(a, b)| a == b)
+        });
+        if !same_clone {
+            return Ok(Outcome::refused(
+                "work.workspace-unrelated",
+                store.rel(&workspace),
+                "execution workspace must belong to the same Git clone",
+            ));
+        }
+    }
     let _admission = scopes::AdmissionLock::acquire(store)?;
     let (mut tickets, _) = store.load_for(query)?;
     let target = match resolve(&tickets, query) {
@@ -2744,12 +2782,14 @@ pub fn claim_scoped(
             ));
         }
     };
+    coordination.workspace = workspace.to_string();
+    coordination.base_revision = ladder::head_commit(&workspace);
     let mut overlaps = Vec::new();
     for old in claims.values().flatten() {
         let same_target =
             old.ticket == t.id() && (old.item.is_none() || item.is_none() || old.item == item);
         let ours = owns_claim(store, old);
-        if same_target && !ours && old.lease_expired(now) && old.coordination.is_some() {
+        if same_target && !ours && (old.lease_expired(now) || steal) && old.coordination.is_some() {
             return Ok(Outcome::unknown(
                 "work.writer-unfenced",
                 store.rel(&t.intent_path),
@@ -2891,7 +2931,7 @@ pub fn claim_scoped(
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
             .filter(|(_, c)| {
                 c.as_ref()
-                    .is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
+                    .is_none_or(|c| !owns_claim(store, c) && c.reserves(now))
             })
             .map(|(k, c)| {
                 let who = c.as_ref().map_or_else(
@@ -3029,14 +3069,14 @@ pub fn claim_scoped(
     let after = store.claims()?;
     let conflict = match &item {
         Some(_) => claim_on(&after, t.id(), None)
-            .filter(|(_, c)| c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now)))
+            .filter(|(_, c)| c.is_none_or(|c| !owns_claim(store, c) && c.reserves(now)))
             .map(|(_, c)| holder(c, now)),
         None => after
             .iter()
             .filter(|(k, _)| k.starts_with(&format!("{}--", t.id())))
             .find(|(_, c)| {
                 c.as_ref()
-                    .is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
+                    .is_none_or(|c| !owns_claim(store, c) && c.reserves(now))
             })
             .map(|(_, c)| holder(c.as_ref(), now)),
     };
@@ -3074,6 +3114,9 @@ pub fn claim_scoped(
         "target": what,
         "since": mine.since,
     });
+    if t.format {
+        payload["coordination"] = serde_json::json!(mine.coordination);
+    }
     // FORMAT-1.0 §11.2: `work.claimed` carries the lease it was taken with.
     if t.format
         && let Some(until) = &mine.lease_until
@@ -3312,16 +3355,28 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
-    let repository = Repository::discover(Some(
-        store
-            .check_root
-            .clone()
-            .unwrap_or_else(|| store.root.clone()),
-    ))?;
+    let workspace = store
+        .claims()?
+        .values()
+        .flatten()
+        .find(|claim| claim.ticket == tickets[index].id() && owns_claim(store, claim))
+        .and_then(|claim| claim.coordination.as_ref())
+        .map(|coordination| Utf8PathBuf::from(&coordination.workspace))
+        .unwrap_or_else(|| {
+            store
+                .check_root
+                .clone()
+                .unwrap_or_else(|| store.root.clone())
+        });
+    let repository = Repository::discover(Some(workspace.clone()))?;
     let context = crate::context::task::repository(&repository, tickets[index].id())?;
     let mut answer = render::brief(store, &tickets, &tickets[index], &store.actor);
     answer.result["context"] =
         serde_json::to_value(context).map_err(|e| RepoError::Message(e.to_string()))?;
+    answer.result["workspace"] = serde_json::json!(workspace.as_str());
+    if workspace != store.root {
+        answer.human.push_str(&format!("\nworkspace: {workspace}"));
+    }
     Ok(answer)
 }
 
@@ -3404,7 +3459,7 @@ fn reopen_whole(store: &Store, t: &Ticket, reason: &str) -> Result<Outcome, Repo
     let now = now_secs();
     let claims = store.claims()?;
     if let Some((_, c)) = claim_on(&claims, t.id(), None)
-        && c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
+        && c.is_none_or(|c| !owns_claim(store, c) && c.reserves(now))
     {
         return Ok(claimed_by_other(
             store.rel(&store.lock_of(t.id(), None)),
@@ -3501,7 +3556,7 @@ pub fn reopen(
     let claims = store.claims()?;
     for level in [Some(id.as_str()), None] {
         if let Some((_, c)) = claim_on(&claims, t.id(), level)
-            && c.is_none_or(|c| !owns_claim(store, c) && !c.lease_expired(now))
+            && c.is_none_or(|c| !owns_claim(store, c) && c.reserves(now))
         {
             let whose = if level.is_some() {
                 "it"

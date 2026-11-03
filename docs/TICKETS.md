@@ -10,8 +10,8 @@ OpenSpec and Spec Kit. This page keeps the word "ticket" for the light one.
 A ticket is a piece of work written down so that anyone — you tomorrow, a
 colleague, another agent — can pick it up and finish what is left. You create
 one with a sentence, break it into a checklist, and tick items off as they are
-done. No step needs a signature, a review or anyone's approval, and tickets
-themselves are optional: ordinary coding needs none.
+done. Ordinary unverified completion needs no signature. Explicit Warrant and
+repository requirements remain binding. Tracking itself is optional.
 
 A ticket is the compatibility name for an ordinary Warrant. New Warrants use
 one Markdown source and keep their ID as checklists, checks and requirements
@@ -48,17 +48,17 @@ More, when you need them:
 | `war view warrants` (or `war view tickets`, `war view ls`) | every Warrant: the tickets first (open, in progress or done, and how far along), then the directory Warrants and those read in place, each with its type; filters below |
 | `war plan edit <ticket> --type bug -l ui -p 1` | change a ticket's type, labels, epic or priority |
 | `war plan edit <ticket> --due 2026-11-01` | a due date: a scheduler runs work toward it first, never before what it waits on (`--due none` clears it) |
-| `war start <item>` | claim it and open it in a worktree of its own, with the Warrant's declared tools, paths and commands as the session's settings (docs/GO.md) |
+| `war start <item> --worktree --print` | claim it and open it in a worktree of its own, with the Warrant's declared tools, paths and commands as the session's settings (docs/GO.md) |
 | `war evidence go` | run every ready item, critical path first, each in its own worktree, landing on `war-go/integration` (docs/GO.md) |
 | `war plan estimate` | how long each open item should take, learned from claim-to-done times in the journals, and the critical path |
 | `war admin release <item>` | give a claim back without finishing |
 | `war admin heartbeat [<item>]` | renew the lease on your claims (any `war` command does too) |
-| `war admin claim <item> --steal` | take a claim older than the TTL whose lease is still live |
+| `war admin claim <item> --steal` | legacy TTL takeover; managed writers must first be stopped and released |
 | `war create "..." --draft` | ask the configured drafter (`[plan] drafter_argv`) to propose the items |
 | `war create "..." --draft --records` | the drafter proposes typed records too (requirements, constraints, decisions, outcomes), and the items implement them; see "From a sentence to records" |
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
 | `war create "..." --implements REQ-pr1` | one item per record, its text the record's first sentence (docs/TYPES.md) |
-| `war plan promote <ticket>` | draft a Warrant from the ticket when someone wants sign-off |
+| `war plan promote <ticket>` | legacy directory-workflow adapter; ordinary work keeps the same Warrant ID |
 | `war admin import beads <file.jsonl>` | bring Beads issues in as tickets; also `war admin import openspec <dir>`, `war admin import speckit <dir>` (docs/TYPES.md, "Bringing work in") |
 | `war admin export beads` | every ticket as Beads issue JSONL, on stdout |
 | `war plan add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
@@ -67,8 +67,8 @@ More, when you need them:
 | `war evidence verify <item>` / `war sign <item> --ssh-sign` | an independent verdict, or a human's sign-off, of one item: the **independent** and **signed** levels |
 
 Every command takes `--json` and answers with the same `oh.war/report/v1`
-envelope as the rest of `war`. Each reads only the ticket files and the claims,
-so each answers in milliseconds on a repository of any size.
+envelope as the rest of `war`. Read-only views inspect the applicable records and claims; context compilation
+and check execution perform their documented additional work.
 
 ## Work on disk
 
@@ -125,7 +125,8 @@ epic with no items of its own is worked through its tickets: `war view ready` ne
 offers it whole. `--part-of none` detaches a ticket; a cycle (an epic part of
 its own ticket) is refused (`ticket.part-of-cycle`).
 
-Each of these is one optional line in `manifest.toml` (`type = "bug"`,
+New Markdown sources use header fields. In legacy sources each is one optional
+line in `manifest.toml` (`type = "bug"`,
 `labels = [...]`, `part_of = "t-e9a1"`), absent when unset: a ticket written
 before they existed reads, and is worked, byte for byte as it was. `war edit`
 adds, replaces or removes exactly that line and journals the change

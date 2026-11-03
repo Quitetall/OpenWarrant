@@ -207,6 +207,9 @@ pub struct Packet {
     /// The checkout `war evidence go` runs from, where the plan is.
     pub root: String,
     pub answer: Answer,
+    /// Complete deterministic required context for native work.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<crate::context::task::TaskPacket>,
     pub brief: String,
 }
 
@@ -293,6 +296,13 @@ pub fn brief(p: &Packet) -> String {
          landing decide whether it is done.\n\n```json war-submission\n{}\n```\n",
         serde_json::to_string_pretty(&answer).unwrap_or_default()
     ));
+    if let Some(context) = &p.context {
+        md.push_str("\n## Required context\n\n");
+        md.push_str(&context.projection.markdown);
+        for (source, text) in &context.supplemental_sources {
+            md.push_str(&format!("\n### {source}\n\n{text}\n"));
+        }
+    }
     md
 }
 

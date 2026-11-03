@@ -214,6 +214,20 @@ fn native_worktree_start_delivers_context_and_preserves_its_session() {
         "oh.war/task-context/v1"
     );
     let worktree = started["result"]["worktree"].as_str().unwrap();
+    let native_source = Path::new(worktree).join(created["result"]["source"].as_str().unwrap());
+    let mut body = std::fs::read_to_string(&native_source).unwrap();
+    body.push_str("\nWorkspace-specific current implementation context.\n");
+    std::fs::write(&native_source, body).unwrap();
+    let resumed = war(root, &["start", id, "--as", "isolated-builder"]);
+    assert_eq!(resumed["exit_code"], 0, "{resumed}");
+    assert_eq!(resumed["result"]["workspace"], worktree);
+    assert!(
+        resumed["result"]["context"]["projection"]["markdown"]
+            .as_str()
+            .unwrap()
+            .contains("Workspace-specific current implementation context"),
+        "resumption must read the writer's actual source: {resumed}"
+    );
     let nonce = started["result"]["claim_id"]
         .as_str()
         .expect("managed claim nonce");
@@ -235,4 +249,56 @@ fn native_worktree_start_delivers_context_and_preserves_its_session() {
     assert_eq!(resumed["exit_code"], 0, "{resumed}");
     assert_eq!(resumed["result"]["resumed"], true);
     assert_eq!(resumed["result"]["claim_id"], nonce);
+}
+
+#[test]
+fn a_claim_in_a_nested_project_retains_its_containing_worktree() {
+    let base = tempfile::tempdir().unwrap();
+    let root = base.path().join("repo");
+    std::fs::create_dir(&root).unwrap();
+    git(&root, &["init", "-q"]);
+    assert_eq!(war(&root, &["init", "--namespace", "NP"])["exit_code"], 0);
+    git(&root, &["add", "-A"]);
+    git(&root, &["commit", "-qm", "baseline"]);
+    let managed = base.path().join("managed");
+    git(
+        &root,
+        &[
+            "worktree",
+            "add",
+            "-b",
+            "nested",
+            managed.to_str().unwrap(),
+            "HEAD",
+        ],
+    );
+    openwarrant_cli::worktrees::register(
+        camino::Utf8Path::from_path(&root).unwrap(),
+        camino::Utf8Path::from_path(&managed).unwrap(),
+        "nested",
+        "HEAD",
+    )
+    .unwrap();
+    let nested = managed.join("subproject");
+    std::fs::create_dir(&nested).unwrap();
+    assert_eq!(
+        war(&nested, &["init", "--namespace", "SUB"])["exit_code"],
+        0
+    );
+    let made = war(&nested, &["create", "Retain active nested work"]);
+    let id = made["result"]["id"].as_str().unwrap();
+    let claimed = war(&nested, &["admin", "claim", id, "--as", "nested-builder"]);
+    assert_eq!(claimed["exit_code"], 0, "{claimed}");
+    let overview = war(&root, &["admin", "worktrees", "--prune"]);
+    let row = overview["result"]["worktrees"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|row| row["path"] == managed.to_str().unwrap())
+        .unwrap();
+    assert!(
+        !row["claims"].as_array().unwrap().is_empty(),
+        "nested project writers belong to the containing workspace: {row}"
+    );
+    assert_eq!(row["prunable"], false);
 }

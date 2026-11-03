@@ -296,7 +296,7 @@ fn inspect(
                 if claim
                     .coordination
                     .as_ref()
-                    .is_some_and(|c| c.workspace == path.as_str())
+                    .is_some_and(|c| Utf8Path::new(&c.workspace).starts_with(path))
                 {
                     row.claims
                         .push(format!("{}: {}", claim.actor, claim.target()));

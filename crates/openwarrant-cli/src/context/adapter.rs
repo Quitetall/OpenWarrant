@@ -216,6 +216,7 @@ fn graph_with(corpus: &Corpus, model: &Model, states: &[State]) -> Graph {
             from: r.from.clone(),
             kind: r.kind.clone(),
             to: by_uuid.get(&r.to).cloned().unwrap_or_else(|| r.to.clone()),
+            to_revision: r.to_revision.clone(),
         })
         .collect();
     g.edges.sort();

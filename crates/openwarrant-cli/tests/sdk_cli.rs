@@ -60,6 +60,7 @@ fn task_context_is_offline_and_refuses_a_missing_required_rule() {
         from: "CON-keep".into(),
         kind: "constrains".into(),
         to: "t-abcd".into(),
+        to_revision: None,
     });
     let (ok, out) = invoke(
         &json!({"schema":"oh.war/sdk-request/v1","operation":"task-context","graph":graph,"target":"t-abcd"}),
@@ -72,6 +73,21 @@ fn task_context_is_offline_and_refuses_a_missing_required_rule() {
             .contains(rule)
     );
     assert_eq!(out["result"]["qualification_established"], false);
+    let mut pinned = serde_json::to_value(&graph).unwrap();
+    pinned["edges"][0]["to_revision"] = json!("sha256:unavailable-historical-revision");
+    let (ok, out) = invoke(
+        &json!({"schema":"oh.war/sdk-request/v1","operation":"task-context","graph":pinned,"target":"t-abcd"}),
+    );
+    assert!(
+        !ok,
+        "a pinned historical rule must not silently become its current revision: {out}"
+    );
+    assert_eq!(out["diagnostics"][0]["code"], "context.required-missing");
+    pinned["edges"][0]["to_revision"] = json!(graph.units["t-abcd"].revision);
+    let (ok, out) = invoke(
+        &json!({"schema":"oh.war/sdk-request/v1","operation":"task-context","graph":pinned,"target":"t-abcd"}),
+    );
+    assert!(ok, "the declared exact revision is available: {out}");
     graph.units.remove("CON-keep");
     let (ok, out) = invoke(
         &json!({"schema":"oh.war/sdk-request/v1","operation":"task-context","graph":graph,"target":"t-abcd"}),

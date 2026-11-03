@@ -1,39 +1,46 @@
-# Tickets
+# Daily work
 
-A ticket is a Warrant in its lightest form: work written down as a checklist
-so anyone can pick it up. It is optional: ordinary coding needs no ticket.
+Use one Warrant for one outcome. New work is one expandable Markdown source
+with a stable ID. `ticket` and `t-...` are compatibility names, not a second
+work model. Ordinary coding may remain untracked.
 
 ```bash
-war start && ls                                # take the next ready ticket with your first look at the code
-# the work
-make test && war done --note "what you did"    # close it with your last test run: every item, in one call
-war view prime                                 # what is open, one line each; `war view prime t-3f2a` for one
-war note t-3f2a "a decision, a dead end"       # context for the next agent
-war create "Add password reset" --item "Reset endpoint" --item "Email template"
-war add t-3f2a "Docs" --after i-9c01           # extend a ticket; --after makes it wait
+war init                                       # once per repository
+war create "Add password reset"                # title-only work is valid
+war start t-3f2a --json                         # claim and receive required context
+# implement, then run the relevant checks
+war done t-3f2a --note "Implementation and checks"
+war status --json                              # read-only progress
+war check                                      # record integrity, not code qualification
 ```
 
-`war start` claims the ticket whole, so a second agent gets the next one
-instead; run again, it prints the one you hold. Chained onto your first look
-and your last test run, the two cost no turns of their own (and `war done`
-runs only if the tests pass); run alone they work the same. With
-`[tickets] session_start = true`, the plugin's session hook shows the ticket
-you hold, or the open list, before your first turn. `war start t-3f2a` takes that one, and
-`war done t-3f2a/i-9c01` ticks a single item.
+For an agent, `start --json` carries the complete required task packet. Keep
+its exact rules, dependencies and source revisions. Missing required context
+is a refusal, not permission to guess. Human output is a short brief.
 
-No step needs a signature or anyone's approval. The file is the state:
-`docs/tickets/<id>/atoms/15-checklist.md` is a Markdown checklist, and a hand
-edit is read as written. Name yourself with `--as <name>` (or
-`OPENWARRANT_ACTOR`) when several agents share the repository.
+Extend the same Warrant with `war plan add`, `war plan note`, and
+`war plan edit`. Checklists and checks do not change its ID. `create` returns
+`source`, the maintained Markdown path; journals record work history. Legacy
+atom directories remain readable, and `create --legacy` requests that encoding.
 
-Finding work: `war view warrants --search "<words>"`, `war view warrants --state
-in_progress`, `war view warrants --type bug`, `war show <id>` (`war view tickets` is the
-older name of `war view warrants`). The list also holds the directory Warrants and
-any OpenSpec or Spec Kit folder read in place; `war admin import` brings Beads,
-OpenSpec or Spec Kit work in as tickets.
+`war start` takes ready work or resumes the claim you hold. Explicit Warrant
+requirements still bind. Normally `done` completes work unverified without a
+signature. Declared required checks must all pass for the current definitions,
+subjects and code; optional checks report results. Title-only work with no
+completion checks uses `done`. Completion does not award an assurance mark.
 
-Over MCP the loop is `war_start` and `war_done`; `war_prime`, `war_create`,
-`war_add`, `war_note`, `war_show` and `war_tickets` around it ([MCP](mcp.md)).
+Use `--as <task-role>` or `OPENWARRANT_ACTOR` for a readable actor name. Names
+grant no authority. Shared-checkout path conflicts are refused. Use
+`war start <id> --worktree --print` for a managed isolated workspace; overlapping
+isolated work still requires integration checks. An expired lease does not
+prove that its writer stopped.
 
-Sign-off is opt-in: a person who wants it runs `war plan promote <ticket>`, which
-drafts a Warrant from the ticket. The ticket stays workable meanwhile.
+Find work with `war view prime`, `war view warrants --search "<words>"`,
+`war view next`, and `war view show <id>`. Over MCP, use `war_start`,
+`war_done`, `war_create`, `war_add`, `war_note`, and the read-only view tools.
+Existing flat command spellings remain compatible.
+
+Authority requirements are optional unless the Warrant or repository requires
+them. Preserve signed records and use the supported authority workflow when
+requested. `war plan promote` is a legacy directory adapter, not a required
+step to turn a ticket into a Warrant or to complete ordinary work.

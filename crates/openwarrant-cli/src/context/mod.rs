@@ -102,6 +102,9 @@ pub struct Edge {
     pub from: String,
     pub kind: String,
     pub to: String,
+    /// Exact target revision; a provider must supply it rather than substitute newer text.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to_revision: Option<String>,
 }
 
 /// What the compiler reads.

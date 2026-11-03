@@ -283,9 +283,13 @@ pub fn run(
         if created {
             git::remove_worktree(&root, &worktree, None);
             if git::branch_tip(&root, &branch).is_some_and(|tip| tip == base) {
-                let _ = git::git(&root, &["branch", "-D", &branch]);
+                let _ = git::git(&root, &["branch", "-d", &branch]);
             }
-            report.note("the worktree made for it was removed again".to_owned());
+            report.note(if worktree.exists() {
+                "the workspace was retained; inspect it with `war admin worktrees`".to_owned()
+            } else {
+                "the empty managed workspace made for it was removed".to_owned()
+            });
         }
     };
     let mut claim_id = None;
@@ -295,6 +299,20 @@ pub fn run(
             for d in claimed.report.diagnostics {
                 report.push(d);
             }
+            undo(&mut report);
+            return Ok((report, serde_json::Value::Null, String::new()));
+        }
+        if claimed.result["coordination"]["workspace"].as_str()
+            != Some(
+                store
+                    .root
+                    .canonicalize_utf8()
+                    .unwrap_or_else(|_| store.root.clone())
+                    .as_str(),
+            )
+        {
+            report.push(Diagnostic::error("work.workspace-in-use", node.clone(),
+                "this writer already holds the work in a different workspace; stop and release it before moving execution"));
             undo(&mut report);
             return Ok((report, serde_json::Value::Null, String::new()));
         }

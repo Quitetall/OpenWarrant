@@ -1027,9 +1027,39 @@ impl Run<'_> {
             )?;
             return Ok(None);
         }
+        if let Some(common) = &self.common
+            && let Some(landed) = ledger::landed(common, id)
+        {
+            self.skip(
+                id,
+                "landed-elsewhere",
+                format!(
+                    "{id} landed in run {} by {} at {}; merge {} to see its tick here",
+                    landed.run,
+                    landed.actor,
+                    &landed.commit[..landed.commit.len().min(12)],
+                    landed.integration
+                ),
+            );
+            self.graph.mark_done(id);
+            return Ok(None);
+        }
+        let (worktree, branch, base) = match self.workspace(id, &node.warrant) {
+            Ok(w) => w,
+            Err(e) => {
+                self.report.push(Diagnostic::error(
+                    "go.worktree",
+                    self.rel(&self.repo.root.join(&self.policy.worktrees)),
+                    format!("{id}: {e}"),
+                ));
+                self.skip(id, "worktree", e);
+                return Ok(None);
+            }
+        };
+        let program = worktree.join(&self.below);
         // Claim, through M11's shared store: a second run (another worktree,
         // or another clone with `[claims] remote`) is refused here by name.
-        let claimed = crate::ticket::claim_cmd(&self.store, id, false)?;
+        let claimed = crate::ticket::claim_scoped_at(&self.store, id, false, &[], &program)?;
         if claimed.is_refused() {
             let d = claimed.report.diagnostics.first();
             let rule = d.map_or("ticket.claim", |d| d.rule.as_str()).to_owned();
@@ -1073,20 +1103,6 @@ impl Run<'_> {
             .store
             .claims_dir
             .join(crate::ticket::claim::lock_name(&tid, item.as_deref()));
-        let (worktree, branch, base) = match self.workspace(id, &node.warrant) {
-            Ok(w) => w,
-            Err(e) => {
-                let _ = crate::ticket::release(&self.store, id, None);
-                self.report.push(Diagnostic::error(
-                    "go.worktree",
-                    self.rel(&self.repo.root.join(&self.policy.worktrees)),
-                    format!("{id}: {e}"),
-                ));
-                self.skip(id, "worktree", e);
-                return Ok(None);
-            }
-        };
-        let program = worktree.join(&self.below);
         let checks = crate::ticket::ladder::checks_of(&t);
         let (tests, kpis) = checks.for_item(item.as_deref());
         let mut deciding: Vec<packet::Check> = tests
@@ -1132,6 +1148,11 @@ impl Run<'_> {
                 contract_digest: revision.clone(),
                 stage_id: id.to_owned(),
                 requested_next_action: packet::ACTIONS,
+            },
+            context: if t.format {
+                Some(crate::context::task::repository(self.repo, t.id())?)
+            } else {
+                None
             },
             brief: String::new(),
         };
@@ -1289,7 +1310,7 @@ impl Run<'_> {
 
     fn ticket_dir(&self, tid: &str) -> Option<Utf8PathBuf> {
         let d = self.store.dir.join(tid);
-        crate::vfs::is_file(d.join("manifest.toml")).then_some(d)
+        self.store.load(&d).ok().map(|_| d)
     }
 
     /// The node's Beads issue line, as `war admin export beads` writes it.

@@ -54,6 +54,22 @@ fn shared_checkout_refuses_overlapping_scopes_before_the_second_claim() {
         root.path().canonicalize().unwrap().to_str().unwrap()
     );
     assert!(first["result"]["coordination"]["session"].is_string());
+    let journal = std::fs::read_to_string(
+        root.path()
+            .join("docs/tickets")
+            .join(&a)
+            .join("journal.jsonl"),
+    )
+    .unwrap();
+    let recorded = journal
+        .lines()
+        .filter_map(|line| serde_json::from_str::<Value>(line).ok())
+        .find(|event| event["type"] == "work.claimed")
+        .unwrap();
+    assert_eq!(
+        recorded["payload"]["coordination"],
+        first["result"]["coordination"]
+    );
     let conflict = war(
         root.path(),
         &[
@@ -114,6 +130,28 @@ fn expired_scoped_lease_is_not_proof_that_its_writer_stopped() {
             ]
         )["exit_code"],
         0
+    );
+    let takeover = war(
+        root.path(),
+        &[
+            "admin",
+            "claim",
+            &id,
+            "--steal",
+            "--as",
+            "replacement",
+            "--at",
+            "2000-01-01T00:00:01Z",
+        ],
+    );
+    assert_ne!(takeover["exit_code"], 0, "{takeover}");
+    assert!(
+        takeover["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "work.writer-unfenced"),
+        "{takeover}"
     );
     let ready = war(
         root.path(),

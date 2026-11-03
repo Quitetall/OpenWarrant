@@ -1229,6 +1229,12 @@ The normal CLI lists six daily commands: `init`, `create`, `start`, `done`,
 `start` supplies a short human brief and a complete required task packet to
 machine callers, including source revisions and selection digest. Missing
 required context is explicit; it cannot be silently omitted to meet a budget.
+Required relation revision pins MUST be honored. If the selected graph has
+only a different revision, report the missing ID and requested revision; do
+not substitute current text. A provider can supply the exact pinned record.
+The repository packet includes recorded task notes as a deterministic journal
+projection with its source digest. Notes provide experience, not authority;
+this derived coverage is distinct from an exact source span.
 The reference document compiler works without AI or an external provider.
 Providers can enrich context through the SDK without replacing core rules or
 creating a separate progress or authority model.

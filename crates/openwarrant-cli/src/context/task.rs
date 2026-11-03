@@ -192,6 +192,24 @@ fn required_ids(
             break;
         }
     }
+    // A required relation's revision is part of the contract. This adapter
+    // holds one revision per ID; an offline provider may load the pinned one.
+    for edge in &graph.edges {
+        if selected.contains(&edge.from)
+            && selected.contains(&edge.to)
+            && let Some(expected) = &edge.to_revision
+        {
+            let actual = graph.units.get(&edge.to).map(|unit| unit.revision.as_str());
+            if actual != Some(expected.as_str()) {
+                return Err(missing(format!(
+                    "{target}: {} requires {} at {expected}; available revision is {}. Supply the pinned source through the context provider",
+                    edge.from,
+                    edge.to,
+                    actual.unwrap_or("missing")
+                )));
+            }
+        }
+    }
     Ok(selected)
 }
 
@@ -238,6 +256,7 @@ pub fn repository(
                 from: id.clone(),
                 kind: "constrains".into(),
                 to: root,
+                to_revision: None,
             });
         }
     }
