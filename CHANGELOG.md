@@ -6,6 +6,21 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.6] — 2026-11-05
+
+### Added
+
+- **Two-Pillar Mission Control TUI (`war tui`)**:
+  - `Pane::Observe` (`o`): Situational telemetry HUD, milestone progress bars,
+    task dependency DAG with critical path identification and write-scope collision detection,
+    live Unix socket streaming of agent transcripts via Herdr (`~/.config/herdr/herdr.sock`),
+    active lease freshness and writer heartbeats, and a unified open question/blocker resolution drawer.
+  - `Pane::Orchestrate` (`O`): Interactive work creation (form and NLP drafting),
+    multi-model agent dispatch (Claude Opus 5.5, Sonnet 4.6, Gemini 3.8 Flash, Gemini 3.5 Pro, local runners),
+    blocker resolution, and batch SSH approval/signing queue (`[s]` batch sign).
+  - Terminal-only guard (`tui.no-tty`), zero signing key material in UI memory, strictly shelling out to child `war sign --ssh-sign` processes.
+- Herdr IPC socket streaming (`openwarrant_cli::herdr`) for live multi-agent observability and transcript monitoring.
+
 ### Changed
 
 - An agent finds and closes the work it was asked for without lookups, under

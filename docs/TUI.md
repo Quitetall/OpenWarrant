@@ -32,6 +32,19 @@ and the number of acts awaiting a signature. The tree is re-read on its own (the
 `war watch` fingerprint, every second, debounced) so a signature given in
 another terminal shows up without a keypress.
 
+## Observe
+
+The situational HUD: live telemetry, milestone progress gauges, task
+dependency DAG, active writer heartbeats and write-scope leases, live
+streaming transcripts from Herdr agents, and a unified questions drawer.
+`o` switches to Observe from anywhere.
+
+## Orchestrate
+
+The action center: draft and create work (direct form and NLP), assign and
+dispatch agents to unblocked DAG nodes, resolve blockers and interview
+questions, and review/sign queues in batch. `O` switches to Orchestrate.
+
 ## Setup
 
 Shown first whenever setup is incomplete and the repository has no tickets
@@ -170,6 +183,8 @@ up without a keypress.
 
 | key | does |
 |---|---|
+| `o` | Observe: HUD, DAG, telemetry, agent transcripts, questions |
+| `O` | Orchestrate: draft tasks, dispatch agents, review & batch sign |
 | `0-9`, `Tab`, `Shift-Tab` | switch pane (`0` is Roadmap) |
 | `p` | Projects: every repository you use; `Enter` opens one, `n` starts one |
 | `t` | Tickets: state, progress, remaining items; `Enter` shows checklist and notes |

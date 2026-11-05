@@ -52,6 +52,7 @@ pub mod frontier;
 pub mod gate_cmd;
 pub mod go;
 pub mod graph;
+pub mod herdr;
 pub mod host;
 pub mod impact;
 pub mod inbox;

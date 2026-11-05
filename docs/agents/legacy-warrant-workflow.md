@@ -184,5 +184,5 @@ Tracked work, when there is some: run `war start` with your first look at the co
 takes the next ready Warrant, or `war start <words of its title>` a named one, and prints
 only what it needs); close it with your last test run:
 `<your tests> && war done --note "what you did"`. `war view prime` lists all.
-<!-- openwarrant agents-md: written by war 1.0.0-alpha.5 -->
+<!-- openwarrant agents-md: written by war 1.0.0-alpha.6 -->
 <!-- openwarrant:end -->
