@@ -1469,6 +1469,7 @@ fn bare_status_is_a_few_lines_and_verbose_is_the_projection() {
             "Warrants: {warrants}, 0 resolved\n\
              Tickets: 1 open\n\
              Ready: 1 ticket, 0 stages\n\
+             Open by level: 1 Ticket\n\
              Awaiting a signature: 0\n\
              Blocking questions: 0\n\
              `war status --verbose` shows everything.\n"

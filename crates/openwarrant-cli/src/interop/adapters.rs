@@ -182,7 +182,9 @@ impl Adapted {
                         id: w.id.clone(),
                         title: w.title.clone(),
                         profile: t.kind.to_owned(),
-                        encoding: "read_in_place",
+                        encoding: crate::warrants::READ_IN_PLACE,
+                        // These formats declare no trigger and no signature.
+                        level: crate::work::level(crate::work::Fields::NONE),
                         state: w.state().to_owned(),
                         provenance: "computed",
                         done: Some(done),

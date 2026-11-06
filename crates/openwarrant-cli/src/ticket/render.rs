@@ -256,6 +256,8 @@ struct Row {
     id: String,
     title: String,
     state: TicketState,
+    /// Derived from its fields ([`crate::work::level`]), never stored.
+    level: crate::work::Level,
     done: usize,
     total: usize,
     priority: u8,
@@ -317,6 +319,7 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
         id: t.id().to_owned(),
         title: t.manifest.title.clone(),
         state: state_of(t, claims),
+        level: crate::work::ticket_level(store, t),
         done,
         total,
         priority: t.manifest.priority,
@@ -470,30 +473,6 @@ fn sorted<'a>(tickets: &'a [Ticket], claims: &Claims) -> Vec<&'a Ticket> {
     out
 }
 
-/// Every Warrant beside the light ones, for the one list (OW-WAR-0148
-/// M10): the directory and read-in-place rows, the warnings from reading
-/// them, and the words `--type` accepts for them. Empty: the light
-/// Warrants alone, as before M10 (the board reads that).
-#[derive(Debug, Clone, Default)]
-pub struct Others {
-    pub rows: Vec<crate::warrants::Row>,
-    pub faults: Vec<crate::diagnostic::Diagnostic>,
-    /// Profile names and read-in-place kinds a row may carry.
-    pub types: Vec<String>,
-}
-
-impl Others {
-    /// Every Warrant of `repo` that is not in the light encoding.
-    pub fn of(repo: &crate::repo::Repository) -> Result<Self, RepoError> {
-        let (rows, faults) = crate::warrants::other_rows(repo)?;
-        Ok(Self {
-            rows,
-            faults,
-            types: crate::warrants::type_words(repo),
-        })
-    }
-}
-
 /// The light Warrants alone, every one, its state and progress.
 pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
     tickets_filtered(store, &Filter::default())
@@ -501,7 +480,7 @@ pub fn tickets(store: &Store) -> Result<Outcome, RepoError> {
 
 /// The light Warrants alone, filtered.
 pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoError> {
-    list(store, &Others::default(), filter)
+    list(store, &crate::work::Work::tickets_of(store), filter)
 }
 
 /// `war view warrants` (`war view tickets`, `war view ls`): every Warrant, whatever its
@@ -515,21 +494,25 @@ pub fn tickets_filtered(store: &Store, filter: &Filter) -> Result<Outcome, RepoE
 /// fixed three, a declared state, or a phase a journal records (`draft`,
 /// `authorized`, `resolved`). Labels and epics are the light encoding's.
 /// A filter that can match nothing by construction is refused by name.
-pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, RepoError> {
-    let (tickets, faults) = store.load_all()?;
-    let claims = store.claims()?;
+pub fn list(
+    store: &Store,
+    work: &crate::work::Work,
+    filter: &Filter,
+) -> Result<Outcome, RepoError> {
+    work.ticket_store()?;
+    let (tickets, claims) = (work.tickets(), work.claims());
     // Refusals first: a filter that can match nothing by construction is a
     // typo, never an empty answer.
     if let Some(k) = &filter.kind
         && k != openwarrant_core::ticket::TICKET_PROFILE
-        && !others.types.iter().any(|t| t == k)
+        && !work.types().iter().any(|t| t == k)
         && let Some(why) = store.definition.fields.refuse_type(k)
     {
         let mut why = why;
-        if !others.types.is_empty() {
+        if !work.types().is_empty() {
             why.push_str(&format!(
                 "; nor is it a Warrant type here: {}",
-                others.types.join(", ")
+                work.types().join(", ")
             ));
         }
         return Ok(super::Outcome::refused(
@@ -586,7 +569,7 @@ pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, 
     };
     let epic = match &filter.epic {
         None => None,
-        Some(q) => match resolve(&tickets, q) {
+        Some(q) => match resolve(tickets, q) {
             Ok(Target::Ticket(n)) => Some(tickets[n].id().to_owned()),
             Ok(Target::Item(..)) => {
                 return Ok(super::Outcome::refused(
@@ -675,12 +658,12 @@ pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, 
         true
     };
     let mut human = String::new();
-    if tickets.is_empty() && others.rows.is_empty() {
+    if tickets.is_empty() && work.rows().is_empty() {
         human.push_str("no Warrants yet: `war create \"what this work accomplishes\"`");
     }
-    let order = sorted(&tickets, &claims);
-    let listed: Vec<&crate::warrants::Row> = others
-        .rows
+    let order = sorted(tickets, claims);
+    let listed: Vec<&crate::warrants::Row> = work
+        .rows()
         .iter()
         .filter(|o| filter.is_empty() || admits_other(o))
         .collect();
@@ -692,7 +675,7 @@ pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, 
         .unwrap_or(6);
     let mut rows = Vec::new();
     for t in order {
-        let r = row_in(store, &tickets, t, &claims);
+        let r = row_in(store, tickets, t, claims);
         if !filter.is_empty() && !admits(t, &r) {
             continue;
         }
@@ -756,10 +739,10 @@ pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, 
             (Some(d), Some(n)) => format!("{d}/{n}"),
             _ => "-".to_owned(),
         };
-        let kind = if o.encoding == "directory" {
-            o.profile.clone()
-        } else {
+        let kind = if o.encoding == crate::warrants::READ_IN_PLACE {
             format!("{}, read in place", o.profile)
+        } else {
+            o.profile.clone()
         };
         human.push_str(&format!(
             "{:<width$}  {:<11}  {:>5}  --  {}  [{kind}]\n",
@@ -769,12 +752,12 @@ pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, 
             o.title,
         ));
     }
-    let any = !tickets.is_empty() || !others.rows.is_empty();
+    let any = !tickets.is_empty() || !work.rows().is_empty();
     if !filter.is_empty() && rows.is_empty() && listed.is_empty() && any {
         human.push_str("no Warrant matches");
     }
     let mut result = serde_json::json!({"schema": "oh.war/ticket-list/v1", "tickets": rows});
-    if !others.rows.is_empty() {
+    if !work.rows().is_empty() {
         result["warrants"] = serde_json::to_value(&listed).unwrap_or_default();
     }
     if !filter.is_empty() {
@@ -788,15 +771,23 @@ pub fn list(store: &Store, others: &Others, filter: &Filter) -> Result<Outcome, 
         });
     }
     let mut out = Outcome::ok(human.trim_end().to_owned(), result);
-    for f in faults {
+    for f in work.ticket_faults() {
         out.report.push(crate::diagnostic::Diagnostic::warn(
             f.rule.clone(),
             f.file.clone().unwrap_or_default(),
             format!("skipped: {}", f.message),
         ));
     }
-    for f in &others.faults {
+    for f in work.other_faults() {
         out.report.push(f.clone());
+    }
+    if let Some(why) = work.unread(crate::work::Source::Others) {
+        out.report.push(crate::diagnostic::Diagnostic::new(
+            crate::diagnostic::Severity::Unknown,
+            "work.unreadable",
+            None,
+            format!("the Warrants outside the ticket store could not be read: {why}"),
+        ));
     }
     Ok(out)
 }
@@ -1127,29 +1118,39 @@ const PRIME_DONE_EARLIER: usize = 10;
 /// Open tickets with only their remaining items, who holds which claim, recent
 /// notes, and done tickets compacted: a done ticket older than
 /// `[tickets] compact_after_days` is one line.
-pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
-    let (all, _) = store.load_all()?;
-    let claims = store.claims()?;
+pub fn prime(
+    repo: &crate::repo::Repository,
+    store: &Store,
+    only: Option<&str>,
+) -> Result<Outcome, RepoError> {
+    use crate::work::{LevelCounts, Work};
+    // One Warrant in full is a ticket's; the overview counts all work.
+    let work = match only {
+        Some(_) => Work::tickets_of(store),
+        None => Work::read_with(repo, store),
+    };
+    work.ticket_store()?;
+    let (all, claims) = (work.tickets(), work.claims());
     let now = now_secs();
     if let Some(q) = only {
-        let index = match resolve(&all, q) {
+        let index = match resolve(all, q) {
             Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
             Err(d) => return Ok(Outcome::from_diagnostic(d)),
         };
-        return Ok(prime_one(store, &all, &all[index], &claims, now));
+        return Ok(prime_one(store, all, &all[index], claims, now));
     }
     let today = today();
-    let order = sorted(&all, &claims);
+    let order = sorted(all, claims);
     let (open, done): (Vec<&Ticket>, Vec<&Ticket>) = order
         .into_iter()
-        .partition(|t| state_of(t, &claims) != TicketState::Done);
+        .partition(|t| state_of(t, claims) != TicketState::Done);
     let recent_cut = today - chrono::Days::new(store.compact_days);
     let (recent, old): (Vec<&Ticket>, Vec<&Ticket>) = done
         .into_iter()
         .partition(|t| done_on(t).is_some_and(|d| d >= recent_cut));
     let in_progress = open
         .iter()
-        .filter(|t| state_of(t, &claims) == TicketState::InProgress)
+        .filter(|t| state_of(t, claims) == TicketState::InProgress)
         .count();
 
     let mut md = format!("# Warrants — {}\n\n", store.project);
@@ -1193,7 +1194,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     // what a session starts with, so it may not grow with the backlog.
     const OPEN_SHOWN: usize = 15;
     for t in open.iter().take(OPEN_SHOWN) {
-        md.push_str(&overview_line(store, &all, t, &claims, now));
+        md.push_str(&overview_line(store, all, t, claims, now));
     }
     if open.len() > OPEN_SHOWN {
         md.push_str(&format!(
@@ -1203,7 +1204,7 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
     }
     // A claim on something no open Warrant holds (an unreadable lock, or a
     // Warrant done meanwhile) is still named, once.
-    for (name, c) in &claims {
+    for (name, c) in claims {
         let shown = c
             .as_ref()
             .is_some_and(|c| open.iter().any(|t| t.id() == c.ticket));
@@ -1218,6 +1219,18 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
                 None => format!("- `{name}` — unreadable lock\n"),
             });
         }
+    }
+
+    // Open work the ticket store does not hold: a count, since `war start`
+    // takes none of it and the overview may not grow with the corpus.
+    let elsewhere = LevelCounts::open(work.others());
+    if work.unread(crate::work::Source::Others).is_some() {
+        md.push_str("\nAlso open elsewhere: ?\n");
+    } else if elsewhere != LevelCounts::default() {
+        md.push_str(&format!(
+            "\nAlso open elsewhere: {} (`war view tickets`)\n",
+            elsewhere.describe()
+        ));
     }
 
     // Done work as ids: `war view tickets --state done` lists it all.
@@ -1239,18 +1252,28 @@ pub fn prime(store: &Store, only: Option<&str>) -> Result<Outcome, RepoError> {
             }
         ));
     }
-    let rows: Vec<Row> = open.iter().map(|t| row(store, t, &claims)).collect();
-    Ok(Outcome::ok(
+    let rows: Vec<Row> = open.iter().map(|t| row(store, t, claims)).collect();
+    let mut out = Outcome::ok(
         md.trim_end().to_owned(),
         serde_json::json!({
             "schema": "oh.war/ticket-prime/v1",
             "open": rows,
+            "open_elsewhere": elsewhere,
             "done_recent": recent.iter().map(|t| t.id()).collect::<Vec<_>>(),
             "done_compacted": old.iter().map(|t| t.id()).collect::<Vec<_>>(),
             "claims": claims.values().flatten().collect::<Vec<_>>(),
             "markdown": md,
         }),
-    ))
+    );
+    if let Some(why) = work.unread(crate::work::Source::Others) {
+        out.report.push(crate::diagnostic::Diagnostic::new(
+            crate::diagnostic::Severity::Unknown,
+            "work.unreadable",
+            None,
+            format!("the Warrants outside the ticket store could not be read: {why}"),
+        ));
+    }
+    Ok(out)
 }
 
 /// `war view prime <ticket>`: one ticket in full, remaining items only.
@@ -1259,8 +1282,9 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
     let checks = super::ladder::checks_of(t);
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
     md.push_str(&format!(
-        "{} · {d}/{n} done · priority {} · `{}/`\n",
+        "{}{} · {d}/{n} done · priority {} · `{}/`\n",
         state_of(t, claims).as_str(),
+        level_mark(store, t),
         t.manifest.priority,
         store.rel(&t.dir)
     ));
@@ -1328,13 +1352,23 @@ pub fn all_notes(t: &Ticket) -> Vec<String> {
 
 /// `war view prime`'s line for one open Warrant: what it is, how far along,
 /// and what stands in its way. Nothing of its text.
+/// ` · Warrant`, ` · Order`, ` · UNKNOWN`; nothing for a Ticket, the default,
+/// so a session's overview pays only for what changes how the work ends.
+fn level_mark(store: &Store, t: &Ticket) -> String {
+    match crate::work::ticket_level(store, t) {
+        crate::work::Level::Ticket => String::new(),
+        level => format!(" · {}", level.as_str()),
+    }
+}
+
 fn overview_line(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u64) -> String {
     let (d, n) = t.checklist.progress();
     let mut line = format!(
-        "- {} — {} · {d}/{n} done · p{}",
+        "- {} — {} · {d}/{n} done · p{}{}",
         t.id(),
         t.manifest.title,
-        t.manifest.priority
+        t.manifest.priority,
+        level_mark(store, t)
     );
     let mut holders: Vec<String> = claims
         .values()

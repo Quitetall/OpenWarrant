@@ -68,70 +68,112 @@ pub fn checks_of(t: &Ticket) -> Checks {
     read_checks(t).unwrap_or_default()
 }
 
+/// What the Format 1.0 document `alias` declares, as a ticket's parts: its
+/// gating checks, its KPIs and the items its milestones hold.
+#[must_use]
+pub fn document_checks(alias: &str, text: &str) -> Checks {
+    let doc = openwarrant_core::format::parse(text.as_bytes());
+    let mut checks = Checks::default();
+    for record in super::checks::records_in(alias, text.as_bytes()) {
+        for target in &record.evaluates {
+            let item =
+                (target != alias).then(|| target.rsplit('/').next().unwrap_or(target).to_owned());
+            let name = record
+                .id
+                .strip_prefix("CHK-")
+                .unwrap_or(&record.id)
+                .to_owned();
+            let cmd = record.run.clone().unwrap_or_default();
+            if record.kind == "kpi" {
+                checks.kpis.push(ticks::Kpi {
+                    name,
+                    cmd,
+                    item,
+                    direction: record
+                        .direction
+                        .as_deref()
+                        .and_then(ticks::Direction::parse)
+                        .unwrap_or(ticks::Direction::Max),
+                    target: record.target,
+                    mode: if record.gating {
+                        record
+                            .mode
+                            .as_deref()
+                            .and_then(ticks::KpiMode::parse)
+                            .unwrap_or_default()
+                    } else {
+                        ticks::KpiMode::Optimise
+                    },
+                    line: record.line.saturating_sub(1),
+                });
+            } else if record.gating {
+                checks.tests.push(ticks::Test {
+                    name,
+                    cmd,
+                    item,
+                    line: record.line.saturating_sub(1),
+                });
+            }
+        }
+    }
+    for unit in doc.units.iter().filter(|u| u.record_type == "milestone") {
+        let min = unit
+            .fields
+            .get("min")
+            .and_then(|v| v.as_str())
+            .and_then(Level::parse);
+        for item in &unit.items {
+            if let Some(id) = &item.id {
+                checks.milestones.push(openwarrant_core::ticks::Milestone {
+                    item: id.clone(),
+                    min,
+                    line: unit.line,
+                });
+            }
+        }
+    }
+    checks
+}
+
+/// What decides completion in `checks` beside a person's word, given the
+/// highest minimum any part of the item must reach. A KPI that only measures
+/// decides nothing, and a test that is not gating was never read as a test.
+#[must_use]
+pub fn fields_from(checks: &Checks, minimum: Level) -> crate::work::Fields {
+    let decided = !checks.tests.is_empty()
+        || checks
+            .kpis
+            .iter()
+            .any(|k| k.mode != ticks::KpiMode::Optimise)
+        || minimum >= Level::Observed;
+    // A checks atom with a line that did not parse may say more than was
+    // read, so only what was read for certain is taken as known.
+    let certain = |known: bool| (known || checks.faults.is_empty()).then_some(known);
+    crate::work::Fields {
+        trigger: certain(decided),
+        signature: certain(minimum >= Level::Signed),
+    }
+}
+
+/// The facts a ticket's level comes from: what it declares, and the minimum
+/// its type or its repository's preset sets for it or any of its milestones.
+#[must_use]
+pub fn level_fields(store: &Store, t: &Ticket) -> crate::work::Fields {
+    let Ok(checks) = read_checks(t) else {
+        return crate::work::Fields::UNREAD;
+    };
+    let floor = checks
+        .milestones
+        .iter()
+        .map(|m| minimum(store, t, &checks, Some(&m.item)).0)
+        .fold(minimum(store, t, &checks, None).0, Level::max);
+    fields_from(&checks, floor)
+}
+
 /// Absence is optional; an existing source that cannot be read is UNKNOWN.
 fn read_checks(t: &Ticket) -> Result<Checks, String> {
     if t.format {
-        let doc = openwarrant_core::format::parse(t.checklist_text.as_bytes());
-        let mut checks = Checks::default();
-        for record in super::checks::records_in(t.id(), t.checklist_text.as_bytes()) {
-            for target in &record.evaluates {
-                let item = (target != t.id())
-                    .then(|| target.rsplit('/').next().unwrap_or(target).to_owned());
-                let name = record
-                    .id
-                    .strip_prefix("CHK-")
-                    .unwrap_or(&record.id)
-                    .to_owned();
-                let cmd = record.run.clone().unwrap_or_default();
-                if record.kind == "kpi" {
-                    checks.kpis.push(ticks::Kpi {
-                        name,
-                        cmd,
-                        item,
-                        direction: record
-                            .direction
-                            .as_deref()
-                            .and_then(ticks::Direction::parse)
-                            .unwrap_or(ticks::Direction::Max),
-                        target: record.target,
-                        mode: if record.gating {
-                            record
-                                .mode
-                                .as_deref()
-                                .and_then(ticks::KpiMode::parse)
-                                .unwrap_or_default()
-                        } else {
-                            ticks::KpiMode::Optimise
-                        },
-                        line: record.line.saturating_sub(1),
-                    });
-                } else if record.gating {
-                    checks.tests.push(ticks::Test {
-                        name,
-                        cmd,
-                        item,
-                        line: record.line.saturating_sub(1),
-                    });
-                }
-            }
-        }
-        for unit in doc.units.iter().filter(|u| u.record_type == "milestone") {
-            let min = unit
-                .fields
-                .get("min")
-                .and_then(|v| v.as_str())
-                .and_then(Level::parse);
-            for item in &unit.items {
-                if let Some(id) = &item.id {
-                    checks.milestones.push(openwarrant_core::ticks::Milestone {
-                        item: id.clone(),
-                        min,
-                        line: unit.line,
-                    });
-                }
-            }
-        }
-        return Ok(checks);
+        return Ok(document_checks(t.id(), &t.checklist_text));
     }
     let path = t.dir.join(ticks::CHECKS_FILE);
     match crate::vfs::metadata(&path) {

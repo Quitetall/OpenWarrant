@@ -15,6 +15,13 @@ Notable changes to OpenWarrant. Format loosely follows
   output, byte for byte; `--json`, `--timeline`, `--pending` and `war status
   <id>` do not change. A script that read the projection from bare `war status`
   needs `--verbose`.
+- `war view prime`, `war view tickets` and the terse `war status` read all work
+  through one list (`crate::work`, `docs/design/one-view.md`). An item's level,
+  Ticket, Warrant or Order, is derived from its fields and never stored. `prime`
+  marks a non-default level (` · Warrant`) and adds one line counting open work
+  outside the ticket store; `war status` adds `Open by level:`; `--json` rows
+  carry `level`. `war view warrants` now lists single-file Warrants, which no
+  list showed before.
 
 ### Fixed
 

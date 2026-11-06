@@ -27,7 +27,9 @@
 //! ticket directories and the claims directory, and nothing else: no Warrant is
 //! loaded, nothing is compiled, no ownership index is built and no signature is
 //! verified. `conformance/plants.d/45-tickets.sh` measures each command on this
-//! repository.
+//! repository. The list views are the exception: `war view prime` and
+//! `war view tickets` read all work through [`crate::work`], which is each
+//! other Warrant's manifest and journal, no more.
 
 pub mod acts;
 pub(crate) mod authoring;
@@ -62,9 +64,7 @@ use crate::compile::atomic;
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
 
-pub use render::{
-    Filter, Others, description, list, notes, prime, show, tickets, tickets_filtered,
-};
+pub use render::{Filter, description, list, notes, prime, show, tickets, tickets_filtered};
 
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
@@ -3333,7 +3333,7 @@ pub const LOOP_HINT: &str = "Run `war start` in the same command as your first l
 /// brief (a resumed session needs no call to find its work); else the
 /// overview and [`LOOP_HINT`]; nothing when no tracked work is open, so an
 /// ordinary session carries nothing. Not enabled, it says nothing at all.
-pub fn session_start(store: &Store) -> Result<Outcome, RepoError> {
+pub fn session_start(repo: &Repository, store: &Store) -> Result<Outcome, RepoError> {
     if !store.session_start {
         return Ok(Outcome::ok(
             String::new(),
@@ -3361,7 +3361,7 @@ pub fn session_start(store: &Store) -> Result<Outcome, RepoError> {
             serde_json::json!({"schema": "oh.war/ticket-session/v1", "open": 0}),
         ));
     }
-    let overview = render::prime(store, None)?;
+    let overview = render::prime(repo, store, None)?;
     Ok(Outcome::ok(
         format!("{}\n\n{LOOP_HINT}", overview.human),
         overview.result,

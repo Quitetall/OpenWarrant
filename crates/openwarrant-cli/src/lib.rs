@@ -132,6 +132,7 @@ pub mod vfs;
 pub mod warrants;
 pub mod watch;
 pub mod webui;
+pub mod work;
 pub mod work_rules;
 pub mod worktrees;
 
@@ -6375,14 +6376,14 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             if session {
-                let mut outcome = ticket::session_start(&store)?;
+                let mut outcome = ticket::session_start(&repository, &store)?;
                 if let Some(line) = ticket::live::unseen_line(&store) {
                     outcome.human.push_str(&format!("\n\n{line}"));
                     outcome.report.note(line);
                 }
                 return Ok(ticket_answer(mode, "prime", &outcome));
             }
-            let mut outcome = ticket::prime(&store, target.as_deref())?;
+            let mut outcome = ticket::prime(&repository, &store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it
             // follows is newer than this binary (a WARN, on stderr in
             // human mode, in the envelope under --json).
@@ -6490,11 +6491,11 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             };
             // M10: one list, every encoding. The envelope keeps the
             // command name it always had.
-            let others = ticket::Others::of(&repository)?;
+            let work = work::Work::read_with(&repository, &store);
             Ok(ticket_answer(
                 mode,
                 "tickets",
-                &ticket::list(&store, &others, &filter)?,
+                &ticket::list(&store, &work, &filter)?,
             ))
         }
         ViewCommand::Tui { panic_after_setup } => {

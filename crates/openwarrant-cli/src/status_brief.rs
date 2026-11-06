@@ -4,9 +4,13 @@
 //! The corpus projection this stands in for is tens of kilobytes on a real
 //! repository, and an agent reads every byte. It stays behind `--verbose`,
 //! and under `--json`. Every figure here comes from the records
-//! (`status::build`, `console::board`, the ticket store). One that cannot be
+//! (`status::build`, `console::board`, [`crate::work`]). One that cannot be
 //! read prints `?` and says why on stderr, and the command exits as an UNKNOWN
 //! does: nothing here stands in for a number it did not read.
+//!
+//! The Warrant line stays `status::build`'s: its `resolved` is computed against
+//! the contract as it compiles now, where a list row is what the journal
+//! recorded, and a brief must not read higher than `--verbose` does.
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
@@ -14,6 +18,7 @@ use std::fmt::Write as _;
 use crate::corpus::Corpus;
 use crate::repo::Repository;
 use crate::ticket;
+use crate::work::{LevelCounts, Source, Work};
 
 /// What the brief says. `None` is a figure that could not be read.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -27,6 +32,8 @@ pub struct Brief {
     pub unreadable_tickets: usize,
     pub ready_tickets: Option<usize>,
     pub ready_stages: Option<usize>,
+    /// Open items of every encoding, by level.
+    pub levels: Option<LevelCounts>,
     pub awaiting_signature: Option<usize>,
     pub blocking_questions: Option<usize>,
     /// Why each `?` is one.
@@ -85,26 +92,38 @@ impl Brief {
             Ok(store) => store,
             Err(e) => {
                 self.unknown.push(format!("tickets: {e}"));
+                self.read_levels(&Work::read(repo));
                 return;
             }
         };
-        let (loaded, claims) = ticket::with_claims(&store, || store.load_all());
-        let (tickets, faults) = match loaded {
-            Ok(loaded) => loaded,
-            Err(e) => {
-                self.unknown.push(format!("tickets: {e}"));
-                return;
-            }
-        };
-        self.open_tickets = Some(tickets.iter().filter(|t| !t.is_done()).count());
-        self.unreadable_tickets = faults.len();
-        let rows = claims.and_then(|claims| ticket::ready_rows_with(&store, &tickets, claims));
-        match rows {
+        let work = Work::read_with(repo, &store);
+        self.read_levels(&work);
+        if let Some(why) = work.unread(Source::Tickets) {
+            self.unknown.push(format!("tickets: {why}"));
+            return;
+        }
+        self.open_tickets = Some(work.tickets().iter().filter(|t| !t.is_done()).count());
+        self.unreadable_tickets = work.ticket_faults().len();
+        if let Some(why) = work.unread(Source::Claims) {
+            self.unknown.push(format!("ready work: {why}"));
+            return;
+        }
+        match ticket::ready_rows_with(&store, work.tickets(), work.claims().clone()) {
             Ok(rows) => {
                 let ready: BTreeSet<&str> = rows.iter().map(|r| r.ticket.as_str()).collect();
                 self.ready_tickets = Some(ready.len());
             }
             Err(e) => self.unknown.push(format!("ready work: {e}")),
+        }
+    }
+
+    /// The level line needs every source: a part of it would read as all.
+    fn read_levels(&mut self, work: &Work) {
+        if let Some(why) = work.unread(Source::Others) {
+            self.unknown.push(format!("warrants: {why}"));
+        }
+        if work.complete() {
+            self.levels = Some(LevelCounts::open(work.items()));
         }
     }
 
@@ -131,6 +150,11 @@ impl Brief {
             "Ready: {}, {}",
             counted(self.ready_tickets, "ticket"),
             counted(self.ready_stages, "stage")
+        );
+        let _ = writeln!(
+            out,
+            "Open by level: {}",
+            self.levels.map_or_else(|| "?".to_owned(), |l| l.describe())
         );
         let _ = writeln!(
             out,
@@ -161,6 +185,12 @@ mod tests {
             unreadable_tickets: 0,
             ready_tickets: Some(1),
             ready_stages: Some(3),
+            levels: Some(LevelCounts {
+                tickets: 11,
+                warrants: 1,
+                orders: 116,
+                unknown: 0,
+            }),
             awaiting_signature: Some(7),
             blocking_questions: Some(2),
             unknown: Vec::new(),
@@ -171,6 +201,7 @@ mod tests {
              Warrants: 145, 0 resolved\n\
              Tickets: 12 open\n\
              Ready: 1 ticket, 3 stages\n\
+             Open by level: 11 Tickets, 1 Warrant, 116 Orders\n\
              Awaiting a signature: 7\n\
              Blocking questions: 2\n\
              `war status --verbose` shows everything.\n"
@@ -185,6 +216,7 @@ mod tests {
             "Warrants: ?, ? resolved\n\
              Tickets: ? open\n\
              Ready: ? tickets, ? stages\n\
+             Open by level: ?\n\
              Awaiting a signature: ?\n\
              Blocking questions: ?\n\
              `war status --verbose` shows everything.\n"

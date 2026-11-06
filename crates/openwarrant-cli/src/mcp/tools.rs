@@ -1232,7 +1232,7 @@ impl WarServer {
     )]
     fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
         self.ticket("prime", None, |s| {
-            crate::ticket::prime(s, p.ticket.as_deref())
+            crate::ticket::prime(&self.repo, s, p.ticket.as_deref())
         })
     }
 
@@ -1315,8 +1315,8 @@ impl WarServer {
             epic: p.epic,
         };
         self.ticket("tickets", None, |s| {
-            let others = crate::ticket::Others::of(&self.repo)?;
-            crate::ticket::list(s, &others, &filter)
+            let work = crate::work::Work::read_with(&self.repo, s);
+            crate::ticket::list(s, &work, &filter)
         })
     }
 

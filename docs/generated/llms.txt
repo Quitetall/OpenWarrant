@@ -467,6 +467,10 @@
 > -
 - doc:docs/design/native-verifier-exec-contention.md · document · - · Native verifier startup contention · docs/design/native-verifier-exec-contention.md:1
 
+## docs/design/one-view.md
+> -
+- doc:docs/design/one-view.md · document · - · One record, one view (W1.1, first slice) · docs/design/one-view.md:1
+
 ## docs/design/openwarrant-friction.md
 > -
 - doc:docs/design/openwarrant-friction.md · document · - · OpenWarrant: less friction, safer AI implementation · docs/design/openwarrant-friction.md:1
