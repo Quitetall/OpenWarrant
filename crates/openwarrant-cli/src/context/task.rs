@@ -218,6 +218,23 @@ pub fn repository(
     repo: &crate::repo::Repository,
     target: &str,
 ) -> Result<TaskPacket, crate::repo::RepoError> {
+    Ok(given(repo, target)?.packet)
+}
+
+/// A packet, with what `war start` keeps beside its claim (t-3c16c W3).
+pub struct Given {
+    pub packet: TaskPacket,
+    /// Each unit's exact text, by id.
+    pub text: BTreeMap<String, String>,
+    /// What else reaches the work: by a relation, or by declared paths.
+    pub reach: Vec<crate::impact::Reach>,
+}
+
+/// [`repository`], and what reaches the target from outside its packet.
+pub fn given(
+    repo: &crate::repo::Repository,
+    target: &str,
+) -> Result<Given, crate::repo::RepoError> {
     let corpus = crate::corpus::Corpus::new(repo);
     let model = crate::model::build(&corpus)?;
     let mut graph = super::adapter::graph(&corpus, &model);
@@ -340,12 +357,23 @@ pub fn repository(
             }),
         }
     }
-    compile(&graph, target, |path| {
+    let packet = compile(&graph, target, |path| {
         crate::vfs::read_regular_to_string(
             repo.root.as_std_path(),
             repo.root.join(path).as_std_path(),
         )
         .map_err(|e| e.to_string())
     })
-    .map_err(|e| crate::repo::RepoError::Message(e.to_string()))
+    .map_err(|e| crate::repo::RepoError::Message(e.to_string()))?;
+    let text = packet
+        .source_manifest
+        .iter()
+        .filter_map(|e| Some((e.id.clone(), graph.units.get(&e.id)?.text.clone()?)))
+        .collect();
+    let reach = crate::impact::reaching(&model, &graph, target, &packet.source_manifest);
+    Ok(Given {
+        packet,
+        text,
+        reach,
+    })
 }

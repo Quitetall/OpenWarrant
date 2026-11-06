@@ -325,8 +325,8 @@ pub fn run(
     } else {
         node.split('/').next().unwrap_or(&node)
     };
-    let context = match crate::context::task::repository(&wt_repo, context_target) {
-        Ok(packet) => packet,
+    let given = match crate::context::task::given(&wt_repo, context_target) {
+        Ok(given) => given,
         Err(error) => {
             report.push(Diagnostic::error(
                 "context.required-missing",
@@ -336,6 +336,30 @@ pub fn run(
             return Ok((report, serde_json::Value::Null, String::new()));
         }
     };
+    // W3: what it was given stays beside its claim. A Warrant's stage holds
+    // no claim to keep it beside.
+    let changes = if crate::ticket::is_ticket_ref(&node) {
+        let (ticket, _) = openwarrant_core::ticket::split_record_id(&node);
+        crate::ticket::live::started(
+            &store,
+            &wt_repo.root,
+            ticket,
+            &given.packet,
+            &given.text,
+            &given.reach,
+        )
+        .unwrap_or_else(|e| {
+            report.push(Diagnostic::warn(
+                "notices.unavailable",
+                node.clone(),
+                format!("what this claim was given could not be kept: {e}"),
+            ));
+            Vec::new()
+        })
+    } else {
+        Vec::new()
+    };
+    let context = given.packet;
     // The session's settings: inside the worktree, and nowhere else.
     let mut wrote = Vec::new();
     let allowed = if crate::ticket::is_ticket_ref(&node) {
@@ -411,7 +435,11 @@ pub fn run(
         wrote.push(session_path.to_string());
     }
     // The brief: the same context `war evidence go` hands a performer.
-    let brief = brief_for(&node, &title, &worktree, &branch, &base, &allowed, &actor);
+    let mut brief = brief_for(&node, &title, &worktree, &branch, &base, &allowed, &actor);
+    if !changes.is_empty() {
+        brief.push('\n');
+        brief.push_str(&crate::ticket::live::render(&node, &changes));
+    }
     let argv = proc::fill(
         &policy.start_argv,
         &[

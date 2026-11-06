@@ -39,6 +39,7 @@ pub mod checks;
 pub mod claim;
 pub mod format;
 pub mod ladder;
+pub mod live;
 pub mod merge;
 pub mod parts;
 pub mod remote;
@@ -3437,11 +3438,37 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
                 .unwrap_or_else(|| store.root.clone())
         });
     let repository = Repository::discover(Some(workspace.clone()))?;
-    let context = crate::context::task::repository(&repository, tickets[index].id())?;
+    let given = crate::context::task::given(&repository, tickets[index].id())?;
     let mut answer = render::brief(store, &tickets, &tickets[index], &store.actor);
+    // W3: what it was given stays beside its claim; a resumption sees only
+    // what changed since.
+    let id = tickets[index].id();
+    let changes = match live::started(
+        store,
+        &repository.root,
+        id,
+        &given.packet,
+        &given.text,
+        &given.reach,
+    ) {
+        Ok(changes) => changes,
+        Err(e) => {
+            answer.report.push(Diagnostic::warn(
+                "notices.unavailable",
+                id.to_owned(),
+                format!("what this claim was given could not be kept: {e}"),
+            ));
+            Vec::new()
+        }
+    };
     answer.result["context"] =
-        serde_json::to_value(context).map_err(|e| RepoError::Message(e.to_string()))?;
+        serde_json::to_value(given.packet).map_err(|e| RepoError::Message(e.to_string()))?;
     answer.result["workspace"] = serde_json::json!(workspace.as_str());
+    if !changes.is_empty() {
+        answer.human = live::render(id, &changes);
+        answer.result["changed"] =
+            serde_json::to_value(&changes).map_err(|e| RepoError::Message(e.to_string()))?;
+    }
     if workspace != store.root {
         answer.human.push_str(&format!("\nworkspace: {workspace}"));
     }

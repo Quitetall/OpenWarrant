@@ -306,6 +306,39 @@ merge with git's built-in `merge=union`. `war init` writes both
 made since, run `war admin merge-ticket --install` once. Without the driver git
 merges these files as text, as before.
 
+### When something changes under you
+
+`war start` keeps what a claim was given beside the claim, as
+`given/<lock>.json` in the claims directory: the packet's `source_manifest`, the digest of each
+file, and the digest of each file that reaches the work from outside the
+packet, by a relation, by the ticket's text naming it, or by overlapping
+declared `paths`. A relation or a ticket added after the claim started is
+found by `war start` and `war plan impact`, not before.
+
+A change counts when it is on the default branch (`origin/HEAD`, else `main`,
+else `master`): in the working tree of a checkout on that branch, committed or
+not, or at that branch's tip, seen from any other worktree. A side branch is a
+proposal and tells nobody. It is looked for at every `war` write and in `war
+check --changed`, comparing digests, so plain edits count once one of those runs.
+A file is no news to a claim when the default branch has not moved it since the
+claim's line left it, when the claim's workspace already holds those bytes, or
+when it is the actor's own edit in its own workspace.
+
+A notice is a file under `<git common dir>/openwarrant/notices/`, which every
+worktree sees. Only the claim's actor, in the claim's workspace, hears it:
+
+    notice: docs/plan.md changed on main; run `war start t-1a2b`.
+
+That line comes once, on stderr, at the end of the next `war` call, or in `notes`
+under `--json` and over MCP; several changes are one line. `war view prime` shows
+it until it is seen. `war start` prints only the changes, with a bounded diff,
+in place of the brief, and records them as seen. `war done` does not look at them
+yet.
+
+A notice problem never fails a command: a read ignores it, a write warns
+(`notices.unavailable`). Notices are off in a hosted or recording run and under
+`OPENWARRANT_NO_NOTICES`. They are coordination, and sign nothing.
+
 ### Writes that say what they read
 
 `war done`, `edit`, `note`, `add` and `release` take `--if-rev <revision>`

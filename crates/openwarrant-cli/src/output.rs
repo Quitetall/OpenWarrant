@@ -400,6 +400,9 @@ fn envelope_with_status(
     result: Option<serde_json::Value>,
     status: u8,
 ) -> String {
+    // W3: an owed notice rides in `notes`, where a reader of the JSON sees it.
+    let mut notes = report.notes.clone();
+    notes.extend(crate::ticket::live::take_line());
     let e = Envelope {
         schema: SCHEMA,
         command,
@@ -414,7 +417,7 @@ fn envelope_with_status(
                 remedy: crate::remedy::remedy_for(d),
             })
             .collect(),
-        notes: &report.notes,
+        notes: &notes,
         counts: Counts {
             pass: report.count(Severity::Pass),
             warn: report.count(Severity::Warn),

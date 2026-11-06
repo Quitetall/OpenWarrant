@@ -1608,16 +1608,27 @@ impl WarServer {
         // M11: every ticket tool call renews the acting agent's leases.
         let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| {
             s.renew_all();
-            run(&s)
+            let answer = run(&s);
+            // W3: a write looks for changes under running agents.
+            crate::ticket::live::after_served_write(&s, command);
+            answer
         });
         match outcome {
             Ok(o) => {
-                let said = cli_text(&o);
+                let mut said = cli_text(&o);
                 let text = crate::output::envelope(command, &o.report, Some(o.result));
                 let mut value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
                     McpError::internal_error(format!("envelope is not JSON: {e}"), None)
                 })?;
                 lean(&mut value);
+                // A notice the envelope carried is read in the text too.
+                if let Some(line) = value["notes"].as_array().and_then(|n| {
+                    n.iter()
+                        .filter_map(serde_json::Value::as_str)
+                        .find(|l| l.starts_with("notice: "))
+                }) {
+                    said = format!("{}\n{line}", said.trim_end());
+                }
                 let mut r = if o.report.is_ready() {
                     CallToolResult::structured(value)
                 } else {

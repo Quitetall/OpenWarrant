@@ -334,7 +334,10 @@ it is what its change reaches; what it points at is not), and lists
   (scope `declared`, below), each with the affected records it also
   selects. A projection that only names the record by id is not listed:
   its bytes do not move when the record does.
-- **inert**: namespaced relations into any of them, not walked.
+- **inert**: namespaced relations into any of them, not walked;
+- **claims**, when any is reached: the running work of this clone it reaches,
+  by a claim's manifest, by a relation, or by overlapping declared paths, with
+  the record or path that reached it. A claim it does not reach is not listed.
 
 An id that is no record of the model is refused, `impact.unknown-record`.
 Nothing is written, and nothing is cleared: a stale verdict is a record of
