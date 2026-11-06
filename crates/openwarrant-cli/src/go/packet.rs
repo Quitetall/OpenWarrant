@@ -39,8 +39,9 @@
 //! - cargo test -p parser
 //! ```
 //!
-//! A single-file ticket declares only `paths:` in its frontmatter (FORMAT-1.0
-//! 10.3). A directory Warrant's declared paths are its deliverables' files. With
+//! A single-file ticket declares the same three in its frontmatter: `paths:`
+//! (FORMAT-1.0 10.3), and `x.tools:` and `x.commands:`, which are extensions
+//! it lists in `requires:`. None of them changes how it ends. A directory Warrant's declared paths are its deliverables' files. With
 //! `[go] allowed_acts = "projected"`, `war start` writes them as the
 //! session's harness settings inside its worktree; with `declared`, they are
 //! shown and nothing is written.
@@ -127,9 +128,12 @@ pub fn parse_allowed(text: &str) -> Allowed {
 #[must_use]
 pub fn allowed_of_ticket(t: &Ticket) -> Allowed {
     if t.format {
+        use crate::ticket::checks;
+        let bytes = t.checklist_text.as_bytes();
         return Allowed {
-            paths: crate::ticket::checks::paths_of(t.checklist_text.as_bytes()),
-            ..Allowed::default()
+            tools: checks::declared(bytes, checks::TOOLS_KEY),
+            paths: checks::paths_of(bytes),
+            commands: checks::declared(bytes, checks::COMMANDS_KEY),
         };
     }
     crate::vfs::read_to_string(t.dir.join(ALLOWED_FILE))

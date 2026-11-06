@@ -1241,3 +1241,51 @@ sys.exit(1)
         .is_empty()
     );
 }
+
+#[test]
+fn a_ticket_declares_what_its_work_may_run_without_changing_how_it_ends() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    assert!(
+        Command::new("git")
+            .args(["init", "-q", "."])
+            .current_dir(root)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let war = |args: &[&str]| {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["--root", root.to_str().unwrap(), "--json"])
+            .args(args)
+            .current_dir(root)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env_remove("SSH_AUTH_SOCK")
+            .output()
+            .unwrap()
+    };
+    assert!(war(&["init", "--namespace", "TS"]).status.success());
+    let made = war(&[
+        "create",
+        "Scoped",
+        "--path",
+        "src/**",
+        "--tool",
+        "Read",
+        "--command",
+        "cargo test",
+    ]);
+    let v: serde_json::Value = serde_json::from_slice(&made.stdout).unwrap();
+    let id = v["result"]["id"].as_str().unwrap().to_owned();
+    let text = std::fs::read_to_string(root.join(format!("docs/tickets/{id}.md"))).unwrap();
+    for line in ["paths:", "x.tools:", "x.commands:", "requires:"] {
+        assert!(text.contains(line), "{text}");
+    }
+    assert!(text.contains("\"x.tools\"\n"), "{text}");
+    // A reader that understood `requires` still reads it, and it stays a Ticket.
+    let checked = war(&["check", &id]);
+    assert!(checked.status.success(), "{checked:?}");
+    let done = war(&["done", &id, "--note", "finished"]);
+    assert!(done.status.success(), "{done:?}");
+}
