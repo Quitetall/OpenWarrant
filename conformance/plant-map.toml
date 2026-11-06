@@ -220,11 +220,12 @@ plants = [
 name = "live updates"
 paths = [
     "crates/openwarrant-cli/src/ticket/live.rs",
+    "crates/openwarrant-cli/src/ticket/enforce.rs",
     "crates/openwarrant-cli/src/impact.rs",
 ]
 plants = [
-    "188-live-updates.sh", "79-host.sh", "77-typed-demo.sh", "121-instruction-records.sh",
-    "184-format-spec-acceptance.sh",
+    "188-live-updates.sh", "189-done-enforce.sh", "79-host.sh", "77-typed-demo.sh",
+    "121-instruction-records.sh", "184-format-spec-acceptance.sh",
 ]
 
 [[rule]]

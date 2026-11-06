@@ -36,6 +36,8 @@ mod dispatch_bundle_cli;
 mod doctor_cli;
 #[path = "document_draft.rs"]
 mod document_draft;
+#[path = "done_enforce_cli.rs"]
+mod done_enforce_cli;
 #[path = "eval_subject_cli.rs"]
 mod eval_subject_cli;
 #[path = "evidence_recorder.rs"]

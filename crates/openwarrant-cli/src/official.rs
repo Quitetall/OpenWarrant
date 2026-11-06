@@ -19,9 +19,9 @@
 //! it, and counts as no more than its title (`vibe`) when it does not.
 //!
 //! An approval binds a statement of the Warrant: its id, identity, title,
-//! description and items' text, and its tests. Ticking an item or adding a
-//! note leaves it standing; changing the plan does not, and the approval is
-//! then named stale.
+//! description and items' text, its tests, and what it declares its work may
+//! touch and run. Ticking an item or adding a note leaves it standing;
+//! changing the plan does not, and the approval is then named stale.
 //!
 //! Nothing here restricts work. An unofficial Warrant is worked, claimed and
 //! ticked like any other; officialness is what the PR gate reads.
@@ -107,6 +107,18 @@ pub fn statement(t: &Ticket) -> String {
             k.target,
             k.mode.as_str()
         ));
+    }
+    // What the work may touch and run is part of the plan. An item that
+    // declares none reads as it always did, so its approval stands.
+    let allowed = crate::go::packet::allowed_of_ticket(t);
+    for (key, values) in [
+        ("paths", &allowed.paths),
+        ("tools", &allowed.tools),
+        ("commands", &allowed.commands),
+    ] {
+        for value in values {
+            s.push_str(&format!("{key} {value}\n"));
+        }
     }
     s
 }

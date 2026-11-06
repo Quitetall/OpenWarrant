@@ -187,6 +187,14 @@ fn read_checks(t: &Ticket) -> Result<Checks, String> {
         .map_err(|e| e.to_string())
 }
 
+/// Whether `--check` on `item` (`None`, the whole ticket) has anything that
+/// could fail.
+#[must_use]
+pub fn decides(checks: &Checks, item: Option<&str>) -> bool {
+    let (tests, kpis) = checks.for_item(item);
+    !tests.is_empty() || kpis.iter().any(|k| k.gates())
+}
+
 /// The least `item` (or, `None`, the whole ticket) must reach, and which
 /// declaration says so.
 #[must_use]

@@ -332,10 +332,30 @@ worktree sees. Only the claim's actor, in the claim's workspace, hears it:
 That line comes once, on stderr, at the end of the next `war` call, or in `notes`
 under `--json` and over MCP; several changes are one line. `war view prime` shows
 it until it is seen. `war start` prints only the changes, with a bounded diff,
-in place of the brief, and records them as seen. `war done` does not look at them
-yet.
+in place of the brief, and records them as seen.
 
-A notice problem never fails a command: a read ignores it, a write warns
+`war done` holds a change to the item's level, and so a widening of the `paths`,
+`x.tools` and `x.commands` it declared at `war start`:
+
+| Level | A change it has not seen | A widening since `war start` |
+|---|---|---|
+| Ticket | warns and closes (`done.unseen`) | nothing |
+| Warrant | refused until seen (`done.unseen`), then its trigger runs | closes, flagged by name and journalled (`done.widened`, `work.scope_widened`) |
+| Order | as a Warrant | refused by name until a human signs a new revision (`done.order-widened`) |
+
+A change seen but not in the workspace is refused on a Warrant or an Order
+(`done.behind`): a trigger run there says nothing about the new state. Take the
+change in, by merging or otherwise, and `war done` again. A change to what was
+signed of an Order takes a new signature (`done.order-amended`); an Order nobody
+has signed yet is signed at its end, over what it says then, so it may be amended
+meanwhile. `war sign approve <id>` asks for that signature, and only a person can
+give it. If the level or whether a change reached the claim cannot be read, a
+Warrant or an Order answers `UNKNOWN` and stays open (`done.level-unknown`,
+`done.seen-unknown`, and `OPENWARRANT_NO_NOTICES` is no way past it), and a Ticket
+warns and closes. A Warrant or an Order claimed without `war start` has no record
+to compare, and says so (`done.unrecorded`).
+
+Otherwise a notice problem fails no command: a read ignores it, a write warns
 (`notices.unavailable`). Notices are off in a hosted or recording run and under
 `OPENWARRANT_NO_NOTICES`. They are coordination, and sign nothing.
 

@@ -40,6 +40,15 @@ Notable changes to OpenWarrant. Format loosely follows
   what changed and records it as seen; `war view prime` keeps the line until
   then. `war plan impact` names the claims a change reaches. See
   [Tickets](docs/TICKETS.md#when-something-changes-under-you).
+- `war done` holds a change and a widening to the item's level (t-3c16c W3).
+  A Ticket warns and closes. A Warrant is refused until the change is seen and
+  held, then runs its trigger on the new state; a widening of its `paths`,
+  `x.tools` or `x.commands` since `war start` is flagged and journalled. An
+  Order is held the same, and a widening or a change to what was signed is
+  refused until a human signs a new revision. What cannot be read answers
+  `UNKNOWN` on a Warrant or an Order and warns on a Ticket. An approval's
+  statement now binds what the item declares; an item that declares none reads
+  as it did, and an approval of one that does goes stale once.
 
 - `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
   a Warrant can be given its test in the command that makes it. It is the same
