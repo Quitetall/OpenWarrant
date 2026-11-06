@@ -178,6 +178,82 @@ pub fn listed() -> Vec<Row> {
         .collect()
 }
 
+/// Where the hub shows a project.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Tier {
+    /// A main checkout with records: Warrants or tickets.
+    Governed,
+    /// Any other project that is still there.
+    Other,
+    /// Gone, under a temporary directory, or a linked worktree of a project.
+    Hidden,
+}
+
+/// Whether `root` is scratch: under the system's temporary directory, or a
+/// directory named `tmp` or `temp`.
+fn scratch(root: &str, system_temp: &Utf8Path) -> bool {
+    let path = Utf8Path::new(root);
+    path.starts_with(system_temp)
+        || path.starts_with("/dev/shm")
+        || path
+            .components()
+            .any(|c| matches!(c.as_str(), "tmp" | "temp" | ".tmp"))
+}
+
+/// Whether `dir` holds an entry that is not hidden.
+fn holds_records(dir: &Utf8Path) -> bool {
+    std::fs::read_dir(dir).is_ok_and(|mut names| {
+        names.any(|e| e.is_ok_and(|e| !e.file_name().to_string_lossy().starts_with('.')))
+    })
+}
+
+/// A project's tier, from the list and a few stats: no record is read.
+#[must_use]
+pub fn tier(row: &Row, system_temp: &Utf8Path) -> Tier {
+    let root = Utf8Path::new(&row.root);
+    let git = root.join(".git");
+    // A linked worktree's `.git` is a file; its main checkout is the project.
+    if row.missing || git.is_file() || scratch(&row.root, system_temp) {
+        return Tier::Hidden;
+    }
+    if git.is_dir()
+        && (holds_records(&root.join("docs/warrants")) || holds_records(&root.join("docs/tickets")))
+    {
+        return Tier::Governed;
+    }
+    Tier::Other
+}
+
+/// What the hub lists: governed projects, then the others, each by name, and
+/// how many it left out. A list with nothing else to show shows what it hid
+/// rather than nothing, unless that is gone too.
+#[must_use]
+pub fn hub() -> (Vec<(Tier, Row)>, usize) {
+    let system_temp = std::env::temp_dir();
+    let system_temp = Utf8Path::from_path(&system_temp).unwrap_or(Utf8Path::new("/tmp"));
+    let mut rows: Vec<(Tier, Row)> = listed()
+        .into_iter()
+        .map(|r| (tier(&r, system_temp), r))
+        .collect();
+    if rows.iter().all(|(t, _)| *t == Tier::Hidden) {
+        for (t, r) in &mut rows {
+            if !r.missing {
+                *t = Tier::Other;
+            }
+        }
+    }
+    let before = rows.len();
+    rows.retain(|(t, _)| *t != Tier::Hidden);
+    rows.sort_by(|(a, x), (b, y)| {
+        let name = |r: &Row| r.program.clone().unwrap_or_default().to_lowercase();
+        a.cmp(b)
+            .then_with(|| name(x).cmp(&name(y)))
+            .then_with(|| x.root.cmp(&y.root))
+    });
+    let hidden = before - rows.len();
+    (rows, hidden)
+}
+
 /// The fingerprint `war view watch` keeps for a project, or `None` when it no
 /// longer opens.
 #[must_use]
@@ -353,4 +429,73 @@ pub fn summary(r: &Row) -> String {
             .as_deref()
             .map_or_else(String::new, |e| format!(" · unreadable: {e}"))
     )
+}
+
+#[cfg(test)]
+mod tier_tests {
+    use super::*;
+
+    fn row(root: &Utf8Path) -> Row {
+        Row {
+            root: root.to_string(),
+            last_seen: String::new(),
+            missing: false,
+            program: None,
+            namespace: None,
+            branch: None,
+            sas: None,
+            pending: None,
+            blocking: None,
+            warrants: None,
+            resolved: None,
+            phases: None,
+            phases_achieved: None,
+            fingerprint: None,
+            unreadable: None,
+        }
+    }
+
+    fn at() -> (tempfile::TempDir, Utf8PathBuf) {
+        let dir = tempfile::tempdir().unwrap();
+        let root = Utf8PathBuf::from_path_buf(dir.path().join("work/repo")).unwrap();
+        std::fs::create_dir_all(root.join(".git")).unwrap();
+        (dir, root)
+    }
+
+    const ELSEWHERE: &str = "/nowhere-temporary";
+
+    #[test]
+    fn a_main_checkout_with_records_is_governed_and_one_without_is_not() {
+        let (_dir, root) = at();
+        let elsewhere = Utf8Path::new(ELSEWHERE);
+        assert_eq!(tier(&row(&root), elsewhere), Tier::Other);
+        std::fs::create_dir_all(root.join("docs/tickets")).unwrap();
+        std::fs::write(root.join("docs/tickets/.gitkeep"), "").unwrap();
+        assert_eq!(tier(&row(&root), elsewhere), Tier::Other);
+        std::fs::write(root.join("docs/tickets/t-a.md"), "x").unwrap();
+        assert_eq!(tier(&row(&root), elsewhere), Tier::Governed);
+    }
+
+    #[test]
+    fn missing_scratch_and_linked_worktrees_are_hidden() {
+        let (_dir, root) = at();
+        std::fs::create_dir_all(root.join("docs/warrants/OW-WAR-0001")).unwrap();
+        let elsewhere = Utf8Path::new(ELSEWHERE);
+        let mut gone = row(&root);
+        gone.missing = true;
+        assert_eq!(tier(&gone, elsewhere), Tier::Hidden);
+        assert_eq!(tier(&row(&root), root.parent().unwrap()), Tier::Hidden);
+        std::fs::remove_dir_all(root.join(".git")).unwrap();
+        std::fs::write(root.join(".git"), "gitdir: elsewhere\n").unwrap();
+        assert_eq!(tier(&row(&root), elsewhere), Tier::Hidden);
+    }
+
+    #[test]
+    fn a_directory_named_tmp_is_scratch_and_a_name_that_contains_it_is_not() {
+        let system = Utf8Path::new(ELSEWHERE);
+        assert!(scratch("/mnt/4tb/tmp/ow-land", system));
+        assert!(scratch("/dev/shm/ow-a6", system));
+        assert!(!scratch("/mnt/4tb/tmpfs-tools", system));
+        assert!(!scratch("/home/me/Projects/OpenWarrant", system));
+    }
 }
