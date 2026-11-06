@@ -14,7 +14,8 @@
 //!
 //! A change counts once it is on the default branch: the working tree of a
 //! checkout on that branch, committed or not, or that branch's tip seen from
-//! any other worktree. A side branch is a proposal, and two agents touching the
+//! any other worktree, whichever of the local branch and `origin`'s is further
+//! ahead. A side branch is a proposal, and two agents touching the
 //! same file on two branches stay a merge matter. It is looked for at every
 //! `war` write and in `check --changed`, by comparing digests: no process
 //! runs unless a digest differs. A difference is news only when the default
@@ -218,10 +219,9 @@ pub fn held(store: &Store) -> Vec<(claim::Claim, Option<Kept>)> {
 
 // ---- git, by what it costs ------------------------------------------------
 
-/// `<common>/refs/heads/<branch>`, loose or packed. No process.
-fn ref_sha(common: &Utf8Path, branch: &str) -> Option<String> {
-    let name = format!("refs/heads/{branch}");
-    if let Ok(text) = std::fs::read_to_string(common.join(&name)) {
+/// `<common>/<name>`, loose or packed. No process.
+fn ref_sha(common: &Utf8Path, name: &str) -> Option<String> {
+    if let Ok(text) = std::fs::read_to_string(common.join(name)) {
         return Some(text.trim().to_owned());
     }
     let packed = std::fs::read_to_string(common.join("packed-refs")).ok()?;
@@ -231,8 +231,27 @@ fn ref_sha(common: &Utf8Path, branch: &str) -> Option<String> {
     })
 }
 
+/// The further ahead of a branch here and on `origin`. Work in worktrees can
+/// leave the local branch long behind what was fetched, so the local ref alone
+/// would hear of nothing. One process, and only when the two differ.
+fn newest_tip(common: &Utf8Path, root: &Utf8Path, branch: &str) -> Option<String> {
+    let local = ref_sha(common, &format!("refs/heads/{branch}"));
+    let fetched = ref_sha(common, &format!("refs/remotes/origin/{branch}"));
+    match (local, fetched) {
+        (Some(l), Some(f)) if l != f => {
+            let behind = std::process::Command::new("git")
+                .args(["-C", root.as_str(), "merge-base", "--is-ancestor", &l, &f])
+                .output()
+                .is_ok_and(|o| o.status.success());
+            Some(if behind { f } else { l })
+        }
+        (Some(l), _) => Some(l),
+        (None, f) => f,
+    }
+}
+
 /// The branch `origin/HEAD` names, else `main`, else `master`, with its tip.
-fn default_branch(common: &Utf8Path) -> Option<(String, String)> {
+fn default_branch(common: &Utf8Path, root: &Utf8Path) -> Option<(String, String)> {
     let origin = std::fs::read_to_string(common.join("refs/remotes/origin/HEAD"))
         .ok()
         .and_then(|t| {
@@ -243,7 +262,7 @@ fn default_branch(common: &Utf8Path) -> Option<(String, String)> {
     origin
         .into_iter()
         .chain(["main".to_owned(), "master".to_owned()])
-        .find_map(|b| ref_sha(common, &b).map(|sha| (b, sha)))
+        .find_map(|b| newest_tip(common, root, &b).map(|sha| (b, sha)))
 }
 
 /// The branch checked out at `toplevel`, read from git's own files.
@@ -415,7 +434,7 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
             }
         }
     }
-    let Some((branch, tip)) = default_branch(&layout.common_dir) else {
+    let Some((branch, tip)) = default_branch(&layout.common_dir, &layout.toplevel) else {
         return Ok(0);
     };
     let here = scopes::workspace(store);
@@ -1147,5 +1166,47 @@ mod tests {
             BTreeSet::new(),
         ));
         assert!(!crate::vfs::hosted(tree, enabled));
+    }
+}
+
+#[cfg(test)]
+mod newest_tip_tests {
+    use super::*;
+
+    fn git(root: &Utf8Path, args: &[&str]) -> String {
+        let out = std::process::Command::new("git")
+            .args(["-C", root.as_str()])
+            .args(["-c", "user.name=t", "-c", "user.email=t@example.com"])
+            .args(["-c", "commit.gpgsign=false"])
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "{args:?}");
+        String::from_utf8_lossy(&out.stdout).trim().to_owned()
+    }
+
+    #[test]
+    fn the_further_ahead_of_here_and_origin_is_the_tip_and_neither_alone_is_lost() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = Utf8Path::from_path(dir.path()).unwrap();
+        git(root, &["init", "-q", "-b", "main", "."]);
+        git(root, &["commit", "-q", "--allow-empty", "-m", "one"]);
+        let one = git(root, &["rev-parse", "HEAD"]);
+        git(root, &["commit", "-q", "--allow-empty", "-m", "two"]);
+        let two = git(root, &["rev-parse", "HEAD"]);
+        let common = root.join(".git");
+        // Nothing fetched: the local branch.
+        assert_eq!(newest_tip(&common, root, "main").unwrap(), two);
+        // Origin behind: still the local branch, which holds unpushed work.
+        git(root, &["update-ref", "refs/remotes/origin/main", &one]);
+        assert_eq!(newest_tip(&common, root, "main").unwrap(), two);
+        // Local behind what was fetched: origin's.
+        git(root, &["update-ref", "refs/remotes/origin/main", &two]);
+        git(root, &["reset", "-q", "--hard", &one]);
+        assert_eq!(newest_tip(&common, root, "main").unwrap(), two);
+        // No local branch of that name: what was fetched.
+        git(root, &["update-ref", "refs/remotes/origin/other", &two]);
+        assert_eq!(newest_tip(&common, root, "other").unwrap(), two);
+        assert_eq!(newest_tip(&common, root, "none"), None);
     }
 }
