@@ -133,7 +133,7 @@ rp_sign() {
 RP_REV0=$(cat "$RP_TMP/rev0")
 RP_T=$(awk 'NR==1{print $1}' "$RP_TMP/ticket")
 RP_I=$(sed -n 's/^- \[ \] Expire tokens after issue (implements REQ-pr1) (\(i-[0-9a-f]*\))$/\1/p' \
-    "$RP_ROOT/docs/tickets/$RP_T/atoms/15-checklist.md")
+    "$RP_ROOT/docs/tickets/$RP_T.md")
 [[ -n "$RP_T" && -n "$RP_I" ]] || { printf 'PLANT SETUP FAILED: no ticket item (%s)\n' "$(cat "$RP_TMP/ticket")" >&2; exit 9; }
 
 # 1. The records parse: every heading a record of its type, every relation
