@@ -1,0 +1,319 @@
+# SPDX-License-Identifier: Apache-2.0
+#
+# Which plant files a changed path can touch, for Fast CI (`plant-select.py
+# affected`). A plant found days after the code that broke it is the cost of not
+# running plants on a pull request; a map that quietly skips one is the cost of
+# running them carelessly. So this file only ever narrows, and only where a rule
+# says so:
+#
+#   - A changed plant file always selects itself; no rule is needed.
+#   - A path no rule names selects EVERY plant, with a warning on the pull
+#     request. An unknown file is a question, and it is answered by running more.
+#   - A plant no rule names runs on every change, so a new plant is covered from
+#     its first commit. Map it when it gets in the way.
+#   - `plants = ["*"]` is every plant. `plants = []` says no plant reads the path:
+#     the rule must be true, and 187-plant-selection.sh checks each such path
+#     against the text of the plants.
+#
+# A rule states what a change is LIKELY to break, not what it could. Any Rust
+# change can in principle reach any plant, and this tier makes no claim about
+# plants it did not run: the full gate (`cargo xtask gate`, nightly and before
+# a pin) runs all of them. When unsure, leave a path out of every rule.
+#
+# Paths: `*` stops at a slash, `**` does not. Plants: shell globs over file names.
+# `plant-select.py check-map` refuses a rule that names nothing real.
+
+# ---- every plant -----------------------------------------------------------
+
+[[rule]]
+name = "the battery itself"
+paths = ["conformance/lib.sh", "conformance/plant.sh", "conformance/plant-isolated.sh"]
+plants = ["*"]
+
+[[rule]]
+name = "the build"
+paths = [
+    "Cargo.lock", "Cargo.toml", "rust-toolchain.toml", ".cargo/config.toml",
+    "crates/*/Cargo.toml", "crates/*/build.rs",
+]
+plants = ["*"]
+
+# Every `war` reaches these. A module is here when ten or more others use it,
+# which is what `crate::<module>` said when this list was written; a leaf module
+# that grows callers belongs here.
+[[rule]]
+name = "foundations"
+paths = [
+    "crates/openwarrant-core/**",
+    "crates/openwarrant-compiler/**",
+    "crates/openwarrant-agent/**",
+    "crates/openwarrant-cli/src/main.rs",
+    "crates/openwarrant-cli/src/lib.rs",
+    "crates/openwarrant-cli/src/repo.rs",
+    "crates/openwarrant-cli/src/diagnostic.rs",
+    "crates/openwarrant-cli/src/vfs.rs",
+    "crates/openwarrant-cli/src/corpus.rs",
+    "crates/openwarrant-cli/src/check.rs",
+    "crates/openwarrant-cli/src/compile.rs",
+    "crates/openwarrant-cli/src/output.rs",
+    "crates/openwarrant-cli/src/atomic.rs",
+    "crates/openwarrant-cli/src/gate_cmd.rs",
+    "crates/openwarrant-cli/src/journal_cmd.rs",
+    "crates/openwarrant-cli/src/sign.rs",
+    "crates/openwarrant-cli/src/authority_check.rs",
+    "crates/openwarrant-cli/src/authorize.rs",
+    "crates/openwarrant-cli/src/resolve.rs",
+    "crates/openwarrant-cli/src/resolution_cmd.rs",
+    "crates/openwarrant-cli/src/evidence.rs",
+    "crates/openwarrant-cli/src/evidence/**",
+    "crates/openwarrant-cli/src/init/**",
+    "crates/openwarrant-cli/src/status.rs",
+    "crates/openwarrant-cli/src/ticket/**",
+    "crates/openwarrant-cli/src/format_doc.rs",
+    "crates/openwarrant-cli/src/records.rs",
+    "crates/openwarrant-cli/src/model.rs",
+]
+plants = ["*"]
+
+# The records many plants run against, and what `war check` reads in them.
+[[rule]]
+name = "the corpus"
+paths = [
+    "docs/warrants/**", "docs/tickets/**", "docs/authority/**", "docs/evidence/**",
+    "docs/adr/**", "docs/gates/**", "docs/sas/**", "docs/roadmap/**", "docs/generated/**",
+    "openwarrant.toml", "openwarrant.toml.example", "profiles/**", "docs/types.toml",
+]
+plants = ["*"]
+
+# ---- the selection and the workflows ---------------------------------------
+
+[[rule]]
+name = "the plant selection"
+paths = [
+    "conformance/plant-select.py", "conformance/plant-map.toml", "conformance/plant-weights.tsv",
+    ".github/workflows/fast.yml", ".github/workflows/ci.yml",
+]
+plants = ["187-plant-selection.sh"]
+
+# ---- command modules, each with the plants that drive it --------------------
+
+[[rule]]
+name = "web ui"
+paths = [
+    "crates/openwarrant-cli/src/webui/**",
+    "crates/openwarrant-cli/src/board.rs", "crates/openwarrant-cli/src/overview.rs",
+]
+plants = ["*webui*.sh", "69-board-tree-reads.sh", "69-overview-tree-reads.sh", "110-tick-ladder.sh"]
+
+[[rule]]
+name = "tui"
+paths = ["crates/openwarrant-cli/src/tui/**"]
+plants = ["97-tui.sh"]
+
+[[rule]]
+name = "mcp"
+paths = ["crates/openwarrant-cli/src/mcp/**"]
+plants = ["72-mcp.sh", "66-json.sh", "73-plugin.sh", "73-capabilities.sh"]
+
+[[rule]]
+name = "go"
+paths = [
+    "crates/openwarrant-cli/src/go/**",
+    "crates/openwarrant-cli/src/graph.rs", "crates/openwarrant-cli/src/frontier.rs",
+    "conformance/fixtures/go/**",
+]
+plants = ["16?-go-*.sh", "86-run.sh"]
+
+[[rule]]
+name = "perform and run"
+paths = [
+    "crates/openwarrant-cli/src/perform.rs", "crates/openwarrant-cli/src/run_cmd.rs",
+    "crates/openwarrant-cli/src/telemetry.rs", "crates/openwarrant-cli/src/telemetry/**",
+    "conformance/fixtures/performer/**", "conformance/fixtures/telemetry/**",
+    "tools/performer/**",
+]
+plants = [
+    "52-hotline-defaults.sh", "60-perform-cancel.sh", "95-perform.sh", "86-run.sh",
+    "84-derived-telemetry.sh", "83-tokens.sh", "160-go-graph.sh",
+]
+
+[[rule]]
+name = "verifier and bundles"
+paths = [
+    "crates/openwarrant-cli/src/verify.rs", "crates/openwarrant-cli/src/verify/**",
+    "crates/openwarrant-cli/src/bundle.rs", "crates/openwarrant-cli/src/bundle/**",
+    "crates/openwarrant-cli/src/dispatch_bundle_cmd.rs",
+    "conformance/fixtures/verifier/**", "conformance/fixtures/inbox/**",
+    "tools/verifier/**",
+]
+plants = [
+    "62-verifier.sh", "47-bundle-output.sh", "84-bundle-budget.sh", "84-budget-dispatch.sh",
+    "84-direct-verdicts.sh", "84-verify-bundle.sh", "84-local-verifier-transport.sh",
+    "55-evidence-verifications.sh", "56-acceptance-validity.sh", "57-teams.sh",
+    "69-idempotency.sh", "83-dispatch-admission.sh",
+]
+
+[[rule]]
+name = "ledger"
+paths = ["crates/openwarrant-cli/src/ledger/**"]
+plants = ["172-ledger.sh", "173-ledger-interop.sh", "171-score-floor.sh"]
+
+[[rule]]
+name = "score"
+paths = ["crates/openwarrant-cli/src/score/**"]
+plants = ["170-score.sh", "171-score-floor.sh"]
+
+[[rule]]
+name = "interop"
+paths = [
+    "crates/openwarrant-cli/src/interop/**",
+    "conformance/fixtures/interop/**",
+]
+plants = ["104-import.sh", "105-read-in-place.sh"]
+
+[[rule]]
+name = "the file format"
+paths = [
+    "docs/format/**", "schemas/format/**", "conformance/format/**", "conformance/schemas/**",
+    "crates/openwarrant-cli/src/spec_accept.rs", "crates/openwarrant-cli/src/spec_migrate.rs",
+]
+plants = [
+    "100-format-tracking.sh", "106-format-checks.sh", "178-*.sh", "182-format-schemas.sh",
+    "183-format-corpus.sh", "184-*.sh",
+]
+
+[[rule]]
+name = "schema pack"
+paths = [
+    "schemas/**", "crates/openwarrant-cli/src/schemas.rs", "crates/openwarrant-cli/src/schema_typescript.rs",
+]
+plants = ["89-schemas.sh", "176-native-schema-pack.sh", "182-format-schemas.sh"]
+
+[[rule]]
+name = "agent guidance"
+paths = [
+    ".claude/**", ".agents/**", ".claude-plugin/**", ".mcp.json", "AGENTS.md", "CONTEXT.md",
+    "docs/agents/**", "docs/SKILLS.md", "conformance/agent-text/**", "conformance/skills/**",
+    "crates/openwarrant-cli/src/instructions.rs", "crates/openwarrant-cli/src/skew.rs",
+]
+plants = [
+    "68-agents-md.sh", "73-plugin.sh", "90-skills.sh", "97-pins.sh", "99-init.sh",
+    "101-agent-text.sh", "101-ordinary-work.sh", "12?-instruction-*.sh", "144-notify.sh",
+    "165-go-start.sh", "98-ownership.sh", "110-tick-ladder.sh",
+]
+
+[[rule]]
+name = "context and tokens"
+paths = [
+    "crates/openwarrant-cli/src/context/**",
+    "crates/openwarrant-cli/src/context_select.rs",
+]
+plants = ["82-context.sh", "179-context.sh", "184-format-context-apply.sh", "186-token-budget.sh"]
+
+[[rule]]
+name = "plan and intake"
+paths = [
+    "crates/openwarrant-cli/src/plan.rs", "crates/openwarrant-cli/src/plan_records.rs",
+    "crates/openwarrant-cli/src/intake.rs", "crates/openwarrant-cli/src/questions.rs",
+    "conformance/fixtures/drafter/**", "conformance/fixtures/proposals/**", "tools/drafting/**",
+]
+plants = ["54-intake.sh", "71-plan.sh", "80-plan-records.sh", "87-eval.sh", "91-questions.sh", "00-corpus.sh"]
+
+[[rule]]
+name = "standing authorization"
+paths = ["crates/openwarrant-cli/src/standing_cmd.rs"]
+plants = ["69-standing.sh"]
+
+[[rule]]
+name = "corrections"
+paths = ["crates/openwarrant-cli/src/correct.rs"]
+plants = ["64-corrections.sh", "94-requirement-three.sh"]
+
+[[rule]]
+name = "pins"
+paths = ["crates/openwarrant-cli/src/pins.rs"]
+plants = ["97-pins.sh", "67-pins-next.sh", "76-pinned-batch.sh"]
+
+[[rule]]
+name = "attest"
+paths = ["crates/openwarrant-cli/src/attest.rs"]
+plants = ["67-attest.sh", "58-invalidation.sh", "49-authorization-retained.sh"]
+
+[[rule]]
+name = "acceptance"
+paths = ["crates/openwarrant-cli/src/acceptance.rs"]
+plants = ["56-acceptance-validity.sh", "96-authority-consumers.sh"]
+
+[[rule]]
+name = "sas"
+paths = ["crates/openwarrant-cli/src/sas.rs", "crates/openwarrant-cli/src/sas_repin.rs"]
+plants = ["56-sas-sections.sh", "78-normative*.sh", "88-sas-repin.sh", "00-corpus.sh"]
+
+[[rule]]
+name = "batches"
+paths = ["crates/openwarrant-cli/src/batch_cmd.rs"]
+plants = ["96-batch.sh", "76-pinned-batch.sh", "84-batch-recovery.sh", "69-idempotency.sh", "143-release-batch.sh"]
+
+[[rule]]
+name = "release, gates on pull requests, notices"
+paths = [
+    "crates/openwarrant-cli/src/release_cmd.rs", "crates/openwarrant-cli/src/pr_gate.rs",
+    "crates/openwarrant-cli/src/notify.rs",
+]
+plants = ["142-pr-gate.sh", "143-*.sh", "144-notify.sh"]
+
+[[rule]]
+name = "update and install"
+paths = [
+    "install.sh", "docs/INSTALL.md",
+    "crates/openwarrant-cli/src/install.rs", "crates/openwarrant-cli/src/notice.rs",
+    "crates/openwarrant-cli/src/build_identity.rs",
+]
+plants = ["61-update.sh"]
+
+[[rule]]
+name = "host"
+paths = ["crates/openwarrant-cli/src/host.rs", "conformance/host/**"]
+plants = ["79-host.sh"]
+
+[[rule]]
+name = "instruction, preset and type packs"
+paths = [
+    "packs/**", "crates/openwarrant-cli/src/preset.rs", "crates/openwarrant-cli/src/types.rs",
+]
+plants = ["140-presets.sh", "141-roles.sh", "15?-*.sh"]
+
+[[rule]]
+name = "documents and runtime capture"
+paths = [
+    "crates/openwarrant-cli/src/document.rs", "crates/openwarrant-cli/src/document/**",
+    "crates/openwarrant-cli/src/runtime_capture.rs", "crates/openwarrant-cli/src/runtime_capture/**",
+    "conformance/fixtures/runtime-capture/**",
+]
+plants = ["85-*.sh", "84-runtime-basis.sh"]
+
+[[rule]]
+name = "scale budget"
+paths = ["tools/scale/**", "xtask/src/bin/scale-budget.rs", "docs/scale/**"]
+plants = ["174-scale-budget.sh", "52-retention.sh"]
+
+[[rule]]
+name = "ssh verdict cache"
+paths = ["crates/openwarrant-cli/src/ssh_verdicts.rs"]
+plants = ["181-ssh-verdict-cache.sh"]
+
+[[rule]]
+name = "the fast tier"
+paths = ["xtask/src/bin/fast-gate.rs", "xtask/Cargo.toml"]
+plants = ["90-skills.sh"]
+
+# ---- nothing reads these ----------------------------------------------------
+
+# Checked: 187-plant-selection.sh refuses a path here that a plant names.
+[[rule]]
+name = "no plant reads this"
+paths = [
+    "CODE_OF_CONDUCT.md", "LICENSE", "NOTICE", "SECURITY.md", ".gitignore", ".gitattributes",
+    "docs/releases/**", "docs/reviews/**", "archive/**",
+]
+plants = []

@@ -176,6 +176,41 @@ jobs:
       - run: cargo xtask gate --only plants
         env:
           OW_PLANT_SHARD: ${{ matrix.shard }}/4
+          OW_PLANT_REPORT: ${{ runner.temp }}/shard-${{ matrix.shard }}.report
+      # What this shard ran, kept even when it failed. A shard that died part
+      # way leaves no complete report, and `plants-total` refuses that.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: plant-report-${{ matrix.shard }}
+          path: ${{ runner.temp }}/shard-${{ matrix.shard }}.report
+          retention-days: 7
+          if-no-files-found: warn
+
+  # A green matrix proves each shard passed what it ran, not that the shards ran
+  # the battery. This reads what they say they ran: every plant file exactly
+  # once, every shard accounted for, and the battery's one total.
+  plants-total:
+    name: full / plants total
+    needs: plants
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          pattern: plant-report-*
+          path: plant-reports
+      - name: Every plant exactly once, and the total
+        run: python3 conformance/plant-select.py reports plant-reports --of 4 --weights-out "$RUNNER_TEMP/plant-weights.tsv"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        if: always()
+        with:
+          name: plant-weights
+          path: ${{ runner.temp }}/plant-weights.tsv
+          retention-days: 7
+          if-no-files-found: warn
 
   schemas:
     name: full / schemas
@@ -199,7 +234,7 @@ jobs:
   # The stable name. Passes only when every job above passed.
   full-gate:
     name: full-gate
-    needs: [build, lint, tests, corpus, plants, schemas]
+    needs: [build, lint, tests, corpus, plants, plants-total, schemas]
     if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -211,6 +246,7 @@ jobs:
           test "${{ needs.tests.result }}" = success
           test "${{ needs.corpus.result }}" = success
           test "${{ needs.plants.result }}" = success
+          test "${{ needs.plants-total.result }}" = success
           test "${{ needs.schemas.result }}" = success
 
   bonsai-report:
