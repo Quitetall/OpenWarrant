@@ -1314,10 +1314,7 @@ mod tests {
         assert_eq!(baseline::read(root, "d"), None, "a tree is declined");
         assert_eq!(baseline::read(root, "new\nline"), None);
         // Declining a tree dropped the reader; the next ask opens another.
-        assert_eq!(
-            baseline::read(root, "d/empty"),
-            Some(Some(String::new()))
-        );
+        assert_eq!(baseline::read(root, "d/empty"), Some(Some(String::new())));
         // A moved HEAD is another answer: nothing here is kept by path.
         std::fs::write(root.join("d/empty"), "more").unwrap();
         git(&["commit", "-qam", "d"]);
