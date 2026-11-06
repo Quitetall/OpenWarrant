@@ -224,6 +224,18 @@ fn frontmatter_profile(text: &str) -> Option<&str> {
     None
 }
 
+/// Only the single-file Warrants of `repo`, for a list that must not pay to
+/// read every document.
+#[must_use]
+pub fn warrant_documents(repo: &Repository) -> FormatDocs {
+    let mut out = FormatDocs {
+        profiles: profiles(repo),
+        ..FormatDocs::default()
+    };
+    work_documents(repo, Place::Warrant, &repo.warrants_dir(), &mut out);
+    out
+}
+
 /// Read every Format 1.0 document of `repo`.
 #[must_use]
 pub fn load(repo: &Repository) -> FormatDocs {
