@@ -721,6 +721,15 @@ impl Store {
     }
 
     fn load_every(&self, cached: bool) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        self.load_through(cache::Cache::open(self).filter(|_| cached).as_ref())
+    }
+
+    /// Every readable ticket and a diagnostic per unreadable one, through
+    /// `cache` when there is one.
+    fn load_through(
+        &self,
+        cache: Option<&cache::Cache>,
+    ) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
         let mut tickets = Vec::new();
         let mut faults = Vec::new();
         // Each ticket is a few small files read on their own, so the disk
@@ -728,7 +737,7 @@ impl Store {
         // order either way (`vfs::map_ordered`). Where this run may use the
         // ticket cache, it answers what is unchanged since it was read
         // (`cache`): the same tickets, faster.
-        let (entries, loaded) = match cache::Cache::open(self).filter(|_| cached) {
+        let (entries, loaded, pass) = match cache {
             Some(cache) => cache.load(self)?,
             None => {
                 let entries = self.entries()?;
@@ -736,7 +745,7 @@ impl Store {
                     crate::vfs::is_file(dir.join("manifest.toml"))
                         .then(|| self.load_observed(dir, &mut |_| {}))
                 });
-                (entries, loaded)
+                (entries, loaded, cache::Pass::default())
             }
         };
         // A directory no directory ticket was read from may hold a Format
@@ -755,8 +764,16 @@ impl Store {
                 }
             }
         }
+        let documents = self.format_documents(&entries, &|d| look.contains(d));
+        let read = match cache {
+            Some(cache) => cache.load_documents(self, &documents, pass),
+            None => documents
+                .into_iter()
+                .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias)))
+                .collect(),
+        };
         let mut any_format = false;
-        for one in self.format_tickets(&entries, &|d| look.contains(d)) {
+        for one in read {
             match one {
                 Ok(t) => {
                     any_format = true;

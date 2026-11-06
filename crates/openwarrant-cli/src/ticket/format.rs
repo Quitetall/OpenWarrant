@@ -254,16 +254,17 @@ impl Store {
         })
     }
 
-    /// Every Format 1.0 ticket of the store's directory among `entries`
-    /// (its sorted listing), and a diagnostic for each that cannot be
-    /// worked. `dirs_to_look_in` names the directories that may hold a
+    /// Every Format 1.0 ticket's alias and document among `entries` (the
+    /// store's sorted listing), and a diagnostic for each alias that cannot
+    /// be worked. `dirs_to_look_in` names the directories that may hold a
     /// `ticket.md` (those no directory ticket was read from): only those
-    /// are stat'ed.
-    pub(crate) fn format_tickets(
+    /// are stat'ed. Each document is read with [`Self::load_format`], or
+    /// answered by the ticket cache.
+    pub(crate) fn format_documents(
         &self,
         entries: &[Utf8PathBuf],
         dirs_to_look_in: &dyn Fn(&Utf8Path) -> bool,
-    ) -> Vec<Result<Ticket, Diagnostic>> {
+    ) -> Vec<Result<(String, Utf8PathBuf), Diagnostic>> {
         let mut found: Vec<(String, Utf8PathBuf)> = Vec::new();
         for path in entries {
             let Some(name) = path.file_name() else {
@@ -297,7 +298,7 @@ impl Store {
                 }
                 continue;
             }
-            out.push(self.load_format(file, alias));
+            out.push(Ok((alias.clone(), file.clone())));
             i += 1;
         }
         out
