@@ -125,10 +125,51 @@ jobs:
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
       - run: cargo xtask-fast --only schemas
 
+  # The planted violations a change is likely to break, found on the pull request
+  # instead of by the nightly gate days later. `plant-select.py` reads the change
+  # and conformance/plant-map.toml, and prints every decision: an unmapped path
+  # or a plant no rule names runs more, never fewer, and the cap names each plant
+  # it leaves out. Each leg computes the same answer alone. The cap keeps this a
+  # fast tier, so a pass here is not a full-gate pass; the full gate runs them all.
+  plants:
+    name: fast / plants ${{ matrix.shard }}/4
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: war-binary
+          path: target/debug/
+      - run: chmod +x target/debug/war
+      - name: Schema-validation dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/schema-validation"
+          "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
+          echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      # On a pull request HEAD^1 is the target branch; on main, the last commit.
+      - name: Select the plants this change touches
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          python3 conformance/plant-select.py affected --base HEAD^1 \
+            --shard "$SHARD/4" --cap 300 --out "$RUNNER_TEMP/plants.txt"
+      - name: Run them
+        env:
+          OW_PLANT_FILES: ${{ runner.temp }}/plants.txt
+        run: bash conformance/plant.sh
+
   # The required check. Passes only when every job above passed.
   fast-gate:
     name: fast-gate
-    needs: [build, lint, tests, corpus, schemas]
+    needs: [build, lint, tests, corpus, schemas, plants]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -140,3 +181,4 @@ jobs:
           test "${{ needs.tests.result }}" = success
           test "${{ needs.corpus.result }}" = success
           test "${{ needs.schemas.result }}" = success
+          test "${{ needs.plants.result }}" = success
