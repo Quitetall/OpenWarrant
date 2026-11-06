@@ -254,16 +254,43 @@ impl Store {
         })
     }
 
-    /// Every Format 1.0 ticket of the store's directory among `entries`
-    /// (its sorted listing), and a diagnostic for each that cannot be
-    /// worked. `dirs_to_look_in` names the directories that may hold a
+    /// The Format 1.0 document `query` (`t-x` or `t-x/i-y`, a unique prefix)
+    /// names, relative to the root, whether or not it can be worked: a
+    /// document the loop refuses is no [`Ticket`], so resolving against the
+    /// tickets would call it no record at all.
+    pub fn document_of(&self, query: &str) -> Result<Option<String>, crate::repo::RepoError> {
+        let prefix = query.trim().split('/').next().unwrap_or_default();
+        let mut found = Vec::new();
+        for path in self.entries()? {
+            let Some(name) = path.file_name() else {
+                continue;
+            };
+            if single_file(name).is_some_and(|alias| alias.starts_with(prefix)) {
+                found.push(self.rel(&path));
+            } else if ticket::is_ticket_id(name) && name.starts_with(prefix) {
+                let inner = path.join(INNER);
+                if crate::vfs::exists(&inner) {
+                    found.push(self.rel(&inner));
+                }
+            }
+        }
+        Ok(match found.as_mut_slice() {
+            [one] => Some(std::mem::take(one)),
+            _ => None,
+        })
+    }
+
+    /// Every Format 1.0 ticket's alias and document among `entries` (the
+    /// store's sorted listing), and a diagnostic for each alias that cannot
+    /// be worked. `dirs_to_look_in` names the directories that may hold a
     /// `ticket.md` (those no directory ticket was read from): only those
-    /// are stat'ed.
-    pub(crate) fn format_tickets(
+    /// are stat'ed. Each document is read with [`Self::load_format`], or
+    /// answered by the ticket cache.
+    pub(crate) fn format_documents(
         &self,
         entries: &[Utf8PathBuf],
         dirs_to_look_in: &dyn Fn(&Utf8Path) -> bool,
-    ) -> Vec<Result<Ticket, Diagnostic>> {
+    ) -> Vec<Result<(String, Utf8PathBuf), Diagnostic>> {
         let mut found: Vec<(String, Utf8PathBuf)> = Vec::new();
         for path in entries {
             let Some(name) = path.file_name() else {
@@ -297,7 +324,7 @@ impl Store {
                 }
                 continue;
             }
-            out.push(self.load_format(file, alias));
+            out.push(Ok((alias.clone(), file.clone())));
             i += 1;
         }
         out

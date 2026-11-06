@@ -95,7 +95,7 @@ for w in "${!SP_HOME[@]}"; do
     [[ $hro -eq 0 && $hrn -eq 0 && "$ho" == "$hn" ]] || SP_HBAD="$SP_HBAD $w"
 done
 SP_WRONG=$(sp admin board 2>&1); SP_WRONG_RC=$?
-if [[ -z "$SP_HBAD" && $SP_HN -eq 73 && $SP_WRONG_RC -eq 2 ]] && grep -q "unrecognized subcommand 'board'" <<<"$SP_WRONG"; then
+if [[ -z "$SP_HBAD" && $SP_HN -eq 80 && $SP_WRONG_RC -eq 2 ]] && grep -q "unrecognized subcommand 'board'" <<<"$SP_WRONG"; then
     sp_ok "each old spelling is its member" "$SP_HN spellings: the same help under the group; \`war admin board\` refused"
 else
     sp_fail "each old spelling is its member" "$SP_HN checked, help differs:$SP_HBAD; admin board exit $SP_WRONG_RC"

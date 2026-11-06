@@ -6,7 +6,10 @@
 # own that holds a `.claude/settings.json`. Warrant T declares, in
 # atoms/35-allowed.md, the tool Read, the paths src/** and the command
 # `make test`; Warrant E declares nothing; Warrant D is started with
-# `[go] allowed_acts = "declared"`. Nothing runs a harness (`--print`).
+# `[go] allowed_acts = "declared"`. T and D are in the directory encoding (the
+# hidden `create --legacy`), the one with that atom. Warrant F is a single-file
+# ticket: FORMAT-1.0 10.3 gives it `paths:` and nothing for tools or commands.
+# Nothing runs a harness (`--print`).
 #
 # Accepted: `war start T/<item> --print` claims the item, makes a worktree on
 # war-go/<node>, and writes `.claude/settings.local.json` there carrying the
@@ -18,6 +21,7 @@
 # and says nothing about one in E's (nothing declared) or in the checkout;
 # with `declared`, D's worktree gets no settings at all; a Warrant not yet
 # committed is refused (go.start-uncommitted) and no worktree is made.
+# F's `paths:` make the same scoped session, and the guard refuses the same way.
 
 echo "== war start: a worktree with session-only settings (M15) =="
 GS_ROOT=$(scratch_corpus GS)
@@ -43,9 +47,11 @@ gs_guard() {
         "$1" "$1" "$2" | env -u SSH_AUTH_SOCK -u SSH_AGENT_PID PATH="/usr/bin:/bin" bash "$GS_GUARD" 2>/dev/null
 }
 
-GS_T=$(gs_new "Parser fix" -i "Fix the parser")
+GS_T=$(gs_new "Parser fix" --legacy -i "Fix the parser")
 GS_E=$(gs_new "Anything goes" -i "Tidy up")
-GS_D=$(gs_new "Declared only" -i "Look around")
+GS_D=$(gs_new "Declared only" --legacy -i "Look around")
+GS_F=$(gs_new "Single file" -i "Keep to src")
+sed -i '0,/^summary: /s//paths: src\/**\nsummary: /' "$GS_ROOT/docs/tickets/${GS_F%/*}.md"
 printf '# Allowed\n\n## Tools\n- Read\n\n## Paths\n- src/**\n\n## Commands\n- `make test`\n' \
     > "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md"
 cp "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md" "$GS_ROOT/docs/tickets/${GS_D%/*}/atoms/35-allowed.md"
@@ -92,6 +98,21 @@ else
     gs_fail "no declared paths, no path rule" "E: '$GS_E_EDIT'; checkout: '$GS_ROOT_EDIT'"
 fi
 
+# A single-file ticket: its `paths:` scope the session as the atom does.
+GS_F_OUT=$(gsw --json start --worktree "$GS_F" --print 2>/dev/null); GS_F_RC=$?
+GS_F_WT=$(gs_field "$GS_F_OUT" 'v["result"]["worktree"]')
+GS_F_ALLOW=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["permissions"]["allow"])' \
+    "$GS_F_WT/.claude/settings.local.json" 2>/dev/null)
+GS_F_CLAIM=$(grep -c '"type":"work.claimed"' "$GS_F_WT/docs/tickets/${GS_F%/*}/journal.jsonl" 2>/dev/null)
+GS_F_IN=$(gs_guard "$GS_F_WT" src/parser.rs)
+GS_F_OUTSIDE=$(gs_guard "$GS_F_WT" docs/notes.md)
+if [[ $GS_F_RC -eq 0 && "$GS_F_ALLOW" == "['Edit(/src/**)']" && "$GS_F_CLAIM" == "1" && -z "$GS_F_IN" \
+    && "$GS_F_OUTSIDE" == *'"permissionDecision":"deny"'* && "$GS_F_OUTSIDE" == *"src/**"* ]]; then
+    gs_ok "a single-file ticket's paths scope it" "Edit(/src/**) from paths:, claimed there; docs/notes.md is turned back"
+else
+    gs_fail "a single-file ticket's paths scope it" "exit $GS_F_RC; allow '$GS_F_ALLOW'; claim lines $GS_F_CLAIM; src: '$GS_F_IN'; docs: '$GS_F_OUTSIDE'"
+fi
+
 # `declared`: shown, not written.
 printf '\n[go]\nallowed_acts = "declared"\n' >> "$GS_ROOT/openwarrant.toml"
 GS_D_OUT=$(gsw start --worktree "$GS_D" --print 2>/dev/null)
@@ -113,9 +134,9 @@ else
     gs_fail "an uncommitted Warrant is refused" "exit $GS_U_RC '$GS_U_RULE'"
 fi
 
-for w in "$GS_WT" "$GS_E_WT" "$GS_D_WT"; do git -C "$GS_ROOT" worktree remove --force "$w" >/dev/null 2>&1; done
+for w in "$GS_WT" "$GS_E_WT" "$GS_D_WT" "$GS_F_WT"; do git -C "$GS_ROOT" worktree remove --force "$w" >/dev/null 2>&1; done
 command rm -rf "$GS_TMP"
 unset GS_ROOT GS_TMP GS_WAR GS_GUARD GS_T GS_E GS_D GS_U GS_BEFORE GS_OUT GS_RC GS_WT GS_SETTINGS GS_BRANCH \
     GS_WT_CLAIM GS_COMMON GS_AFTER GS_STATUS GS_IN GS_OUTSIDE GS_E_WT GS_E_EDIT GS_ROOT_EDIT GS_D_OUT GS_D_WT \
-    GS_U_OUT GS_U_RC GS_U_RULE
+    GS_U_OUT GS_U_RC GS_U_RULE GS_F GS_F_OUT GS_F_RC GS_F_WT GS_F_ALLOW GS_F_CLAIM GS_F_IN GS_F_OUTSIDE
 unset -f gs_ok gs_fail gsw gs_field gs_new gs_snapshot gs_guard

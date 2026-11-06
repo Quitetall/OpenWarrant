@@ -558,6 +558,7 @@ impl Store {
             files: vec![
                 "manifest.toml".to_owned(),
                 crate::journal_cmd::FILE.to_owned(),
+                format::INNER.to_owned(),
                 INTENT_FILE.to_owned(),
                 format!("atoms/{}", self.checklist_file()),
                 // OW-WAR-0148 M13: the optional parts `war plan add` writes.
@@ -721,6 +722,15 @@ impl Store {
     }
 
     fn load_every(&self, cached: bool) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        self.load_through(cache::Cache::open(self).filter(|_| cached).as_ref())
+    }
+
+    /// Every readable ticket and a diagnostic per unreadable one, through
+    /// `cache` when there is one.
+    fn load_through(
+        &self,
+        cache: Option<&cache::Cache>,
+    ) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
         let mut tickets = Vec::new();
         let mut faults = Vec::new();
         // Each ticket is a few small files read on their own, so the disk
@@ -728,7 +738,7 @@ impl Store {
         // order either way (`vfs::map_ordered`). Where this run may use the
         // ticket cache, it answers what is unchanged since it was read
         // (`cache`): the same tickets, faster.
-        let (entries, loaded) = match cache::Cache::open(self).filter(|_| cached) {
+        let (entries, loaded, pass) = match cache {
             Some(cache) => cache.load(self)?,
             None => {
                 let entries = self.entries()?;
@@ -736,7 +746,7 @@ impl Store {
                     crate::vfs::is_file(dir.join("manifest.toml"))
                         .then(|| self.load_observed(dir, &mut |_| {}))
                 });
-                (entries, loaded)
+                (entries, loaded, cache::Pass::default())
             }
         };
         // A directory no directory ticket was read from may hold a Format
@@ -755,8 +765,16 @@ impl Store {
                 }
             }
         }
+        let documents = self.format_documents(&entries, &|d| look.contains(d));
+        let read = match cache {
+            Some(cache) => cache.load_documents(self, &documents, pass),
+            None => documents
+                .into_iter()
+                .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias)))
+                .collect(),
+        };
         let mut any_format = false;
-        for one in self.format_tickets(&entries, &|d| look.contains(d)) {
+        for one in read {
             match one {
                 Ok(t) => {
                     any_format = true;
@@ -1599,23 +1617,6 @@ fn record_file(t: &Ticket) -> Utf8PathBuf {
     } else {
         t.dir.join("manifest.toml")
     }
-}
-
-/// The refusal of a command that writes what a Format 1.0 ticket does not
-/// have: a manifest, or an atom beside its document.
-pub(crate) fn format_unsupported(store: &Store, t: &Ticket, what: &str) -> Option<Outcome> {
-    t.format.then(|| {
-        Outcome::refused(
-            format::UNSUPPORTED,
-            store.rel(&t.checklist_path),
-            format!(
-                "{} is a Format 1.0 ticket: one document, no manifest and no atoms beside \
-                 it, so {what} is not written by war. Edit the document itself (its \
-                 frontmatter is plain `key: value` lines)",
-                t.id()
-            ),
-        )
-    })
 }
 
 // ---- create ----------------------------------------------------------------
@@ -4821,7 +4822,7 @@ pub fn writeback_body(t: &Ticket) -> String {
         }
         body.push('\n');
     }
-    let notes = render::notes(&t.intent);
+    let notes = render::all_notes(t);
     if !notes.is_empty() {
         body.push_str("\nNotes:\n\n");
         for n in &notes {
@@ -5387,13 +5388,15 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
-    if let Some(refusal) = format_unsupported(store, t, "`promoted_to` in a manifest") {
-        return Ok(refusal);
-    }
     if let Some(w) = &t.manifest.promoted_to {
+        let record = if t.format {
+            t.checklist_path.clone()
+        } else {
+            t.dir.join("manifest.toml")
+        };
         return Ok(Outcome::refused(
             "ticket.already-promoted",
-            store.rel(&t.dir.join("manifest.toml")),
+            store.rel(&record),
             format!(
                 "{} was promoted into {w} already; work the contract there",
                 t.id()
@@ -5469,10 +5472,28 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
             Ok((next, ()))
         })?;
     }
-    let manifest_path = t.dir.join("manifest.toml");
-    let mut manifest = t.manifest.clone();
-    manifest.promoted_to = Some(alias.clone());
-    atomic::write(&manifest_path, toml_of(&manifest)?)?;
+    if t.format {
+        // One document: the field goes in its frontmatter, last.
+        let written = rewrite(&t.checklist_path, |current| {
+            let Some(at) = current.find("\n---").map(|at| at + 1) else {
+                return Err(Box::new(Outcome::refused(
+                    format::UNSUPPORTED,
+                    store.rel(&t.checklist_path),
+                    format!("{} has no frontmatter to write to", t.id()),
+                )));
+            };
+            let mut next = current.to_owned();
+            next.insert_str(at, &format!("promoted_to: {alias}\n"));
+            Ok((next, ()))
+        })?;
+        if let Err(refused) = written {
+            return Ok(*refused);
+        }
+    } else {
+        let mut manifest = t.manifest.clone();
+        manifest.promoted_to = Some(alias.clone());
+        atomic::write(&t.dir.join("manifest.toml"), toml_of(&manifest)?)?;
+    }
     store.journal(
         t,
         event::PROMOTED,

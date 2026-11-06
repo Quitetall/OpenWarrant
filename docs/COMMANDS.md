@@ -196,6 +196,7 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
 | `war admin preset` (M14) | none: new, and only under the group | `preset` |
 | `war admin ledger` (M17: `record`, `prune`, `import`, `export`) | none: new, and only under the group | `ledger.record`, `ledger.prune`, `ledger.import`, `ledger.export` |
 | `war admin score` (M17) | none: new, and only under the group | `score`, `score.weights`, `score.statement`, `score.verify` |
+| `war admin worktrees` (alpha.6) | none: new, and only under the group | `worktrees` |
 
 ### Top level, hidden, no group
 

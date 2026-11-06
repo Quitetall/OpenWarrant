@@ -170,6 +170,54 @@ fn program(tag: &str) -> PathBuf {
     root
 }
 
+/// A program of single-file tickets, as `war create` writes them today: two
+/// with items and one without, each with its journal, settled.
+fn native_program(tag: &str) -> PathBuf {
+    let root = scratch(tag);
+    for args in [
+        vec![
+            "create",
+            "Alpha ticket",
+            "--item",
+            "first",
+            "--item",
+            "second",
+        ],
+        vec!["create", "Bravo ticket"],
+        vec!["create", "Charlie ticket", "--item", "only"],
+    ] {
+        let out = run(&root, &args, &[]);
+        assert!(out.status.success(), "{args:?}: {}", text(&out.stderr));
+    }
+    std::thread::sleep(std::time::Duration::from_millis(2300));
+    root
+}
+
+/// The alias of the single-file ticket whose document holds `needle`.
+fn native_ticket(root: &Path, needle: &str) -> String {
+    std::fs::read_dir(root.join("docs/tickets"))
+        .unwrap()
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .find(|p| {
+            p.extension().is_some_and(|x| x == "md")
+                && std::fs::read_to_string(p)
+                    .unwrap_or_default()
+                    .contains(needle)
+        })
+        .and_then(|p| Some(p.file_stem()?.to_str()?.to_owned()))
+        .unwrap()
+}
+
+/// `args` with the cache traced and with it disabled: the same answer, and
+/// the trace.
+fn same_as_disabled(root: &Path, args: &[&str]) -> String {
+    let cached = run(root, args, &[(TRACE, "1")]);
+    let off = run(root, args, &[("OPENWARRANT_NO_CACHE", "1")]);
+    assert_eq!(answer(&cached), answer(&off), "{args:?}");
+    trace(&cached)
+}
+
 const VIEWS: &[&[&str]] = &[
     &["view", "ready"],
     &["--json", "view", "ready"],
@@ -214,6 +262,108 @@ fn cold_warm_and_disabled_give_the_same_bytes() {
         "{}",
         text(&status.stdout)
     );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn single_file_tickets_are_answered_from_the_cache() {
+    let root = native_program("native");
+    for args in VIEWS {
+        same_as_disabled(&root, args);
+        let warm = same_as_disabled(&root, args);
+        assert!(
+            warm.starts_with("ticket cache: 3 of 3 ticket(s) from the cache, 0 read")
+                && warm.contains("0 shard(s) written; the listing from the cache"),
+            "{args:?}: {warm}"
+        );
+    }
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn a_single_file_ticket_in_place_with_its_mtime_put_back_is_seen() {
+    let root = native_program("native-inplace");
+    let view: &[&str] = &["--json", "view", "ready"];
+    same_as_disabled(&root, view);
+    let id = native_ticket(&root, "Alpha ticket");
+    let document = root.join(format!("docs/tickets/{id}.md"));
+    let before = std::fs::metadata(&document).unwrap();
+    let edited = std::fs::read_to_string(&document)
+        .unwrap()
+        .replace("Alpha ticket", "Omega ticket");
+    {
+        use std::io::Write;
+        let mut f = std::fs::OpenOptions::new()
+            .write(true)
+            .open(&document)
+            .unwrap();
+        f.write_all(edited.as_bytes()).unwrap();
+        f.set_modified(before.modified().unwrap()).unwrap();
+    }
+    let after = std::fs::metadata(&document).unwrap();
+    assert_eq!(before.len(), after.len());
+    assert_eq!(before.modified().unwrap(), after.modified().unwrap());
+    let seen = run(&root, view, &[(TRACE, "1")]);
+    assert!(text(&seen.stdout).contains("Omega ticket"));
+    assert!(!text(&seen.stdout).contains("Alpha ticket"));
+    assert!(
+        trace(&seen).starts_with("ticket cache: 2 of 3 ticket(s) from the cache, 1 read"),
+        "{}",
+        trace(&seen)
+    );
+    same_as_disabled(&root, view);
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn the_journal_of_a_ticket_with_no_items_is_a_source_of_it() {
+    let root = native_program("native-journal");
+    let view: &[&str] = &["--json", "view", "tickets"];
+    same_as_disabled(&root, view);
+    let warm = same_as_disabled(&root, view);
+    assert!(warm.starts_with("ticket cache: 3 of 3"), "{warm}");
+    // The ticket is done by its journal; its document does not move.
+    let id = native_ticket(&root, "Bravo ticket");
+    let document = root.join(format!("docs/tickets/{id}.md"));
+    let was = std::fs::read(&document).unwrap();
+    let out = run(&root, &["done", &id], &[("OPENWARRANT_NO_CACHE", "1")]);
+    assert!(out.status.success(), "{}", text(&out.stderr));
+    assert_eq!(std::fs::read(&document).unwrap(), was, "the premise moved");
+    let seen = same_as_disabled(&root, view);
+    assert!(
+        seen.starts_with("ticket cache: 2 of 3 ticket(s) from the cache, 1 read"),
+        "{seen}"
+    );
+    // Once settled it is cached again, done.
+    std::thread::sleep(std::time::Duration::from_millis(2300));
+    same_as_disabled(&root, view);
+    let warm = same_as_disabled(&root, view);
+    assert!(warm.starts_with("ticket cache: 3 of 3"), "{warm}");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+#[test]
+fn a_cached_document_is_never_an_answer_a_duplicate_or_a_fault_would_change() {
+    let root = native_program("native-faults");
+    let view: &[&str] = &["--json", "view", "tickets"];
+    same_as_disabled(&root, view);
+    let warm = same_as_disabled(&root, view);
+    assert!(warm.starts_with("ticket cache: 3 of 3"), "{warm}");
+    let id = native_ticket(&root, "Alpha ticket");
+    let tickets = root.join("docs/tickets");
+    // Both forms of one alias: refused, though the first form's entry stands.
+    let document = tickets.join(format!("{id}.md"));
+    std::fs::create_dir_all(tickets.join(&id)).unwrap();
+    std::fs::copy(&document, tickets.join(&id).join("ticket.md")).unwrap();
+    let both = run(&root, view, &[]);
+    assert!(!text(&both.stdout).contains("Alpha ticket"));
+    same_as_disabled(&root, view);
+    std::fs::remove_file(tickets.join(&id).join("ticket.md")).unwrap();
+    // A document that no longer reads is a fault, cached or not.
+    std::fs::write(&document, "not a document\n").unwrap();
+    let broken = run(&root, view, &[]);
+    assert!(!text(&broken.stdout).contains("Alpha ticket"));
+    same_as_disabled(&root, view);
     let _ = std::fs::remove_dir_all(&root);
 }
 

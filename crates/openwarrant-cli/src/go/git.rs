@@ -192,9 +192,13 @@ pub fn ensure_branch(dir: &Utf8Path, branch: &str) -> Result<String, String> {
     Ok(head)
 }
 
+/// Where the commits of an attempt that did not land are kept.
+pub const KEPT_REFS: &str = "refs/openwarrant/go/kept/";
+
 /// Add a worktree at `path` on a new branch `branch` from `base`. A worktree
-/// or branch of that name left by an earlier attempt is preserved. Recovery
-/// must inspect that progress rather than silently starting over.
+/// or branch of that name retained from an earlier attempt is preserved:
+/// [`remove_worktree`] gives back all it safely can, so what is left here
+/// needs inspecting rather than silently starting over.
 pub fn add_worktree(
     root: &Utf8Path,
     path: &Utf8Path,
@@ -233,11 +237,34 @@ pub fn add_worktree_on(root: &Utf8Path, path: &Utf8Path, branch: &str) -> Result
     crate::worktrees::register(root, path, branch, &base)
 }
 
-/// Reclaim only a managed, clean, integrated and inactive worktree. Retain its
-/// branch: callers may still need its commits or recovery history.
-pub fn remove_worktree(root: &Utf8Path, path: &Utf8Path, branch: Option<&str>) {
-    let _ = branch;
-    let _ = crate::worktrees::remove_if_safe(root, path, "HEAD");
+/// Give back a worktree this run made, and, when named, its branch, so the
+/// next attempt starts from `integration`. Work is never lost doing it: a
+/// dirty, foreign or otherwise uncertain worktree is retained with its branch
+/// ([`crate::worktrees::remove_own`]), and that node's next attempt is refused
+/// until a person has looked; commits `integration` does not hold stay at
+/// [`KEPT_REFS`]`<branch>/<commit>`. Best effort: what is already gone is fine.
+pub fn remove_worktree(root: &Utf8Path, path: &Utf8Path, branch: Option<&str>, integration: &str) {
+    let Some(head) = rev(path, "HEAD") else {
+        return;
+    };
+    // Reachable at its own head: the branch holds it until the step below.
+    if !crate::worktrees::remove_own(root, path, &head) {
+        return;
+    }
+    let Some(b) = branch else {
+        return;
+    };
+    let Some(tip) = branch_tip(root, b) else {
+        return;
+    };
+    if !is_ancestor(root, &tip, integration) {
+        let name = b.rsplit('/').next().unwrap_or(b);
+        let kept = format!("{KEPT_REFS}{name}/{tip}");
+        if !git(root, &["update-ref", &kept, &tip]).ok {
+            return;
+        }
+    }
+    let _ = git(root, &["branch", "-D", b]);
 }
 
 /// The identity a commit by the scheduler is written under: the

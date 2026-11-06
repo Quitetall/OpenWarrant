@@ -5,7 +5,7 @@ Source: the atoms and records of this repository. `war check --generated` refuse
 
 # OpenWarrant — the history
 
-Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-10-24.
+Everything this repository has recorded, current or not: 145 subject(s), their lineage, every atom expanded, the timeline and every decision with its status. What is authoritative now is in the master document; this is what it replaced and how. Records as of 2026-11-06.
 
 ## Lineage
 
@@ -46,6 +46,7 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-21 | 9 | sync.receipt_attached 5, verification.recorded 4 |
 | 2026-10-23 | 5 | sync.receipt_attached 5 |
 | 2026-10-24 | 2 | attestation.recorded 1, authorization.recorded 1 |
+| 2026-11-06 | 2 | attestation.recorded 1, correction.recorded 1 |
 
 ## Roadmap revisions
 
@@ -40124,7 +40125,7 @@ would be exactly the misdeclaration §44.8 exists to prevent.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Run the battery in a disposable clone of HEAD | `conformance/plant-isolated.sh` | verified |
+| D-001 | Run the battery in a disposable clone of HEAD | `conformance/plant-isolated.sh` | drift |
 | D-002 | ops.conformance.plants@1.1.0, askable | `docs/gates/ops.conformance.plants@1.1.0.yaml` | verified |
 | D-003 | The isolated-battery plants | `conformance/plants.d/48-isolated-battery.sh` | verified |
 

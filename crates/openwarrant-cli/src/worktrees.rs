@@ -10,6 +10,8 @@ use serde::{Deserialize, Serialize};
 use std::{collections::BTreeSet, path::PathBuf};
 
 const SCHEMA: &str = "oh.war/managed-workspace/v1";
+/// A host that hides a same-user process cannot say a worktree is inactive.
+const ACTIVITY_UNKNOWN: &str = "process activity unknown";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Ownership {
     schema: String,
@@ -221,7 +223,12 @@ fn ignored_disposable(path: &Utf8Path, file: &str) -> bool {
         return std::fs::read_to_string(path.join("target/CACHEDIR.TAG"))
             .is_ok_and(|t| t.starts_with("Signature: 8a477f597d28d172789f06886806bc55"));
     }
-    if file == ".openwarrant/session.json" {
+    // A session's own files, and the output of checks run there, whose
+    // digests are in the journal.
+    if file == ".openwarrant/session.json"
+        || file == ".openwarrant/go-packet.json"
+        || file.starts_with(".openwarrant/state/checks/")
+    {
         return true;
     }
     if file == ".claude/settings.local.json" {
@@ -310,7 +317,7 @@ fn inspect(
             .push("writer claim retained; expiry alone does not establish inactivity".into());
     }
     if !*known {
-        row.reasons.push("process activity unknown".into());
+        row.reasons.push(ACTIVITY_UNKNOWN.into());
     }
     if references.iter().any(|p| p.starts_with(path.as_std_path())) {
         row.reasons.push("active process reference".into());
@@ -358,9 +365,30 @@ pub fn inventory(repo: &Repository, probe: bool, integration: &str) -> Result<Ve
     Ok(rows)
 }
 
-/// Cleanup used by the execution lifecycle too. Never force, recursively
+/// Cleanup of a worktree someone else may be in. Never force, recursively
 /// delete, or discard a branch with unique commits. Unknown state is retained.
 pub fn remove_if_safe(root: &Utf8Path, path: &Utf8Path, integration: &str) -> bool {
+    reclaim(root, path, integration, |row| row.prunable)
+}
+
+/// Cleanup by the run that made a worktree, once what it started there has
+/// ended. Every rule of [`remove_if_safe`] holds but one: a process the host
+/// hides is not a reason to keep it. The run knows what it started, a process
+/// it sees in the worktree still retains it, and what is removed is clean and
+/// reachable at `reachable_at`. Where that hidden process is a signing agent,
+/// the rule would otherwise retain every worktree a run ever made.
+pub fn remove_own(root: &Utf8Path, path: &Utf8Path, reachable_at: &str) -> bool {
+    reclaim(root, path, reachable_at, |row| {
+        row.reasons.iter().all(|r| r == ACTIVITY_UNKNOWN)
+    })
+}
+
+fn reclaim(
+    root: &Utf8Path,
+    path: &Utf8Path,
+    integration: &str,
+    removable: impl Fn(&Row) -> bool,
+) -> bool {
     let Ok(path) = path.canonicalize_utf8() else {
         return false;
     };
@@ -371,7 +399,7 @@ pub fn remove_if_safe(root: &Utf8Path, path: &Utf8Path, integration: &str) -> bo
     let Ok(rows) = inventory(&repo, true, integration) else {
         return false;
     };
-    if !rows.iter().any(|r| r.path == path.as_str() && r.prunable) {
+    if !rows.iter().any(|r| r.path == path.as_str() && removable(r)) {
         return false;
     }
     let result = git::git(root, &["worktree", "remove", path.as_str()]);

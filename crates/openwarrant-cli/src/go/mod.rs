@@ -953,7 +953,12 @@ impl Run<'_> {
                 .join(&self.policy.worktrees)
                 .join(git::slug(id));
             let branch = git::node_branch(id);
-            git::remove_worktree(&self.repo.root, &path, Some(&branch));
+            git::remove_worktree(
+                &self.repo.root,
+                &path,
+                Some(&branch),
+                &self.policy.integration,
+            );
         }
         let detail = e.to_string();
         self.report.push(Diagnostic::error(
@@ -1380,7 +1385,7 @@ impl Run<'_> {
                 && let Err(files) =
                     git::merge(&path, &dep_branch, &format!("war go: {dep} under {id}"))
             {
-                git::remove_worktree(root, &path, Some(&branch));
+                git::remove_worktree(root, &path, Some(&branch), &self.policy.integration);
                 return Err(format!(
                     "the branch of {dep}, which it waits on, does not merge cleanly: {}",
                     files.join(", ")
@@ -1493,7 +1498,12 @@ impl Run<'_> {
                 .collect();
             let _ = crate::ticket::claim::release(&lock, &self.actor);
             if let Some(b) = &branch {
-                git::remove_worktree(&self.repo.root, &worktree, Some(b));
+                git::remove_worktree(
+                    &self.repo.root,
+                    &worktree,
+                    Some(b),
+                    &self.policy.integration,
+                );
             }
             self.graph.block(&id, why.join("; "));
             self.skip(&id, "for-a-person", why.join("; "));
@@ -1514,7 +1524,12 @@ impl Run<'_> {
             Err(e) => {
                 let _ = crate::ticket::claim::release(&lock, &self.actor);
                 if let Some(b) = &branch {
-                    git::remove_worktree(&self.repo.root, &worktree, Some(b));
+                    git::remove_worktree(
+                        &self.repo.root,
+                        &worktree,
+                        Some(b),
+                        &self.policy.integration,
+                    );
                 }
                 self.skip(&id, "crashed", e);
                 return Ok(None);
@@ -1875,6 +1890,7 @@ impl Run<'_> {
                 &self.repo.root,
                 &l.worktree,
                 (!keep_branch).then_some(b.as_str()),
+                &self.policy.integration,
             );
         }
     }
@@ -2204,7 +2220,12 @@ impl Run<'_> {
         if let Some(b) = &l.branch {
             // Merged work needs its branch no longer; a pull request does.
             let keep = self.policy.land == Land::Pr;
-            git::remove_worktree(&root, &l.worktree, (!keep).then_some(b.as_str()));
+            git::remove_worktree(
+                &root,
+                &l.worktree,
+                (!keep).then_some(b.as_str()),
+                &self.policy.integration,
+            );
         }
         self.human.push_str(&format!(
             "landed {} at {level}: {}\n",
@@ -2331,7 +2352,12 @@ impl Run<'_> {
         let give_back = |run: &mut Self, outcome: &str, detail: String| {
             let _ = crate::ticket::claim::release(&l.lock, &run.actor);
             if let Some(b) = &l.branch {
-                git::remove_worktree(&run.repo.root, &l.worktree, Some(b));
+                git::remove_worktree(
+                    &run.repo.root,
+                    &l.worktree,
+                    Some(b),
+                    &run.policy.integration,
+                );
             }
             run.human
                 .push_str(&format!("sent back {} ({outcome}): {detail}\n", l.node));
@@ -2462,7 +2488,7 @@ impl Run<'_> {
         }
         let _ = crate::ticket::claim::release(&l.lock, &self.actor);
         if let Some(b) = &l.branch {
-            git::remove_worktree(&root, &l.worktree, Some(b));
+            git::remove_worktree(&root, &l.worktree, Some(b), &self.policy.integration);
         }
         self.human
             .push_str(&format!("landed {}: submission recorded\n", l.node));
