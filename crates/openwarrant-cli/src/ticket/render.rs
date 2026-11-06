@@ -1441,11 +1441,17 @@ fn brief_item_line(
 /// title, and the one command that closes it. No TOML, digests, done items
 /// or other Warrants.
 pub fn brief(store: &Store, all: &[Ticket], t: &Ticket, actor: &str) -> Outcome {
+    brief_with_status(store, all, t, &format!("claimed by {actor}"))
+}
+
+/// [`brief`] with its status line given: `war view prime --prompt` shows a
+/// Warrant nobody has taken.
+pub fn brief_with_status(store: &Store, all: &[Ticket], t: &Ticket, status: &str) -> Outcome {
     let (d, n) = t.checklist.progress();
     let checks = super::ladder::checks_of(t);
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
     md.push_str(&format!(
-        "claimed by {actor} · {d}/{n} done · priority {}\n",
+        "{status} · {d}/{n} done · priority {}\n",
         t.manifest.priority
     ));
     let body = description(&t.intent);

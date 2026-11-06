@@ -1898,6 +1898,13 @@ enum ViewCommand {
         /// and how to take the next; nothing when no tracked work is open.
         #[arg(long, conflicts_with = "ticket")]
         session: bool,
+        /// The brief of the one open Warrant this prompt names (the plugin's
+        /// UserPromptSubmit hook), by id, a capital code such as `T8`, a
+        /// quoted phrase or its whole title; `-` reads the prompt from
+        /// stdin. Several: a line listing them. None, or a Warrant you hold:
+        /// nothing. Bounded to 4,096 bytes, reads only, and claims nothing.
+        #[arg(long, value_name = "TEXT", conflicts_with_all = ["ticket", "session"])]
+        prompt: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -6372,9 +6379,21 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         ViewCommand::Prime {
             ticket: target,
             session,
+            prompt,
             actor,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            if let Some(prompt) = prompt {
+                let prompt = if prompt == "-" {
+                    let mut text = Vec::new();
+                    std::io::Read::read_to_end(&mut std::io::stdin(), &mut text)?;
+                    String::from_utf8_lossy(&text).into_owned()
+                } else {
+                    prompt
+                };
+                let outcome = ticket::prompt::prompt_brief(&store, &prompt)?;
+                return Ok(ticket_answer(mode, "prime", &outcome));
+            }
             if session {
                 let mut outcome = ticket::session_start(&repository, &store)?;
                 if let Some(line) = ticket::live::unseen_line(&store) {

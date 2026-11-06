@@ -395,6 +395,164 @@ fn done_on_a_ticket_ticks_every_item_or_none() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// `war view prime --prompt`: a prompt that names one open Warrant gets its
+/// brief, unclaimed and within budget; one naming nothing, several, only done
+/// work, a word that merely resembles a name, or a Warrant already held, gets
+/// no brief; and `[tickets] session_start = false` is silent.
+#[test]
+fn a_prompt_gets_the_brief_of_the_item_it_names_and_never_a_guess() {
+    let root = scratch("prompt");
+    let make = |title: &str, body: &str, extra: &[&str]| {
+        let mut args = vec!["create", title, "--body", body, "--item", "the one step"];
+        args.extend_from_slice(extra);
+        json(&root, &args)["result"]["id"]
+            .as_str()
+            .unwrap()
+            .to_owned()
+    };
+    let t8 = make("T8: Monthly budget tables", "MARKER-T8 body.", &[]);
+    let t9 = make("T9: Net worth over time", "MARKER-T9 body.", &[]);
+    let long = make("Long plan", &"A line of a long plan.\n".repeat(400), &[]);
+    let sha = make("Pin SHA256 digests", "MARKER-SHA body.", &[]);
+    let text = |prompt: &str| {
+        String::from_utf8_lossy(
+            &war(&root, &["view", "prime", "--prompt", prompt, "--as", "ann"]).stdout,
+        )
+        .trim()
+        .to_owned()
+    };
+
+    // By id, by capital code and by whole title: its brief, and no claim.
+    for prompt in [
+        format!("please do {t8} next"),
+        "Do backlog item T8.".to_owned(),
+        "Work on t8 monthly budget tables now".to_owned(),
+        "the \"monthly budget\" one".to_owned(),
+    ] {
+        let said = text(&prompt);
+        assert!(said.contains("MARKER-T8"), "{prompt}: {said}");
+        assert!(said.contains("not claimed"), "{said}");
+        assert!(said.contains(&format!("war start {t8}")), "{said}");
+        assert!(!said.contains("MARKER-T9"), "{said}");
+    }
+    let held = json(&root, &["view", "prime", "--as", "ann"]);
+    assert!(
+        !serde_json::to_string(&held).unwrap().contains("claimed by"),
+        "a prompt claimed something: {held}"
+    );
+
+    // Naming nothing: nothing, whatever it looks like.
+    for prompt in [
+        "fix the flaky parser test",
+        "budget tables are slow",
+        "use SHA256 here",
+        "wear a t-shirt in T1000 weather",
+        "t-1 i-5",
+        "",
+    ] {
+        assert_eq!(text(prompt), "", "{prompt}");
+    }
+
+    // Several: one line, no brief, no guess.
+    let said = text("T8 and T9 both");
+    assert_eq!(said.lines().count(), 1, "{said}");
+    assert!(said.contains(&t8) && said.contains(&t9), "{said}");
+    assert!(!said.contains("MARKER"), "{said}");
+    let said = text(&format!("{t8} and {t9}"));
+    assert!(
+        said.contains("none loaded") && !said.contains("MARKER"),
+        "{said}"
+    );
+    assert!(said.len() <= 320, "{} bytes", said.len());
+
+    // An id outranks a word; an unknown id is no match.
+    assert!(text(&format!("{t9}, not T8")).contains("MARKER-T9"));
+    assert_eq!(text("t-zzzzzz"), "");
+
+    // Over budget: cut at a line, the cut declared, and how to get the rest.
+    let said = text(&long);
+    assert!(said.len() <= 4096, "{} bytes", said.len());
+    assert!(said.contains("cut to 4096 bytes") && said.contains(&format!("war start {long}")));
+
+    // From stdin, as the hook hands it over.
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .current_dir(&root)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .args(["view", "prime", "--prompt", "-"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+    child
+        .stdin
+        .take()
+        .unwrap()
+        .write_all(format!("take {sha}").as_bytes())
+        .unwrap();
+    let out = child.wait_with_output().unwrap();
+    assert!(String::from_utf8_lossy(&out.stdout).contains("MARKER-SHA"));
+
+    // Held: it has this brief already. Someone else's: said, with no offer.
+    assert!(war(&root, &["start", &t9, "--as", "ann"]).status.success());
+    assert_eq!(text("T9"), "");
+    let other = String::from_utf8_lossy(
+        &war(&root, &["view", "prime", "--prompt", "T9", "--as", "bob"]).stdout,
+    )
+    .into_owned();
+    assert!(
+        other.contains("claimed by ann") && !other.contains("Take it"),
+        "{other}"
+    );
+
+    // Done work: nothing.
+    assert!(
+        war(&root, &["done", &t9, "--note", "ok", "--as", "ann"])
+            .status
+            .success()
+    );
+    assert_eq!(text("T9"), "");
+
+    // `[tickets] session_start = false`: silent, on a real match too.
+    let config = root.join("openwarrant.toml");
+    let before = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(
+        &config,
+        format!("{before}\n[tickets]\nsession_start = false\n"),
+    )
+    .unwrap();
+    assert_eq!(text("T8"), "");
+    std::fs::write(&config, before).unwrap();
+    assert!(text("T8").contains("MARKER-T8"));
+    let _ = std::fs::remove_dir_all(&root);
+}
+
+/// Every hook the plugin registers names a script that ships, and
+/// UserPromptSubmit runs the first-brief hook: a script nobody registered
+/// never fires, and a registered one that is gone fails every prompt.
+#[test]
+fn the_plugin_registers_the_prompt_hook_and_every_script_exists() {
+    let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let text = std::fs::read_to_string(repo.join(".claude/hooks/hooks.json")).unwrap();
+    let config: serde_json::Value = serde_json::from_str(&text).unwrap();
+    let mut prompt_hook = false;
+    for (event, groups) in config["hooks"].as_object().unwrap() {
+        for group in groups.as_array().unwrap() {
+            for hook in group["hooks"].as_array().unwrap() {
+                let command = hook["command"].as_str().unwrap();
+                let script = command
+                    .split("${CLAUDE_PLUGIN_ROOT}/")
+                    .nth(1)
+                    .and_then(|rest| rest.split('"').next())
+                    .unwrap_or_else(|| panic!("{event}: {command}"));
+                assert!(repo.join(script).is_file(), "{event}: no {script}");
+                prompt_hook |=
+                    event == "UserPromptSubmit" && script.ends_with("user-prompt-submit.sh");
+            }
+        }
+    }
+    assert!(prompt_hook, "UserPromptSubmit does not run the brief hook");
+}
+
 /// `war view prime --session` is on by default: the open Warrants and how
 /// to take one, or, holding one, its brief, so a session needs no call to
 /// find its work. `[tickets] session_start = false` silences it, so the
