@@ -1602,23 +1602,6 @@ fn record_file(t: &Ticket) -> Utf8PathBuf {
     }
 }
 
-/// The refusal of a command that writes what a Format 1.0 ticket does not
-/// have: a manifest, or an atom beside its document.
-pub(crate) fn format_unsupported(store: &Store, t: &Ticket, what: &str) -> Option<Outcome> {
-    t.format.then(|| {
-        Outcome::refused(
-            format::UNSUPPORTED,
-            store.rel(&t.checklist_path),
-            format!(
-                "{} is a Format 1.0 ticket: one document, no manifest and no atoms beside \
-                 it, so {what} is not written by war. Edit the document itself (its \
-                 frontmatter is plain `key: value` lines)",
-                t.id()
-            ),
-        )
-    })
-}
-
 // ---- create ----------------------------------------------------------------
 
 /// What `war create` is asked for.
