@@ -26,6 +26,11 @@
 //!   document projections that select the subject (its bytes reach them),
 //!   each with the affected records it also selects.
 //!
+//! - **claims** — the running work a change reaches (t-3c16c W3): a claim
+//!   whose manifest holds the subject or an affected record, that a relation
+//!   reaches, or whose declared paths overlap the subject's. Read from the
+//!   claims of this clone; absent in a hosted or recording run.
+//!
 //! An id that is not a record of the model is refused by name
 //! (`impact.unknown-record`). Nothing is written.
 
@@ -63,6 +68,32 @@ pub struct Impact {
     pub phases: Vec<Phase>,
     /// Sorted by path.
     pub projections: Vec<Projection>,
+    /// The running work it reaches. Sorted by (ticket, actor). Additive:
+    /// absent when no claim is reached.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub claims: Vec<ClaimReached>,
+}
+
+/// A running claim a change reaches.
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ClaimReached {
+    pub ticket: String,
+    pub actor: String,
+    /// `manifest`, `relation` or `paths`.
+    pub via: String,
+    /// The record or the path it was reached through.
+    pub because: String,
+}
+
+/// A file that reaches running work from outside its packet.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Reach {
+    pub source: String,
+    /// `relation` or `paths`.
+    pub via: &'static str,
+    pub because: String,
 }
 
 /// The record asked about.
@@ -505,6 +536,12 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
         projections.insert(p.path.clone(), p);
     }
     let projections: Vec<Projection> = projections.into_values().collect();
+    let subject_paths = graph
+        .units
+        .get(subject.id.as_str())
+        .map(|u| u.paths.as_slice())
+        .unwrap_or_default();
+    let claims = claims_reached(corpus, subject, subject_paths, &reached, &documents);
 
     Impact {
         schema: SCHEMA.to_owned(),
@@ -521,7 +558,172 @@ fn walk(corpus: &Corpus, model: &Model, subject: &crate::model::Record) -> Impac
         evaluations,
         phases,
         projections,
+        claims,
     }
+}
+
+/// Whether any of `paths` overlaps any declared path of a claim. A claim that
+/// declared nothing overlaps nothing (`scopes::undeclared`), and a query that
+/// cannot be decided reaches nobody: a notice is a statement, never a guess.
+fn overlapping<'a>(paths: &'a [String], declared: &[String]) -> Option<&'a str> {
+    if declared.iter().any(|p| p == "**") {
+        return None;
+    }
+    paths
+        .iter()
+        .find(|p| {
+            declared
+                .iter()
+                .any(|d| crate::ticket::scopes::overlaps(p, d).unwrap_or(false))
+        })
+        .map(String::as_str)
+}
+
+fn claims_reached(
+    corpus: &Corpus,
+    subject: &crate::model::Record,
+    subject_paths: &[String],
+    reached: &BTreeSet<&str>,
+    documents: &[Document],
+) -> Vec<ClaimReached> {
+    if !crate::vfs::is_disk() {
+        return Vec::new();
+    }
+    let Ok(store) = crate::ticket::Store::open(corpus.repo(), None) else {
+        return Vec::new();
+    };
+    let source = std::slice::from_ref(&subject.source);
+    let mut out = Vec::new();
+    for (claim, kept) in crate::ticket::live::held(&store) {
+        let entry = kept.as_ref().and_then(|k| {
+            k.source_manifest
+                .iter()
+                .find(|e| reached.contains(e.id.as_str()) || e.source == subject.source)
+        });
+        let declared = claim
+            .coordination
+            .as_ref()
+            .map(|c| c.paths.as_slice())
+            .unwrap_or_default();
+        let hit = if let Some(e) = entry {
+            Some(("manifest", e.id.clone()))
+        } else if reached.contains(claim.ticket.as_str())
+            || documents.iter().any(|d| d.id == claim.ticket)
+        {
+            Some(("relation", subject.id.clone()))
+        } else {
+            overlapping(subject_paths, declared)
+                .or_else(|| overlapping(source, declared))
+                .map(|p| ("paths", p.to_owned()))
+        };
+        if let Some((via, because)) = hit {
+            out.push(ClaimReached {
+                ticket: claim.ticket.clone(),
+                actor: claim.actor.clone(),
+                via: via.to_owned(),
+                because,
+            });
+        }
+    }
+    out.sort_by(|a, b| (&a.ticket, &a.actor).cmp(&(&b.ticket, &b.actor)));
+    out
+}
+
+/// The files that reach `target` from outside what its packet holds: every
+/// record `target` or a packet entry relates to, transitively, inert relations
+/// not walked (the same walk [`walk`] makes from the other end); and every
+/// open work document or indexed file whose paths overlap `target`'s
+/// declared paths. Computed when work starts, so the comparison at each
+/// `war` write costs a digest and no model.
+#[must_use]
+pub fn reaching(
+    model: &Model,
+    graph: &crate::context::Graph,
+    target: &str,
+    manifest: &[crate::context::task::SourceEntry],
+) -> Vec<Reach> {
+    // A stage or an item is worked under its document.
+    let target = target.split('/').next().unwrap_or(target);
+    let records: BTreeMap<&str, &crate::model::Record> =
+        model.records.iter().map(|r| (r.id.as_str(), r)).collect();
+    let mut outgoing: BTreeMap<&str, Vec<&Relation>> = BTreeMap::new();
+    for r in &model.relations {
+        outgoing.entry(r.from.as_str()).or_default().push(r);
+    }
+    let held: BTreeSet<&str> = manifest.iter().map(|e| e.source.as_str()).collect();
+    let mut seen: BTreeSet<&str> = manifest.iter().map(|e| e.id.as_str()).collect();
+    seen.insert(target);
+    // A ticket's text naming a record or a file is a relation in all but form.
+    let text: String = graph
+        .units
+        .values()
+        .filter(|u| u.id == target || u.document.as_deref() == Some(target))
+        .filter_map(|u| u.text.as_deref())
+        .collect::<Vec<_>>()
+        .join("\n");
+    let words = tokens(&text);
+    for r in &model.records {
+        if words.contains(r.id.as_str()) || (r.source.contains('.') && text.contains(&r.source)) {
+            seen.insert(r.id.as_str());
+        }
+    }
+    let mut queue: VecDeque<&str> = seen.iter().copied().collect();
+    let mut out: BTreeMap<String, Reach> = BTreeMap::new();
+    while let Some(node) = queue.pop_front() {
+        if let Some(r) = records.get(node)
+            && !r.source.is_empty()
+            && !held.contains(r.source.as_str())
+        {
+            out.entry(r.source.clone()).or_insert_with(|| Reach {
+                source: r.source.clone(),
+                via: "relation",
+                because: r.id.clone(),
+            });
+        }
+        for rel in outgoing.get(node).into_iter().flatten() {
+            if openwarrant_core::relation::RelationKind::parse(&rel.kind)
+                .is_ok_and(|k| !k.is_inert())
+                && seen.insert(rel.to.as_str())
+            {
+                queue.push_back(rel.to.as_str());
+            }
+        }
+    }
+    let declared = graph
+        .units
+        .get(target)
+        .map(|u| u.paths.as_slice())
+        .unwrap_or_default();
+    if !declared.is_empty() {
+        for u in graph.units.values() {
+            let open = u.work
+                && u.id != target
+                && !matches!(u.state.as_deref(), Some("done" | "closed" | "resolved"));
+            if open
+                && !held.contains(u.source.as_str())
+                && let Some(p) = overlapping(&u.paths, declared)
+            {
+                out.entry(u.source.clone()).or_insert_with(|| Reach {
+                    source: u.source.clone(),
+                    via: "paths",
+                    because: format!("{} ({p})", u.id),
+                });
+            }
+        }
+        let files: BTreeSet<&String> = model.records.iter().map(|r| &r.source).collect();
+        for source in files {
+            if !held.contains(source.as_str())
+                && overlapping(std::slice::from_ref(source), declared).is_some()
+            {
+                out.entry(source.clone()).or_insert_with(|| Reach {
+                    source: source.clone(),
+                    via: "paths",
+                    because: source.clone(),
+                });
+            }
+        }
+    }
+    out.into_values().collect()
 }
 
 #[must_use]
@@ -598,6 +800,12 @@ pub fn render(i: &Impact) -> String {
     let _ = writeln!(s, "\nprojections ({}):", i.projections.len());
     for p in &i.projections {
         let _ = writeln!(s, "  {} ({}: {})", p.path, p.scope, p.selects.join(", "));
+    }
+    if !i.claims.is_empty() {
+        let _ = writeln!(s, "\nclaims ({}):", i.claims.len());
+        for c in &i.claims {
+            let _ = writeln!(s, "  {} by {}: {} {}", c.ticket, c.actor, c.via, c.because);
+        }
     }
     if !i.inert.is_empty() {
         let _ = writeln!(s, "\ninert, not walked ({}):", i.inert.len());

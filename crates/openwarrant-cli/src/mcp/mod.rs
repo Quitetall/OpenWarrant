@@ -149,6 +149,7 @@ impl ServerHandler for WarServer {
 /// Serve on stdio until the client closes the pipe. The runtime is built here
 /// and dropped here; `Repository::discover` ran before it existed.
 pub fn run(repo: Repository) -> Result<(), RepoError> {
+    crate::ticket::live::serve(&repo.root);
     let server = WarServer::new(repo);
     // stdin/stdout go through tokio's blocking pool, not the reactor, so no
     // driver is needed; `enable_all` enables whatever the enabled features

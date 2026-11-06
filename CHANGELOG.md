@@ -26,6 +26,14 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- Live updates to running agents, on one machine (t-3c16c W3): `war start` keeps
+  the claim's source manifest beside it, every `war` write and `check --changed`
+  compare it with the default branch, and the affected agent's next `war` call
+  prints one line, once (`notes` under `--json`). `war start` then prints only
+  what changed and records it as seen; `war view prime` keeps the line until
+  then. `war plan impact` names the claims a change reaches. See
+  [Tickets](docs/TICKETS.md#when-something-changes-under-you).
+
 - `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
   a Warrant can be given its test in the command that makes it. It is the same
   `## CHK-…` section `war plan add --test` writes, and `war done` runs it and

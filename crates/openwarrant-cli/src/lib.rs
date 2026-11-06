@@ -2940,6 +2940,29 @@ pub fn entrypoint() -> ExitCode {
     let json = cli.json;
     output::set_verbose(cli.verbose);
     output::set_quiet(cli.quiet);
+    // W3: who is asking, so an envelope can carry what they are owed; a write
+    // looks for changes after. Neither can fail a command.
+    let root = cli.root.clone();
+    let leaf = match matches.subcommand() {
+        Some((group, sub)) if GROUPS.contains(&group) => sub.subcommand_name().or(Some(group)),
+        other => other.map(|(name, _)| name),
+    };
+    let mut deepest = &matches;
+    while let Some((_, sub)) = deepest.subcommand() {
+        deepest = sub;
+    }
+    let actor = deepest
+        .try_get_one::<String>("actor")
+        .ok()
+        .flatten()
+        .map(String::as_str);
+    let changed = deepest
+        .try_get_one::<bool>("changed")
+        .ok()
+        .flatten()
+        .is_some_and(|c| *c);
+    let heard = leaf.filter(|_| matches.subcommand_name() != Some("sign"));
+    ticket::live::asking(root.as_deref(), heard, actor);
     let code = match run(cli) {
         Ok(code) => ExitCode::from(code),
         Err(report) => {
@@ -2963,14 +2986,11 @@ pub fn entrypoint() -> ExitCode {
             ExitCode::from(status)
         }
     };
+    ticket::live::after(root.as_deref(), heard, actor, changed, json);
     // OW-WAR-0143: after everything the command printed, at most one stderr
     // line when a newer release is published. It never waits on the network.
     // M12: a group's member is named by its own word (`war admin update` is
     // `update`), as the command's earlier spelling was.
-    let leaf = match matches.subcommand() {
-        Some((group, sub)) if GROUPS.contains(&group) => sub.subcommand_name().or(Some(group)),
-        other => other.map(|(name, _)| name),
-    };
     notice::after(leaf, json);
     code
 }
@@ -6355,7 +6375,11 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             if session {
-                let outcome = ticket::session_start(&store)?;
+                let mut outcome = ticket::session_start(&store)?;
+                if let Some(line) = ticket::live::unseen_line(&store) {
+                    outcome.human.push_str(&format!("\n\n{line}"));
+                    outcome.report.note(line);
+                }
                 return Ok(ticket_answer(mode, "prime", &outcome));
             }
             let mut outcome = ticket::prime(&store, target.as_deref())?;
@@ -6366,6 +6390,11 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 .report
                 .diagnostics
                 .extend(skew::findings(&repository.root));
+            // W3: unseen changes, until `war start` records them as seen.
+            if let Some(line) = ticket::live::unseen_line(&store) {
+                outcome.human.push_str(&format!("\n\n{line}"));
+                outcome.report.note(line);
+            }
             Ok(ticket_answer(mode, "prime", &outcome))
         }
         ViewCommand::Context {

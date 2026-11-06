@@ -52,6 +52,8 @@ mod inbox_classify;
 mod inbox_cli;
 #[path = "json_envelope.rs"]
 mod json_envelope;
+#[path = "live_updates_cli.rs"]
+mod live_updates_cli;
 #[path = "mcp_stdio.rs"]
 mod mcp_stdio;
 #[path = "milestone_table_cli.rs"]
