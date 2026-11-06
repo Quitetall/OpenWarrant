@@ -59,6 +59,7 @@ _CHECK_FIELDS = {"run", "on", "timeout", "gating",
 CORE_FIELDS = {
     "obligation": {"scope", "evidence", "refusal", "gate", "scope_kind", "criticality"},
     "stage": {"executor", "tier", "budget_tokens", "context"},
+    "milestone": {"min"},
     "check": _CHECK_FIELDS,
     "kpi": _CHECK_FIELDS | {"direction", "target", "mode"},
 }
@@ -843,6 +844,8 @@ def record_unit(doc, rid, rtype, title, lines, head_line, prof, is_spec):
     field_line = {}
     last = None
     table = dict(prof.field_table(rtype)) if prof is not None else {}
+    if rtype == "milestone":
+        table["min"] = {"shape": "enum", "values": ["claimed", "observed", "independent", "signed"]}
     declared = CORE_FIELDS.get(rtype, set()) | set(table)
     i = 0
     while i < len(lines):

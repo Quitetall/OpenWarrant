@@ -24,7 +24,8 @@ complete (its obligations established): a submission alone never opens the
 next milestone.
 
 A node is **ready** when it is not done, an executor can run it, nobody
-holds it (a claim whose lease ran out holds nothing), and everything it
+holds it (a managed writer remains reserved after lease expiry until stopped
+and released), and everything it
 waits on is done. A **cycle** (`graph.cycle`) is refused by name: nothing in
 it can ever be ready, so `war evidence go` starts nothing while one exists.
 A record nothing implements never reads done, and is reported
@@ -71,7 +72,8 @@ For each ready node, in order, up to `[go] max_parallel` at once:
    run has landed is marked under git's common directory
    (`openwarrant/go/landed/`), so a second run never runs it again even
    though its own checklist does not show the tick yet.
-2. **Worktree**: `.openwarrant/worktrees/<node>` on branch `war-go/<node>`,
+2. **Worktree** (prepared before managed claim admission so the claim names
+   the actual execution checkout): `.openwarrant/worktrees/<node>` on branch `war-go/<node>`,
    from the integration branch (`[go] integration`, default
    `war-go/integration`, made at HEAD the first time). The worktree
    directory and the files a session writes for itself are added to the
@@ -80,7 +82,14 @@ For each ready node, in order, up to `[go] max_parallel` at once:
    description and notes, what it waited on, the checks that decide its tick,
    the declared allowed acts, where to work, and the answer expected, with
    the attempt's bindings) goes to the executor. Its bindings are journalled
-   first (`go.dispatched`).
+   first (`go.dispatched`). Native work also carries the complete required
+   `oh.war/task-context/v1` packet, including recorded notes and exact rules.
+   Workspace cleanup retains dirty, foreign or uncertain work; it never
+   force-removes progress on retry. A clean attempt that did not land is given
+   back, so the next starts from the integration branch; commits of its that
+   the branch does not hold stay at `refs/openwarrant/go/kept/<node>/<commit>`.
+   A retained worktree refuses its node's next attempt (`go.worktree`) until a
+   person has looked at it (`war admin worktrees`).
 4. **Answer**: a §51 Stage Submission. It passes exactly the refusals `war
    evidence submit` applies (`submission.malformed`,
    `submission.self-completion`, `submission.unknown-dispatch`,
@@ -225,7 +234,9 @@ A light Warrant declares its allowed acts in an optional
 - `cargo test -p parser`
 ```
 
-A directory Warrant's declared paths are its deliverables' files. Inside a
+A single-file ticket declares its paths in its frontmatter (`paths:`,
+FORMAT-1.0 10.3), and has nowhere yet to declare tools or commands. A directory
+Warrant's declared paths are its deliverables' files. Inside a
 `war start` worktree whose Warrant declares paths, the plugin guard
 (`.claude/hooks/guard-pins.sh`) turns back an edit outside them; a Warrant
 that declares none restricts nothing.

@@ -26,6 +26,7 @@ fn edge(from: &str, kind: &str, to: &str) -> Edge {
         from: from.to_owned(),
         kind: kind.to_owned(),
         to: to.to_owned(),
+        to_revision: None,
     }
 }
 

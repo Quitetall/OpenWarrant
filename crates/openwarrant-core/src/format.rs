@@ -107,7 +107,7 @@ pub fn type_fields(record_type: &str) -> Option<&'static [&'static str]> {
             "criticality",
         ]),
         "stage" => Some(&["executor", "tier", "budget_tokens", "context"]),
-        "milestone" => Some(&[]),
+        "milestone" => Some(&["min"]),
         "check" => Some(&["run", "on", "timeout", "gating", "reopen"]),
         "kpi" => Some(&[
             "run",
@@ -169,6 +169,7 @@ pub fn core_fields(record_type: &str) -> Option<BTreeMap<String, FieldDecl>> {
             values: Vec::new(),
         };
         match (record_type, name) {
+            ("milestone", "min") => e(&["claimed", "observed", "independent", "signed"]),
             ("obligation", "scope" | "evidence") | ("check" | "kpi", "run") => {
                 plain(true, Shape::Text)
             }

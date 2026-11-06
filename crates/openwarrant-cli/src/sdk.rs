@@ -22,6 +22,12 @@ struct Request {
 #[derive(Deserialize, Serialize)]
 #[serde(tag = "operation", rename_all = "kebab-case", deny_unknown_fields)]
 enum Operation {
+    TaskContext {
+        graph: Box<crate::context::Graph>,
+        target: String,
+        #[serde(default)]
+        sources: BTreeMap<String, String>,
+    },
     RawDigest {
         bytes_hex: String,
     },
@@ -338,6 +344,20 @@ fn adapter_error(e: a::AdapterError) -> Error {
 fn execute(op: Operation) -> Result<Value, Error> {
     let limits = d::ParseLimits::default();
     match op {
+        Operation::TaskContext {
+            graph,
+            target,
+            sources,
+        } => {
+            let packet = crate::context::task::compile(&graph, &target, |path| {
+                sources
+                    .get(path)
+                    .cloned()
+                    .ok_or_else(|| "required source was not supplied".into())
+            })
+            .map_err(|e| Error::new(e.rule, e.message))?;
+            serde_json::to_value(packet).map_err(|e| Error::new("sdk.task-context", e.to_string()))
+        }
         Operation::RawDigest { bytes_hex } => {
             Ok(json!({"digest":r::raw_digest(&bytes(&bytes_hex)?)}))
         }

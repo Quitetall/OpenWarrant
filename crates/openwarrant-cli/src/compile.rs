@@ -319,7 +319,7 @@ pub fn atom_body(text: &str) -> &str {
 
 /// Gather what both master projections render (OW-ADR-0022). One
 /// gathering, two renderings; the currency in it is the derivation
-/// `relations::currencies` computes, and the queue is `war next`'s, judged.
+/// `relations::currencies` computes, and the queue is `war view next`'s, judged.
 pub fn master_corpus(repo: &Repository) -> Result<openwarrant_compiler::CurrentCorpus, RepoError> {
     master_corpus_with(&crate::corpus::Corpus::new(repo))
 }

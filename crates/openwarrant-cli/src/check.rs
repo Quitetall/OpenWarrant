@@ -1334,7 +1334,7 @@ fn check_deliverable_digests(
 /// `Implements.contribution` is an `Option<String>` on disk and `RoadmapRef` is
 /// a bare `String`, and both were copied verbatim into the IR. So a manifest
 /// could say `contribution = "mostly"` or `roadmap://OW-PHASE-11/x` and nothing
-/// would object — `war show` says outright that only `war://` is resolved. The
+/// would object — `war view show` says outright that only `war://` is resolved. The
 /// corpus projection groups Warrants by phase and derives requirement status
 /// from contributions, so both now have to parse, and a value that does not
 /// parse is reported here rather than silently dropped from a count.

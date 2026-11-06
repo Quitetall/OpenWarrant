@@ -502,7 +502,7 @@ fn a_done_based_on_a_revision_needs_no_prior_claim() {
 
 /// §11.3: a claim on a work document covers its items, so it is refused
 /// while another actor holds one of them, naming that claim's file; an
-/// item claim whose lease ran out holds nothing.
+/// managed item claim keeps its reservation after expiry until released.
 #[test]
 fn a_document_claim_is_refused_while_another_holds_an_item() {
     let root = scratch("whole");
@@ -511,7 +511,14 @@ fn a_document_claim_is_refused_while_another_holds_an_item() {
     let bob = json(
         &root,
         Some("bob"),
-        &["claim", "t-0d61d/i-4d11", "--at", "2026-10-14T09:50:00Z"],
+        &[
+            "claim",
+            "t-0d61d/i-4d11",
+            "--paths",
+            "src/**",
+            "--at",
+            "2026-10-14T09:50:00Z",
+        ],
     );
     assert_eq!(bob["exit_code"], 0, "{bob}");
     // The claim is dated when it acted (`--at`).
@@ -527,7 +534,45 @@ fn a_document_claim_is_refused_while_another_holds_an_item() {
         refused[0].ends_with("openwarrant/claims/t-0d61d--i-4d11.lock"),
         "{alice}"
     );
-    // An hour later bob's lease (30 minutes) has run out: the claim stands.
+    // An hour later bob's lease (30 minutes) has run out: a claim that
+    // declared its paths stands.
+    let later = json(
+        &root,
+        Some("alice"),
+        &["claim", "t-0d61d", "--at", "2026-10-14T11:00:00Z"],
+    );
+    assert_eq!(later["exit_code"], 2, "{later}");
+    assert!(
+        later["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "work.writer-unfenced"),
+        "{later}"
+    );
+    let released = json(&root, Some("bob"), &["release", "t-0d61d/i-4d11"]);
+    assert_eq!(released["exit_code"], 0, "{released}");
+    let after_release = json(
+        &root,
+        Some("alice"),
+        &["claim", "t-0d61d", "--at", "2026-10-14T11:00:00Z"],
+    );
+    assert_eq!(after_release["exit_code"], 0, "{after_release}");
+}
+
+#[test]
+fn a_document_claim_reclaims_an_undeclared_item_claim_whose_lease_ran_out() {
+    let root = scratch("reclaimed");
+    ticket(&root, "t-0d61d", U1, THREE);
+    commit(&root);
+    let bob = json(
+        &root,
+        Some("bob"),
+        &["claim", "t-0d61d/i-4d11", "--at", "2026-10-14T09:50:00Z"],
+    );
+    assert_eq!(bob["exit_code"], 0, "{bob}");
+    let live = json(&root, Some("alice"), &["claim", "t-0d61d", "--at", AT]);
+    assert_eq!(live["exit_code"], 2, "{live}");
     let later = json(
         &root,
         Some("alice"),

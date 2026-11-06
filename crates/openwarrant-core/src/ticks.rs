@@ -64,7 +64,7 @@ use crate::ticket::{Fault, is_field_word, is_item_id};
 /// Where a ticket keeps its optional parts, relative to its directory.
 pub const CHECKS_FILE: &str = "atoms/30-checks.md";
 
-/// What `war add --test` writes into a ticket that has no checks atom yet.
+/// What `war plan add --test` writes into a ticket that has no checks atom yet.
 pub const CHECKS_STUB: &str = "# Checks\n\nWhat must say \"pass\" before an item ticks as observed: `war done <item> --check`\nruns the Warrant's tests and KPIs (and the item's own) and ticks only if they pass.\n";
 
 // ---- the ladder --------------------------------------------------------------
@@ -226,7 +226,7 @@ pub enum MinimumSource {
     ProfileMilestone,
     /// The profile's `[ticks.types] <type>`.
     Type,
-    /// The milestone's own `min` (`war add --milestone ... --min`).
+    /// The milestone's own `min` (`war plan add --milestone ... --min`).
     Milestone,
     /// The repo preset's `[preset] ticks` (OW-WAR-0148 M14).
     Preset,
@@ -421,7 +421,7 @@ impl Kpi {
         })
     }
 
-    /// The line `war add --kpi` writes (no terminator).
+    /// The line `war plan add --kpi` writes (no terminator).
     #[must_use]
     pub fn render(&self) -> String {
         let mut line = format!(
@@ -442,7 +442,7 @@ impl Kpi {
 }
 
 impl Test {
-    /// The line `war add --test` writes (no terminator).
+    /// The line `war plan add --test` writes (no terminator).
     #[must_use]
     pub fn render(&self) -> String {
         let mut line = format!("- {}: {}", self.name, code_span(&self.cmd));
@@ -454,7 +454,7 @@ impl Test {
 }
 
 impl Milestone {
-    /// The line `war add --milestone` writes (no terminator).
+    /// The line `war plan add --milestone` writes (no terminator).
     #[must_use]
     pub fn render(&self) -> String {
         match self.min {

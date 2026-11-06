@@ -45,7 +45,10 @@ for r in rows:
 st_commit() { git -C "$1" add -A >/dev/null 2>&1 && git -C "$1" -c user.email=plant@invalid -c user.name=plant commit -qm "$2" >/dev/null 2>&1; }
 
 # ---- setup ----------------------------------------------------------------
-printf '\n[claims]\nremote = "origin"\n' >> "$ST_ROOT/openwarrant.toml"
+# The lease outlasts any run: on a loaded machine the race can take longer than
+# the 30-minute default, and an expired claim is rightly reclaimed, which would
+# read here as a double claim.
+printf '\n[claims]\nremote = "origin"\nclaim_lease_minutes = 600\n' >> "$ST_ROOT/openwarrant.toml"
 for t in 0 1 2 3 4 5 6 7 8 9; do
     st_args=()
     for i in 0 1 2 3 4 5 6 7 8 9; do st_args+=(--item "Item $t.$i"); done
@@ -123,8 +126,8 @@ for path in open(sys.argv[2]).read().split("\n"):
         continue
     for line in open(path):
         e = json.loads(line)
-        if e["type"] in ("ticket.claimed", "ticket.claim_reclaimed", "ticket.claim_stolen"):
-            t = json.loads(e["payload"])["target"]
+        if e["type"] in ("work.claimed", "work.claim_reclaimed", "work.claim_stolen"):
+            t = e["payload"]["target"]
             if t in pool:
                 seen[t] = seen.get(t, 0) + 1
 print(len(seen), sum(seen.values()), sorted(t for t, n in seen.items() if n != 1)[:3])
@@ -165,7 +168,7 @@ fi
 # it is killed. Refused while it lives; reclaimed from the other machine once
 # its lease has run out.
 ST_W1="${ST_AT[1]}"
-printf '\n[tickets]\nclaim_lease_minutes = 0.0834\n' >> "$ST_W1/openwarrant.toml"
+sed -i 's/^claim_lease_minutes = 600$/claim_lease_minutes = 0.0834/' "$ST_W1/openwarrant.toml"
 st_war "$ST_W1" claim "$ST_V" --as victim >/dev/null 2>&1; ST_S=$?
 ( while :; do st_war "$ST_W1" heartbeat --as victim >/dev/null 2>&1; sleep 1; done ) &
 ST_HB=$!
@@ -176,9 +179,9 @@ sleep 6
 ST_OUT=$(st_war "$ST_TMP/c1" claim "$ST_V" --as heir 2>&1); ST_S3=$?
 ST_VREF=$(git -C "$ST_TMP/bare.git" log -1 --format=%B "refs/openwarrant/claims/${ST_V/\//--}" 2>/dev/null \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
-ST_VJ=$(grep '"ticket.claim_reclaimed"' "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")
+ST_VJ=$(grep '"work.claim_reclaimed"' "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")
 if [[ $ST_S -eq 0 && $ST_S2 -eq 2 && $ST_S3 -eq 0 && "$ST_VREF" == heir ]] && grep -q 'claimed on the remote .origin. by victim' <<<"$ST_ERR" \
-    && grep -q 'reclaimed from victim' <<<"$ST_OUT" && grep -q 'from\\":\\"victim' <<<"$ST_VJ"; then
+    && grep -q 'reclaimed from victim' <<<"$ST_OUT" && grep -q '"from":"victim"' <<<"$ST_VJ"; then
     st_ok "a killed holder's item is reclaimed" "6 s in, heartbeating: heir refused by name; killed, its 5 s lease ran out: heir reclaimed it across the remote, journalled from victim"
 else
     st_fail "a killed holder's item is reclaimed" "claim $ST_S; while alive $ST_S2 ($ST_ERR); after $ST_S3 ($ST_OUT); remote holder '$ST_VREF'"
@@ -190,8 +193,8 @@ st_edits() { python3 -c '
 import json, sys
 for line in open(sys.argv[1]):
     e = json.loads(line)
-    if e["type"] == "ticket.edited":
-        p = json.loads(e["payload"]).get("priority")
+    if e["type"] == "work.edited":
+        p = e["payload"].get("changed", {}).get("priority")
         if p is not None:
             print(p)
 ' "$ST_ROOT/docs/tickets/$ST_K/journal.jsonl"; }

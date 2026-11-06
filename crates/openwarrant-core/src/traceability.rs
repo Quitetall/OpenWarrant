@@ -157,7 +157,7 @@ impl std::fmt::Display for RequirementRef {
 ///
 /// §105 gives only the URI scheme; the item-id's shape is left to the
 /// repository. Until this type existed the manifest carried the ref as an
-/// unparsed `String` and `war show` said outright that only `war://` was
+/// unparsed `String` and `war view show` said outright that only `war://` was
 /// resolved — so `roadmap://OW-PHASE-11/x` and `roadmap://typo` were both
 /// accepted, and nothing could group Warrants by phase because nothing could
 /// read the phase.

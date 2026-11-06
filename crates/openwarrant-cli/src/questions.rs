@@ -22,7 +22,7 @@
 //! waits under `docs/intake/<key>/questions/`, where `<key>` is `github-<n>`
 //! or `sentence-<digest>` and stands where an alias would. No alias is
 //! allocated for it. Such a question names the command that drafts its input
-//! again (`redraft`), and it is listed, answered and shown in `war next`
+//! again (`redraft`), and it is listed, answered and shown in `war view next`
 //! beside every Warrant's questions.
 
 use std::fmt::Write as _;
@@ -603,7 +603,7 @@ pub fn record_intake(
     Ok(path)
 }
 
-/// `war next`'s rows for intake questions: each open one is a human's
+/// `war view next`'s rows for intake questions: each open one is a human's
 /// `answer` act, and its `why` names the command that drafts the input
 /// again. Never a signing act, and never an agent's.
 pub fn intake_actions(repo: &Repository) -> Vec<crate::next::Action> {

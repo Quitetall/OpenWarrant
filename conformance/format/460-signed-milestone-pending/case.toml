@@ -1,0 +1,4 @@
+id = "460-signed-milestone-pending"
+kind = "accept"
+section = "4.1, 12"
+says = "A passing check cannot satisfy a milestone minimum above observed."

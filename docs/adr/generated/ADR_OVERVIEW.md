@@ -41,6 +41,7 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0030](docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md) | ADR OW-0030: Bind a verdict to the subject that was reviewed | `proposed` | no | — |
 | [OW-ADR-0031](docs/adr/atoms/OW-ADR-0031-typed-records.md) | ADR OW-0031: Documents are typed records; a document's type selects its capabilities | `proposed` | no | `war://01a0feb6-ab80-73a5-abcb-7ade9cfaaeaa` |
 | [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md) | ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale | `accepted` | yes | — |
+| [OW-ADR-alpha6-unified-work-8956e](docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md) | One Warrant model and a small daily loop | `proposed` | no | `war://01a19328-8d43-737e-81ca-27e5f18cc1f7` |
 | [OW-ADR-native-acceptance-7d21adfa](docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md) | Version native acceptance separately from legacy resolution | `proposed` | no | `war://01a0f502-4941-70a1-a446-e1eb77dff191` |
 | [OW-ADR-native-inputs-98b57f41](docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md) | Retain native verifier inputs as inert archive data | `proposed` | no | `war://01a0b4be-13af-7540-90a8-28d5c6d7ac59`<br>`war://01a0f502-4941-70a1-a446-e1eb77dff191` |
 | [OW-ADR-native-policy-e8b574f1](docs/adr/atoms/OW-ADR-native-policy-e8b574f1.md) | Bind native acceptance to protected policy observations | `proposed` | no | `war://01a0f502-4941-70a1-a446-e1eb77dff191` |
@@ -70,6 +71,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0029** ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 - **OW-ADR-0030** ADR OW-0030: Bind a verdict to the subject that was reviewed
 - **OW-ADR-0031** ADR OW-0031: Documents are typed records; a document's type selects its capabilities
+- **OW-ADR-alpha6-unified-work-8956e** One Warrant model and a small daily loop
 - **OW-ADR-native-acceptance-7d21adfa** Version native acceptance separately from legacy resolution
 - **OW-ADR-native-inputs-98b57f41** Retain native verifier inputs as inert archive data
 - **OW-ADR-native-policy-e8b574f1** Bind native acceptance to protected policy observations
@@ -4034,6 +4036,32 @@ as before.
 
 The SAS stays accepted at 1.3.0 as rationale. New Warrants cite record ids
 and Format sections, not SAS `§` numbers.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md · uuid: 01a1934c-4359-74ce-bfe5-e5c405d27cf6 -->
+
+# One Warrant model and a small daily loop
+
+Owner-directed implementation scope, 2026-10-31, under t-8956e. Proposed
+format edition changes are not formal acceptance of Format 1.0.
+
+New work uses one Markdown source and keeps its ID while adding stages,
+checks and optional authority requirements. One tracker/evaluator and context
+interface serves CLI, SDK, MCP and views. All required current checks must
+pass; optional checks report results. Completion may remain unverified.
+Preserve accepted result versions and history when regressions occur.
+
+Use six daily commands and retain flat compatibility spellings. Derive scoped
+claims within existing permissions; shared-checkout overlaps block claims,
+isolated worktrees warn about integration. Names identify task/role, never
+authority. Cleanup retains unknown, active, foreign or dirty workspaces.
+Imports preserve original documents and source identity; changed rows propose
+diffs rather than overwriting maintained Warrants.
+
+Keep the existing command runner for custom conditions. Embedded Lua and
+cross-repository scheduling are deferred. Legacy signed contracts and frozen
+deliverables are not migrated or resigned by this decision.
 
 ---
 

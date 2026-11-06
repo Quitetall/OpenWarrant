@@ -357,7 +357,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         ),
         "sign.would-refuse" | "sign.refused" => Remedy::new(
             Kind::Informational,
-            &["war", "next"],
+            &["war", "view", "next"],
             "see each waiting act's dry-run verdict and the rule that would refuse it; \
              nothing is signed or written",
         ),

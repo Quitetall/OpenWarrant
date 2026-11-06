@@ -465,7 +465,7 @@ pub fn local(repo: &Repository, policy: &Policy, subject: Subject) -> Standing {
 
 const fn next_kind(k: Kind) -> &'static str {
     match k {
-        Kind::Vibe => "tested (`war add <id> --test \"<command>\"`) or formal",
+        Kind::Vibe => "tested (`war plan add <id> --test \"<command>\"`) or formal",
         Kind::Tested | Kind::Formal => "formal (`war plan new`)",
     }
 }
@@ -481,7 +481,7 @@ impl Standing {
         }
     }
 
-    /// The `## Official` section `war show` appends.
+    /// The `## Official` section `war view show` appends.
     #[must_use]
     pub fn section(&self, policy: &Policy) -> String {
         let mut s = format!(
@@ -620,7 +620,7 @@ fn requested_at(t: &Ticket, digest: &str) -> bool {
 ///
 /// Without `--ssh-sign`: the request. It names what an approval binds and
 /// who may sign it, records `ticket.approval_requested` in the Warrant's
-/// journal (once per plan) so `war next` and `war sign inbox` list it, and
+/// journal (once per plan) so `war view next` and `war sign inbox` list it, and
 /// runs `[notify]`. Writes no response and touches no key. With
 /// `--ssh-sign`: a human's approval, signed with their key through the ssh
 /// agent and recorded only when the signature verifies as theirs.
@@ -721,10 +721,10 @@ pub fn approve(
                 subject.kind,
                 who,
                 if fresh {
-                    "Recorded in its journal; `war next` and `war sign inbox` list it. Your work \
+                    "Recorded in its journal; `war view next` and `war sign inbox` list it. Your work \
                      goes on meanwhile."
                 } else {
-                    "Already requested for this plan; `war next` lists it. Your work goes on \
+                    "Already requested for this plan; `war view next` lists it. Your work goes on \
                      meanwhile."
                 }
             ),
@@ -883,7 +883,7 @@ pub fn approve(
     ))
 }
 
-/// One approval someone asked for and nobody has given (for `war next` and
+/// One approval someone asked for and nobody has given (for `war view next` and
 /// `war sign inbox`).
 #[derive(Debug, Clone, Serialize)]
 pub struct Requested {

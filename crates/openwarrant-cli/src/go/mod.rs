@@ -18,7 +18,7 @@
 //! A crash, a timeout, a merge conflict or a failed check leaves the node
 //! open and unclaimed, with a note saying what happened, and it goes back to
 //! the frontier; after `[go] max_attempts` in a row it is blocked for a
-//! person, and `war next` lists it. The run stops when nothing is ready, or
+//! person, and `war view next` lists it. The run stops when nothing is ready, or
 //! a cap or a budget is reached, and says which.
 //!
 //! Parallelism is by isolation. Several performers at once write several
@@ -131,7 +131,7 @@ pub struct RunResult {
     pub stop: Stop,
 }
 
-/// A node set aside for a person, as `war next` lists it.
+/// A node set aside for a person, as `war view next` lists it.
 #[derive(Debug, Clone, Serialize)]
 pub struct BlockedNode {
     pub node: String,
@@ -466,7 +466,7 @@ pub fn run(
     };
     run.overlay(&tickets);
     let mut history_report = Report::default();
-    // `[next] prior_secs` first (FORMAT-1.0 §11.5), so `war next` and this
+    // `[next] prior_secs` first (FORMAT-1.0 §11.5), so `war view next` and this
     // run estimate alike.
     let prior = crate::estimate::prior_secs(&run.store.root, Some(run.policy.prior_secs));
     let history = crate::estimate::learn(&tickets, prior, &mut history_report);
@@ -953,7 +953,12 @@ impl Run<'_> {
                 .join(&self.policy.worktrees)
                 .join(git::slug(id));
             let branch = git::node_branch(id);
-            git::remove_worktree(&self.repo.root, &path, Some(&branch));
+            git::remove_worktree(
+                &self.repo.root,
+                &path,
+                Some(&branch),
+                &self.policy.integration,
+            );
         }
         let detail = e.to_string();
         self.report.push(Diagnostic::error(
@@ -1027,9 +1032,39 @@ impl Run<'_> {
             )?;
             return Ok(None);
         }
+        if let Some(common) = &self.common
+            && let Some(landed) = ledger::landed(common, id)
+        {
+            self.skip(
+                id,
+                "landed-elsewhere",
+                format!(
+                    "{id} landed in run {} by {} at {}; merge {} to see its tick here",
+                    landed.run,
+                    landed.actor,
+                    &landed.commit[..landed.commit.len().min(12)],
+                    landed.integration
+                ),
+            );
+            self.graph.mark_done(id);
+            return Ok(None);
+        }
+        let (worktree, branch, base) = match self.workspace(id, &node.warrant) {
+            Ok(w) => w,
+            Err(e) => {
+                self.report.push(Diagnostic::error(
+                    "go.worktree",
+                    self.rel(&self.repo.root.join(&self.policy.worktrees)),
+                    format!("{id}: {e}"),
+                ));
+                self.skip(id, "worktree", e);
+                return Ok(None);
+            }
+        };
+        let program = worktree.join(&self.below);
         // Claim, through M11's shared store: a second run (another worktree,
         // or another clone with `[claims] remote`) is refused here by name.
-        let claimed = crate::ticket::claim_cmd(&self.store, id, false)?;
+        let claimed = crate::ticket::claim_scoped_at(&self.store, id, false, &[], &program)?;
         if claimed.is_refused() {
             let d = claimed.report.diagnostics.first();
             let rule = d.map_or("ticket.claim", |d| d.rule.as_str()).to_owned();
@@ -1073,20 +1108,6 @@ impl Run<'_> {
             .store
             .claims_dir
             .join(crate::ticket::claim::lock_name(&tid, item.as_deref()));
-        let (worktree, branch, base) = match self.workspace(id, &node.warrant) {
-            Ok(w) => w,
-            Err(e) => {
-                let _ = crate::ticket::release(&self.store, id, None);
-                self.report.push(Diagnostic::error(
-                    "go.worktree",
-                    self.rel(&self.repo.root.join(&self.policy.worktrees)),
-                    format!("{id}: {e}"),
-                ));
-                self.skip(id, "worktree", e);
-                return Ok(None);
-            }
-        };
-        let program = worktree.join(&self.below);
         let checks = crate::ticket::ladder::checks_of(&t);
         let (tests, kpis) = checks.for_item(item.as_deref());
         let mut deciding: Vec<packet::Check> = tests
@@ -1132,6 +1153,11 @@ impl Run<'_> {
                 contract_digest: revision.clone(),
                 stage_id: id.to_owned(),
                 requested_next_action: packet::ACTIONS,
+            },
+            context: if t.format {
+                Some(crate::context::task::repository(self.repo, t.id())?)
+            } else {
+                None
             },
             brief: String::new(),
         };
@@ -1289,7 +1315,7 @@ impl Run<'_> {
 
     fn ticket_dir(&self, tid: &str) -> Option<Utf8PathBuf> {
         let d = self.store.dir.join(tid);
-        crate::vfs::is_file(d.join("manifest.toml")).then_some(d)
+        self.store.load(&d).ok().map(|_| d)
     }
 
     /// The node's Beads issue line, as `war admin export beads` writes it.
@@ -1359,7 +1385,7 @@ impl Run<'_> {
                 && let Err(files) =
                     git::merge(&path, &dep_branch, &format!("war go: {dep} under {id}"))
             {
-                git::remove_worktree(root, &path, Some(&branch));
+                git::remove_worktree(root, &path, Some(&branch), &self.policy.integration);
                 return Err(format!(
                     "the branch of {dep}, which it waits on, does not merge cleanly: {}",
                     files.join(", ")
@@ -1431,6 +1457,7 @@ impl Run<'_> {
                 now + self.store.lease_secs,
             )),
             lease_until_unix: Some(now + self.store.lease_secs),
+            coordination: None,
         };
         match crate::ticket::claim::take(&lock, &claim) {
             Ok(crate::ticket::claim::Taken::Won) => {}
@@ -1471,7 +1498,12 @@ impl Run<'_> {
                 .collect();
             let _ = crate::ticket::claim::release(&lock, &self.actor);
             if let Some(b) = &branch {
-                git::remove_worktree(&self.repo.root, &worktree, Some(b));
+                git::remove_worktree(
+                    &self.repo.root,
+                    &worktree,
+                    Some(b),
+                    &self.policy.integration,
+                );
             }
             self.graph.block(&id, why.join("; "));
             self.skip(&id, "for-a-person", why.join("; "));
@@ -1492,7 +1524,12 @@ impl Run<'_> {
             Err(e) => {
                 let _ = crate::ticket::claim::release(&lock, &self.actor);
                 if let Some(b) = &branch {
-                    git::remove_worktree(&self.repo.root, &worktree, Some(b));
+                    git::remove_worktree(
+                        &self.repo.root,
+                        &worktree,
+                        Some(b),
+                        &self.policy.integration,
+                    );
                 }
                 self.skip(&id, "crashed", e);
                 return Ok(None);
@@ -1853,6 +1890,7 @@ impl Run<'_> {
                 &self.repo.root,
                 &l.worktree,
                 (!keep_branch).then_some(b.as_str()),
+                &self.policy.integration,
             );
         }
     }
@@ -1923,7 +1961,7 @@ impl Run<'_> {
     }
 
     /// Set a node aside for a person: journalled, noted, blocked in the
-    /// graph, and listed by `war next`.
+    /// graph, and listed by `war view next`.
     fn set_aside(
         &mut self,
         t: &Ticket,
@@ -2182,7 +2220,12 @@ impl Run<'_> {
         if let Some(b) = &l.branch {
             // Merged work needs its branch no longer; a pull request does.
             let keep = self.policy.land == Land::Pr;
-            git::remove_worktree(&root, &l.worktree, (!keep).then_some(b.as_str()));
+            git::remove_worktree(
+                &root,
+                &l.worktree,
+                (!keep).then_some(b.as_str()),
+                &self.policy.integration,
+            );
         }
         self.human.push_str(&format!(
             "landed {} at {level}: {}\n",
@@ -2309,7 +2352,12 @@ impl Run<'_> {
         let give_back = |run: &mut Self, outcome: &str, detail: String| {
             let _ = crate::ticket::claim::release(&l.lock, &run.actor);
             if let Some(b) = &l.branch {
-                git::remove_worktree(&run.repo.root, &l.worktree, Some(b));
+                git::remove_worktree(
+                    &run.repo.root,
+                    &l.worktree,
+                    Some(b),
+                    &run.policy.integration,
+                );
             }
             run.human
                 .push_str(&format!("sent back {} ({outcome}): {detail}\n", l.node));
@@ -2440,7 +2488,7 @@ impl Run<'_> {
         }
         let _ = crate::ticket::claim::release(&l.lock, &self.actor);
         if let Some(b) = &l.branch {
-            git::remove_worktree(&root, &l.worktree, Some(b));
+            git::remove_worktree(&root, &l.worktree, Some(b), &self.policy.integration);
         }
         self.human
             .push_str(&format!("landed {}: submission recorded\n", l.node));

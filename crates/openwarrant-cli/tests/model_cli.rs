@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+// Legacy layout fixtures opt in explicitly; native authoring is covered by alpha6_loop.
 //! `war model` through the shipped binary (OW-WAR-0148 OBL-002): the record
 //! and relation kinds a program with a ticket and a promoted Warrant has, the
 //! same bytes from the same tree, and an unknown relation target reported as
@@ -85,7 +86,9 @@ fn the_model_names_records_relations_and_is_deterministic() {
     let root = scratch("kinds");
     let created = war(
         &root,
-        &["create", "A ticket", "-i", "first", "-i", "second"],
+        &[
+            "create", "--legacy", "A ticket", "-i", "first", "-i", "second",
+        ],
     );
     assert!(created.status.success());
     let ticket = String::from_utf8_lossy(&created.stdout)

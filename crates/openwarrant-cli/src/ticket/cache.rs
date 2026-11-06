@@ -2,14 +2,15 @@
 //! A local cache of parsed tickets: the daily read verbs at 10,000 Warrants
 //! (CONTRIBUTING.md, "The speed budget").
 //!
-//! Every run of `war next` or `war view ready` read and parsed every ticket:
-//! its `manifest.toml` (TOML), both atoms, and, for an open ticket, its
-//! journal. At 9,800 tickets that was most of the run. This module keeps what
-//! those reads produced — the manifest's fields, the atoms' text, the
-//! manifest's revision, and an open ticket's set-aside nodes
-//! ([`crate::go::BlockedNode`]) — beside the stat of every file it came from,
-//! and answers a ticket from it only when every one of those files stats
-//! exactly as it did when it was read.
+//! Every run of `war view next` or `war view ready` read and parsed every ticket:
+//! a directory ticket's `manifest.toml` (TOML) and both atoms, a Format 1.0
+//! ticket's document (`<alias>.md`, or `<alias>/ticket.md`), and, for an open
+//! ticket, its journal. At 9,800 tickets that was most of the run. This module
+//! keeps what those reads produced — the manifest's fields, the text, the
+//! revision, what a document's items and relations came to, and an open
+//! ticket's set-aside nodes ([`crate::go::BlockedNode`]) — beside the stat of
+//! every file it came from, and answers a ticket from it only when every one
+//! of those files stats exactly as it did when it was read.
 //!
 //! # What it may and may not do
 //!
@@ -32,18 +33,26 @@
 //!   nothing about the files inside, which an in-place edit changes without
 //!   touching any directory: every ticket is still judged by its own files'
 //!   stats, never by a directory's.
-//! - **Journals.** `war next` lists the nodes a run set aside, read from
+//! - **Journals.** `war view next` lists the nodes a run set aside, read from
 //!   each open ticket's journal ([`permit_with_journals`]); the nodes are
 //!   kept beside the journal's stat and the ticket entry they were read
 //!   with. A journal that was absent is keyed as absent.
+//! - **Format 1.0 tickets.** Which documents there are, and that no alias
+//!   has both forms (§4.1), is settled from the listing on every run, cached
+//!   or not ([`Store::format_documents`]); the cache answers only the reading
+//!   of one document, keyed by its path under the store. The journal is a
+//!   source of the ticket itself when the document has no items, since it
+//!   says whether the document is done (§11.1): that entry carries the
+//!   journal's stat too, absent or not. A document that cannot be worked is
+//!   never cached.
 //! - **Refusal.** Anything else — a missing, unreadable, truncated or
 //!   corrupt shard, a checksum that does not match, another cache format, a
 //!   different `war` binary ([`identity`]), another ticket profile, another
 //!   store directory — and the ticket is read from its files, and the shard
 //!   rewritten. Nothing in a shard is trusted until its BLAKE3 checksum and
 //!   its key both match.
-//! - **Scope.** Only the commands that call [`permit`] use it (`war next`,
-//!   `war view ready`, `war view tickets`, `war status`, `war claim`): views of
+//! - **Scope.** Only the commands that call [`permit`] use it (`war view next`,
+//!   `war view ready`, `war view tickets`, `war status`, `war admin claim`): views of
 //!   the ticket loop. `war check`, compile, and every signing, authorizing,
 //!   resolving and verifying path never permit it, so nothing that judges a
 //!   record or authority reads it. It is off in a hosted (`war admin host`)
@@ -89,7 +98,7 @@ pub const SETTLE: Duration = Duration::from_secs(2);
 
 /// The cache's own format. Any change to what an entry holds or how it is
 /// laid out changes this; a shard of another format is refused.
-const FORMAT: u32 = 2;
+const FORMAT: u32 = 3;
 const MAGIC: &[u8; 8] = b"OWTCACHE";
 /// Shards per store: a changed ticket rewrites one shard, not the cache.
 const SHARDS: usize = 64;
@@ -104,7 +113,7 @@ pub fn permit() {
 }
 
 /// [`permit`], and have each open ticket's set-aside nodes
-/// ([`crate::go::blocked_nodes`]) read with it: for `war next`, which lists
+/// ([`crate::go::blocked_nodes`]) read with it: for `war view next`, which lists
 /// them. Without this the journals are neither read nor stat'ed.
 pub fn permit_with_journals() {
     JOURNALS.store(true, Ordering::Relaxed);
@@ -291,7 +300,7 @@ enum Part {
     New(Vec<u8>),
 }
 
-/// One ticket directory, after this run.
+/// One directory entry or document, after this run.
 struct Got {
     ticket: Option<Result<Ticket, Diagnostic>>,
     shard: usize,
@@ -307,6 +316,42 @@ impl Got {
             ticket_part: Part::None,
             journal_part: Part::None,
         }
+    }
+}
+
+/// One ticket's parts after this run, for its shard.
+struct Kept {
+    /// The name its entry is found by: the directory's, or the document's
+    /// path under the store.
+    name: String,
+    shard: usize,
+    ticket_part: Part,
+    journal_part: Part,
+}
+
+/// What [`Cache::load`] leaves for [`Cache::load_documents`], which finishes
+/// the run: one shard holds both encodings, and rewriting one drops what it
+/// is not given.
+#[derive(Default)]
+pub(crate) struct Pass {
+    shards: Vec<Shard>,
+    listed: bool,
+    kept: Vec<Kept>,
+}
+
+impl Pass {
+    /// Keep what one answer leaves for its shard, and give back its ticket
+    /// or fault. Only a ticket has parts, and only a ticket is counted.
+    fn keep(&mut self, name: Option<&str>, g: Got) -> Option<Result<Ticket, Diagnostic>> {
+        if matches!(g.ticket, Some(Ok(_))) {
+            self.kept.push(Kept {
+                name: name.unwrap_or_default().to_owned(),
+                shard: g.shard,
+                ticket_part: g.ticket_part,
+                journal_part: g.journal_part,
+            });
+        }
+        g.ticket
     }
 }
 
@@ -506,14 +551,20 @@ impl Cache {
     }
 
     /// [`Store::load_all`]'s per-directory answers, in listing order: exactly
-    /// what reading the files gives, with the cache rewritten where it
-    /// gained an entry. The shards are read while the store is listed.
+    /// what reading the files gives. The shards are read while the store is
+    /// listed. Nothing is written until [`Self::load_documents`].
     #[allow(clippy::type_complexity)]
     pub(crate) fn load(
         &self,
         store: &Store,
-    ) -> Result<(Vec<Utf8PathBuf>, Vec<Option<Result<Ticket, Diagnostic>>>), crate::repo::RepoError>
-    {
+    ) -> Result<
+        (
+            Vec<Utf8PathBuf>,
+            Vec<Option<Result<Ticket, Diagnostic>>>,
+            Pass,
+        ),
+        crate::repo::RepoError,
+    > {
         let ids: Vec<usize> = (0..SHARDS).collect();
         let read = || crate::vfs::map_ordered(&ids, 1, |&i| self.read_shard(i));
         let (entries, shards) = std::thread::scope(|scope| {
@@ -528,46 +579,77 @@ impl Cache {
         });
         let (entries, listed) = entries?;
         let got = crate::vfs::map_ordered(&entries, 256, |dir| self.one(store, dir, &shards));
+        let mut pass = Pass {
+            shards,
+            listed,
+            kept: Vec::new(),
+        };
+        let mut loaded = Vec::with_capacity(got.len());
+        for (dir, g) in entries.iter().zip(got) {
+            loaded.push(pass.keep(dir.file_name(), g));
+        }
+        Ok((entries, loaded, pass))
+    }
+
+    /// Each of [`Store::format_documents`]' answers read, in order: exactly
+    /// what [`Store::load_format`] gives. Then the cache is rewritten where
+    /// this run gained an entry, directory tickets' included.
+    pub(crate) fn load_documents(
+        &self,
+        store: &Store,
+        documents: &[Result<(String, Utf8PathBuf), Diagnostic>],
+        mut pass: Pass,
+    ) -> Vec<Result<Ticket, Diagnostic>> {
+        let got = crate::vfs::map_ordered(documents, 256, |d| match d {
+            Ok((alias, file)) => self.document(store, alias, file, &pass.shards),
+            Err(fault) => Got::plain(Some(Err(fault.clone()))),
+        });
+        let mut read = Vec::with_capacity(got.len());
+        for (d, g) in documents.iter().zip(got) {
+            let name = d.as_ref().ok().and_then(|(_, f)| document_name(store, f));
+            read.extend(pass.keep(name, g));
+        }
+        self.finish(&pass);
+        read
+    }
+
+    /// Rewrite the shards that gained an entry, and say what the run did.
+    fn finish(&self, pass: &Pass) {
         let mut dirty = [false; SHARDS];
-        for g in &got {
-            if matches!(g.ticket_part, Part::New(_)) || matches!(g.journal_part, Part::New(_)) {
-                dirty[g.shard] = true;
+        for k in &pass.kept {
+            if matches!(k.ticket_part, Part::New(_)) || matches!(k.journal_part, Part::New(_)) {
+                dirty[k.shard] = true;
             }
         }
         let dirty: Vec<usize> = (0..SHARDS).filter(|&i| dirty[i]).collect();
-        crate::vfs::map_ordered(&dirty, 1, |&i| {
-            self.write_shard(i, &shards[i], &entries, &got);
-        });
+        crate::vfs::map_ordered(&dirty, 1, |&i| self.write_shard(i, pass));
         if env_on(TRACE_ENV) {
-            let tickets = got
+            let cached = pass
+                .kept
                 .iter()
-                .filter(|g| matches!(g.ticket, Some(Ok(_))))
+                .filter(|k| matches!(k.ticket_part, Part::Old(_)))
                 .count();
-            let cached = got
-                .iter()
-                .filter(|g| matches!(g.ticket_part, Part::Old(_)))
-                .count();
+            let tickets = pass.kept.len();
             eprintln!(
                 "ticket cache: {cached} of {tickets} ticket(s) from the cache, {} read from their \
                  files; {} shard(s) written; the listing from the {}",
                 tickets - cached,
                 dirty.len(),
-                if listed { "cache" } else { "directory" }
+                if pass.listed { "cache" } else { "directory" }
             );
         }
-        Ok((entries, got.into_iter().map(|g| g.ticket).collect()))
     }
 
-    /// Shard `i` again: every entry of it this run can vouch for, in
-    /// listing (name) order.
-    fn write_shard(&self, i: usize, old: &Shard, entries: &[Utf8PathBuf], got: &[Got]) {
+    /// Shard `i` again: every entry of it this run can vouch for, in name
+    /// order.
+    fn write_shard(&self, i: usize, pass: &Pass) {
+        let old = &pass.shards[i];
+        let mut kept: Vec<&Kept> = pass.kept.iter().filter(|k| k.shard == i).collect();
+        kept.sort_by(|a, b| a.name.as_bytes().cmp(b.name.as_bytes()));
         let mut w = Writer::default();
         let mut n = 0u32;
         w.u32(0);
-        for (dir, g) in entries.iter().zip(got) {
-            if g.shard != i {
-                continue;
-            }
+        for k in kept {
             let part = |p: &Part| -> Option<Vec<u8>> {
                 match p {
                     Part::None => None,
@@ -575,11 +657,11 @@ impl Cache {
                     Part::New(b) => Some(b.clone()),
                 }
             };
-            let (Some(name), Some(t)) = (dir.file_name(), part(&g.ticket_part)) else {
+            let Some(t) = part(&k.ticket_part) else {
                 continue;
             };
-            let j = part(&g.journal_part).unwrap_or_default();
-            w.str(name);
+            let j = part(&k.journal_part).unwrap_or_default();
+            w.str(&k.name);
             w.bytes(&t);
             w.bytes(&j);
             n += 1;
@@ -598,31 +680,17 @@ impl Cache {
         let shard = shard_of(name);
         let old = &shards[shard];
         if let Some((_, tr, jr)) = old.get(name)
-            && let Some(mut t) = old
+            && let Some(t) = old
                 .bytes
                 .get(tr.clone())
                 .and_then(|b| hit(&store.root, dir, stamp, b))
         {
-            let old_journal = jr
-                .as_ref()
-                .and_then(|r| old.bytes.get(r.clone()).map(|b| (r.clone(), b)));
-            let journal_part = if self.journals {
-                self.journal(&mut t, old_journal)
-            } else {
-                // Not asked for: kept as it was, judged when it is.
-                old_journal.map_or(Part::None, |(r, _)| Part::Old(r))
-            };
-            return Got {
-                ticket: Some(Ok(t)),
-                shard,
-                ticket_part: Part::Old(tr.clone()),
-                journal_part,
-            };
+            return self.got_from_entry(t, shard, old, tr, jr.as_ref());
         }
         // A miss: read the files, stat'ing each just before it is read.
         let mut stamps: Vec<Option<Seen>> = Vec::with_capacity(3);
         let loaded = store.load_observed(dir, &mut |p| stamps.push(seen(p)));
-        let Ok(mut t) = loaded else {
+        let Ok(t) = loaded else {
             return Got::plain(Some(loaded));
         };
         let files: Vec<Stamp> = stamps
@@ -637,6 +705,75 @@ impl Cache {
         } else {
             Part::None
         };
+        self.got_from_files(t, shard, ticket_part)
+    }
+
+    /// One Format 1.0 ticket: [`Self::one`] for a document, whose journal
+    /// may be a source of the ticket itself (module docs).
+    fn document(&self, store: &Store, alias: &str, file: &Utf8Path, shards: &[Shard]) -> Got {
+        let (Some(name), Some(Seen::File(stamp))) = (document_name(store, file), seen(file)) else {
+            // Unusual or unnamed: exactly the uncached read.
+            return Got::plain(Some(store.load_format(file, alias)));
+        };
+        let dir = store.dir.join(alias);
+        let shard = shard_of(name);
+        let old = &shards[shard];
+        if let Some((_, tr, jr)) = old.get(name)
+            && let Some(t) = old
+                .bytes
+                .get(tr.clone())
+                .and_then(|b| hit_document(&store.root, &dir, file, stamp, b))
+        {
+            return self.got_from_entry(t, shard, old, tr, jr.as_ref());
+        }
+        // A miss: both sources stat'ed before either is read.
+        let journal = seen(&dir.join(crate::journal_cmd::FILE));
+        let loaded = store.load_format(file, alias);
+        let Ok(t) = loaded else {
+            return Got::plain(Some(loaded));
+        };
+        let settled = self.settled(&stamp)
+            && (!t.checklist.items.is_empty()
+                || match journal {
+                    Some(Seen::File(s)) => self.settled(&s),
+                    Some(Seen::Absent) => true,
+                    None => false,
+                });
+        let ticket_part = if settled {
+            Part::New(encode_document(stamp, journal, &t))
+        } else {
+            Part::None
+        };
+        self.got_from_files(t, shard, ticket_part)
+    }
+
+    /// A ticket answered by its entry, with its journal judged as this run
+    /// asks.
+    fn got_from_entry(
+        &self,
+        mut t: Ticket,
+        shard: usize,
+        old: &Shard,
+        ticket: &Range<usize>,
+        journal: Option<&Range<usize>>,
+    ) -> Got {
+        let old_journal = journal.and_then(|r| old.bytes.get(r.clone()).map(|b| (r.clone(), b)));
+        let journal_part = if self.journals {
+            self.journal(&mut t, old_journal)
+        } else {
+            // Not asked for: kept as it was, judged when it is.
+            old_journal.map_or(Part::None, |(r, _)| Part::Old(r))
+        };
+        Got {
+            ticket: Some(Ok(t)),
+            shard,
+            ticket_part: Part::Old(ticket.clone()),
+            journal_part,
+        }
+    }
+
+    /// A ticket read from its files, with `ticket_part` to keep or none.
+    fn got_from_files(&self, mut t: Ticket, shard: usize, ticket_part: Part) -> Got {
         let journal_part = if self.journals {
             self.journal(&mut t, None)
         } else {
@@ -723,6 +860,107 @@ fn hit(root: &Utf8Path, dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ti
         done_whole: false,
         depends_on: Vec::new(),
     })
+}
+
+/// The name a document's entry is found by: its path under the store.
+fn document_name<'a>(store: &Store, file: &'a Utf8Path) -> Option<&'a str> {
+    file.strip_prefix(&store.dir).ok().map(Utf8Path::as_str)
+}
+
+/// The Format 1.0 ticket an entry holds, when its sources stat as they did:
+/// the document (`stamp`, already taken) and, for a document with no items,
+/// its journal. Exactly what [`Store::load_format`] builds from them.
+fn hit_document(
+    root: &Utf8Path,
+    dir: &Utf8Path,
+    file: &Utf8Path,
+    stamp: Stamp,
+    bytes: &[u8],
+) -> Option<Ticket> {
+    let mut r = Reader::new(bytes);
+    if r.stamp()? != stamp {
+        return None;
+    }
+    let journal = match r.u8()? {
+        0 => None,
+        1 => Some(Seen::Absent),
+        2 => Some(Seen::File(r.stamp()?)),
+        _ => return None,
+    };
+    let manifest = r.manifest()?;
+    let revision = r.str()?.to_owned();
+    let intent = r.str()?.to_owned();
+    let checklist_text = r.str()?.to_owned();
+    let done_whole = match r.u8()? {
+        0 => false,
+        1 => true,
+        _ => return None,
+    };
+    let n = r.u32()?;
+    let mut lines = Vec::new();
+    for _ in 0..n {
+        lines.push(usize::try_from(r.u64()?).ok()?);
+    }
+    let n = r.u32()?;
+    let mut depends_on = Vec::new();
+    for _ in 0..n {
+        depends_on.push(ticket::Blocker::parse(r.str()?)?);
+    }
+    if r.pos != bytes.len() {
+        return None;
+    }
+    if let Some(was) = journal
+        && seen(&dir.join(crate::journal_cmd::FILE)) != Some(was)
+    {
+        return None;
+    }
+    let mut checklist = ticket::parse(&checklist_text);
+    checklist.items.retain(|i| lines.contains(&i.line));
+    checklist.faults.clear();
+    Some(Ticket {
+        // Derived from this reader's store; never trusted from cache bytes.
+        repository_root: root.to_owned(),
+        dir: dir.to_owned(),
+        manifest,
+        intent_path: file.to_owned(),
+        checklist_path: file.to_owned(),
+        intent,
+        checklist_text,
+        checklist,
+        revision,
+        blocked: None,
+        format: true,
+        done_whole,
+        depends_on,
+    })
+}
+
+fn encode_document(stamp: Stamp, journal: Option<Seen>, t: &Ticket) -> Vec<u8> {
+    let mut w = Writer::default();
+    w.stamp(&stamp);
+    // The journal is a source only of a document with no items.
+    match journal.filter(|_| t.checklist.items.is_empty()) {
+        None => w.u8(0),
+        Some(Seen::Absent) => w.u8(1),
+        Some(Seen::File(s)) => {
+            w.u8(2);
+            w.stamp(&s);
+        }
+    }
+    w.manifest(&t.manifest);
+    w.str(&t.revision);
+    w.str(&t.intent);
+    w.str(&t.checklist_text);
+    w.u8(u8::from(t.done_whole));
+    w.u32(u32::try_from(t.checklist.items.len()).unwrap_or(u32::MAX));
+    for item in &t.checklist.items {
+        w.u64(item.line as u64);
+    }
+    w.u32(u32::try_from(t.depends_on.len()).unwrap_or(u32::MAX));
+    for b in &t.depends_on {
+        w.str(&b.to_string());
+    }
+    w.buf
 }
 
 fn encode_ticket(stamps: &[Stamp], t: &Ticket) -> Vec<u8> {
@@ -1162,6 +1400,91 @@ mod tests {
         assert!(ok.get("t-2").is_some() && ok.get("t-3").is_none());
         assert!(cache.parse_shard(shard(&["t-2", "t-1"])).is_none());
         assert!(cache.parse_shard(shard(&["t-1", "t-1"])).is_none());
+    }
+
+    #[test]
+    fn a_shard_holds_both_encodings_in_name_order() {
+        let cache = Cache {
+            dir: Utf8PathBuf::from("/nonexistent"),
+            prefix: "t".into(),
+            key: [7; 32],
+            settled_before: (0, 0),
+            journals: false,
+        };
+        let kept = |name: &str| Kept {
+            name: name.into(),
+            shard: 0,
+            ticket_part: Part::New(b"t".to_vec()),
+            journal_part: Part::None,
+        };
+        // The order the run met them in: the directories, then the documents.
+        let pass = Pass {
+            shards: vec![Shard::default()],
+            listed: false,
+            kept: vec![kept("t-2"), kept("t-1.md"), kept("t-1/ticket.md")],
+        };
+        let dir = std::env::temp_dir().join(format!("ow-cache-shard-{}", std::process::id()));
+        let cache = Cache {
+            dir: Utf8PathBuf::from_path_buf(dir).unwrap(),
+            ..cache
+        };
+        cache.write_shard(0, &pass);
+        let read = cache.read_shard(0);
+        let _ = std::fs::remove_dir_all(&cache.dir);
+        assert_eq!(read.index.len(), 3);
+        assert!(
+            ["t-1.md", "t-1/ticket.md", "t-2"]
+                .iter()
+                .all(|n| read.get(n).is_some())
+        );
+    }
+
+    #[test]
+    fn a_document_entry_round_trips_and_refuses_a_short_one() {
+        let stamp = Stamp {
+            len: 1,
+            mtime: 2,
+            mtime_ns: 3,
+            ctime: 4,
+            ctime_ns: 5,
+            ino: 6,
+            dev: 7,
+            mode: 8,
+        };
+        let text = "- [ ] a box that is not an item\n- [ ] an item (i-0001)\n";
+        let mut checklist = ticket::parse(text);
+        checklist.items.remove(0);
+        let file = Utf8Path::new("/store/t-1.md");
+        let t = Ticket {
+            repository_root: "/repo".into(),
+            dir: "/store/t-1".into(),
+            manifest: manifest(),
+            intent_path: file.to_owned(),
+            checklist_path: file.to_owned(),
+            intent: "# A title\n".into(),
+            checklist_text: text.into(),
+            checklist,
+            revision: "sha256:0".into(),
+            blocked: None,
+            format: true,
+            done_whole: false,
+            depends_on: vec![
+                ticket::Blocker::parse("t-0a2f").unwrap(),
+                ticket::Blocker::parse("t-0a2f/i-0002").unwrap(),
+            ],
+        };
+        let bytes = encode_document(stamp, None, &t);
+        let got = hit_document(&t.repository_root, &t.dir, file, stamp, &bytes).unwrap();
+        assert_eq!(format!("{got:?}"), format!("{t:?}"));
+        // Another stat of the document, or any entry cut short: refused.
+        let other = Stamp {
+            ctime_ns: 9,
+            ..stamp
+        };
+        assert!(hit_document(&t.repository_root, &t.dir, file, other, &bytes).is_none());
+        for n in 0..bytes.len() {
+            assert!(hit_document(&t.repository_root, &t.dir, file, stamp, &bytes[..n]).is_none());
+        }
     }
 
     #[test]

@@ -16,9 +16,9 @@ Not at a terminal — a script, a pipe, `war </dev/null` — `war` exits 2 with
 by name; `war console` stays as the line-based fallback (over ssh, inside the
 battery).
 
-A repository with tickets opens on **Tickets** (`t`): most work is a ticket,
-and nothing in that loop needs a signature. Setup, the Queue and the rest of
-the authority layer stay one key away.
+The app opens on **Observe** (`o`). **Tickets** (`t`), where most work happens,
+is one key away, and nothing in that loop needs a signature. So are Setup, the
+Queue and the rest of the authority layer.
 
 Every pane reads the functions the CLI already answers with — `console::board`,
 `next::run`, `status::build`, `frontier::run`, `check::run`, `doctor::run`,
@@ -31,6 +31,20 @@ row. The status bar names the project and its path, the SAS revision in force
 and the number of acts awaiting a signature. The tree is re-read on its own (the
 `war watch` fingerprint, every second, debounced) so a signature given in
 another terminal shows up without a keypress.
+
+## Observe
+
+A preview of the situational HUD; `o` switches to it from anywhere. Herdr agent
+lists and transcripts, fleet and worktree counts and the questions list are
+real. Token and dollar figures are placeholders, and lease, scope and collision
+details do not show yet. The lean programme (`t-3c16c`, W5) replaces these with
+recorded data.
+
+## Orchestrate
+
+A preview of the action center; `O` switches to it. Batch signing works. Create,
+dispatch and answer do not work yet, so use `war create`, `war start --worktree`
+and `war plan answer`. The lean programme (`t-3c16c`, W5) makes them real.
 
 ## Setup
 
@@ -170,6 +184,8 @@ up without a keypress.
 
 | key | does |
 |---|---|
+| `o` | Observe: HUD, DAG, telemetry, agent transcripts, questions |
+| `O` | Orchestrate: draft tasks, dispatch agents, review & batch sign |
 | `0-9`, `Tab`, `Shift-Tab` | switch pane (`0` is Roadmap) |
 | `p` | Projects: every repository you use; `Enter` opens one, `n` starts one |
 | `t` | Tickets: state, progress, remaining items; `Enter` shows checklist and notes |
@@ -195,7 +211,9 @@ and the plant asserts the alternate screen was left.
 
 ## What it is not
 
-It signs nothing itself, answers nothing itself, records nothing itself. It
+It signs nothing itself and records nothing itself; the Observe and Orchestrate
+previews above are the exception to the rule that a pane answers only from the
+records, until W5 replaces their placeholders. It
 has no `--json`: a terminal application has no envelope, and pretending
 otherwise would be a second projection contract. It is one file,
 `crates/openwarrant-cli/src/tui/mod.rs`, because that is the file

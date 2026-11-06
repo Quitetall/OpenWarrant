@@ -39,7 +39,8 @@
 //! - cargo test -p parser
 //! ```
 //!
-//! A directory Warrant's declared paths are its deliverables' files. With
+//! A single-file ticket declares only `paths:` in its frontmatter (FORMAT-1.0
+//! 10.3). A directory Warrant's declared paths are its deliverables' files. With
 //! `[go] allowed_acts = "projected"`, `war start` writes them as the
 //! session's harness settings inside its worktree; with `declared`, they are
 //! shown and nothing is written.
@@ -125,6 +126,12 @@ pub fn parse_allowed(text: &str) -> Allowed {
 /// What a light Warrant declares, from its allowed-acts atom.
 #[must_use]
 pub fn allowed_of_ticket(t: &Ticket) -> Allowed {
+    if t.format {
+        return Allowed {
+            paths: crate::ticket::checks::paths_of(t.checklist_text.as_bytes()),
+            ..Allowed::default()
+        };
+    }
     crate::vfs::read_to_string(t.dir.join(ALLOWED_FILE))
         .map(|text| parse_allowed(&text))
         .unwrap_or_default()
@@ -201,6 +208,9 @@ pub struct Packet {
     /// The checkout `war evidence go` runs from, where the plan is.
     pub root: String,
     pub answer: Answer,
+    /// Complete deterministic required context for native work.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub context: Option<crate::context::task::TaskPacket>,
     pub brief: String,
 }
 
@@ -287,6 +297,13 @@ pub fn brief(p: &Packet) -> String {
          landing decide whether it is done.\n\n```json war-submission\n{}\n```\n",
         serde_json::to_string_pretty(&answer).unwrap_or_default()
     ));
+    if let Some(context) = &p.context {
+        md.push_str("\n## Required context\n\n");
+        md.push_str(&context.projection.markdown);
+        for (source, text) in &context.supplemental_sources {
+            md.push_str(&format!("\n### {source}\n\n{text}\n"));
+        }
+    }
     md
 }
 

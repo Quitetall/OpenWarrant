@@ -501,7 +501,7 @@ fn execute_gate(
 /// # Why working a ticket does not move the tree (t-5d82)
 ///
 /// Nor do the files the ticket loop writes — each ticket's manifest, journal,
-/// intent (where `war note` appends) and checklist (where `war done` ticks),
+/// intent (where `war plan note` appends) and checklist (where `war done` ticks),
 /// and the claim locks ([`source::is_ticket_record`]). A ticket is the
 /// working form: never compiled, authorized, verified or resolved, and no
 /// Warrant reads it as source. `war check` does validate a ticket's
@@ -727,9 +727,11 @@ pub mod source {
     }
 
     /// Whether a repository-relative path is a file the ticket loop writes
-    /// while a ticket is worked (t-5d82): `<tickets>/<t-id>/<file>` for the
-    /// files [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
-    /// checklist), and a claim lock directly inside the claims directory.
+    /// while a ticket is worked (t-5d82): a single-file ticket's document
+    /// `<tickets>/<t-id>.md`, `<tickets>/<t-id>/<file>` for the files
+    /// [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
+    /// checklist, a directory-form document), and a claim lock directly inside
+    /// the claims directory.
     ///
     /// Named file by file: anything else a person keeps in a ticket's
     /// directory stays bound. Nothing under the Warrants root is a ticket
@@ -752,7 +754,7 @@ pub mod source {
             return false;
         };
         let Some((id, file)) = rest.split_once('/') else {
-            return false;
+            return crate::ticket::format::single_file(rest).is_some();
         };
         openwarrant_core::ticket::is_ticket_id(id) && tickets.files.iter().any(|f| f == file)
     }
@@ -845,7 +847,7 @@ pub mod source {
         /// What the tree rule skips: [`Exclusions::excludes`], the records a
         /// human act writes, the records `war evidence verify` writes, and the files
         /// the ticket loop writes. A signature (t-22fd), a verification
-        /// (t-fed6) or a `war claim` / `done` / `note` (t-5d82) after a run
+        /// (t-fed6) or a `war admin claim` / `done` / `note` (t-5d82) after a run
         /// does not move the tree that run names.
         #[must_use]
         pub fn excludes_from_tree(&self, path: &str) -> bool {
@@ -863,7 +865,7 @@ pub mod source {
     ///
     /// [`moved_since`] runs two git walks of the whole working tree, and the
     /// commands that judge evidence ask it once per receipt, several times per
-    /// receipt: 944 walks for one `war next` over 127 receipts, most naming one
+    /// receipt: 944 walks for one `war view next` over 127 receipts, most naming one
     /// tree. Within a process that runs no gate and writes no source, the
     /// working tree does not change under it (another process changing it
     /// mid-command is a race the command never promised to see), so the same
@@ -882,7 +884,7 @@ pub mod source {
     pub type TreeSlot = std::sync::Arc<std::sync::Mutex<Option<Vec<String>>>>;
 
     /// Remember [`moved_since`]'s git reads for the rest of this process. For
-    /// one-shot read-only commands only (`war next`, `war check`, `war status`).
+    /// one-shot read-only commands only (`war view next`, `war check`, `war status`).
     pub fn remember_tree_reads() {
         let mut memo = TREE_READS
             .lock()
@@ -2079,6 +2081,7 @@ mod source_tests {
         };
         let t = |p: &str| is_ticket_record(p, &b, "docs/warrants");
         for p in [
+            "docs/tickets/t-5d82.md",
             "docs/tickets/t-5d82/manifest.toml",
             "docs/tickets/t-5d82/journal.jsonl",
             "docs/tickets/t-5d82/atoms/10-intent.md",
@@ -2094,6 +2097,8 @@ mod source_tests {
             "docs/tickets/t-5d82/atoms/20-extra.md",
             "docs/tickets/t-5d82/atoms/generated/x.md",
             "docs/tickets/README.md",
+            "docs/tickets/not-a-ticket.md",
+            "docs/tickets/t-5d82.txt",
             "docs/tickets/manifest.toml",
             "docs/tickets/not-a-ticket/manifest.toml",
             "docs/tickets/t-5d82/sub/journal.jsonl",

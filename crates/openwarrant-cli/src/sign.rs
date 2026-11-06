@@ -2014,7 +2014,7 @@ impl Drop for RemoveOnDrop {
 /// The same judgement [`run`] reaches for no target, `all` and `dry_run`:
 /// none of `run`'s earlier refusals applies to that combination (no
 /// `--verify`, `--revoke` or tty requirement, no invalidation without a
-/// target), so it is `pending` then [`dry_run`] over every act. `war next`
+/// target), so it is `pending` then [`dry_run`] over every act. `war view next`
 /// holds the queue it derived its actions from; reading it a second time to
 /// judge them cost a whole `pending` sweep (t-280c). The caller passes the
 /// queue it read in this process with nothing written since.

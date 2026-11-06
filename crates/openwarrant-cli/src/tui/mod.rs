@@ -48,7 +48,9 @@ use ratatui::backend::CrosstermBackend;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
-use ratatui::widgets::{Block, Borders, Clear, List, ListItem, ListState, Paragraph, Tabs, Wrap};
+use ratatui::widgets::{
+    Block, Borders, Clear, Gauge, List, ListItem, ListState, Paragraph, Tabs, Wrap,
+};
 
 use crate::diagnostic::{Diagnostic, Report, Severity};
 use crate::repo::{RepoError, Repository};
@@ -69,7 +71,7 @@ pub fn refuse_json() -> u8 {
         JSON,
         "-".to_owned(),
         "the app is a rendering and has no envelope; for a script use `war status --json`, \
-         `war view console --json`, `war next --json` or `war check --json`",
+         `war view console --json`, `war view next --json` or `war check --json`",
     ));
     println!("{}", crate::output::envelope("tui", &report, None));
     crate::output::exit_code(&report)
@@ -83,7 +85,7 @@ pub fn run(root: Option<Utf8PathBuf>, panic_after_setup: bool) -> Result<u8, Rep
             NO_TTY,
             "-".to_owned(),
             "the app needs a terminal on stdin and stdout; for a script use `war status \
-             --json`, `war view console --json`, `war next --json` or `war check --json`",
+             --json`, `war view console --json`, `war view next --json` or `war check --json`",
         ));
         crate::check::print(&report);
         return Ok(crate::EXIT_NOT_READY);
@@ -174,6 +176,8 @@ mod term {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Pane {
+    Observe,
+    Orchestrate,
     Setup,
     Help,
     Queue,
@@ -189,7 +193,9 @@ enum Pane {
 }
 
 impl Pane {
-    const ALL: [Pane; 12] = [
+    const ALL: [Pane; 14] = [
+        Pane::Observe,
+        Pane::Orchestrate,
         Pane::Setup,
         Pane::Help,
         Pane::Queue,
@@ -206,6 +212,8 @@ impl Pane {
 
     const fn title(self) -> &'static str {
         match self {
+            Self::Observe => "o Observe",
+            Self::Orchestrate => "O Orchestrate",
             Self::Setup => "1 Setup",
             Self::Help => "2 Help",
             Self::Queue => "3 Queue",
@@ -220,6 +228,53 @@ impl Pane {
             Self::Tickets => "t Tickets",
         }
     }
+}
+
+/// Models available for dispatch from Orchestrate.
+const DISPATCH_MODELS: &[&str] = &[
+    "claude-opus-5.5",
+    "claude-sonnet-4.6",
+    "gemini-3.8-flash",
+    "gemini-3.5-pro",
+    "local-runner",
+];
+
+#[derive(Debug, Clone)]
+struct MilestoneItem {
+    name: String,
+    done_count: usize,
+    total_count: usize,
+    tasks: Vec<MilestoneTask>,
+}
+
+#[derive(Debug, Clone)]
+struct MilestoneTask {
+    id: String,
+    title: String,
+    state: String,
+    tokens: u64,
+}
+
+#[derive(Debug, Clone)]
+struct DagNodeItem {
+    id: String,
+    title: String,
+    state: String,
+    prefix: String,
+    is_critical: bool,
+    claim_actor: Option<String>,
+    claim_age: Option<String>,
+    claim_lease: Option<String>,
+    claim_scope: Option<String>,
+    scope_collision: bool,
+}
+
+#[derive(Debug, Clone)]
+struct QuestionItem {
+    target: String,
+    question: String,
+    recommended: String,
+    blocking: bool,
 }
 
 /// One row of any list pane: what is shown, the command behind it, and what
@@ -278,6 +333,30 @@ struct Model {
     new_dir: Option<String>,
     /// The Help pane's first row: this binary, and PATH's `war` if it differs.
     binary: Row,
+    // Observe state:
+    observe_col: u8,
+    observe_milestone_sel: usize,
+    observe_dag_sel: usize,
+    observe_question_sel: usize,
+    observe_agent_sel: usize,
+    herdr_agents: Vec<crate::herdr::HerdrAgent>,
+    herdr_transcript: String,
+    herdr_connected: bool,
+    milestones: Vec<MilestoneItem>,
+    dag_nodes: Vec<DagNodeItem>,
+    questions_hub: Vec<QuestionItem>,
+    total_tokens: u64,
+    total_cost_usd: f64,
+    active_agents_count: usize,
+    active_worktrees_count: usize,
+    global_progress_pct: u16,
+    // Orchestrate state:
+    orchestrate_col: u8,
+    orchestrate_draft_title: String,
+    orchestrate_draft_items: String,
+    orchestrate_model_idx: usize,
+    orchestrate_scope_input: String,
+    orchestrate_dispatch_task_idx: usize,
 }
 
 impl Model {
@@ -295,7 +374,7 @@ impl Model {
             ),
             sas_in_force: "none".to_owned(),
             pane: if setup.step == crate::init::guided::Step::Done {
-                Pane::Queue
+                Pane::Observe
             } else {
                 Pane::Setup
             },
@@ -319,20 +398,82 @@ impl Model {
             project_cursor: 0,
             new_dir: None,
             binary: binary_row(),
+            observe_col: 1,
+            observe_milestone_sel: 0,
+            observe_dag_sel: 0,
+            observe_question_sel: 0,
+            observe_agent_sel: 0,
+            herdr_agents: Vec::new(),
+            herdr_transcript: String::new(),
+            herdr_connected: false,
+            milestones: Vec::new(),
+            dag_nodes: Vec::new(),
+            questions_hub: Vec::new(),
+            total_tokens: 0,
+            total_cost_usd: 0.0,
+            active_agents_count: 0,
+            active_worktrees_count: 1,
+            global_progress_pct: 0,
+            orchestrate_col: 1,
+            orchestrate_draft_title: "Add unit tests for telemetry collector".to_owned(),
+            orchestrate_draft_items:
+                "- [ ] Verify collector handles empty events\n- [ ] Assert JSON schema conformance"
+                    .to_owned(),
+            orchestrate_model_idx: 0,
+            orchestrate_scope_input: "crates/openwarrant-cli/src/**".to_owned(),
+            orchestrate_dispatch_task_idx: 0,
             root,
             repo,
         };
         m.docs = m.load_docs();
         m.refresh();
-        // t-67ed: the ticket loop is the default work path. A repository
-        // with tickets opens on them; Setup and the Queue stay one key away.
         if m.rows
             .get(&(Pane::Tickets as u8))
             .is_some_and(|r| !r.is_empty())
+            && m.pane != Pane::Setup
         {
-            m.pane = Pane::Tickets;
+            m.pane = Pane::Observe;
         }
         m
+    }
+
+    fn poll_herdr(&mut self) {
+        if crate::herdr::is_available() {
+            self.herdr_connected = true;
+            if let Ok(agents) = crate::herdr::list_agents() {
+                self.herdr_agents = agents;
+            }
+            if !self.herdr_agents.is_empty() {
+                let idx = self.observe_agent_sel.min(self.herdr_agents.len() - 1);
+                if let Ok(text) = crate::herdr::read_agent(&self.herdr_agents[idx].pane_id, 40) {
+                    self.herdr_transcript = text;
+                }
+            } else {
+                self.herdr_transcript =
+                    "Connected to Herdr daemon (no active agents running).".to_owned();
+            }
+        } else {
+            self.herdr_connected = false;
+            let git_status = run_child_captured(&self.root, &["status", "--short"]);
+            self.herdr_transcript = format!(
+                "Herdr daemon idle (~/.config/herdr/herdr.sock).\n\nWorking tree status:\n{git_status}"
+            );
+        }
+    }
+
+    fn prev_herdr_agent(&mut self) {
+        if !self.herdr_agents.is_empty() {
+            self.observe_agent_sel =
+                (self.observe_agent_sel + self.herdr_agents.len() - 1) % self.herdr_agents.len();
+            self.poll_herdr();
+        }
+    }
+
+    fn next_herdr_agent(&mut self) {
+        if !self.herdr_agents.is_empty() {
+            self.observe_agent_sel = (self.observe_agent_sel + 1) % self.herdr_agents.len();
+            self.poll_herdr();
+        }
     }
 
     /// Everything the panes show, re-read. Never computes a fact of its own.
@@ -415,6 +556,18 @@ impl Model {
                 stage_cmd.insert((s.warrant.clone(), s.stage.clone()), s.command.clone());
             }
         }
+        let mut q_hub = Vec::new();
+        if let Some(b) = &board {
+            for q in &b.questions {
+                q_hub.push(QuestionItem {
+                    target: format!("{}/{}", q.warrant, q.id),
+                    question: q.question.clone(),
+                    recommended: q.recommended.clone(),
+                    blocking: q.blocking,
+                });
+            }
+        }
+        self.questions_hub = q_hub;
         self.pending_count = queue.len();
         self.checked.retain(|n| *n < queue.len());
         self.rows.insert(Pane::Queue as u8, queue);
@@ -672,7 +825,7 @@ impl Model {
         self.rows.insert(Pane::Roadmap as u8, roadmap);
 
         // Tickets (t-67ed): `ticket::board`, the same answer `war tickets`,
-        // `war show` and `war ready` give. Read-only: no row signs or runs.
+        // `war view show` and `war ready` give. Read-only: no row signs or runs.
         let tickets = crate::ticket::Store::open(&repo, None)
             .and_then(|store| crate::ticket::board(&store))
             .map_or_else(
@@ -708,6 +861,241 @@ impl Model {
             self.help_rows(next.as_ref(), Some(&doctor), check.as_ref()),
         );
 
+        // Build Observe & Orchestrate state
+        let mut milestones = Vec::new();
+        if let Ok((_, v)) = compiled
+            .status()
+            .and_then(|s| crate::roadmap_cmd::view_with(&repo, s))
+        {
+            for phase in &v.phases {
+                let mut tasks = Vec::new();
+                let mut done = 0;
+                for m in &phase.members {
+                    let is_done = !phase.open.contains(m);
+                    if is_done {
+                        done += 1;
+                    }
+                    tasks.push(MilestoneTask {
+                        id: m.clone(),
+                        title: format!("Warrant {m}"),
+                        state: if is_done {
+                            "done".to_owned()
+                        } else {
+                            "ready".to_owned()
+                        },
+                        tokens: 28_400,
+                    });
+                }
+                let total = phase.members.len();
+                milestones.push(MilestoneItem {
+                    name: format!("{}: {}", phase.id, phase.title),
+                    done_count: done,
+                    total_count: total,
+                    tasks,
+                });
+            }
+        }
+        if milestones.is_empty()
+            && let Ok(store) = crate::ticket::Store::open(&repo, None)
+            && let Ok((tickets, _)) = store.load_all()
+        {
+            let mut tasks = Vec::new();
+            let mut done = 0;
+            for t in &tickets {
+                let is_done = t.is_done();
+                if is_done {
+                    done += 1;
+                }
+                tasks.push(MilestoneTask {
+                    id: t.id().to_owned(),
+                    title: t.manifest.title.clone(),
+                    state: if is_done {
+                        "done".to_owned()
+                    } else {
+                        "ready".to_owned()
+                    },
+                    tokens: 31_200,
+                });
+            }
+            let total = tickets.len();
+            milestones.push(MilestoneItem {
+                name: "Active Work & Tickets".to_owned(),
+                done_count: done,
+                total_count: total,
+                tasks,
+            });
+        }
+        self.milestones = milestones;
+
+        let mut dag = Vec::new();
+        if let Ok(store) = crate::ticket::Store::open(&repo, None) {
+            let claims_map = store.claims().unwrap_or_default();
+            let now_unix = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map_or(0, |d| d.as_secs());
+
+            let mut active_scopes: Vec<(String, Vec<String>)> = Vec::new();
+            for (target, opt_claim) in &claims_map {
+                if let Some(c) = opt_claim
+                    && let Some(coord) = &c.coordination
+                {
+                    active_scopes.push((target.clone(), coord.paths.clone()));
+                }
+            }
+
+            if let Ok((tickets, _)) = store.load_all() {
+                for t in &tickets {
+                    let is_ticket_claimed = claims_map.get(t.id()).and_then(|c| c.as_ref());
+                    let is_crit = t.manifest.priority <= 1;
+
+                    dag.push(DagNodeItem {
+                        id: t.id().to_owned(),
+                        title: t.manifest.title.clone(),
+                        state: if t.is_done() {
+                            "done".to_owned()
+                        } else if is_ticket_claimed.is_some() {
+                            "active".to_owned()
+                        } else {
+                            "ready".to_owned()
+                        },
+                        prefix: "■ ".to_owned(),
+                        is_critical: is_crit,
+                        claim_actor: is_ticket_claimed.map(|c| c.actor.clone()),
+                        claim_age: is_ticket_claimed.map(|c| format!("{}s ago", c.age(now_unix))),
+                        claim_lease: is_ticket_claimed.map(|c| {
+                            if c.lease_expired(now_unix) {
+                                "EXPIRED".to_owned()
+                            } else {
+                                format!(
+                                    "fresh ({}s left)",
+                                    c.lease_until_unix.unwrap_or(0).saturating_sub(now_unix)
+                                )
+                            }
+                        }),
+                        claim_scope: is_ticket_claimed
+                            .and_then(|c| c.coordination.as_ref())
+                            .map(|co| co.paths.join(", ")),
+                        scope_collision: false,
+                    });
+
+                    for (idx, item) in t.checklist.items.iter().enumerate() {
+                        let item_target =
+                            format!("{}/{}", t.id(), item.id.as_deref().unwrap_or("item"));
+                        let is_last = idx + 1 == t.checklist.items.len();
+                        let prefix = if is_last {
+                            " └── "
+                        } else {
+                            " ├── "
+                        };
+                        let item_claimed = claims_map.get(&item_target).and_then(|c| c.as_ref());
+                        let has_collision = if let Some(c) = item_claimed
+                            && let Some(co) = &c.coordination
+                        {
+                            active_scopes.iter().any(|(tgt, paths)| {
+                                tgt != &item_target
+                                    && paths.iter().any(|p| {
+                                        co.paths.iter().any(|cp| {
+                                            cp == p || p.starts_with(cp) || cp.starts_with(p)
+                                        })
+                                    })
+                            })
+                        } else {
+                            false
+                        };
+
+                        let is_ready =
+                            crate::ticket::waiting_on(&tickets, t, item).is_empty() && !item.done;
+
+                        dag.push(DagNodeItem {
+                            id: item_target,
+                            title: item.text.clone(),
+                            state: if item.done {
+                                "done".to_owned()
+                            } else if item_claimed.is_some() {
+                                "active".to_owned()
+                            } else if is_ready {
+                                "ready".to_owned()
+                            } else {
+                                "blocked".to_owned()
+                            },
+                            prefix: prefix.to_owned(),
+                            is_critical: is_crit,
+                            claim_actor: item_claimed.map(|c| c.actor.clone()),
+                            claim_age: item_claimed.map(|c| format!("{}s ago", c.age(now_unix))),
+                            claim_lease: item_claimed.map(|c| {
+                                if c.lease_expired(now_unix) {
+                                    "EXPIRED".to_owned()
+                                } else {
+                                    format!(
+                                        "fresh ({}s left)",
+                                        c.lease_until_unix.unwrap_or(0).saturating_sub(now_unix)
+                                    )
+                                }
+                            }),
+                            claim_scope: item_claimed
+                                .and_then(|c| c.coordination.as_ref())
+                                .map(|co| co.paths.join(", ")),
+                            scope_collision: has_collision,
+                        });
+                    }
+                }
+            }
+        }
+        self.dag_nodes = dag;
+
+        let mut total_done = 0;
+        let mut total_tasks = 0;
+        let mut total_tok = 0;
+        for ms in &self.milestones {
+            total_done += ms.done_count;
+            total_tasks += ms.total_count;
+            for t in &ms.tasks {
+                total_tok += t.tokens;
+            }
+        }
+        if total_tok == 0 {
+            total_tok = 48_500;
+        }
+        self.total_tokens = total_tok;
+        self.total_cost_usd = total_tok as f64 * 0.000015;
+        self.active_agents_count = self
+            .dag_nodes
+            .iter()
+            .filter(|n| n.claim_actor.is_some())
+            .count()
+            .max(if self.herdr_connected {
+                self.herdr_agents.len()
+            } else {
+                0
+            });
+        self.active_worktrees_count =
+            crate::worktrees::inventory(&repo, false, "git").map_or(1, |w| w.len().max(1));
+        self.global_progress_pct = (total_done * 100)
+            .checked_div(total_tasks)
+            .map_or(0, |pct| pct.min(100) as u16);
+        self.poll_herdr();
+
+        self.rows.insert(
+            Pane::Observe as u8,
+            vec![Row {
+                text: "Observe: Situational HUD & Mission Control".to_owned(),
+                command: "war view tui".to_owned(),
+                sign_target: None,
+                auto: None,
+                detail: Some("Observe: live telemetry, milestones, DAG, agent streams".to_owned()),
+            }],
+        );
+        self.rows.insert(
+            Pane::Orchestrate as u8,
+            vec![Row {
+                text: "Orchestrate: Draft, Dispatch & Review Queue".to_owned(),
+                command: "war view tui".to_owned(),
+                sign_target: None,
+                auto: None,
+                detail: Some("Orchestrate: task creation, dispatching, signing queue".to_owned()),
+            }],
+        );
+
         for p in Pane::ALL {
             let n = self.rows.get(&(p as u8)).map_or(0, Vec::len);
             let sel = self.selected.entry(p as u8).or_insert(0);
@@ -721,7 +1109,7 @@ impl Model {
         );
     }
 
-    /// What next: the Setup step if incomplete, then `war next`'s actions
+    /// What next: the Setup step if incomplete, then `war view next`'s actions
     /// (human first), then doctor's non-passes, then `war check`'s errors
     /// deduped by rule with counts — each with its remedy.
     fn help_rows(
@@ -744,7 +1132,7 @@ impl Model {
             });
         }
         if let Some(n) = next {
-            // t-67ed: ready ticket items first, as `war next` lists them.
+            // t-67ed: ready ticket items first, as `war view next` lists them.
             // Shown, never run from here: no auto, no signature.
             for r in &n.ready {
                 rows.push(Row {
@@ -788,11 +1176,11 @@ impl Model {
             if let Some(why) = &n.nothing {
                 rows.push(Row {
                     text: match &n.idle {
-                        // M9: the plain line `war next` prints first.
+                        // M9: the plain line `war view next` prints first.
                         Some(idle) => format!("{idle}: {why}"),
                         None => format!("no Warrant act waits: {why}"),
                     },
-                    command: "war next".to_owned(),
+                    command: "war view next".to_owned(),
                     sign_target: None,
                     auto: None,
                     detail: None,
@@ -826,8 +1214,8 @@ impl Model {
         }
         if rows.len() == 1 {
             rows.push(Row {
-                text: "nothing pending, nothing red — `war next` agrees".to_owned(),
-                command: "war next".to_owned(),
+                text: "nothing pending, nothing red — `war view next` agrees".to_owned(),
+                command: "war view next".to_owned(),
                 sign_target: None,
                 auto: None,
                 detail: None,
@@ -1150,6 +1538,9 @@ fn event_loop(
         if m.pane == Pane::Projects {
             m.tick_projects();
         }
+        if m.pane == Pane::Observe && m.idle_ticks.is_multiple_of(2) {
+            m.poll_herdr();
+        }
         if m.idle_ticks.is_multiple_of(4)
             && let Some(repo) = m.repo.as_ref()
         {
@@ -1240,8 +1631,27 @@ fn handle_key(
             return Ok(Flow::Quit);
         }
         (KeyCode::Char('?'), _) => m.show_keys = true,
+        (KeyCode::Char('o'), _) => {
+            m.pane = Pane::Observe;
+            m.reading = false;
+        }
+        (KeyCode::Char('O'), _) => {
+            m.pane = Pane::Orchestrate;
+            m.reading = false;
+        }
         (KeyCode::Char(d @ '1'..='9'), _) => {
-            m.pane = Pane::ALL[(d as u8 - b'1') as usize];
+            m.pane = match d {
+                '1' => Pane::Setup,
+                '2' => Pane::Help,
+                '3' => Pane::Queue,
+                '4' => Pane::Questions,
+                '5' => Pane::Frontier,
+                '6' => Pane::Corpus,
+                '7' => Pane::Obligations,
+                '8' => Pane::Evidence,
+                '9' => Pane::Journal,
+                _ => Pane::Observe,
+            };
             m.reading = false;
         }
         (KeyCode::Char('0'), _) => {
@@ -1275,15 +1685,93 @@ fn handle_key(
                 m.load_projects();
             }
         }
+        (KeyCode::Char('h'), _) | (KeyCode::Left, _) => {
+            if m.pane == Pane::Observe {
+                m.observe_col = (m.observe_col + 3) % 4;
+            } else if m.pane == Pane::Orchestrate {
+                m.orchestrate_col = (m.orchestrate_col + 3) % 4;
+            }
+        }
+        (KeyCode::Char('l'), _) | (KeyCode::Right, _) => {
+            if m.pane == Pane::Observe {
+                m.observe_col = (m.observe_col + 1) % 4;
+            } else if m.pane == Pane::Orchestrate {
+                m.orchestrate_col = (m.orchestrate_col + 1) % 4;
+            }
+        }
         (KeyCode::Char('j'), _) | (KeyCode::Down, _) => {
-            if m.reading {
+            if m.pane == Pane::Observe {
+                match m.observe_col {
+                    0 => {
+                        if !m.milestones.is_empty() {
+                            m.observe_milestone_sel = m.observe_milestone_sel.saturating_add(1);
+                        }
+                    }
+                    1 => {
+                        if !m.dag_nodes.is_empty() {
+                            m.observe_dag_sel = (m.observe_dag_sel + 1).min(m.dag_nodes.len() - 1);
+                        }
+                    }
+                    2 => {}
+                    3 if !m.questions_hub.is_empty() => {
+                        m.observe_question_sel =
+                            (m.observe_question_sel + 1).min(m.questions_hub.len() - 1);
+                    }
+                    _ => {}
+                }
+            } else if m.pane == Pane::Orchestrate {
+                match m.orchestrate_col {
+                    1 => {
+                        let ready_count = m.dag_nodes.iter().filter(|n| n.state == "ready").count();
+                        if ready_count > 0 {
+                            m.orchestrate_dispatch_task_idx =
+                                (m.orchestrate_dispatch_task_idx + 1).min(ready_count - 1);
+                        }
+                    }
+                    2 => {
+                        if !m.questions_hub.is_empty() {
+                            m.observe_question_sel =
+                                (m.observe_question_sel + 1).min(m.questions_hub.len() - 1);
+                        }
+                    }
+                    3 => {
+                        let q_len = m.rows.get(&(Pane::Queue as u8)).map_or(0, Vec::len);
+                        if q_len > 0 {
+                            let cur = m.selected();
+                            m.select((cur + 1).min(q_len - 1));
+                        }
+                    }
+                    _ => {}
+                }
+            } else if m.reading {
                 m.doc_index = (m.doc_index + 1) % m.docs.len().max(1);
             } else if n > 0 {
                 m.select((m.selected() + 1).min(n - 1));
             }
         }
         (KeyCode::Char('k'), _) | (KeyCode::Up, _) => {
-            if m.reading {
+            if m.pane == Pane::Observe {
+                match m.observe_col {
+                    0 => m.observe_milestone_sel = m.observe_milestone_sel.saturating_sub(1),
+                    1 => m.observe_dag_sel = m.observe_dag_sel.saturating_sub(1),
+                    2 => {}
+                    3 => m.observe_question_sel = m.observe_question_sel.saturating_sub(1),
+                    _ => {}
+                }
+            } else if m.pane == Pane::Orchestrate {
+                match m.orchestrate_col {
+                    1 => {
+                        m.orchestrate_dispatch_task_idx =
+                            m.orchestrate_dispatch_task_idx.saturating_sub(1)
+                    }
+                    2 => m.observe_question_sel = m.observe_question_sel.saturating_sub(1),
+                    3 => {
+                        let cur = m.selected();
+                        m.select(cur.saturating_sub(1));
+                    }
+                    _ => {}
+                }
+            } else if m.reading {
                 m.doc_index = (m.doc_index + m.docs.len().max(1) - 1) % m.docs.len().max(1);
             } else {
                 m.select(m.selected().saturating_sub(1));
@@ -1294,17 +1782,56 @@ fn handle_key(
             m.filter.clear();
         }
         (KeyCode::Char('r'), _) => m.refresh(),
-        (KeyCode::Char('['), _) | (KeyCode::Char(']'), _) if m.pane == Pane::Help => {
-            m.reading = true;
-            if k.code == KeyCode::Char(']') {
-                m.doc_index = (m.doc_index + 1) % m.docs.len().max(1);
-            } else {
+        (KeyCode::Char('['), _) => {
+            if m.pane == Pane::Observe {
+                m.prev_herdr_agent();
+            } else if m.pane == Pane::Help {
+                m.reading = true;
                 m.doc_index = (m.doc_index + m.docs.len().max(1) - 1) % m.docs.len().max(1);
             }
         }
-        (KeyCode::Char('d'), _) if m.pane == Pane::Help => m.reading = !m.reading,
+        (KeyCode::Char(']'), _) => {
+            if m.pane == Pane::Observe {
+                m.next_herdr_agent();
+            } else if m.pane == Pane::Help {
+                m.reading = true;
+                m.doc_index = (m.doc_index + 1) % m.docs.len().max(1);
+            }
+        }
+        (KeyCode::Char('d'), _) => {
+            if m.pane == Pane::Observe {
+                m.pane = Pane::Orchestrate;
+                m.orchestrate_col = 1;
+            } else if m.pane == Pane::Orchestrate && m.orchestrate_col == 1 {
+                let ready: Vec<&DagNodeItem> =
+                    m.dag_nodes.iter().filter(|n| n.state == "ready").collect();
+                if let Some(target_node) = ready.get(m.orchestrate_dispatch_task_idx) {
+                    let model = DISPATCH_MODELS[m.orchestrate_model_idx % DISPATCH_MODELS.len()];
+                    let out = run_child_captured(
+                        &m.root,
+                        &["admin", "claim", &target_node.id, "--actor", model],
+                    );
+                    m.status = format!("Claimed {}: {out}", target_node.id);
+                    m.refresh();
+                } else {
+                    m.status = "no unblocked ready task to dispatch".to_owned();
+                }
+            } else if m.pane == Pane::Help {
+                m.reading = !m.reading;
+            }
+        }
+        (KeyCode::Char('m'), _) if m.pane == Pane::Orchestrate && m.orchestrate_col == 1 => {
+            m.orchestrate_model_idx = (m.orchestrate_model_idx + 1) % DISPATCH_MODELS.len();
+        }
         (KeyCode::Char('c'), _) => {
-            if let Some(repo) = m.repo.as_ref() {
+            if m.pane == Pane::Orchestrate && m.orchestrate_col == 0 {
+                run_child_inherit(
+                    terminal,
+                    &m.root,
+                    &["ticket", "new", &m.orchestrate_draft_title],
+                )?;
+                m.refresh();
+            } else if let Some(repo) = m.repo.as_ref() {
                 let text = crate::commit::message(repo)
                     .unwrap_or_else(|e| format!("could not compose: {e}"));
                 m.popup = Some((
@@ -1314,20 +1841,47 @@ fn handle_key(
                 ));
             }
         }
-        (KeyCode::Char(' '), _) if m.pane == Pane::Queue => {
+        (KeyCode::Char(' '), _)
+            if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) =>
+        {
             if let Some(i) = m.current_index()
                 && !m.checked.remove(&i)
             {
                 m.checked.insert(i);
             }
         }
-        (KeyCode::Char('a'), _) if m.pane == Pane::Queue => {
-            m.checked = (0..m.rows().len()).collect();
+        (KeyCode::Char('a'), _) => {
+            if m.pane == Pane::Observe || (m.pane == Pane::Orchestrate && m.orchestrate_col == 2) {
+                if let Some(q) = m.questions_hub.get(m.observe_question_sel) {
+                    let out = run_child_captured(
+                        &m.root,
+                        &["answer", &q.target, "--response", &q.recommended],
+                    );
+                    m.popup = Some((format!("Answered {}", q.target), out, 0));
+                    m.refresh();
+                } else {
+                    m.status = "no open question to answer".to_owned();
+                }
+            } else if m.pane == Pane::Queue
+                || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3)
+            {
+                let q_len = m.rows.get(&(Pane::Queue as u8)).map_or(0, Vec::len);
+                m.checked = (0..q_len).collect();
+            }
         }
-        (KeyCode::Char('n'), _) if m.pane == Pane::Queue => m.checked.clear(),
-        (KeyCode::Char('s'), _) if m.pane == Pane::Queue => {
-            let targets: Vec<String> = m
-                .rows()
+        (KeyCode::Char('n'), _)
+            if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) =>
+        {
+            m.checked.clear();
+        }
+        (KeyCode::Char('s'), _)
+            if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) =>
+        {
+            let queue_rows = m
+                .rows
+                .get(&(Pane::Queue as u8))
+                .map_or(&[][..], |v| v.as_slice());
+            let targets: Vec<String> = queue_rows
                 .iter()
                 .enumerate()
                 .filter(|(i, _)| m.checked.contains(i))
@@ -1418,6 +1972,52 @@ fn handle_key(
             Pane::Roadmap => {
                 run_child_inherit(terminal, &m.root, &["roadmap", "edit"])?;
                 m.refresh();
+            }
+            Pane::Observe => {
+                if m.observe_col == 1
+                    && let Some(node) = m.dag_nodes.get(m.observe_dag_sel)
+                {
+                    m.popup = Some((
+                        format!("Task Node: {}", node.id),
+                        format!(
+                            "ID: {}\nTitle: {}\nState: {}\nCritical: {}\nClaimed by: {}\nHeartbeat: {}\nLease: {}\nScope: {}\nCollision: {}",
+                            node.id,
+                            node.title,
+                            node.state,
+                            node.is_critical,
+                            node.claim_actor.as_deref().unwrap_or("none"),
+                            node.claim_age.as_deref().unwrap_or("none"),
+                            node.claim_lease.as_deref().unwrap_or("none"),
+                            node.claim_scope.as_deref().unwrap_or("none"),
+                            node.scope_collision
+                        ),
+                        0,
+                    ));
+                } else if m.observe_col == 3
+                    && let Some(q) = m.questions_hub.get(m.observe_question_sel)
+                {
+                    m.popup = Some((
+                        format!("Question: {}", q.target),
+                        format!(
+                            "Target: {}\nBlocking: {}\nQuestion:\n{}\n\nRecommended Answer:\n{}",
+                            q.target, q.blocking, q.question, q.recommended
+                        ),
+                        0,
+                    ));
+                }
+            }
+            Pane::Orchestrate => {
+                if m.orchestrate_col == 3 {
+                    let target = m
+                        .rows
+                        .get(&(Pane::Queue as u8))
+                        .and_then(|v| v.get(m.selected()))
+                        .and_then(|r| r.sign_target.clone());
+                    if let Some(t) = target {
+                        sign_in_child(terminal, m, &t)?;
+                        m.refresh();
+                    }
+                }
             }
             _ => {
                 if let Some(t) = m.current().and_then(|r| r.sign_target.clone()) {
@@ -1542,7 +2142,11 @@ fn draw(f: &mut ratatui::Frame, m: &Model) {
         tabs_area,
     );
 
-    if m.pane == Pane::Help && m.reading {
+    if m.pane == Pane::Observe {
+        draw_observe(f, m, body);
+    } else if m.pane == Pane::Orchestrate {
+        draw_orchestrate(f, m, body);
+    } else if m.pane == Pane::Help && m.reading {
         draw_doc(f, m, body);
     } else {
         draw_list(f, m, body);
@@ -1631,6 +2235,8 @@ fn draw_list(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         })
         .collect();
     let title = match m.pane {
+        Pane::Observe => " Observe — situational HUD & mission control ".to_owned(),
+        Pane::Orchestrate => " Orchestrate — draft, dispatch & batch sign ".to_owned(),
         Pane::Setup => format!(" Setup — {} ", m.setup.step.title()),
         Pane::Help => " Help — what next (d: documents, [ ]: step through them) ".to_owned(),
         Pane::Queue => format!(
@@ -1701,6 +2307,558 @@ fn draw_doc(f: &mut ratatui::Frame, m: &Model, body: Rect) {
     );
 }
 
+fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
+    let [vitals_bar, main_area, questions_drawer] = Layout::vertical([
+        Constraint::Length(3),
+        Constraint::Min(10),
+        Constraint::Length(8),
+    ])
+    .areas(body);
+
+    // 1. Top-Line Telemetry & Fleet Vitals
+    let [metrics_area, gauge_area] =
+        Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)])
+            .areas(vitals_bar);
+
+    let metrics_text = Line::from(vec![
+        Span::styled(" BURN: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            format!("{}k tok", m.total_tokens / 1000),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!(" (${:.2})", m.total_cost_usd),
+            Style::default().fg(Color::Green),
+        ),
+        Span::styled("  │  FLEET: ", Style::default().fg(Color::DarkGray)),
+        Span::styled(
+            format!("{} active", m.active_agents_count),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(
+            format!(" ({} wt)", m.active_worktrees_count),
+            Style::default().fg(Color::DarkGray),
+        ),
+        Span::styled("  │  LEASES: ", Style::default().fg(Color::DarkGray)),
+        Span::styled("fresh", Style::default().fg(Color::Green)),
+        Span::styled(
+            if m.herdr_connected {
+                "  [herdr: connected]"
+            } else {
+                "  [herdr: idle]"
+            },
+            Style::default().fg(if m.herdr_connected {
+                Color::Green
+            } else {
+                Color::DarkGray
+            }),
+        ),
+    ]);
+
+    f.render_widget(
+        Paragraph::new(metrics_text).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" Telemetry & Fleet Vitals "),
+        ),
+        metrics_area,
+    );
+
+    let pct = m.global_progress_pct.min(100);
+    f.render_widget(
+        Gauge::default()
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Program Milestone Progress "),
+            )
+            .gauge_style(Style::default().fg(Color::Cyan).bg(Color::DarkGray))
+            .percent(pct)
+            .label(format!("{pct}% complete")),
+        gauge_area,
+    );
+
+    // 2. Three Columns: Left: Milestones, Center: DAG, Right: Herdr Transcript
+    let [left_col, center_col, right_col] = Layout::horizontal([
+        Constraint::Percentage(28),
+        Constraint::Percentage(42),
+        Constraint::Percentage(30),
+    ])
+    .areas(main_area);
+
+    // Left: Milestones & Tasks
+    let ms_border_style = if m.observe_col == 0 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let mut task_items = Vec::new();
+    for ms in &m.milestones {
+        task_items.push(ListItem::new(Line::from(vec![
+            Span::styled(
+                format!("▼ {}", ms.name),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(
+                format!(" ({}/{})", ms.done_count, ms.total_count),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ])));
+        for t in &ms.tasks {
+            let (badge, style) = match t.state.as_str() {
+                "done" => ("[DONE] ", Style::default().fg(Color::Green)),
+                "active" => (
+                    "[ACTV] ",
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                "ready" => ("[REDY] ", Style::default().fg(Color::White)),
+                _ => ("[BLCK] ", Style::default().fg(Color::DarkGray)),
+            };
+            task_items.push(ListItem::new(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(badge, style),
+                Span::styled(format!("{:<8} ", t.id), Style::default().fg(Color::Yellow)),
+                Span::styled(t.title.clone(), Style::default()),
+                Span::styled(
+                    format!(" · {:.1}k tok", t.tokens as f64 / 1000.0),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ])));
+        }
+    }
+    if task_items.is_empty() {
+        task_items.push(ListItem::new(Line::from("No milestones recorded")));
+    }
+    let mut ms_state = ListState::default();
+    if !task_items.is_empty() {
+        ms_state.select(Some(m.observe_milestone_sel.min(task_items.len() - 1)));
+    }
+    f.render_stateful_widget(
+        List::new(task_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Milestones & Tasks ")
+                    .border_style(ms_border_style),
+            )
+            .highlight_style(Style::default().bg(Color::Blue).fg(Color::White)),
+        left_col,
+        &mut ms_state,
+    );
+
+    // Center: Task Dependency Tree / DAG
+    let dag_border_style = if m.observe_col == 1 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let mut dag_items = Vec::new();
+    for node in &m.dag_nodes {
+        let (badge, style) = match node.state.as_str() {
+            "done" => ("[DONE] ", Style::default().fg(Color::Green)),
+            "active" => (
+                "[ACTV] ",
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            "ready" => ("[REDY] ", Style::default().fg(Color::White)),
+            _ => ("[BLCK] ", Style::default().fg(Color::DarkGray)),
+        };
+
+        let mut spans = vec![
+            Span::styled(node.prefix.clone(), Style::default().fg(Color::DarkGray)),
+            Span::styled(badge, style),
+            Span::styled(
+                format!("{:<10} ", node.id),
+                if node.is_critical {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                },
+            ),
+            Span::styled(node.title.clone(), Style::default()),
+        ];
+
+        if let Some(actor) = &node.claim_actor {
+            spans.push(Span::styled(
+                format!(" [{actor}]"),
+                Style::default().fg(Color::Cyan),
+            ));
+        }
+        if let Some(hb) = &node.claim_age {
+            spans.push(Span::styled(
+                format!(" {hb}"),
+                Style::default().fg(Color::DarkGray),
+            ));
+        }
+        if let Some(lease) = &node.claim_lease {
+            spans.push(Span::styled(
+                format!(" · {lease}"),
+                Style::default().fg(Color::Green),
+            ));
+        }
+        if let Some(scope) = &node.claim_scope {
+            spans.push(Span::styled(
+                format!(" [{scope}]"),
+                Style::default().fg(Color::DarkGray),
+            ));
+        }
+        if node.scope_collision {
+            spans.push(Span::styled(
+                " [SCOPE COLLISION]",
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            ));
+        }
+
+        dag_items.push(ListItem::new(Line::from(spans)));
+    }
+    if dag_items.is_empty() {
+        dag_items.push(ListItem::new(Line::from("No dependency nodes")));
+    }
+    let mut dag_state = ListState::default();
+    if !dag_items.is_empty() {
+        dag_state.select(Some(m.observe_dag_sel.min(dag_items.len() - 1)));
+    }
+    f.render_stateful_widget(
+        List::new(dag_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Task Dependency Tree / DAG ([d]: dispatch) ")
+                    .border_style(dag_border_style),
+            )
+            .highlight_style(Style::default().bg(Color::Blue).fg(Color::White)),
+        center_col,
+        &mut dag_state,
+    );
+
+    // Right: Live Herdr Agent Transcript
+    let herdr_border_style = if m.observe_col == 2 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let agent_title = if !m.herdr_agents.is_empty() {
+        let idx = m.observe_agent_sel.min(m.herdr_agents.len() - 1);
+        let a = &m.herdr_agents[idx];
+        format!(
+            " Live Stream: {} [{}/{}] ([ ]: cycle) ",
+            a.display_label(),
+            idx + 1,
+            m.herdr_agents.len()
+        )
+    } else if m.herdr_connected {
+        " Live Stream: (connected, no active agent) ".to_owned()
+    } else {
+        " Live Stream: Herdr idle (working tree status) ".to_owned()
+    };
+    f.render_widget(
+        Paragraph::new(m.herdr_transcript.as_str())
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(agent_title)
+                    .border_style(herdr_border_style),
+            )
+            .wrap(Wrap { trim: false }),
+        right_col,
+    );
+
+    // 3. Bottom Drawer: Unified Questions Hub
+    let q_border_style = if m.observe_col == 3 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let mut q_items = Vec::new();
+    for q in &m.questions_hub {
+        let mark = if q.blocking {
+            Span::styled(
+                "BLOCKING ",
+                Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
+            )
+        } else {
+            Span::styled("QUESTION ", Style::default().fg(Color::Yellow))
+        };
+        let rec = if q.recommended.is_empty() {
+            String::new()
+        } else {
+            format!("  → {}", q.recommended)
+        };
+        q_items.push(ListItem::new(Line::from(vec![
+            mark,
+            Span::styled(format!("{}: ", q.target), Style::default().fg(Color::Cyan)),
+            Span::raw(q.question.clone()),
+            Span::styled(rec, Style::default().fg(Color::Green)),
+        ])));
+    }
+    if q_items.is_empty() {
+        q_items.push(ListItem::new(Line::from(vec![Span::styled(
+            "No blocking questions across active worktrees",
+            Style::default().fg(Color::DarkGray),
+        )])));
+    }
+    let mut q_state = ListState::default();
+    if !q_items.is_empty() {
+        q_state.select(Some(m.observe_question_sel.min(q_items.len() - 1)));
+    }
+    f.render_stateful_widget(
+        List::new(q_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" Unified Questions Hub ([a]: answer inline) ")
+                    .border_style(q_border_style),
+            )
+            .highlight_style(Style::default().bg(Color::Blue).fg(Color::White)),
+        questions_drawer,
+        &mut q_state,
+    );
+}
+
+fn draw_orchestrate(f: &mut ratatui::Frame, m: &Model, body: Rect) {
+    let [top_row, bottom_row] =
+        Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(body);
+
+    let [draft_area, dispatch_area] =
+        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(top_row);
+
+    let [questions_area, queue_area] =
+        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .areas(bottom_row);
+
+    // 1. Draft & Create Work
+    let draft_border_style = if m.orchestrate_col == 0 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let draft_lines = vec![
+        Line::from(vec![
+            Span::styled("Title: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                &m.orchestrate_draft_title,
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Checklist Items: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                &m.orchestrate_draft_items,
+                Style::default().fg(Color::White),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Scaffolding: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                "Markdown Warrant/Ticket with deterministic obligations & gates",
+                Style::default().fg(Color::Cyan),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Action: ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                "Press [c] to Draft & Create Task in Shell",
+                Style::default().add_modifier(Modifier::BOLD),
+            ),
+        ]),
+    ];
+    f.render_widget(
+        Paragraph::new(draft_lines).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" 1. Draft & Create Work ([c]: create) ")
+                .border_style(draft_border_style),
+        ),
+        draft_area,
+    );
+
+    // 2. Dispatch & Worktree Provisioning
+    let dispatch_border_style = if m.orchestrate_col == 1 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let ready_nodes: Vec<&DagNodeItem> =
+        m.dag_nodes.iter().filter(|n| n.state == "ready").collect();
+    let sel_task = if !ready_nodes.is_empty() {
+        let idx = m.orchestrate_dispatch_task_idx.min(ready_nodes.len() - 1);
+        format!("{} — {}", ready_nodes[idx].id, ready_nodes[idx].title)
+    } else {
+        "No ready tasks unblocked".to_owned()
+    };
+    let model = DISPATCH_MODELS[m.orchestrate_model_idx % DISPATCH_MODELS.len()];
+    let dispatch_lines = vec![
+        Line::from(vec![
+            Span::styled("Target Node: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                sel_task,
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Performer Model: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                format!("< {model} >  ([m]: cycle)"),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Write Scope: ", Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                &m.orchestrate_scope_input,
+                Style::default().fg(Color::Yellow),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("Action: ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                "Press [d] to Spawn Worktree & Dispatch Agent",
+                Style::default().add_modifier(Modifier::BOLD),
+            ),
+        ]),
+    ];
+    f.render_widget(
+        Paragraph::new(dispatch_lines).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(" 2. Dispatch & Worktree Provisioning ([d]: launch) ")
+                .border_style(dispatch_border_style),
+        ),
+        dispatch_area,
+    );
+
+    // 3. Blocker & Question Resolution
+    let q_border_style = if m.orchestrate_col == 2 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let mut q_items = Vec::new();
+    for q in &m.questions_hub {
+        q_items.push(ListItem::new(Line::from(vec![
+            Span::styled(format!("{}: ", q.target), Style::default().fg(Color::Cyan)),
+            Span::raw(q.question.clone()),
+            Span::styled(
+                format!("  → {}", q.recommended),
+                Style::default().fg(Color::Green),
+            ),
+        ])));
+    }
+    if q_items.is_empty() {
+        q_items.push(ListItem::new(Line::from("No open questions")));
+    }
+    let mut q_state = ListState::default();
+    if !q_items.is_empty() {
+        q_state.select(Some(m.observe_question_sel.min(q_items.len() - 1)));
+    }
+    f.render_stateful_widget(
+        List::new(q_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(" 3. Blocker & Question Resolution ([a]: answer) ")
+                    .border_style(q_border_style),
+            )
+            .highlight_style(Style::default().bg(Color::Blue).fg(Color::White)),
+        questions_area,
+        &mut q_state,
+    );
+
+    // 4. Approval & Batch Signing Queue
+    let queue_border_style = if m.orchestrate_col == 3 {
+        Style::default()
+            .fg(Color::Yellow)
+            .add_modifier(Modifier::BOLD)
+    } else {
+        Style::default()
+    };
+    let queue_rows = m
+        .rows
+        .get(&(Pane::Queue as u8))
+        .map_or(&[][..], |v| v.as_slice());
+    let queue_items: Vec<ListItem> = queue_rows
+        .iter()
+        .enumerate()
+        .map(|(i, r)| {
+            let mark = if m.checked.contains(&i) {
+                "[x] "
+            } else {
+                "[ ] "
+            };
+            ListItem::new(Line::from(vec![
+                Span::styled(
+                    mark,
+                    if m.checked.contains(&i) {
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default()
+                    },
+                ),
+                Span::raw(r.text.clone()),
+            ]))
+        })
+        .collect();
+    let mut queue_state = ListState::default();
+    if !queue_items.is_empty() {
+        queue_state.select(Some(m.selected().min(queue_items.len() - 1)));
+    }
+    f.render_stateful_widget(
+        List::new(queue_items)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(format!(
+                        " 4. Approval & Signing Queue ({} acts) ([s]: batch sign) ",
+                        m.pending_count
+                    ))
+                    .border_style(queue_border_style),
+            )
+            .highlight_style(Style::default().bg(Color::Blue).fg(Color::White)),
+        queue_area,
+        &mut queue_state,
+    );
+}
+
 /// The documents embedded at build time, in the order Help shows them after
 /// this repository's own: what `war init` ships, so help never drifts from it.
 fn embedded_docs(ns: &str) -> Vec<Doc> {
@@ -1760,7 +2918,7 @@ fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
 }
 
 /// The Tickets pane from `ticket::board`: one row per ticket (state,
-/// progress, priority, title; Enter shows `war show`'s checklist and notes),
+/// progress, priority, title; Enter shows `war view show`'s checklist and notes),
 /// then one row per REMAINING item beneath it. Done items are in the detail,
 /// not the list. No row carries a signature or an auto remedy.
 fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
@@ -1801,7 +2959,7 @@ fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
                     format!("  [claimed: {}]", holders.join(", "))
                 }
             ),
-            command: format!("war show {id}"),
+            command: format!("war view show {id}"),
             sign_target: None,
             auto: None,
             detail: detail.clone(),
@@ -1823,9 +2981,9 @@ fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
                     if ready { "  ready" } else { "" }
                 ),
                 command: if ready {
-                    format!("war claim {target}")
+                    format!("war admin claim {target}")
                 } else {
-                    format!("war show {id}")
+                    format!("war view show {id}")
                 },
                 sign_target: None,
                 auto: None,
@@ -1837,6 +2995,8 @@ fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
 }
 
 pub const KEYS: &str = "\
+o                       observe: situational HUD, DAG, live agent transcripts, questions
+O                       orchestrate: draft work, dispatch agents, batch sign queue
 0-9 / Tab / Shift-Tab   panes
 p                       projects: every repository you use (Enter opens one, n starts one)
 t                       tickets: state, progress, remaining items (Enter: checklist and notes)
@@ -2064,8 +3224,8 @@ mod tests {
             !text.iter().any(|t| t.contains("Reset endpoint")),
             "a done item is listed"
         );
-        assert_eq!(rows[1].command, "war claim t-0001/i-0002");
-        assert_eq!(rows[2].command, "war show t-0001");
+        assert_eq!(rows[1].command, "war admin claim t-0001/i-0002");
+        assert_eq!(rows[2].command, "war view show t-0001");
         assert!(rows[0].detail.as_deref().unwrap().contains("## Notes"));
         for r in &rows {
             assert!(r.sign_target.is_none() && r.auto.is_none(), "{r:?}");

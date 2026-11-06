@@ -1,23 +1,28 @@
 # Working on OpenWarrant
 
 OpenWarrant defines a document standard and SDK for describing work, recording
-results and assessing assurance. LAMU and other providers compile context; apps
-and harnesses run workflows. OpenWarrant integrates with existing agent guidance.
+results and assessing assurance. OpenWarrant compiles required documents;
+LAMU and other providers can enrich context. Apps and harnesses run workflows. OpenWarrant integrates with existing agent guidance.
 
 For a user prompt using `war` as an OpenWarrant intent cue, read the
 [war router](.claude/skills/war/SKILL.md). Bare `war` means read-only overview.
 Explicit execution requests permit scoped unverified work subject to named gates.
 
-## Tickets: the default work loop
+## The default work loop
 
-For ordinary work, use tickets ([docs/TICKETS.md](docs/TICKETS.md)): run
-`war view prime` first, then `war start` (it takes the next ready ticket and
-prints only what its work needs), do it, `war done --note "..."` closes it, and
-`war note <ticket> "..."` keeps context the next agent needs. Nothing in that
-loop needs a signature; never ask the human to sign during it. Warrants are the opt-in authority layer a ticket enters only
-through `war plan promote`, and the records this repository governs itself with.
+Use one Warrant for one outcome ([daily loop](docs/TICKETS.md)). `war create`
+writes one Markdown source; `war start --json` claims work and returns the
+required context packet. Complete the scoped work, then use `war done --note
+"..."` and report the result. `war status --json` is a read-only progress view.
+Normal completion is unverified and needs no signature. Explicit start,
+completion and assurance requirements remain binding.
 
-**When a ticket needs sign-off**, the performer rules of the
+`ticket` and `t-...` remain compatibility names in code, commands and legacy
+records. New work does not need a second document or a new ID to gain detail.
+Legacy `war plan promote` remains a directory-workflow adapter; use it only
+when that encoding is specifically required.
+
+**For signing and legacy authority records**, the performer rules of the
 [legacy Warrant workflow](docs/agents/legacy-warrant-workflow.md) bind in full:
 never verify your own work, never write a disposition you did not receive,
 never edit a file under `generated/`, never change a document to make a tool

@@ -97,7 +97,7 @@ fn performer_of(store: &Store, t: &Ticket, item: &str, what: &str) -> Result<Str
         .and_then(|(_, c)| c.map(|c| c.actor.clone()))
         .ok_or_else(|| {
             format!(
-                "{what} is open and nobody holds it; its performer claims it first (`war claim \
+                "{what} is open and nobody holds it; its performer claims it first (`war admin claim \
                  {what}`), then `war evidence verify {what}` names them"
             )
         })

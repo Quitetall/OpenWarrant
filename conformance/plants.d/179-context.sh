@@ -12,8 +12,9 @@
 # - A budget the roots do not fit is refused `context.over-budget`, exit 2,
 #   nothing on stdout; a budget between the roots and the whole gives [S]
 #   lines, and the same budget with --strict is refused by the same rule.
-# - A ticket's checklist path resolves to the ticket; a record atom's path to
-#   its records; a target nothing names is refused `context.target-unknown`.
+# - A ticket's document resolves to the ticket; a directory ticket's checklist
+#   path to that ticket; a record atom's path to its records; a target nothing
+#   names is refused `context.target-unknown`.
 # - `war admin compile` writes docs/generated/llms.txt with the ticket's
 #   summary; `war check --generated` passes it and refuses a hand-edit as
 #   `context-index.drift`.
@@ -45,7 +46,7 @@ cx_war compile >/dev/null 2>&1
 cx_git add -A >/dev/null 2>&1
 cx_git commit -qm "context fixtures" >/dev/null 2>&1
 CX_ALIAS=CX-WAR-0001
-CX_TICKET=$(basename "$(dirname "$(ls "$CX_ROOT"/docs/tickets/*/manifest.toml | head -1)")")
+CX_TICKET=$(basename "$(ls "$CX_ROOT"/docs/tickets/t-*.md | head -1)" .md)
 
 # --- determinism ------------------------------------------------------------
 cx_war context "$CX_ALIAS" > "$CX_TMP/a.md" 2>"$CX_TMP/a.err"; CX_RC=$?
@@ -107,16 +108,23 @@ else
 fi
 
 # --- targets ----------------------------------------------------------------
-cx_war context "docs/tickets/$CX_TICKET/atoms/15-checklist.md" > "$CX_TMP/path.md" 2>/dev/null; CX_PATH_RC=$?
+cx_war context "docs/tickets/$CX_TICKET.md" > "$CX_TMP/path.md" 2>/dev/null; CX_PATH_RC=$?
+# A directory ticket, in the clone: this tree's index stays as compiled.
+cx_clone() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR "$CX_WAR" --root "$CX_CLONE" "$@" </dev/null; }
+cx_clone create --legacy "A directory ticket" --item "Still resolves" >/dev/null 2>&1
+CX_LEGACY=$(basename "$(dirname "$(ls "$CX_CLONE"/docs/tickets/*/manifest.toml | head -1)")")
+cx_clone context "docs/tickets/$CX_LEGACY/atoms/15-checklist.md" > "$CX_TMP/legacy.md" 2>/dev/null; CX_LEGACY_RC=$?
+CX_LEGACY_FIRST=$(awk '/^## Index/{getline; print; exit}' "$CX_TMP/legacy.md")
 cx_war context "docs/records/password-reset/10-records.md" --depth 0 > "$CX_TMP/rec.md" 2>/dev/null; CX_REC_RC=$?
 cx_war context "NOPE-404" > "$CX_TMP/nope.md" 2>"$CX_TMP/nope.err"; CX_NOPE_RC=$?
 CX_PATH_FIRST=$(awk '/^## Index/{getline; print; exit}' "$CX_TMP/path.md")
 if [[ $CX_PATH_RC -eq 0 && $CX_PATH_FIRST == "[F] $CX_TICKET · ticket · "* && $CX_REC_RC -eq 0 ]] \
+    && [[ $CX_LEGACY_RC -eq 0 && $CX_LEGACY_FIRST == "[F] $CX_LEGACY · ticket · "* ]] \
     && grep -q '^\[F\] REQ-pr1 · requirement' "$CX_TMP/rec.md" \
     && [[ $CX_NOPE_RC -eq 2 && ! -s "$CX_TMP/nope.md" ]] && grep -q 'context.target-unknown' "$CX_TMP/nope.err"; then
-    cx_ok "paths resolve, unknown refused" "checklist -> $CX_TICKET; record atom -> its records; NOPE-404 refused"
+    cx_ok "paths resolve, unknown refused" "document -> $CX_TICKET; checklist -> $CX_LEGACY; record atom -> its records; NOPE-404 refused"
 else
-    cx_fail "paths resolve, unknown refused" "path exit $CX_PATH_RC ($CX_PATH_FIRST), records exit $CX_REC_RC, unknown exit $CX_NOPE_RC"
+    cx_fail "paths resolve, unknown refused" "path exit $CX_PATH_RC ($CX_PATH_FIRST), checklist exit $CX_LEGACY_RC ($CX_LEGACY_FIRST), records exit $CX_REC_RC, unknown exit $CX_NOPE_RC"
 fi
 
 # --- the index ----------------------------------------------------------------

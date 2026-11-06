@@ -104,7 +104,7 @@ ga_go "harness_argv = [\"python3\", \"$GA_FIX\"]" 'max_parallel = 3'
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null); GA_RC=$?
 GA_STOP=$(ga_field "$GA_OUT" 'v["result"]["stop"]["reason"] + ": " + v["result"]["stop"]["detail"]')
 GA_LANDED=$(ga_field "$GA_OUT" 'len(v["result"]["landed"])')
-GA_TICKED=$(cat "$GA_ROOT"/docs/tickets/*/atoms/15-checklist.md | grep -c '^- \[x\] .* war go: landed [0-9a-f]* on war-go/integration$')
+GA_TICKED=$(cat "$GA_ROOT"/docs/tickets/t-*.md | grep -c '^- \[x\] .* war go: landed [0-9a-f]* on war-go/integration$')
 GA_STAGES=$(gaw --json plan frontier 2>/dev/null)
 GA_S1=$(ga_field "$GA_STAGES" '[r["state"] for r in v["result"]["rows"] if r["stage"] == "STAGE-001"][0]')
 GA_S2=$(ga_field "$GA_STAGES" '[r["state"] for r in v["result"]["rows"] if r["stage"] == "STAGE-002"][0]')

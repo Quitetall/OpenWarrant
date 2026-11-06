@@ -69,7 +69,7 @@ record(f"start {node} {attempt} {time.time_ns()} running={running}")
 root = packet["root"]
 for dep in packet.get("depends_on", []):
     ticket, _, item = dep.partition("/")
-    path = os.path.join(root, "docs", "tickets", ticket, "atoms", "15-checklist.md")
+    path = os.path.join(root, "docs", "tickets", ticket + ".md")
     try:
         lines = open(path, encoding="utf-8").read().splitlines()
     except OSError:

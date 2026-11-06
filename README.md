@@ -18,16 +18,16 @@ war create "Add password reset" --item "Reset endpoint" --item "Email template"
 Or install with `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli`;
 Homebrew and crates.io are not set up yet ([every way, and what each needs](docs/INSTALL.md#one-line)).
 
-Then `war start` takes the next ready ticket and prints only what its work
-needs, and `war done --note "..."` closes it in one call; `war view prime` lists
-what is open, one line each. A ticket is two Markdown files you can read on
-GitHub; no step needs a signature or anyone's approval.
-[The loop in three commands](docs/TICKETS.md).
-Sign-off is opt-in: `war plan promote <ticket>` drafts a Warrant when someone wants it.
+Then `war start` takes ready work and returns its brief. `war done --note "..."`
+records completion; `war status` shows progress. New work is one expandable
+Markdown Warrant with a stable ID. Checklists, checks and optional review
+requirements describe the same outcome. Ordinary completion is unverified and
+needs no signature; configured approval requirements still apply.
+[The daily loop](docs/TICKETS.md).
 
-`war --help` lists the twelve daily verbs; everything else sits in five groups
-(`war plan`, `war sign`, `war evidence`, `war view`, `war admin`), and every
-earlier spelling still works. [Where each command went](docs/COMMANDS.md).
+The six daily commands are `init`, `create`, `start`, `done`, `status`, `check`.
+Advanced commands live in `plan`, `sign`, `evidence`, `view`, and `admin`.
+Earlier spellings remain compatible. [Command reference](docs/COMMANDS.md).
 
 **Read first: [the current state](docs/generated/CURRENT.md)** — the master
 document `war admin compile` writes from the records, current by construction
@@ -38,11 +38,12 @@ document `war admin compile` writes from the records, current by construction
 [Build the CLI](#build-the-current-cli) ·
 [Contribute](CONTRIBUTING.md)
 
-> **Under development.** The document standard is
-> [OpenWarrant Format 1.0](docs/format/FORMAT-1.0.md), proposed in OW-ADR-0032
-> and not yet accepted by the owner. `war` reads it beside the older directory
-> encodings, which it reads forever. Sections of this page marked *planned* are
-> not claims of shipped functionality.
+> **Under development.** Alpha.5 is the published prerelease; the alpha.6
+> changes are being qualified. [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md)
+> records the owner's accepted direction. Adoption of the current
+> [Format 1.0 text revision](docs/format/FORMAT-1.0.md) is a separate act;
+> neither that edition nor Stable 1.0 is claimed here. Legacy records retain
+> their original bytes and recorded authority.
 
 ## One outcome, one Warrant
 
@@ -80,6 +81,12 @@ is printed in full (`[F]`) or as its one-line summary (`[S]`) when the budget
 runs out, and `--strict` refuses instead of summarizing. `docs/generated/llms.txt`
 indexes every record with the command that loads it. `--json` gives the
 `oh.war/context/v1` packet; MCP clients get the same through `war_context`.
+
+`war start --json` also carries an offline `oh.war/task-context/v1` packet:
+exact required context, dependency text and a source manifest. Missing required
+context is reported instead of silently omitted. This task packet has its own
+schema; budgeted `war context` remains available for exploration. SDK providers
+can supply or enrich context without becoming an authority source.
 
 ## Work first. Review when needed.
 

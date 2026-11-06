@@ -11,7 +11,7 @@ pub mod collector_signature;
 pub(crate) mod contract_snapshot;
 pub mod katana_process;
 pub mod native_host;
-mod process;
+pub(crate) mod process;
 pub mod protected_executable;
 pub mod protected_input;
 pub mod protected_job;

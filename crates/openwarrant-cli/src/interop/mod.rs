@@ -24,6 +24,7 @@ pub mod adapters;
 pub mod beads;
 pub mod openspec;
 pub mod speckit;
+pub mod table;
 pub mod write;
 
 use camino::{Utf8Path, Utf8PathBuf};
@@ -324,7 +325,7 @@ pub struct Foreign {
     /// Its tasks file, shown, when it has one.
     pub tasks_file: Option<String>,
     pub tasks: Vec<Task>,
-    /// Lines `war show` prints under "Changes" (OpenSpec's deltas).
+    /// Lines `war view show` prints under "Changes" (OpenSpec's deltas).
     pub changes: Vec<String>,
 }
 

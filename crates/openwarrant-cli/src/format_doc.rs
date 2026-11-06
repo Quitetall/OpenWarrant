@@ -558,6 +558,41 @@ pub fn check(corpus: &Corpus, report: &mut Report) {
     }
 }
 
+/// [`check`]'s reading of the one document at `source`: what `war check
+/// <ticket>` says of a Format 1.0 ticket, its findings, and a pass naming it
+/// when nothing was refused or left `UNKNOWN`. A relation's target is the
+/// corpus check's to judge: that needs every record of the repository, and a
+/// ticket's check stays as quick as the rest of the loop.
+pub fn check_one(repo: &Repository, source: &str, report: &mut Report) {
+    let path = repo.root.join(source);
+    let bytes = match crate::vfs::read_regular(repo.root.as_std_path(), path.as_std_path()) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            report.push(Diagnostic::error(
+                "format.document-unreadable",
+                source.to_owned(),
+                format!("could not read the work document: {e}"),
+            ));
+            return;
+        }
+    };
+    let doc = format::parse_with(&bytes, &profiles(repo), source);
+    for f in &doc.findings {
+        report.push(diagnostic(
+            f.outcome,
+            f.rule,
+            place_of(source, f.line),
+            f.message.clone(),
+        ));
+    }
+    if !doc.refused() && !doc.unknown() {
+        report.push(Diagnostic::pass(
+            "ticket.well-formed",
+            format!("{source}: nothing refused, nothing UNKNOWN"),
+        ));
+    }
+}
+
 /// The line a record's relation of `kind` was authored on, else its heading;
 /// an item's relations are on its own line.
 fn rel_line(d: &Loaded, from: &str, kind: &str) -> usize {

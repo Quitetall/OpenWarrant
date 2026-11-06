@@ -2039,7 +2039,7 @@ fn decision_flag(message: &str) -> Option<(String, Vec<String>)> {
     (!values.is_empty()).then_some((flag, values))
 }
 
-/// Help: `war next`'s actions, then `war check`'s errors by rule with their
+/// Help: `war view next`'s actions, then `war check`'s errors by rule with their
 /// remedies; an `auto` remedy carries an act id.
 fn help(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
     let next = crate::next::run_with(corpus)?;
@@ -2074,7 +2074,7 @@ fn help(corpus: &crate::corpus::Corpus) -> Result<Value, RepoError> {
     }
     Ok(json!({
         "next": next.actions,
-        // M9: the plain first line `war next` prints, ahead of the reason.
+        // M9: the plain first line `war view next` prints, ahead of the reason.
         "nothing": match (&next.idle, &next.nothing) {
             (Some(idle), Some(why)) => Some(format!("{idle}: {why}")),
             (Some(idle), None) => Some(idle.clone()),

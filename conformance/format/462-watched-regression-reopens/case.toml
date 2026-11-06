@@ -1,0 +1,4 @@
+id = "462-watched-regression-reopens"
+kind = "accept"
+section = "12.1"
+says = "A required check triggered by commit watches completed work by default."

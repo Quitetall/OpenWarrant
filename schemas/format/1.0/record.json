@@ -31,6 +31,8 @@
     "body": { "type": "string" }
   },
   "additionalProperties": false,
+  "if": { "properties": { "type": { "const": "milestone" } } },
+  "then": { "properties": { "fields": { "properties": { "min": { "enum": ["claimed", "observed", "independent", "signed"] } } } } },
   "$defs": {
     "relation": {
       "type": "object",

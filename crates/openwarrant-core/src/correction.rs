@@ -21,10 +21,10 @@
 //! head is the digest the file must have now. §34.4's rule for requirements is
 //! applied verbatim: supersede, never erase; the original digest stays in
 //! `deliverables.toml`, in every correction's `superseded_digest`, and in what
-//! `war show` prints.
+//! `war view show` prints.
 //!
 //! [`chain_head`] is the ONE function that decides what the current digest ought
-//! to be. `war check`, `war correct`, `war sign` and `war show` all call it, so
+//! to be. `war check`, `war correct`, `war sign` and `war view show` all call it, so
 //! they cannot disagree about whether a file has drifted or been corrected.
 
 use serde::{Deserialize, Serialize};

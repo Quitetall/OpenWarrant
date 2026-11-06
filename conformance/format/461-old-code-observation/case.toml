@@ -1,0 +1,4 @@
+id = "461-old-code-observation"
+kind = "accept"
+section = "12.1"
+says = "A result naming a code commit applies only while that commit is current."

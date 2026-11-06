@@ -126,6 +126,57 @@ fn doc(root: &Path) -> String {
     std::fs::read_to_string(root.join("docs/tickets/t-0c01.md")).unwrap()
 }
 
+#[test]
+fn every_required_check_must_pass_and_optional_checks_cannot_complete_work() {
+    let root = scratch("all-required");
+    ticket(
+        &root,
+        "## CHK-a · check — first condition\nrun: true\nevaluates i-0c01\n\n## CHK-b · check — second condition\nrun: false\nevaluates i-0c01\n\n## CHK-optional · check — informational\nrun: true\ngating: false\nevaluates i-0c02\n",
+    );
+    let _ = json(&root, None, &["check", "run", "t-0c01"]);
+    assert!(
+        doc(&root).contains("- [ ] first (i-0c01)"),
+        "one passing condition cannot override the other required failure: {}",
+        doc(&root)
+    );
+    assert!(
+        doc(&root).contains("- [ ] second (i-0c02)"),
+        "an optional result cannot complete work"
+    );
+    let original = doc(&root);
+    std::fs::write(
+        root.join("docs/tickets/t-0c01.md"),
+        original.replace("run: false", "run: true"),
+    )
+    .unwrap();
+    let _ = json(&root, None, &["check", "evaluate", "t-0c01"]);
+    assert!(
+        doc(&root).contains("- [ ] first (i-0c01)"),
+        "a changed check has no current result"
+    );
+    let v = json(&root, None, &["check", "run", "t-0c01/CHK-b"]);
+    assert_eq!(v["exit_code"], 0, "{v}");
+    assert!(
+        doc(&root).contains("- [x] first (i-0c01)"),
+        "all current required results complete their target: {}",
+        doc(&root)
+    );
+    let before = events(&root)
+        .iter()
+        .filter(|e| e["type"] == "work.item_done")
+        .count();
+    let _ = json(&root, None, &["check", "evaluate", "t-0c01"]);
+    assert_eq!(
+        events(&root)
+            .iter()
+            .filter(|e| e["type"] == "work.item_done")
+            .count(),
+        before,
+        "repeated evaluation is idempotent"
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
 fn events(root: &Path) -> Vec<serde_json::Value> {
     std::fs::read_to_string(root.join("docs/tickets/t-0c01/journal.jsonl"))
         .unwrap_or_default()
@@ -246,15 +297,16 @@ fn a_fail_reopens_only_when_the_check_says_so() {
     let root = scratch("reopen");
     ticket(
         &root,
-        "## CHK-keep · check — keeps\nrun: false\non: manual\nevaluates i-0c01\n\n\
-         ## CHK-back · check — reopens\nrun: false\non: manual\nreopen: true\nevaluates i-0c02\n",
+        "## CHK-keep · check — keeps\nrun: test -f permit-pass\non: manual\nevaluates i-0c01\n\n\
+         ## CHK-back · check — reopens\nrun: test -f permit-pass\non: manual\nreopen: true\nevaluates i-0c02\n",
     );
+    std::fs::write(root.join("permit-pass"), "permit baseline checks").unwrap();
     commit(&root, "ticket");
     for item in ["t-0c01/i-0c01", "t-0c01/i-0c02"] {
         assert!(war(&root, Some("bob"), &["claim", item]).status.success());
     }
-    // `war done` fires `done`: these checks declare `manual`, so the ticks
-    // are claimed, nothing run.
+    // Completion enforces every required condition, including checks whose
+    // normal automatic trigger is manual. Both pass before the regression.
     for item in ["t-0c01/i-0c01", "t-0c01/i-0c02"] {
         let out = war(&root, Some("bob"), &["done", item]);
         assert!(
@@ -263,7 +315,8 @@ fn a_fail_reopens_only_when_the_check_says_so() {
             String::from_utf8_lossy(&out.stderr)
         );
     }
-    assert!(events(&root).iter().all(|e| e["type"] != "check.run"));
+    assert_eq!(of_type(&events(&root), "check.run").len(), 2);
+    std::fs::remove_file(root.join("permit-pass")).unwrap();
     let v = json(&root, Some("ci"), &["check", "run"]);
     assert_eq!(v["exit_code"], 2, "{v}");
     let d = doc(&root);

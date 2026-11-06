@@ -365,7 +365,7 @@ pub fn ticket_nodes(
         match c {
             // A lock nobody can read still holds (fail closed).
             None => Some("somebody (the lock does not parse)".to_owned()),
-            Some(c) if c.lease_expired(now) => None,
+            Some(c) if !c.reserves(now) => None,
             Some(c) => Some(c.actor.clone()),
         }
     };
@@ -466,7 +466,7 @@ pub fn ticket_nodes(
     }
 }
 
-/// The graph of the tickets alone (FORMAT-1.0 §11.5): what `war next` and
+/// The graph of the tickets alone (FORMAT-1.0 §11.5): what `war view next` and
 /// `war view ready` order their candidates by, the ticket part of
 /// [`build`] exactly, so the order they give and the order `war evidence
 /// go` starts work in agree.
@@ -737,7 +737,7 @@ pub fn build_from(
         );
     }
     // Only edges between work this graph knows, or from work to something
-    // unknown (which blocks, named, as `war claim` reads it).
+    // unknown (which blocks, named, as `war admin claim` reads it).
     let edges: Vec<Edge> = edges
         .into_iter()
         .filter(|e| nodes.contains_key(&e.from))

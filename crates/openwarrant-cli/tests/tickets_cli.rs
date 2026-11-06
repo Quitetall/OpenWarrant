@@ -102,8 +102,7 @@ fn create_ready_claim_done_needs_no_signature_and_no_human() {
 
     // The file is the state: both boxes ticked, by whom and when.
     let checklist =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{id}/atoms/15-checklist.md")))
-            .unwrap();
+        std::fs::read_to_string(root.join(created["result"]["source"].as_str().unwrap())).unwrap();
     assert_eq!(checklist.matches("- [x] ").count(), 2, "{checklist}");
     assert!(checklist.contains("— done by claude, "), "{checklist}");
     assert!(checklist.contains(": did one"), "{checklist}");
@@ -176,6 +175,83 @@ fn claiming_a_whole_ticket_names_a_command_that_works() {
 /// description, open items and notes, and the command that closes it. Run
 /// again by the same actor it prints the same one (a session resumes); another
 /// actor gets the next; with nothing left, it says so and claims nothing.
+/// A single-file ticket keeps its notes in the journal, not its body, and
+/// the comment left on its issue still carries them.
+#[cfg(unix)]
+#[test]
+fn the_issue_comment_carries_the_notes_of_a_single_file_ticket() {
+    use std::os::unix::fs::PermissionsExt;
+    let root = scratch("writeback-notes");
+    let bin = root.join("fake-bin");
+    std::fs::create_dir_all(&bin).unwrap();
+    let gh = bin.join("gh");
+    std::fs::write(
+        &gh,
+        "#!/bin/sh\n\
+         case \"$1 $2\" in\n\
+         'issue view') printf '{\"number\":%s,\"title\":\"T\",\"body\":\"B\",\"url\":\"https://github.com/o/r/issues/%s\"}' \"$3\" \"$3\";;\n\
+         'issue comment') printf '%s' \"$5\" > \"$FAKE_GH_COMMENT\";;\n\
+         esac\n",
+    )
+    .unwrap();
+    std::fs::set_permissions(&gh, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let config = root.join("openwarrant.toml");
+    let mut text = std::fs::read_to_string(&config).unwrap();
+    text.push_str(
+        "\n[intake]\nfetch_argv = [\"gh\", \"issue\", \"view\", \"{id}\", \"--json\", \"number,title,body,url\"]\n\
+         [intake.writeback]\ncomment_argv = [\"gh\", \"issue\", \"comment\", \"{id}\", \"--body\", \"{body}\"]\n\
+         close_argv = [\"gh\", \"issue\", \"close\", \"{id}\"]\n",
+    );
+    std::fs::write(&config, text).unwrap();
+    let comment = root.join("comment.txt");
+    let path = format!(
+        "{}:{}",
+        bin.display(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+    let run = |args: &[&str]| {
+        let out = Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&root)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("PATH", &path)
+            .env("FAKE_GH_COMMENT", &comment)
+            .env_remove("OPENWARRANT_ACTOR")
+            .env_remove("SSH_AUTH_SOCK")
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8_lossy(&out.stdout).into_owned()
+    };
+    let made: serde_json::Value =
+        serde_json::from_str(&run(&["--json", "create", "--issue", "13", "-i", "Fix it"])).unwrap();
+    let id = made["result"]["id"].as_str().unwrap();
+    let item = made["result"]["items"][0]["id"].as_str().unwrap();
+    assert!(
+        root.join(format!("docs/tickets/{id}.md")).is_file(),
+        "not a single-file ticket"
+    );
+    run(&["note", id, "root cause: an unchecked empty string"]);
+    let target = format!("{id}/{item}");
+    run(&["claim", &target]);
+    run(&["done", &target, "--note", "guarded"]);
+    let body = std::fs::read_to_string(&comment).unwrap();
+    assert!(
+        body.contains("Fix it") && body.contains(": guarded"),
+        "{body}"
+    );
+    assert!(body.contains("\nNotes:\n\n"), "{body}");
+    assert!(
+        body.contains("root cause: an unchecked empty string"),
+        "{body}"
+    );
+}
+
 #[test]
 fn start_takes_the_next_warrant_and_prints_only_it() {
     let root = scratch("start");
@@ -202,6 +278,8 @@ fn start_takes_the_next_warrant_and_prints_only_it() {
         .as_str()
         .unwrap()
         .to_owned();
+    declare_scope(&root, &first, "work/first/**");
+    declare_scope(&root, &second, "work/second/**");
     assert_eq!(
         json(&root, &["note", &first, "use the old parser"])["exit_code"],
         0
@@ -412,6 +490,24 @@ fn start_takes_a_warrant_named_by_words_of_its_title() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// A value can be set back: each edit is its own fact, whoever makes it.
+#[test]
+fn an_edit_may_repeat_an_earlier_value() {
+    let root = scratch("edit-repeat");
+    let id = json(&root, &["create", "Job", "--item", "one"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    for (priority, actor) in [("1", "ann"), ("3", "ann"), ("1", "bob"), ("3", "ann")] {
+        let edited = json(&root, &["edit", &id, "--priority", priority, "--as", actor]);
+        assert_eq!(edited["exit_code"], 0, "{edited}");
+    }
+    let journal =
+        std::fs::read_to_string(root.join("docs/tickets").join(&id).join("journal.jsonl")).unwrap();
+    assert_eq!(journal.matches("\"work.edited\"").count(), 4, "{journal}");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 /// Agents side by side in linked worktrees share the repository's claims. Named
 /// by nobody, each acts as the performer named for its worktree, so the second
 /// takes the next Warrant instead of resuming the first one's as its own.
@@ -592,11 +688,7 @@ fn of_concurrent_claim_processes_exactly_one_wins() {
     // The winner's claim is journalled once.
     let journal =
         std::fs::read_to_string(root.join(format!("docs/tickets/{id}/journal.jsonl"))).unwrap();
-    assert_eq!(
-        journal.matches("\"ticket.claimed\"").count(),
-        1,
-        "{journal}"
-    );
+    assert_eq!(journal.matches("\"work.claimed\"").count(), 1, "{journal}");
     let _ = std::fs::remove_dir_all(&root);
 }
 
@@ -630,6 +722,7 @@ fn after_done_ready_and_claim_agree_under_concurrency() {
                     let title = format!("{actor} round {n}");
                     let created = step(&["create", &title, "--item", "Foundation"]);
                     let t = created["result"]["id"].as_str().unwrap().to_owned();
+                    declare_scope(&root, &t, &format!("work/{actor}/round-{n}/**"));
                     let f = created["result"]["items"][0]["id"]
                         .as_str()
                         .unwrap()
@@ -664,7 +757,7 @@ fn after_done_ready_and_claim_agree_under_concurrency() {
 #[test]
 fn check_validates_structure_and_never_asks_for_authority() {
     let root = scratch("check");
-    let id = json(&root, &["create", "Checked", "--item", "a"])["result"]["id"]
+    let id = json(&root, &["create", "--legacy", "Checked", "--item", "a"])["result"]["id"]
         .as_str()
         .unwrap()
         .to_owned();
@@ -837,4 +930,18 @@ fn an_agent_works_a_ticket_over_mcp() {
             .contains("## Checklist")
     );
     let _ = std::fs::remove_dir_all(&root);
+}
+
+// The concurrent workers declare disjoint payload scopes. Their tracker writes
+// are serialized separately; a missing scope must never imply disjoint files.
+fn declare_scope(root: &Path, id: &str, paths: &str) {
+    let file = root.join(format!("docs/tickets/{id}.md"));
+    let text = std::fs::read_to_string(&file).unwrap();
+    let staged = file.with_extension("scope-tmp");
+    std::fs::write(
+        &staged,
+        text.replacen("\n---\n", &format!("\npaths: {paths}\n---\n"), 1),
+    )
+    .unwrap();
+    std::fs::rename(staged, file).unwrap();
 }

@@ -9,19 +9,19 @@ Ordinary coding needs no Warrant and no ticket: edit, build and test as in any
 repository. OpenWarrant is optional planning and tracking. Read the target
 repository's AGENTS.md for its own conventions.
 
-- A **Warrant** is a work plan; optional. The lightest one, a **ticket**, tracks
-  a piece of work as a checklist: `war start` (with your first look at the code)
-  takes the next ready one and prints only what it needs; do it; close it with
-  your last test run, `<tests> && war done --note "..."`. No step needs a
-  signature.
-  [Tickets](references/tickets.md) has the loop; `war view warrants` lists every
-  Warrant, whatever its encoding.
+- A **Warrant** is one work document with a stable ID. New work defaults to
+  one Markdown source; add checklists, stages and checks to it. `ticket` is a
+  compatibility name. Use `war start --json` for the complete required context
+  packet, implement, then `war done --note "..."`. Ordinary completion is
+  unverified and needs no signature unless explicit requirements say otherwise.
+  [Daily work](references/tickets.md) describes the six commands; `war view
+  warrants` lists every encoding.
 - A Warrant whose type has a sign-off step adds a person's approval, and the
   tool holds those rules.
 - **Completion is separate from assurance.** Report finished work as unverified.
   Use OpenWarrant Verified only after independent evidence and secure human
   acceptance bind the exact result under the applicable baseline.
-- At the end of a session, tell the person what waits on them: `war next`
+- At the end of a session, tell the person what waits on them: `war view next`
   lists the approvals and signatures that are a person's, and
   `war sign inbox` the same list by person. Agents go on working meanwhile.
 - The repository's `CLAUDE.md` and `AGENTS.md` sections are records too

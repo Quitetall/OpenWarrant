@@ -384,7 +384,7 @@ pub fn ranks<'a>(graph: &'a Graph, history: &History) -> Ranks<'a> {
 /// remaining path (the critical path first), then `priority` (lowest
 /// first), then the Warrant's `created_at` (earliest first, none last), then
 /// its alias, then the item's
-/// position. `war next`, `war view ready` and `war evidence go` all sort by
+/// position. `war view next`, `war view ready` and `war evidence go` all sort by
 /// it, so ten agents asking at once get one order.
 pub type OrderKey<'a> = (
     bool,

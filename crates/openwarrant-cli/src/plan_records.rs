@@ -952,7 +952,7 @@ pub fn human(a: &Applied) -> String {
     }
     let first = a.records.first().map_or("<ID>", |r| r.id.as_str());
     s.push_str(&format!(
-        "`war next` lists the items; `war plan impact {first}` lists what a change to a record reaches"
+        "`war view next` lists the items; `war plan impact {first}` lists what a change to a record reaches"
     ));
     s
 }
@@ -1246,7 +1246,7 @@ pub fn run_create(
             crate::init::CONFIG_FILE,
             "`--draft` asks the configured drafter, and `[plan] drafter_argv` is not set; \
              nothing was invented. Give the items with `--item`, or add them later with \
-             `war add`",
+             `war plan add`",
         ));
         return Ok(refused(report, serde_json::Value::Null));
     }

@@ -14,7 +14,7 @@ WT_TT=$("$WAR" --root "$PLANT_ROOT" --json ready 2>/dev/null | python3 -c '
 import sys, json
 r = json.load(sys.stdin)["result"]["ready"]
 print(next(x["ticket"] + "/" + x["item"] for x in r if x["text"] == "Web item"))' 2>/dev/null)
-WT_CL="$PLANT_ROOT/docs/tickets/${WT_TT%%/*}/atoms/15-checklist.md"
+WT_CL="$PLANT_ROOT/docs/tickets/${WT_TT%%/*}.md"
 
 WT_OUT=$(mktemp); WT_ERR=$(mktemp)
 env -u SSH_AUTH_SOCK "$WAR" --root "$PLANT_ROOT" ui --port 0 --as web-plant >"$WT_OUT" 2>"$WT_ERR" &

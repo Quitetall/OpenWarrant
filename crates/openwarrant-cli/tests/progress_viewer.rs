@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
+// Legacy layout fixtures opt in explicitly; native authoring is covered by alpha6_loop.
 use std::{path::PathBuf, process::Command};
 
 fn repo() -> PathBuf {
@@ -93,6 +94,7 @@ fn working_form_progress_follows_records_without_signing_or_hiding_directory_war
     let fixture = Fixture::new();
     fixture.war(&[
         "create",
+        "--legacy",
         "A prototype outcome",
         "--item",
         "Deliver one result",
@@ -163,7 +165,13 @@ fn working_form_progress_follows_records_without_signing_or_hiding_directory_war
 #[test]
 fn working_form_sources_refresh_and_unreadable_records_remain_visible() {
     let fixture = Fixture::new();
-    fixture.war(&["create", "A prototype", "--item", "Deliver a result"]);
+    fixture.war(&[
+        "create",
+        "--legacy",
+        "A prototype",
+        "--item",
+        "Deliver a result",
+    ]);
     let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
         .unwrap()
         .next()
@@ -226,7 +234,13 @@ fn working_form_sources_refresh_and_unreadable_records_remain_visible() {
 #[test]
 fn working_form_nonregular_source_is_reported_without_waiting_for_a_writer() {
     let fixture = Fixture::new();
-    fixture.war(&["create", "A prototype", "--item", "Deliver a result"]);
+    fixture.war(&[
+        "create",
+        "--legacy",
+        "A prototype",
+        "--item",
+        "Deliver a result",
+    ]);
     let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
         .unwrap()
         .next()
@@ -362,7 +376,13 @@ fn format_ticket_fifo_reports_incomplete_coverage_without_waiting() {
 fn a_loaded_ticket_cannot_read_proof_through_a_replaced_directory() {
     let fixture = Fixture::new();
     let outside = Fixture::new();
-    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    fixture.war(&[
+        "create",
+        "--legacy",
+        "Proof source",
+        "--item",
+        "Deliver a result",
+    ]);
     let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
         .unwrap()
         .next()
@@ -395,7 +415,13 @@ fn a_loaded_ticket_cannot_read_proof_through_a_replaced_directory() {
 #[test]
 fn nonregular_proof_atom_is_unknown_without_blocking_progress() {
     let fixture = Fixture::new();
-    fixture.war(&["create", "Proof source", "--item", "Deliver a result"]);
+    fixture.war(&[
+        "create",
+        "--legacy",
+        "Proof source",
+        "--item",
+        "Deliver a result",
+    ]);
     let dir = std::fs::read_dir(fixture.0.join("docs/tickets"))
         .unwrap()
         .next()

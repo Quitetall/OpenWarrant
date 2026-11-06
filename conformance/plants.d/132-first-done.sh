@@ -5,7 +5,7 @@
 # "x"`, `war done <id>`). With `war init --no-preset` it is four: `war done` ticks only
 # what the caller has claimed (OW-WAR-0147 OBL-003, "done needs your own
 # claim": a done that needed no claim would let two agents finish one item),
-# so the path is init, create, claim, done. M14: under the vibe preset (plain
+# so the path is init, create, start (which claims), done. M14: under the vibe preset (plain
 # `war init` since 2026-10-11) it is three, because `war done` on an item nobody holds
 # claims it first; the journal records the claim and the tick.
 #
@@ -17,7 +17,7 @@
 #   (`ticket.not-claimed`) and a done of an id that names nothing
 #   (`ticket.unknown`).
 # - M14: under vibe (plain `war init`), the first done is three daily verbs, and the
-#   journal holds `ticket.claimed` then `ticket.item_done`. Refused even
+#   journal holds `work.claimed` then `work.item_done`. Refused even
 #   there, by name: a done of an item another agent holds
 #   (`work.claimed-by-other`) and of an item that waits on another
 #   (`ticket.blocked`); neither is claimed or ticked.
@@ -39,7 +39,7 @@ FD_DAILY=$(awk '$0 == "Commands:" {f=1; next} /^[^ ]/ || /^$/ {f=0} f && /^  [a-
 # Every command the newcomer types, by its first word.
 FD_STEPS=()
 
-# 1. init  2. create  3. claim  4. done
+# 1. init  2. create  3. start  4. done
 FD_STEPS+=(init); fdw init --no-preset >/dev/null 2>&1; FD_I=$?
 FD_STEPS+=(create); FD_OUT=$(fdw create --json "Fix the login redirect" 2>/dev/null); FD_C=$?
 FD_ID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["id"])' "$FD_OUT" 2>/dev/null)
@@ -47,7 +47,7 @@ FD_ID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["id
 FD_ERR=$(fdw done "$FD_ID" 2>&1 >/dev/null); FD_R1=$?
 FD_ERR2=$(fdw done t-ffff 2>&1 >/dev/null); FD_R2=$?
 FD_STATE0=$(fdw --json show "$FD_ID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
-FD_STEPS+=(claim); fdw claim "$FD_ID" >/dev/null 2>&1; FD_K=$?
+FD_STEPS+=(start); fdw start "$FD_ID" >/dev/null 2>&1; FD_K=$?
 FD_STEPS+=(done); fdw done "$FD_ID" >/dev/null 2>&1; FD_D=$?
 FD_STATE=$(fdw --json show "$FD_ID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
 
@@ -61,7 +61,7 @@ if [[ $FD_I -eq 0 && $FD_C -eq 0 && $FD_K -eq 0 && $FD_D -eq 0 && "$FD_STATE" ==
     && ${#FD_STEPS[@]} -le 4 && $FD_ALL_DAILY -eq 1 && $FD_SIGNED -eq 0 ]]; then
     fd_ok "first done in four daily verbs" "${#FD_STEPS[@]} commands:$FD_WORDS; $FD_ID done, nothing signed"
 else
-    fd_fail "first done in four daily verbs" "init $FD_I create $FD_C claim $FD_K done $FD_D state '$FD_STATE' steps ${#FD_STEPS[@]}:$FD_WORDS daily=$FD_ALL_DAILY signed=$FD_SIGNED"
+    fd_fail "first done in four daily verbs" "init $FD_I create $FD_C start $FD_K done $FD_D state '$FD_STATE' steps ${#FD_STEPS[@]}:$FD_WORDS daily=$FD_ALL_DAILY signed=$FD_SIGNED"
 fi
 
 if [[ $FD_R1 -eq 2 && $FD_R2 -eq 2 && "$FD_STATE0" == "open" ]] \
@@ -87,7 +87,7 @@ FD_VEVENTS=$(python3 -c 'import json,sys; print(" ".join(json.loads(l)["type"] f
 FD_VALL=1
 for w in "${FD_VSTEPS[@]}"; do [[ " $FD_DAILY " == *" $w "* ]] || FD_VALL=0; done
 if [[ $FD_VI -eq 0 && $FD_VC -eq 0 && $FD_VD -eq 0 && "$FD_VSTATE" == "done" && ${#FD_VSTEPS[@]} -eq 3 \
-    && $FD_VALL -eq 1 && "$FD_VEVENTS" == "ticket.created ticket.claimed ticket.item_done" ]] \
+    && $FD_VALL -eq 1 && "$FD_VEVENTS" == "work.created work.claimed work.item_done" ]] \
     && grep -qF 'claimed '"$FD_VID"' first: under the vibe preset' <<<"$FD_VDONE"; then
     fd_ok "vibe: first done in three verbs" "init (vibe), create, done; journal: $FD_VEVENTS"
 else
@@ -103,8 +103,8 @@ FD_VI3=$(fdv --json show "$FD_VT" 2>/dev/null | python3 -c 'import json,sys; pri
 fdv claim "$FD_VT/$FD_VI2" --as other-agent >/dev/null 2>&1
 FD_VHELD=$(fdv done "$FD_VT/$FD_VI2" 2>&1); FD_VHELD_RC=$?
 FD_VBLOCKED=$(fdv done "$FD_VT/$FD_VI3" 2>&1); FD_VBLOCKED_RC=$?
-FD_VCL=$(cat "$FD_VROOT/docs/tickets/$FD_VT/atoms/15-checklist.md" 2>/dev/null)
-FD_VCLAIMS=$(grep -c 'ticket.claimed' "$FD_VROOT/docs/tickets/$FD_VT/journal.jsonl")
+FD_VCL=$(cat "$FD_VROOT/docs/tickets/$FD_VT.md" 2>/dev/null)
+FD_VCLAIMS=$(grep -c '"work.claimed"' "$FD_VROOT/docs/tickets/$FD_VT/journal.jsonl")
 if [[ $FD_VHELD_RC -eq 2 && $FD_VBLOCKED_RC -eq 2 && "$FD_VCLAIMS" == "1" ]] \
     && grep -qF 'work.claimed-by-other' <<<"$FD_VHELD" && grep -qF 'ticket.blocked' <<<"$FD_VBLOCKED" \
     && ! grep -q '\[x\]' <<<"$FD_VCL"; then

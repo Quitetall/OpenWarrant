@@ -3,8 +3,8 @@
 #
 # Under OW-WAR-0133 a gate that declares no `inputs` is bound to the tree it
 # ran over. The ticket loop writes files as it is worked — `war claim` a lock
-# (and a journal line), `war done` a ticked checklist line, `war note` a dated
-# line in the intent, `war create` a whole new ticket — so ticket work done
+# (and a journal line), `war done` a ticked checklist line in the ticket's
+# document, `war note` a journal line, `war create` a whole new ticket — so ticket work done
 # after the evidence was recorded used to stale every such receipt. This plant
 # records a receipt, works tickets (uncommitted, then committed), and asks
 # that the receipt still counts, naming the tree it ran over. The refusals: a
@@ -67,9 +67,9 @@ tb_commit() {
 }
 TB_RECEIPT="$PLANT_ROOT/docs/warrants/$TB_A/gate-runs/plant_tree_1_0_0.receipt.json"
 TB_T=$(grep -o '"tree:[0-9a-f]*"' "$TB_RECEIPT" 2>/dev/null | tr -d '"')
-TB=$(ls "$PLANT_ROOT/docs/tickets" 2>/dev/null | grep -m1 -E '^t-')
+TB=$(find "$PLANT_ROOT/docs/tickets" -mindepth 1 -maxdepth 1 -name 't-*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | head -1)
 [[ -n "$TB_T" && -n "$TB" ]] || { printf 'PLANT SETUP FAILED: no receipt tree or no ticket\n' >&2; exit 9; }
-TB_I1=$(grep -o '(i-[0-9a-z]*' "$PLANT_ROOT/docs/tickets/$TB/atoms/15-checklist.md" | head -1 | tr -d '(')
+TB_I1=$(grep -o '(i-[0-9a-z]*' "$PLANT_ROOT/docs/tickets/$TB.md" | head -1 | tr -d '(')
 TB_ADMIT="evidence.admissible .*plant.tree@1.0.0 .*$TB_T"
 
 # Before any ticket work, the receipt counts (the control below is not a
@@ -94,11 +94,11 @@ TB_MOVED=$(git -C "$PLANT_ROOT" status --porcelain --untracked-files=all)
 TB_OUT=$(tb_war check "$TB_A" 2>&1)
 if [[ $TB_LOOP -eq 0 ]] \
     && grep -q "docs/tickets/$TB/journal.jsonl" <<<"$TB_MOVED" \
-    && grep -q "docs/tickets/$TB/atoms/15-checklist.md" <<<"$TB_MOVED" \
-    && grep -q "docs/tickets/$TB/atoms/10-intent.md" <<<"$TB_MOVED" \
+    && grep -q "docs/tickets/$TB.md" <<<"$TB_MOVED" \
+    && grep -q 'the CLI waits on the grammar' "$PLANT_ROOT/docs/tickets/$TB/journal.jsonl" \
     && grep -q "var/claims/$TB.lock" <<<"$TB_MOVED" \
     && grep -q "$TB_ADMIT" <<<"$TB_OUT" && ! grep -q 'evidence.stale-binding' <<<"$TB_OUT"; then
-    tb_ok "ticket work leaves the receipt" "claim/done/note/create moved journal, checklist, intent, a lock; still admissible"
+    tb_ok "ticket work leaves the receipt" "claim/done/note/create moved journal, document, a lock; still admissible"
 else
     tb_fail "ticket work leaves the receipt" "loop exit $TB_LOOP; $(tb_line "$TB_OUT")"
 fi
