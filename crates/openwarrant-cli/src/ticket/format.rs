@@ -226,9 +226,17 @@ impl Store {
             .filter_map(|r| ticket::Blocker::parse(&r.target.id))
             .collect();
         // What a directory ticket's intent atom says, for the views and the
-        // search that read it: the title, the preamble, and the Notes
-        // section. Writes go to the document itself (`intent_path`).
+        // search that read it: the title, the preamble, every section an
+        // author wrote, and the Notes section last, where `description`
+        // stops. The checklist and the checks are read as records. Writes go
+        // to the document itself (`intent_path`).
         let mut intent = format!("# {}\n\n{}", manifest.title, doc.body.trim());
+        for u in doc.units.iter().filter(|u| {
+            u.record_type == "section" && !matches!(u.id.as_str(), "S-notes" | "S-checklist")
+        }) {
+            intent.push_str("\n\n");
+            intent.push_str(text.get(u.start..u.end).unwrap_or_default().trim_end());
+        }
         if let Some(u) = doc.units.iter().find(|u| u.id == "S-notes") {
             intent.push_str("\n\n");
             intent.push_str(text.get(u.start..u.end).unwrap_or_default());
