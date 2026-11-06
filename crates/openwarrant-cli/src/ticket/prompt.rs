@@ -32,7 +32,7 @@ use super::{
 
 /// The most a brief adds to an agent's context, in bytes, its first line
 /// included. About 1,500 tokens: above every item in the adoption study's
-/// backlogs (their largest brief is 4,484 bytes), because a cut item is read
+/// backlogs (the largest brief measured is 4,484 bytes), because a cut item is read
 /// again whole. A long plan is cut and the cut declared.
 pub const BRIEF_BUDGET: usize = 6144;
 
