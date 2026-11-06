@@ -357,3 +357,9 @@ plugin. This was decided after seeing `rem-c2` and before seeing `rem-c3`.
 ticket never reached a brief (#391). `rem-c4` repeats the 22 directed cells as rep 3 on
 main at 0d78465442daf0b6b96b0b5a446f3651e9f65adb, with that fix and the plugin from the same commit.
 
+In `rem-c4` all 11 knightlm cells failed before any test ran: the grader's offline
+cargo registry was empty (`no matching package named anyhow`), so they say nothing
+about the agents and are excluded. The cause of the emptied registry wasn't found. Its
+tally cells stand. `rem-c5` repeats the 11 knightlm cells on the same build, after
+`prepare` restored the registry. This was decided before seeing `rem-c5`.
+
