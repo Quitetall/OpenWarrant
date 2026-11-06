@@ -558,6 +558,7 @@ impl Store {
             files: vec![
                 "manifest.toml".to_owned(),
                 crate::journal_cmd::FILE.to_owned(),
+                format::INNER.to_owned(),
                 INTENT_FILE.to_owned(),
                 format!("atoms/{}", self.checklist_file()),
                 // OW-WAR-0148 M13: the optional parts `war plan add` writes.

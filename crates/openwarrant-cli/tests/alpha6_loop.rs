@@ -23,6 +23,60 @@ fn war(root: &std::path::Path, args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
+fn checking_one_ticket_reads_its_document() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "NX"])["exit_code"],
+        0
+    );
+    let created = war(root.path(), &["create", "Reset", "--item", "Endpoint"]);
+    let id = created["result"]["id"].as_str().unwrap();
+    let item = created["result"]["items"][0]["id"].as_str().unwrap();
+    let rules = |v: &serde_json::Value, severity: &str| -> Vec<String> {
+        v["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|d| {
+                d["severity"]
+                    .as_str()
+                    .unwrap()
+                    .eq_ignore_ascii_case(severity)
+            })
+            .map(|d| d["rule"].as_str().unwrap().to_owned())
+            .collect()
+    };
+
+    let sound = war(root.path(), &["check", "--verbose", id]);
+    assert_eq!(sound["exit_code"], 0, "{sound}");
+    assert_eq!(rules(&sound, "pass"), ["ticket.well-formed"], "{sound}");
+
+    let path = root
+        .path()
+        .join(created["result"]["source"].as_str().unwrap());
+    let good = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(
+        &path,
+        format!("{good}- [y] odd box\n- [ ] duplicate ({item})\n"),
+    )
+    .unwrap();
+    let bad = war(root.path(), &["check", id]);
+    assert_eq!(bad["exit_code"], 2, "{bad}");
+    let mut faults = rules(&bad, "error");
+    faults.sort();
+    assert_eq!(
+        faults,
+        ["format.id-duplicate", "format.item"],
+        "the document's own faults, not `ticket.unknown`: {bad}"
+    );
+    // A prefix names it as an id would, and an id naming nothing stays unknown.
+    let by_prefix = war(root.path(), &["check", &id[..id.len() - 1]]);
+    assert_eq!(rules(&by_prefix, "error").len(), 2, "{by_prefix}");
+    let nothing = war(root.path(), &["check", "t-ffffff"]);
+    assert_eq!(rules(&nothing, "error"), ["ticket.unknown"], "{nothing}");
+}
+
+#[test]
 fn newly_created_work_is_one_expandable_markdown_source() {
     let root = tempfile::tempdir().unwrap();
     assert_eq!(
