@@ -68,6 +68,7 @@ paths = [
     "crates/openwarrant-cli/src/evidence/**",
     "crates/openwarrant-cli/src/init/**",
     "crates/openwarrant-cli/src/status.rs",
+    "crates/openwarrant-cli/src/status_brief.rs",
     "crates/openwarrant-cli/src/ticket/**",
     "crates/openwarrant-cli/src/format_doc.rs",
     "crates/openwarrant-cli/src/records.rs",
