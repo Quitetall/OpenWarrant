@@ -183,6 +183,12 @@
       "authority": "generated"
     },
     {
+      "id": "oh.war/task-context/v1",
+      "schema": "oh.war/task-context/v1.json",
+      "$id": "oh.war/task-context/v1",
+      "authority": "generated"
+    },
+    {
       "id": "oh.war/verification/v1",
       "schema": "oh.war/verification/v1.json",
       "$id": "oh.war/verification/v1",
