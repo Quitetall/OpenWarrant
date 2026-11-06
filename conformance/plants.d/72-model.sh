@@ -2,14 +2,17 @@
 # OW-WAR-0148 OBL-001 / OBL-002 — `war model`, the compiled corpus as one
 # document (`oh.war/model/v1`), on a scratch program (MD) holding two
 # Warrants (one a child and successor of the other), a deliverable, a
-# question, the roadmap the scaffold writes, and a ticket with a blocker that
-# was promoted into a Warrant.
+# question, the roadmap the scaffold writes, a ticket with a blocker that was
+# promoted into a Warrant, and a legacy ticket promoted into a third.
 #
 # Accepted: every record kind (with M16, the `instruction` sections of the
 # AGENTS.md init writes; with M18, the scaffold SAS as `spec` and its
 # `section`s) and every relation kind is named; two runs over
 # the same tree are byte-identical with the same basis_digest; the output
-# validates against schemas/oh.war/model/v1.json.
+# validates against schemas/oh.war/model/v1.json. A single-file ticket's
+# `promoted_to` is a field and no relation (FORMAT-1.0 section 8: that kind
+# occurs only in records lowered from legacy stores); the legacy ticket's is
+# the relation.
 # Refused: a parent naming no Warrant of the corpus is a diagnostic and the
 # edge is kept, not dropped; a model with one field added fails the schema;
 # and the comparison the M1 differential uses (`cmp`) reports a doctored
@@ -30,9 +33,11 @@ md_war()     { "$MD_WAR" --root "$MD_ROOT" "$@"; }
 # The program: a ticket with a blocker, promoted; a question; a deliverable;
 # the promoted Warrant names MD-WAR-0001 as parent and supersedes it.
 MD_T=$(md_war create "Plant ticket" -i first -i second 2>/dev/null | awk 'NR==1{print $1}')
-MD_I1=$(sed -n 's/^- \[ \] first (\(i-[0-9a-f]*\))$/\1/p' "$MD_ROOT/docs/tickets/$MD_T/atoms/"*checklist* 2>/dev/null)
+MD_I1=$(sed -n 's/^- \[ \] first (\(i-[0-9a-f]*\))$/\1/p' "$MD_ROOT/docs/tickets/$MD_T.md" 2>/dev/null)
 md_war add "$MD_T" third --after "$MD_I1" >/dev/null 2>&1
 md_war promote "$MD_T" >/dev/null 2>&1
+MD_L=$(md_war create --legacy "Plant legacy ticket" -i only 2>/dev/null | awk 'NR==1{print $1}')
+md_war promote "$MD_L" >/dev/null 2>&1
 md_war ask MD-WAR-0001 STAGE-001 "Which way?" >/dev/null 2>&1
 MD_U1=$(sed -n 's/^uuid = "\(.*\)"/\1/p' "$MD_ROOT/docs/warrants/MD-WAR-0001/manifest.toml")
 cat >> "$MD_ROOT/docs/warrants/MD-WAR-0002/manifest.toml" <<EOF
@@ -98,6 +103,23 @@ if grep -qx "diagnostics 0" <<<"$MD_KINDS"; then
     md_ok "a resolvable program: no diagnostic" "every relation names a record"
 else
     md_fail "a resolvable program: no diagnostic" "$(head -c 400 <<<"$MD_KINDS")"
+fi
+
+# The two encodings of one promotion. The single-file ticket holds it as a
+# field and authors no edge; the legacy ticket lowers to the edge.
+MD_PROMOTED=$(python3 - "$MD_TMP/a.json" "$MD_T" "$MD_L" <<'PY' 2>&1
+import json, sys
+m = json.load(open(sys.argv[1]))["result"]
+t, l = sys.argv[2:]
+field = [r["fields"].get("promoted_to") for r in m["records"] if r["id"] == t]
+edge = lambda who: [r["to"] for r in m["relations"] if r["from"] == who and r["kind"] == "promoted_to"]
+print("field", field, "edges", edge(t), "legacy", edge(l))
+PY
+)
+if [[ -n "$MD_T" && -n "$MD_L" && "$MD_PROMOTED" == "field ['MD-WAR-0002'] edges [] legacy ['MD-WAR-0003']" ]]; then
+    md_ok "promoted_to: field, legacy edge" "$MD_T holds it as a field with no edge; $MD_L lowers to the relation"
+else
+    md_fail "promoted_to: field, legacy edge" "$MD_T / $MD_L: $(head -c 300 <<<"$MD_PROMOTED")"
 fi
 
 # Determinism: same tree, same bytes, same basis digest.

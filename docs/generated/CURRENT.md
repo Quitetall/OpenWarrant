@@ -12,7 +12,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 - **Current by construction.** A Warrant is current unless an authorized Warrant declares `supersedes` → it, or its resolution is annulled. Currency is derived from those relations, never written.
 - **Fully expanded.** Every current Warrant's atoms appear below verbatim, in role order. Nothing is paraphrased.
 - **Replaced subjects are one line.** 1 replaced subject(s) appear under *Replaced* as lineage and nothing else; their text is in the history, when this repository keeps one.
-- **Records as of 2026-10-24** — the latest recorded event. 144 current Warrant(s).
+- **Records as of 2026-11-06** — the latest recorded event. 144 current Warrant(s).
 
 ## In force
 
@@ -32589,7 +32589,7 @@ would be exactly the misdeclaration §44.8 exists to prevent.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Run the battery in a disposable clone of HEAD | `conformance/plant-isolated.sh` | verified |
+| D-001 | Run the battery in a disposable clone of HEAD | `conformance/plant-isolated.sh` | drift |
 | D-002 | ops.conformance.plants@1.1.0, askable | `docs/gates/ops.conformance.plants@1.1.0.yaml` | verified |
 | D-003 | The isolated-battery plants | `conformance/plants.d/48-isolated-battery.sh` | verified |
 

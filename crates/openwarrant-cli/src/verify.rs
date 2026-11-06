@@ -157,60 +157,7 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
     let mut gate_inputs = BTreeMap::new();
     let mut gate_links = BTreeMap::new();
     if whole_tree || !input_patterns.is_empty() {
-        let exclusions = crate::gate_cmd::source::Exclusions::of(repo);
-        let inventory = repo.source_paths()?;
-        let mut selected: std::collections::BTreeSet<String> = inventory
-            .iter()
-            .filter(|path| {
-                (whole_tree && !exclusions.excludes_from_tree(path))
-                    || (!exclusions.excludes(path)
-                        && input_patterns
-                            .iter()
-                            .any(|p| crate::gate_cmd::source::glob_matches(p, path)))
-            })
-            .cloned()
-            .collect();
-        while let Some(path) = selected.pop_first() {
-            if gate_inputs.contains_key(&path) {
-                continue;
-            }
-            if let Some(target) = input_link(repo, &path)? {
-                let dependency = link_dependency(&path, &target)?;
-                // This check walks only normal source paths and refuses any
-                // further link: chained links and cycles remain unavailable.
-                let resolved = source_path(repo, &dependency)?.ok_or_else(|| {
-                    unavailable(format!(
-                        "link {path} has an unavailable target {dependency}"
-                    ))
-                })?;
-                let metadata = crate::vfs::symlink_metadata(&resolved).map_err(|e| {
-                    unavailable(format!("could not inspect link target {dependency}: {e}"))
-                })?;
-                if metadata.is_dir() {
-                    let prefix = format!("{dependency}/");
-                    selected.extend(
-                        inventory
-                            .iter()
-                            .filter(|p| p.starts_with(&prefix) && !exclusions.excludes(p))
-                            .cloned(),
-                    );
-                } else if metadata.is_file() {
-                    selected.insert(dependency);
-                } else {
-                    return Err(unavailable(format!("unsupported link target for {path}")));
-                }
-                gate_inputs.insert(path.clone(), bytes_digest(target.as_bytes()));
-                gate_links.insert(path, target);
-            } else {
-                let digest = file_digest(repo, &path)?;
-                if repo.source_inventory.is_some() && digest == "missing" {
-                    return Err(unavailable(format!(
-                        "candidate input {path} is an unsupported source node"
-                    )));
-                }
-                gate_inputs.insert(path, digest);
-            }
-        }
+        (gate_inputs, gate_links) = tree_inputs(repo, whole_tree, &input_patterns)?;
     }
     let context_sources = context::capture(repo, one)?
         .into_iter()
@@ -226,6 +173,113 @@ pub fn subject(repo: &Repository, one: &crate::repo::Loaded) -> Result<ReviewedS
         gate_inputs,
         gate_links,
     })
+}
+
+/// The gate inputs and links a selection of the tree comes to.
+type TreeInputs = (BTreeMap<String, String>, BTreeMap<String, String>);
+
+/// Whether this process may keep what [`subject`] observes of `repo`'s tree:
+/// a one-shot read-only command, which the tree does not move under (t-eca6),
+/// over the checkout on disk. A hosted or recording run is never one
+/// ([`crate::gate_cmd::source::tree_reads_remembered`]), and a candidate's
+/// frozen inventory answers from its own map, so neither shares this memo.
+fn tree_observations_kept(repo: &Repository) -> bool {
+    repo.source_inventory.is_none() && crate::gate_cmd::source::tree_reads_remembered()
+}
+
+/// [`tree_inputs_read`], once per distinct selection in a read-only command.
+///
+/// Every Warrant with a current verification asks this, and most ask the same
+/// selection: `war status` on this repository walked and hashed the checkout
+/// about a dozen times, 880,000 `statx` calls. The answer depends on the
+/// checkout, which the memo's precondition holds still, and on the selection,
+/// the exclusions and the root, which are the key. An error is never kept.
+fn tree_inputs(
+    repo: &Repository,
+    whole_tree: bool,
+    input_patterns: &std::collections::BTreeSet<String>,
+) -> Result<TreeInputs, RepoError> {
+    static KEPT: std::sync::OnceLock<crate::ssh_verdicts::Slots<TreeInputs>> =
+        std::sync::OnceLock::new();
+    let exclusions = crate::gate_cmd::source::Exclusions::of(repo);
+    if !tree_observations_kept(repo) {
+        return tree_inputs_read(repo, whole_tree, input_patterns, &exclusions);
+    }
+    KEPT.get_or_init(Default::default).ask(
+        format!(
+            "{}\0{whole_tree}\0{input_patterns:?}\0{exclusions:?}",
+            repo.root
+        ),
+        || tree_inputs_read(repo, whole_tree, input_patterns, &exclusions),
+        |read| read.as_ref().ok().cloned(),
+        Ok,
+    )
+}
+
+/// Digest every selected source path, following one level of link, from the
+/// bytes in the tree now.
+fn tree_inputs_read(
+    repo: &Repository,
+    whole_tree: bool,
+    input_patterns: &std::collections::BTreeSet<String>,
+    exclusions: &crate::gate_cmd::source::Exclusions,
+) -> Result<TreeInputs, RepoError> {
+    let mut gate_inputs = BTreeMap::new();
+    let mut gate_links = BTreeMap::new();
+    let inventory = repo.source_paths()?;
+    let mut selected: std::collections::BTreeSet<String> = inventory
+        .iter()
+        .filter(|path| {
+            (whole_tree && !exclusions.excludes_from_tree(path))
+                || (!exclusions.excludes(path)
+                    && input_patterns
+                        .iter()
+                        .any(|p| crate::gate_cmd::source::glob_matches(p, path)))
+        })
+        .cloned()
+        .collect();
+    while let Some(path) = selected.pop_first() {
+        if gate_inputs.contains_key(&path) {
+            continue;
+        }
+        if let Some(target) = input_link(repo, &path)? {
+            let dependency = link_dependency(&path, &target)?;
+            // This check walks only normal source paths and refuses any
+            // further link: chained links and cycles remain unavailable.
+            let resolved = source_path(repo, &dependency)?.ok_or_else(|| {
+                unavailable(format!(
+                    "link {path} has an unavailable target {dependency}"
+                ))
+            })?;
+            let metadata = crate::vfs::symlink_metadata(&resolved).map_err(|e| {
+                unavailable(format!("could not inspect link target {dependency}: {e}"))
+            })?;
+            if metadata.is_dir() {
+                let prefix = format!("{dependency}/");
+                selected.extend(
+                    inventory
+                        .iter()
+                        .filter(|p| p.starts_with(&prefix) && !exclusions.excludes(p))
+                        .cloned(),
+                );
+            } else if metadata.is_file() {
+                selected.insert(dependency);
+            } else {
+                return Err(unavailable(format!("unsupported link target for {path}")));
+            }
+            gate_inputs.insert(path.clone(), bytes_digest(target.as_bytes()));
+            gate_links.insert(path, target);
+        } else {
+            let digest = file_digest(repo, &path)?;
+            if repo.source_inventory.is_some() && digest == "missing" {
+                return Err(unavailable(format!(
+                    "candidate input {path} is an unsupported source node"
+                )));
+            }
+            gate_inputs.insert(path, digest);
+        }
+    }
+    Ok((gate_inputs, gate_links))
 }
 
 fn unavailable(message: String) -> RepoError {
@@ -308,6 +362,19 @@ fn bytes_digest(bytes: &[u8]) -> String {
 }
 
 fn file_digest(repo: &Repository, reference: &str) -> Result<String, RepoError> {
+    if !tree_observations_kept(repo) {
+        return file_digest_read(repo, reference);
+    }
+    // A file is named by many Warrants' artifacts and selections. Same
+    // precondition as `tree_inputs`; the one key is the root and the path.
+    let digest = crate::gate_cmd::source::tree_read(
+        format!("file-digest\0{}\0{reference}", repo.root),
+        || file_digest_read(repo, reference).map(|d| vec![d]),
+    )?;
+    Ok(digest.into_iter().next().unwrap_or_default())
+}
+
+fn file_digest_read(repo: &Repository, reference: &str) -> Result<String, RepoError> {
     let Some(path) = source_path(repo, reference)? else {
         return Ok("missing".into());
     };
@@ -347,6 +414,16 @@ pub(crate) fn source_directory(directory: &camino::Utf8Path) -> std::io::Result<
         .collect()
 }
 
+/// Directories this read-only command has already seen, not through a link.
+/// A walk of the checkout otherwise stats each file's every parent again.
+fn real_directories() -> std::sync::MutexGuard<'static, std::collections::HashSet<String>> {
+    static SEEN: std::sync::OnceLock<std::sync::Mutex<std::collections::HashSet<String>>> =
+        std::sync::OnceLock::new();
+    SEEN.get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
 /// Check references before either reading a file or enumerating a directory.
 fn source_path(repo: &Repository, reference: &str) -> Result<Option<Utf8PathBuf>, RepoError> {
     let relative = camino::Utf8Path::new(reference);
@@ -361,9 +438,20 @@ fn source_path(repo: &Repository, reference: &str) -> Result<Option<Utf8PathBuf>
     }
     let path = repo.root.join(relative);
     let mut walked = repo.root.clone();
-    for component in relative.components() {
+    let kept = tree_observations_kept(repo);
+    let last = relative.components().count();
+    for (depth, component) in relative.components().enumerate() {
         walked.push(component.as_str());
+        // Only a parent directory already seen to be real is taken as read,
+        // only while the tree holds still (`tree_observations_kept`). The
+        // last component is always asked: it is what this call is about.
+        if kept && depth + 1 < last && real_directories().contains(walked.as_str()) {
+            continue;
+        }
         match crate::vfs::symlink_metadata(&walked) {
+            Ok(metadata) if kept && metadata.is_dir() => {
+                real_directories().insert(walked.to_string());
+            }
             Ok(metadata) if metadata.file_type().is_symlink() => {
                 return Err(RepoError::ObservationUnavailable {
                     rule: "verify.subject-unavailable",
