@@ -229,7 +229,17 @@ fn human_gives_everything_editable_its_own_units_first_and_the_document_record_u
 #[test]
 fn resume_keeps_a_scoped_writer_reserved_until_release() {
     let root = scratch("resume");
-    ok(&war(&root, &["claim", "t-0d61d/i-5e02", "--as", "bob"]));
+    ok(&war(
+        &root,
+        &[
+            "claim",
+            "t-0d61d/i-5e02",
+            "--paths",
+            "**/*.rs",
+            "--as",
+            "bob",
+        ],
+    ));
     let at = "2099-01-01T00:00:00Z";
     // Without `--at`, now: the header records the time it answered at.
     let live = ok(&war(&root, &["context", "t-0d61d", "--preset", "resume"]));
@@ -254,8 +264,8 @@ fn resume_keeps_a_scoped_writer_reserved_until_release() {
     let next = live.split("## Next\n").nth(1).unwrap();
     assert!(!next.contains("i-5e02"), "a held item is not next\n{next}");
     assert!(
-        !next.contains("t-0d61d/i-4d11"),
-        "one writer reserves the overlapping Warrant scope: {next}"
+        next.contains("t-0d61d/i-4d11"),
+        "an item that declares no paths is not held back by another's scope: {next}"
     );
     // Expiry is not evidence that this managed writer stopped.
     let later = ok(&war(
