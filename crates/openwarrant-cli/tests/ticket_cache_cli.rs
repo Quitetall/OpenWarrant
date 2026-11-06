@@ -44,6 +44,8 @@ fn scratch(tag: &str) -> PathBuf {
     root
 }
 
+const ETXTBSY: i32 = 26;
+
 fn run_with(bin: &Path, root: &Path, args: &[&str], env: &[(&str, &str)]) -> Output {
     let mut cmd = Command::new(bin);
     cmd.current_dir(root)
@@ -58,6 +60,16 @@ fn run_with(bin: &Path, root: &Path, args: &[&str], env: &[(&str, &str)]) -> Out
         .args(args);
     for (k, v) in env {
         cmd.env(k, v);
+    }
+    // A copied binary is busy while a child forked by a parallel test, before
+    // its exec, still holds the copy's write descriptor.
+    for _ in 0..100 {
+        match cmd.output() {
+            Err(e) if e.raw_os_error() == Some(ETXTBSY) => {
+                std::thread::sleep(std::time::Duration::from_millis(20));
+            }
+            result => return result.unwrap(),
+        }
     }
     cmd.output().unwrap()
 }
