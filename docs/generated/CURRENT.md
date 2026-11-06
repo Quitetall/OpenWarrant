@@ -39676,4 +39676,8 @@ From the [authority register](../../docs/authority/roles.toml).
 
 ## Awaiting a human
 
-Nothing awaits a signature.
+Every command here has been judged by the act's dry run (`war sign <target> --dry-run`): the ingest ran with the write withheld. `would record` means the signature is the only thing missing.
+
+| act | Warrant | command | judged | why |
+|---|---|---|---|---|
+| correct | OW-WAR-0060 | `war sign OW-WAR-0060/D-002` | would refuse: sign.needs-decision | xtask/src/main.rs drifted after resolution |

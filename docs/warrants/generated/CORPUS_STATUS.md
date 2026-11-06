@@ -68,7 +68,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | every required obligation is dispositioned | 145 |
 | independence requirements are met | 145 |
 | every required gate has admissible result | 116 |
-| artifact digests verify | 90 |
+| artifact digests verify | 91 |
 | no blocker remains | 88 |
 | no required unknown remains | 88 |
 | required judgments exist | 57 |
@@ -207,7 +207,7 @@ Warrants blocked on each requirement. Names, not a score: this says what to fix.
 | `OW-WAR-0057` The viewer: a static page over the corpus projection | resolved | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0058` Put the SAS under §101 governance: controlled revisions and the Release axis | resolved | unknown | 0 | 0 of 3 | artifact digests verify |
 | `OW-WAR-0059` Commit gate receipts as evidence and record the first resolutions | draft | unknown | 0 | 0 of 4 | artifact digests verify |
-| `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | unknown | 0 | 0 of 2 | every required obligation is dispositioned |
+| `OW-WAR-0060` Publish the corpus viewer: GitHub Pages from the committed projection | resolved | unknown | 0 | 0 of 2 | artifact digests verify |
 | `OW-WAR-0061` Discharge the Phase 1 exit: OpenWarrant development uses WARs | resolved | unknown | 0 | 0 of 1 | every required obligation is dispositioned |
 | `OW-WAR-0062` Lock down the levels: what a SAS, a Warrant, and every other object are | resolved | unknown | 0 | 0 of 1 | artifact digests verify |
 | `OW-WAR-0063` Complete the conformance battery: the plants and tests the verifier named as missing | draft | unknown | 0 | 0 of 1 | artifact digests verify |

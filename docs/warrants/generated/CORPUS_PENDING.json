@@ -1,1 +1,1 @@
-{"acts":[],"count":0,"schema":"oh.war/corpus-pending/v1"}
+{"acts":[{"action":"correct","command":"war sign OW-WAR-0060/D-002","warrant":"OW-WAR-0060","why":"xtask/src/main.rs drifted after resolution"}],"count":1,"schema":"oh.war/corpus-pending/v1"}
