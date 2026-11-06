@@ -121,6 +121,7 @@ pub mod standing_cmd;
 #[path = "state_cmd.rs"]
 pub mod states;
 pub mod status;
+pub mod status_brief;
 pub mod telemetry;
 pub mod ticket;
 pub mod timeline;
@@ -864,7 +865,8 @@ enum DailyCommand {
     },
     /// Where the work stands, from the records.
     ///
-    /// §17.5 `status`; §34.3; §98. Bare `war status` is the corpus projection. `war status <alias>` is the
+    /// §17.5 `status`; §34.3; §98. Bare `war status` is a few lines of counts;
+    /// `--verbose` is the whole corpus projection. `war status <alias>` is the
     /// per-Warrant form §72.5 names. Every count is a ladder; nothing is a
     /// percentage.
     Status {
@@ -3730,6 +3732,18 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                             value["independence"] = v;
                         }
                         output::emit(mode, "status", &text, value);
+                    }
+                    // A few lines, not the projection: an agent reads every
+                    // byte of this. `--verbose` is the arm below.
+                    output::Mode::Human if !output::verbose() => {
+                        let brief = status_brief::Brief::read(&repository);
+                        print!("{}", brief.render());
+                        for why in &brief.unknown {
+                            eprintln!("UNKNOWN (status.unreadable): {why}");
+                        }
+                        if !brief.unknown.is_empty() {
+                            return Ok(EXIT_NOT_READY);
+                        }
                     }
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;

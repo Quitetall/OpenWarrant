@@ -1,13 +1,13 @@
 # The compliance score
 
-`war status` ends with a score from 1 to 1000: how much of this repository's
+`war status --verbose` ends with a score from 1 to 1000: how much of this repository's
 work is tracked, tested, verified and approved, read from the repository
 alone (OW-WAR-0148 M17, decisions 21–23). Beside it are a scorecard by
 dimension, a level derived from the score, and the next steps that would
 raise it most.
 
 ```sh
-war status                       # the score block follows the projection
+war status --verbose             # the score block follows the projection
 war status --json                # result.compliance: oh.war/score/v1
 war admin score                  # the score alone
 war admin score --weights        # the published weights, oh.war/score-weights/v1
@@ -78,7 +78,7 @@ every commit, so a score committed under `generated/` would be stale the
 moment it was committed, and `war check --generated` would fail on every
 branch. Instead:
 
-- `war status` computes it on read (`compliance` in `--json`).
+- `war status --verbose` computes it on read (`compliance` in `--json`).
 - `war admin compile` writes, under `.openwarrant/score/` (ignored by the
   directory's own `.gitignore`):
   - `badge.svg`, and `badge.json` in the shields.io endpoint form;
@@ -86,8 +86,8 @@ branch. Instead:
   - `statement.intoto.json`, the in-toto statement;
   - `score.json`, the score itself;
   - `trend.jsonl`, one line per compile that saw a new commit or a new score:
-    `{at, commit, score, level}`. `war status` prints the trend's first and
-    last points.
+    `{at, commit, score, level}`. `war status --verbose` prints the trend's
+    first and last points.
 - The GitHub Action (`.github/actions/openwarrant-check`) adds the score and
   report to the job summary and sets `score` and `level` outputs; publish
   `badge.svg` or `badge.json` from there to wherever your README reads it.

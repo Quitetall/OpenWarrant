@@ -126,7 +126,7 @@ tlw claim "$TL_W/$TL_WP" >/dev/null 2>&1; tlw claim "$TL_W/$TL_WC" >/dev/null 2>
 tlw done "$TL_W/$TL_WP" >/dev/null 2>&1; tlw done "$TL_W/$TL_WC" --check >/dev/null 2>&1
 TL_SHOW=$(tlw show "$TL_W" 2>&1)
 TL_LS=$(tlw tickets 2>&1)
-TL_ST=$(tlw status 2>&1)
+TL_ST=$(tlw status --verbose 2>&1)
 TL_BOARD=$(tlw board 2>&1)
 TL_PLAIN_LINE=$(grep -F "plain ($TL_WP)" <<<"$TL_SHOW")
 if grep -qF -- "- [x] (claimed) plain ($TL_WP) — done by claude" <<<"$TL_SHOW" \

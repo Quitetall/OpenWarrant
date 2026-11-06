@@ -6,6 +6,16 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- Bare `war status` is a few lines of counts: the SAS revision, Warrants,
+  open tickets, ready work, acts awaiting a signature and blocking questions.
+  On this repository, 37,841 bytes to 180. A figure that cannot be read prints
+  `?`, says why on stderr and exits 2. `war status --verbose` is the old
+  output, byte for byte; `--json`, `--timeline`, `--pending` and `war status
+  <id>` do not change. A script that read the projection from bare `war status`
+  needs `--verbose`.
+
 ### Added
 
 - `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:

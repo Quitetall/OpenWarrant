@@ -705,8 +705,8 @@ namespaced: carried, inert); a Spec Kit task `implements` the story its
 it depends on. So `war plan impact openspec:auth-session#session-expiry` names
 the change that modifies the requirement and that change's tasks.
 
-`war status` prints a "Read in place" section (and `read_in_place` under
-`--json`) only when an adapter is configured; the committed
+`war status --verbose` prints a "Read in place" section (and `read_in_place`
+under `--json`) only when an adapter is configured; the committed
 `CORPUS_STATUS` projections never include it, since the folders are
 another tool's and change without a compile.
 
@@ -890,7 +890,7 @@ holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
 |---|---|
 | `war show <ticket>` | each done item opens with its level, `(claimed)`, `(observed)`, `(independent: verified by X)`, `(signed: signed off by Y)`, and `; needs <level>` when below its minimum; an open milestone says what it ticks at; a **Checks** section lists tests, KPIs (latest, best, target) and milestones; `--json` items carry `tick` (`level`, `minimum`, `meets_minimum`, `written` and `unbacked` when a marker is not believed) |
 | `war view tickets` | `[ticks: 2 claimed, 1 observed]` at the end of a line with ticks; `ticks` in the JSON row |
-| `war status` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
+| `war status --verbose` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
 | `war plan roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
 | `war view board` | the same ticks and milestones |
 | `war view ui` | a badge per done item, a distinct word per level (claimed is drawn muted, never as a checked one; a tick below its minimum as a warning), and the milestones on the progress page |
