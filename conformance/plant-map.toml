@@ -265,7 +265,7 @@ plants = ["142-pr-gate.sh", "143-*.sh", "144-notify.sh"]
 [[rule]]
 name = "update and install"
 paths = [
-    "install.sh", "docs/INSTALL.md",
+    "install.sh", "docs/INSTALL.md", "LICENSE", "NOTICE",
     "crates/openwarrant-cli/src/install.rs", "crates/openwarrant-cli/src/notice.rs",
     "crates/openwarrant-cli/src/build_identity.rs",
 ]
@@ -444,8 +444,7 @@ plants = ["70-roadmap.sh"]
 [[rule]]
 name = "no plant reads this"
 paths = [
-    "CODE_OF_CONDUCT.md", "LICENSE", "NOTICE", "SECURITY.md", ".gitignore", ".gitattributes",
-    "docs/releases/**", "docs/reviews/**", "archive/**",
+    "CODE_OF_CONDUCT.md", "SECURITY.md", "docs/releases/**", "docs/reviews/**",
     # Test sources are not in the shipped binary the plants run; the tests job
     # runs them.
     "crates/*/tests/**",
