@@ -57,6 +57,50 @@ pub(crate) fn document(m: &TicketManifest, intent: &str, checklist: &str) -> Str
     out
 }
 
+/// What a ticket's work may touch and run. Each list is optional, and none
+/// of them changes how the ticket ends. `tools` and `commands` are extensions
+/// (FORMAT-1.0 7.1): a reader that ignored them would run the work with no
+/// limit, so they are critical and the document lists them in `requires`
+/// (7.3).
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct Scope {
+    pub paths: Vec<String>,
+    pub tools: Vec<String>,
+    pub commands: Vec<String>,
+}
+
+/// `text` with `scope` in its frontmatter.
+pub(crate) fn with_scope(text: &str, scope: &Scope) -> String {
+    let block = |key: &str, values: &[String]| {
+        let mut out = format!("{key}:\n");
+        for v in values {
+            out.push_str(&format!("  - {}\n", quote(v)));
+        }
+        out
+    };
+    let mut lines = String::new();
+    if !scope.paths.is_empty() {
+        lines.push_str(&block("paths", &scope.paths));
+    }
+    let mut requires = Vec::new();
+    if !scope.commands.is_empty() {
+        lines.push_str(&block(super::checks::COMMANDS_KEY, &scope.commands));
+        requires.push(super::checks::COMMANDS_KEY.to_owned());
+    }
+    if !scope.tools.is_empty() {
+        lines.push_str(&block(super::checks::TOOLS_KEY, &scope.tools));
+        requires.push(super::checks::TOOLS_KEY.to_owned());
+    }
+    if !requires.is_empty() {
+        lines.push_str(&block("requires", &requires));
+    }
+    let mut out = text.to_owned();
+    if let Some(at) = out.find("\n---\n") {
+        out.insert_str(at + 1, &lines);
+    }
+    out
+}
+
 pub(crate) fn validate(text: &str) -> Result<(), String> {
     let doc = openwarrant_core::format::parse(text.as_bytes());
     let faults: Vec<_> = doc

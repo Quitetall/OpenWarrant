@@ -887,6 +887,7 @@ pub fn apply(
         labels: Vec::new(),
         part_of: None,
         issue: None,
+        scope: crate::ticket::Scope::default(),
     };
     let outcome = match crate::ticket::create(store, &args) {
         Ok(o) => o,

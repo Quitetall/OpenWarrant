@@ -51,6 +51,7 @@ GS_T=$(gs_new "Parser fix" --legacy -i "Fix the parser")
 GS_E=$(gs_new "Anything goes" -i "Tidy up")
 GS_D=$(gs_new "Declared only" --legacy -i "Look around")
 GS_F=$(gs_new "Single file" -i "Keep to src")
+GS_S=$(gs_new "Scoped tools" -i "Do it" --path 'src/**' --tool Read --command 'cargo test')
 sed -i '0,/^summary: /s//paths: src\/**\nsummary: /' "$GS_ROOT/docs/tickets/${GS_F%/*}.md"
 printf '# Allowed\n\n## Tools\n- Read\n\n## Paths\n- src/**\n\n## Commands\n- `make test`\n' \
     > "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md"
@@ -111,6 +112,19 @@ if [[ $GS_F_RC -eq 0 && "$GS_F_ALLOW" == "['Edit(/src/**)']" && "$GS_F_CLAIM" ==
     gs_ok "a single-file ticket's paths scope it" "Edit(/src/**) from paths:, claimed there; docs/notes.md is turned back"
 else
     gs_fail "a single-file ticket's paths scope it" "exit $GS_F_RC; allow '$GS_F_ALLOW'; claim lines $GS_F_CLAIM; src: '$GS_F_IN'; docs: '$GS_F_OUTSIDE'"
+fi
+
+# Tools and commands are as open to a ticket as paths are, and leave it a ticket.
+GS_S_OUT=$(gsw --json start --worktree "$GS_S" --print 2>/dev/null); GS_S_RC=$?
+GS_S_WT=$(gs_field "$GS_S_OUT" 'v["result"]["worktree"]')
+GS_S_ALLOW=$(python3 -c 'import json,sys; print(sorted(json.load(open(sys.argv[1]))["permissions"]["allow"]))' \
+    "$GS_S_WT/.claude/settings.local.json" 2>/dev/null)
+GS_S_CHECK=$(gsw check "${GS_S%/*}" 2>&1); GS_S_CHECK_RC=$?
+if [[ $GS_S_RC -eq 0 && "$GS_S_ALLOW" == "['Bash(cargo test)', 'Edit(/src/**)', 'Read']" && $GS_S_CHECK_RC -eq 0 ]] \
+    && ! grep -q 'requires-unknown' <<<"$GS_S_CHECK"; then
+    gs_ok "a ticket allows tools and commands" "Read and Bash(cargo test) from its frontmatter; requires understood"
+else
+    gs_fail "a ticket allows tools and commands" "exit $GS_S_RC; allow '$GS_S_ALLOW'; check exit $GS_S_CHECK_RC: $(head -2 <<<"$GS_S_CHECK" | tr '\n' '|')"
 fi
 
 # `declared`: shown, not written.

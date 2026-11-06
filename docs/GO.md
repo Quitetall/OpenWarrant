@@ -218,7 +218,24 @@ brief; [TICKETS](TICKETS.md).)
 4. Runs `[go] start_argv` (Claude Code: `claude "<brief>"`) there, or prints
    the command and the brief with `--print`.
 
-A light Warrant declares its allowed acts in an optional
+A ticket declares its allowed acts in its frontmatter, and they never change
+how it ends. `war create --path 'src/**' --tool Read --command 'cargo test'`
+writes them, and hand-written ones list the two extensions in `requires:`:
+
+```yaml
+paths:
+  - src/parser/**
+x.tools:
+  - Read
+x.commands:
+  - cargo test -p parser
+requires:
+  - x.commands
+  - x.tools
+```
+
+None declared means no limit. An agent can edit a ticket, so this is a working
+scope, not a security boundary. A legacy directory ticket uses
 `atoms/35-allowed.md`:
 
 ```markdown
@@ -234,9 +251,7 @@ A light Warrant declares its allowed acts in an optional
 - `cargo test -p parser`
 ```
 
-A single-file ticket declares its paths in its frontmatter (`paths:`,
-FORMAT-1.0 10.3), and has nowhere yet to declare tools or commands. A directory
-Warrant's declared paths are its deliverables' files. Inside a
+A directory Warrant's declared paths are its deliverables' files. Inside a
 `war start` worktree whose Warrant declares paths, the plugin guard
 (`.claude/hooks/guard-pins.sh`) turns back an edit outside them; a Warrant
 that declares none restricts nothing.

@@ -27062,7 +27062,7 @@ the app shows a `human` remedy and stops.
 | D-007 | Historical pins and the lineage | `crates/openwarrant-cli/src/pins.rs` | verified |
 | D-008 | A correction against a historical pin is refused | `crates/openwarrant-cli/src/correct.rs` | verified |
 | D-009 | The resolution locator | `crates/openwarrant-cli/src/resolution_cmd.rs` | verified |
-| D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | verified |
+| D-010 | The pin guard reads ownership | `.claude/hooks/guard-pins.sh` | drift |
 | D-011 | The drift rule | `crates/openwarrant-cli/src/check.rs` | drift |
 | D-012 | Requirement 3's reason names a newer owner | `crates/openwarrant-cli/src/resolve.rs` | verified |
 | D-013 | The ownership plants | `conformance/plants.d/98-ownership.sh` | verified |

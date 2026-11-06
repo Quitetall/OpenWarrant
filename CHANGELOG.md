@@ -8,6 +8,10 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- Any ticket can declare the tools and commands its work may run, as well as
+  its paths: `war create --path 'src/**' --tool Read --command 'cargo test'`.
+  `war start` turns them into session permissions. They never change how a
+  ticket ends, and none declared means no limit.
 - `war context` answers what used to end in a refusal, so an agent no longer
   falls back to reading a whole file (`oh.war/unit-context/v1`). A long
   document gives its units that fit, ranked, with every cut declared. A unit is

@@ -56,10 +56,10 @@ pub const CORE_KEYS: [&str; 7] = [
 /// record, not fields: each value (a scalar or a list) is a target.
 pub const RELATION_KEYS: [&str; 4] = ["implements", "depends_on", "supersedes", "part_of"];
 
-/// The extensions this reader understands, for `requires` (§7.3). None:
-/// `war` implements no extension's semantics, so a document that lists one
-/// as critical reads `UNKNOWN`.
-pub const UNDERSTOOD_EXTENSIONS: [&str; 0] = [];
+/// The extensions this reader understands, for `requires` (§7.3): what a
+/// ticket's work may run. Any other a document lists as critical reads
+/// `UNKNOWN`.
+pub const UNDERSTOOD_EXTENSIONS: [&str; 2] = ["x.commands", "x.tools"];
 
 /// The undotted frontmatter keys a built-in profile adds (§3.3).
 #[must_use]

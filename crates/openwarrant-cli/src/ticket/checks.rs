@@ -182,6 +182,17 @@ pub fn paths_of(bytes: &[u8]) -> Vec<String> {
     list(&format::parse(bytes).fields, "paths")
 }
 
+/// The tools a ticket's work may use (an extension, FORMAT-1.0 7.1).
+pub const TOOLS_KEY: &str = "x.tools";
+/// The commands a ticket's work may run (an extension, FORMAT-1.0 7.1).
+pub const COMMANDS_KEY: &str = "x.commands";
+
+/// The value of the extension list `key` in a document's frontmatter.
+#[must_use]
+pub fn declared(bytes: &[u8], key: &str) -> Vec<String> {
+    list(&format::parse(bytes).ext, key)
+}
+
 /// The check records of `t`; none for a directory ticket.
 #[must_use]
 pub fn of_ticket(t: &Ticket) -> Vec<CheckRecord> {

@@ -121,7 +121,7 @@ if paths and not any(rx(p.lstrip("/")).match(rel) for p in paths):
 PYGLOB
 )
     if [[ -n "$outside" ]]; then
-        deny "OpenWarrant: this worktree was started for ${outside%%|*} (\`war start\`), and its Warrant declares the paths its work touches: ${outside#*|}. $rel is outside them, so the edit is turned back here; edit it from another checkout, or add the path to the Warrant's atoms/35-allowed.md."
+        deny "OpenWarrant: this worktree was started for ${outside%%|*} (\`war start\`), and its Warrant declares the paths its work touches: ${outside#*|}. $rel is outside them, so the edit is turned back here; edit it from another checkout, or add the path to the Warrant's \`paths:\`."
     fi
 fi
 if [[ -x ./target/debug/war ]]; then

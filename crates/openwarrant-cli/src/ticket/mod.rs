@@ -31,6 +31,7 @@
 
 pub mod acts;
 pub(crate) mod authoring;
+pub use authoring::Scope;
 pub mod cache;
 pub mod checks;
 pub mod claim;
@@ -1639,6 +1640,8 @@ pub struct CreateArgs {
     pub part_of: Option<String>,
     /// The GitHub issue it was made from, as intake read it.
     pub issue: Option<crate::plan::intake::Issue>,
+    /// What its work may touch and run: never a change to how it ends.
+    pub scope: authoring::Scope,
 }
 
 /// Why a type or a label set is refused by the profile, as a refusal.
@@ -1939,7 +1942,10 @@ fn create_with_encoding(
         atomic::write(&dir.join("manifest.toml"), toml_of(&manifest)?)?;
         dir.join("manifest.toml")
     } else {
-        let document = authoring::document(&manifest, &intent, &checklist);
+        let document = authoring::with_scope(
+            &authoring::document(&manifest, &intent, &checklist),
+            &args.scope,
+        );
         match authoring::create(store, &dir, &document) {
             Ok(source) => source,
             Err(error) => {

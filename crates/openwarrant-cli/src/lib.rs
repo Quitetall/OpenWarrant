@@ -745,6 +745,15 @@ enum DailyCommand {
         /// The Warrant (an epic) this one is part of.
         #[arg(long = "part-of", value_name = "WARRANT")]
         part_of: Option<String>,
+        /// A path or glob this work may write; repeat for more.
+        #[arg(long = "path", value_name = "GLOB", conflicts_with = "legacy")]
+        paths: Vec<String>,
+        /// A tool this work may use; repeat for more. `war start` allows it.
+        #[arg(long = "tool", value_name = "TOOL", conflicts_with = "legacy")]
+        tools: Vec<String>,
+        /// A command this work may run; repeat for more.
+        #[arg(long = "command", value_name = "CMD", conflicts_with = "legacy")]
+        commands: Vec<String>,
         /// Make the Warrant from GitHub issue <N>, read once through
         /// `[intake] fetch_argv`; the Warrant records the link. With
         /// `[intake.writeback]` set, finishing it comments on and closes the issue.
@@ -3442,6 +3451,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             kind,
             labels,
             part_of,
+            paths,
+            tools,
+            commands,
             issue,
             issue_file,
             implements,
@@ -3510,6 +3522,11 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 labels,
                 part_of,
                 issue,
+                scope: ticket::Scope {
+                    paths,
+                    tools,
+                    commands,
+                },
             };
             let outcome = if legacy {
                 ticket::create_legacy(&store, &args)?

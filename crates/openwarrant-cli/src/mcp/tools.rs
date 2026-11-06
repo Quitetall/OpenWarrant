@@ -52,6 +52,15 @@ pub struct CreateParams {
     /// The Warrant (an epic) this one is part of.
     #[serde(default)]
     pub part_of: Option<String>,
+    /// Paths or globs this work may write.
+    #[serde(default)]
+    pub paths: Vec<String>,
+    /// Tools this work may use.
+    #[serde(default)]
+    pub tools: Vec<String>,
+    /// Commands this work may run.
+    #[serde(default)]
+    pub commands: Vec<String>,
     /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
@@ -1323,6 +1332,11 @@ impl WarServer {
             labels: p.labels,
             part_of: p.part_of,
             issue: None,
+            scope: crate::ticket::Scope {
+                paths: p.paths,
+                tools: p.tools,
+                commands: p.commands,
+            },
         };
         self.ticket("create", p.actor.as_deref(), |s| {
             crate::ticket::create(s, &args)
