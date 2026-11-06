@@ -121,6 +121,8 @@ def tools() -> dict:
 
 def check_tools(agent: str = "claude") -> list[str]:
     problems = []
+    # Amendment 4: a re-measure of one arm need not have every other arm's tools.
+    only_ow = os.environ.get("ADOPTION_ONLY_OPENWARRANT") == "1"
     probes = {
         "STUDY_WAR": (["--version"], PINS["war"]),
         "STUDY_BD": (["version"], PINS["bd"]),
@@ -129,6 +131,8 @@ def check_tools(agent: str = "claude") -> list[str]:
     }
     for key, path in tools().items():
         if key == "STUDY_OPENCODE" and agent != "opencode":
+            continue
+        if only_ow and key in ("STUDY_BD", "STUDY_SPECIFY"):
             continue
         if not Path(path).exists():
             problems.append(f"{key}: {path} is missing")
@@ -141,7 +145,7 @@ def check_tools(agent: str = "claude") -> list[str]:
             if want not in out:
                 problems.append(f"{key}: {path} reports {out.strip()[:80]!r}, not {want}")
     spec = STUDY / "tools/uv-tools/specify-cli"
-    if not spec.exists():
+    if not only_ow and not spec.exists():
         problems.append("specify: not installed (run.py prepare)")
     return problems
 

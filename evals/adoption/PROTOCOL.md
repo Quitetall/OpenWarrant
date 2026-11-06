@@ -324,3 +324,19 @@ the setup for a harness without one. From then, opencode runs set the arm up tha
 way: no MCP server. `ADOPTION_OC_OW_MCP=1` restores the earlier setup, and
 `run.json` records which was used (`opencode_ow_mcp`). Runs before this amendment
 (`oc-smoke-*`, `oc-base-1-*`, `oc-base-2-*`) had the server.
+
+## Amendment 4 (2026-11-06): re-measuring the openwarrant arm on main
+
+After the results above, OpenWarrant changed: terse output, `war context` on real
+documents, one list of work, live notices, and a brief before the first turn
+(#380 to #389). To see what they did, runs `oc-rem-*` repeat the seven opencode
+cells of `plan-oc-ow.json`, unchanged, with `ADOPTION_WAR` set to a release build
+of main at 1203092ac. Nothing else changes: not the seed, the prompts, the turn
+cap or the measures. `--ready` is not used. `run.json` records the build.
+
+`run.py prepare` installs neither Beads nor Spec Kit, and the study's copies aged
+out of scratch. `ADOPTION_ONLY_OPENWARRANT=1` skips those two tool checks for a run
+whose plan has only the openwarrant arm. It changes no cell.
+
+The baselines ran on other days, so a difference is suggestive, not a controlled
+comparison, and these seven cells are few.
