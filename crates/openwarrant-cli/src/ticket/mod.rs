@@ -4828,7 +4828,7 @@ pub fn writeback_body(t: &Ticket) -> String {
         }
         body.push('\n');
     }
-    let notes = render::notes(&t.intent);
+    let notes = render::all_notes(t);
     if !notes.is_empty() {
         body.push_str("\nNotes:\n\n");
         for n in &notes {

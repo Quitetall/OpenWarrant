@@ -133,9 +133,9 @@ for p in json.load(sys.stdin)["result"]["phases"]:
 DM_WARMD=$(cat "$DM_ROOT/docs/warrants/DM-WAR-0002/generated/WAR.md" 2>/dev/null)
 DM_GENS=$(cd "$DM_ROOT/$DM_GEN" 2>/dev/null && ls | tr '\n' ' ')
 DM_CG=$(dm_war check --generated 2>&1); DM_SG=$?
-DM_N0=$(find "$DM_ROOT/docs/tickets" -name manifest.toml | wc -l)
+DM_N0=$(find "$DM_ROOT/docs/tickets" -mindepth 1 | wc -l)
 DM_ERR=$(dm_war create "Nothing behind it" --implements REQ-nope 2>&1 >/dev/null); DM_SE=$?
-DM_N1=$(find "$DM_ROOT/docs/tickets" -name manifest.toml | wc -l)
+DM_N1=$(find "$DM_ROOT/docs/tickets" -mindepth 1 | wc -l)
 if [[ -n "$DM_T" && $DM_SG -eq 0 && "$DM_GENS" == "agent-packet.md architecture.md prd.md test-plan.md " \
     && $DM_SE -eq 2 && "$DM_N0" == "$DM_N1" ]] \
     && dm_has "- [ ] A reset token expires 15 minutes after issue (implements REQ-pr1) ($DM_I1)" "$DM_SHOW" \

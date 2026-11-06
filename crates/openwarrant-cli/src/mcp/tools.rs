@@ -218,7 +218,8 @@ pub struct NoParams {}
 #[serde(deny_unknown_fields)]
 pub struct ContextParams {
     /// A Warrant or ticket alias, `war://<uuid>`, an item (`t-x/i-y`), any
-    /// record id from docs/generated/llms.txt, or a repository path.
+    /// record id from docs/generated/llms.txt, a repository path, a document
+    /// unit (`COMBAT.md#friendly-fire`), or words to search for.
     pub target: String,
     /// Budget in bytes of the Markdown (default 16000).
     #[serde(default)]
@@ -1246,12 +1247,27 @@ impl WarServer {
             p.depth,
         );
         opts.strict = p.strict;
-        let graph = match crate::context::graph_of(&corpus) {
+        let graph = match crate::context::context_graph(&corpus) {
             Ok(g) => g,
             Err(e) => return refused("context", &e),
         };
         let target = crate::context::relative_target(&self.repo, &p.target);
-        let result = crate::context::compile(&graph, &target, &opts);
+        let result = match crate::context::answer_with(&corpus, &graph, &target, &opts) {
+            crate::context::Answered::Records(r) => r,
+            crate::context::Answered::Units(packet) => {
+                let report = crate::context::units::report_of(&packet);
+                let mut value = crate::output::value(&packet);
+                if let Some(o) = value.as_object_mut() {
+                    o.insert("markdown".to_owned(), serde_json::json!(packet.markdown));
+                }
+                let text = crate::output::envelope("context", &report, Some(value));
+                let mut value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+                    McpError::internal_error(format!("envelope is not JSON: {e}"), None)
+                })?;
+                lean(&mut value);
+                return Ok(CallToolResult::structured(value));
+            }
+        };
         let report = crate::context::report_of(&result);
         let value = result.ok().map(|packet| {
             let mut v = crate::output::value(&packet);

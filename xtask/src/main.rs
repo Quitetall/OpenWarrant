@@ -26,7 +26,19 @@ use std::process::{Command, ExitCode};
 fn main() -> ExitCode {
     let mut args = std::env::args().skip(1);
     match args.next().as_deref() {
-        Some("gate") => gate(),
+        Some("gate") => {
+            let rest: Vec<String> = args.collect();
+            match rest.as_slice() {
+                [] => gate(None),
+                [flag, ids] if flag == "--only" => {
+                    gate(Some(ids.split(',').map(str::to_owned).collect()))
+                }
+                _ => {
+                    eprintln!("usage: cargo xtask gate [--only <id>[,<id>...]]");
+                    ExitCode::FAILURE
+                }
+            }
+        }
         // OW-WAR-0068: the skill checks alone, for a plant and for a fast
         // local loop while writing a skill.
         Some("skills") => {
@@ -57,6 +69,8 @@ fn main() -> ExitCode {
 
 /// One step of the gate: a label and the command that decides it.
 struct Step {
+    /// The name `--only` selects this step by. Stable across relabelling.
+    id: &'static str,
     label: &'static str,
     program: &'static str,
     args: &'static [&'static str],
@@ -412,32 +426,68 @@ fn skill_problems(skill: &str, references: &[String]) -> Vec<String> {
     out
 }
 
-/// Steps run in-process before the commands: spdx headers, workflows, skill.
-const IN_PROCESS_STEPS: usize = 4;
+/// `cargo nextest` is a separate install; say so by name rather than failing
+/// as an unexplained "could not run".
+fn nextest_installed() -> bool {
+    Command::new("cargo")
+        .args(["nextest", "--version"])
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null())
+        .status()
+        .is_ok_and(|s| s.success())
+}
 
-fn gate() -> ExitCode {
+/// The gate: every step in order, or the ids `--only` names. The in-process
+/// checks (spdx headers, workflows, skill) answer to their ids too.
+fn gate(only: Option<Vec<String>>) -> ExitCode {
+    // Every id a step or an in-process check answers to. An unknown id is a
+    // refusal: a typo must not select nothing and report green.
+    const IDS: &[&str] = &[
+        "spdx",
+        "workflows",
+        "skill",
+        "build",
+        "format",
+        "clippy",
+        "tests",
+        "doc-tests",
+        "licenses",
+        "corpus",
+        "attest",
+        "plants",
+        "schemas",
+    ];
+    if let Some(bad) = only.iter().flatten().find(|id| !IDS.contains(&id.as_str())) {
+        eprintln!(
+            "xtask gate: unknown step {bad:?}; known: {}",
+            IDS.join(", ")
+        );
+        return ExitCode::FAILURE;
+    }
+    let wanted = |id: &str| only.as_ref().is_none_or(|o| o.iter().any(|x| x == id));
     let steps = [
-        // FIRST, and not merely for speed. `conformance/plant.sh` runs the
-        // SHIPPED BINARY at target/debug/war, and `cargo test` does not produce
-        // it — test harnesses land at target/debug/deps/war-<hash> instead.
+        // Each step is one command, and `--only <id>` runs a subset of them.
+        // CI shards this list across runners (ci.yml) and every shard runs the
+        // same definition, so local and CI cannot disagree about what a step is.
         //
-        // Without this step the gate passed on any machine where someone had
-        // previously run `cargo build` and failed on a clean checkout, which is
-        // exactly what happened: green locally, red in CI, with the plant step
-        // reporting "build first". A gate whose result depends on leftover build
-        // state is not a gate, and CONTRIBUTING.md promises that green-locally
-        // and green-in-CI cannot come to mean different things.
+        // The build comes first and is the only build of the shipped binary:
+        // corpus, attest and plants run `./target/debug/war` and need it to
+        // exist, and `cargo test` does not produce it (test harnesses land at
+        // target/debug/deps/war-<hash>).
         Step {
+            id: "build",
             label: "build (plants run the shipped binary, so it must exist)",
             program: "cargo",
             args: &["build", "--workspace"],
         },
         Step {
+            id: "format",
             label: "format",
             program: "cargo",
             args: &["fmt", "--all", "--check"],
         },
         Step {
+            id: "clippy",
             label: "clippy",
             program: "cargo",
             args: &[
@@ -449,11 +499,61 @@ fn gate() -> ExitCode {
                 "warnings",
             ],
         },
-        // OW-WAR-0032: the JSON Schema pack is generated from the record types
-        // and drift-checked like every projection. The generator lives behind
-        // the `schema` cargo feature, so this step builds it on; the shipped
-        // binary the plants run is rebuilt without it below.
+        // nextest runs each test in its own process, so the workspace's
+        // parallel test binaries and its tests share nothing but the disk.
+        // Doc tests are not run by nextest, so they are a step of their own.
         Step {
+            id: "tests",
+            label: "tests (positive fixtures + planted violations)",
+            program: "cargo",
+            args: &["nextest", "run", "--workspace", "--no-fail-fast"],
+        },
+        Step {
+            id: "doc-tests",
+            label: "doc tests",
+            program: "cargo",
+            args: &["test", "--workspace", "--doc"],
+        },
+        // The license gate is not hygiene here. This repository ships
+        // AGPL-3.0-or-later and is intended to relicense to Apache-2.0; a
+        // copyleft dependency adopted today would make that impossible later.
+        Step {
+            id: "licenses",
+            label: "licenses (permissive-only; protects the Apache-2.0 path)",
+            program: "cargo",
+            args: &["deny", "check", "licenses"],
+        },
+        // The REAL corpus, unmutated. `--generated` also compares the committed
+        // projections against a fresh compilation, so this one step covers both
+        // §37.2 digest drift and §17 view drift. It runs before the plants,
+        // which require a clean `docs/warrants/`.
+        Step {
+            id: "corpus",
+            label: "corpus (§37.2 digests and §17 view drift, on the committed tree)",
+            program: "./target/debug/war",
+            args: &["check", "--generated"],
+        },
+        // OW-ADR-0015: signature verification is not part of `war check`
+        // (which stays deterministic and structural); it is this step.
+        Step {
+            id: "attest",
+            label: "attestations (every DSSE envelope verifies; every subject digest holds)",
+            program: "./target/debug/war",
+            args: &["attest", "--all"],
+        },
+        // §92's second half: every planted violation must be rejected BY ITS
+        // INTENDED CONTROL. `OW_PLANT_SHARD=i/n` (set by CI) runs one shard.
+        Step {
+            id: "plants",
+            label: "planted violations (§92 — each rejected by its intended control)",
+            program: "bash",
+            args: &["conformance/plant.sh"],
+        },
+        // OW-WAR-0032: the schema pack is generated with the `schema` feature,
+        // which recompiles the workspace under different features. It is last
+        // so the feature-less binary above is not rebuilt for anything else.
+        Step {
+            id: "schemas",
             label: "schemas (generated, drift-checked)",
             program: "cargo",
             args: &[
@@ -468,126 +568,81 @@ fn gate() -> ExitCode {
                 "--check",
             ],
         },
-        Step {
-            label: "rebuild the shipped binary without the schema feature",
-            program: "cargo",
-            args: &["build", "--workspace"],
-        },
-        Step {
-            label: "tests (positive fixtures + planted violations)",
-            program: "cargo",
-            args: &["test", "--workspace", "--no-fail-fast"],
-        },
-        // The license gate is not hygiene here. This repository ships
-        // AGPL-3.0-or-later and is intended to relicense to Apache-2.0; a
-        // copyleft dependency adopted today would make that impossible later.
-        Step {
-            label: "licenses (permissive-only; protects the Apache-2.0 path)",
-            program: "cargo",
-            args: &["deny", "check", "licenses"],
-        },
-        // The REAL corpus, unmutated.
-        //
-        // Until this step existed, nothing in CI ever ran `war check` against
-        // the corpus as committed. `conformance/plant.sh` runs it, but always on
-        // a tree it has just mutated and is about to restore — so the tool that
-        // validates this repository's Warrants was exercised only against
-        // deliberately broken inputs, and a regression in the corpus itself was
-        // invisible to the gate.
-        //
-        // That is not hypothetical. Twice in two days a pull request touching
-        // `.github/workflows/ci.yml` invalidated OW-WAR-0001's declared artifact
-        // digest, and both times the Warrant silently lost a §56.1 requirement
-        // with every check green.
-        //
-        // `--generated` is deliberate: it also compares the committed
-        // projections against a fresh compilation, so this one step covers both
-        // §37.2 digest drift and §17 view drift.
-        //
-        // Runs BEFORE the plants because the plants require a clean
-        // `docs/warrants/`, and a corpus failure here is the more specific
-        // diagnosis when both would fail.
-        Step {
-            label: "corpus (§37.2 digests and §17 view drift, on the committed tree)",
-            program: "./target/debug/war",
-            args: &["check", "--generated"],
-        },
-        // §92's second half, and the reason the first half means anything: every
-        // planted violation must be rejected BY ITS INTENDED CONTROL. The unit
-        // tests above prove the code does what it says; this proves the shipped
-        // binary refuses what it should, on real files, for the stated reason.
-        // OW-ADR-0015: signature verification is not part of `war check`
-        // (which stays deterministic and structural); it is this step.
-        Step {
-            label: "attestations (every DSSE envelope verifies; every subject digest holds)",
-            program: "./target/debug/war",
-            args: &["attest", "--all"],
-        },
-        Step {
-            label: "planted violations (§92 — each rejected by its intended control)",
-            program: "bash",
-            args: &["conformance/plant.sh"],
-        },
     ];
 
     let mut failed = Vec::new();
 
     // An in-process step, run first because it is instant and its failure is
     // always actionable.
-    println!("== spdx headers ==");
-    match check_spdx() {
-        Ok(0) => println!("   ok"),
-        Ok(n) => {
-            println!("   FAILED ({n} file(s) missing a header)");
-            failed.push("spdx headers");
-        }
-        Err(err) => {
-            println!("   COULD NOT RUN: {err}");
-            failed.push("spdx headers");
-        }
-    }
-
-    println!("== workflows ==");
-    match check_workflows() {
-        Ok(0) => println!("   ok"),
-        Ok(n) => {
-            println!("   FAILED ({n} problem(s))");
-            failed.push("workflows");
-        }
-        Err(err) => {
-            println!("   COULD NOT RUN: {err}");
-            failed.push("workflows");
+    if wanted("spdx") {
+        println!("== spdx headers ==");
+        match check_spdx() {
+            Ok(0) => println!("   ok"),
+            Ok(n) => {
+                println!("   FAILED ({n} file(s) missing a header)");
+                failed.push("spdx headers");
+            }
+            Err(err) => {
+                println!("   COULD NOT RUN: {err}");
+                failed.push("spdx headers");
+            }
         }
     }
 
-    println!("== skill (SKILL.md frontmatter; every reference linked and present) ==");
-    match check_skill() {
-        Ok(0) => println!("   ok"),
-        Ok(n) => {
-            println!("   FAILED ({n} problem(s))");
-            failed.push("skill");
-        }
-        Err(err) => {
-            println!("   COULD NOT RUN: {err}");
-            failed.push("skill");
-        }
-    }
-
-    println!("== agent-facing documents (no em-dash under .claude/skills/) ==");
-    match check_agent_docs() {
-        Ok(0) => println!("   ok"),
-        Ok(n) => {
-            println!("   FAILED ({n} file(s))");
-            failed.push("agent-facing documents");
-        }
-        Err(err) => {
-            println!("   COULD NOT RUN: {err}");
-            failed.push("agent-facing documents");
+    if wanted("workflows") {
+        println!("== workflows ==");
+        match check_workflows() {
+            Ok(0) => println!("   ok"),
+            Ok(n) => {
+                println!("   FAILED ({n} problem(s))");
+                failed.push("workflows");
+            }
+            Err(err) => {
+                println!("   COULD NOT RUN: {err}");
+                failed.push("workflows");
+            }
         }
     }
 
-    for step in &steps {
+    if wanted("skill") {
+        println!("== skill (SKILL.md frontmatter; every reference linked and present) ==");
+        match check_skill() {
+            Ok(0) => println!("   ok"),
+            Ok(n) => {
+                println!("   FAILED ({n} problem(s))");
+                failed.push("skill");
+            }
+            Err(err) => {
+                println!("   COULD NOT RUN: {err}");
+                failed.push("skill");
+            }
+        }
+    }
+
+    if wanted("skill") {
+        println!("== agent-facing documents (no em-dash under .claude/skills/) ==");
+        match check_agent_docs() {
+            Ok(0) => println!("   ok"),
+            Ok(n) => {
+                println!("   FAILED ({n} file(s))");
+                failed.push("agent-facing documents");
+            }
+            Err(err) => {
+                println!("   COULD NOT RUN: {err}");
+                failed.push("agent-facing documents");
+            }
+        }
+    }
+
+    for step in steps.iter().filter(|step| wanted(step.id)) {
         println!("== {} ==", step.label);
+        if step.id == "tests" && !nextest_installed() {
+            println!(
+                "   FAILED: cargo-nextest is not installed (cargo install cargo-nextest --locked)"
+            );
+            failed.push(step.label);
+            continue;
+        }
         let status = Command::new(step.program).args(step.args).status();
         match status {
             Ok(status) if status.success() => println!("   ok"),
@@ -608,18 +663,10 @@ fn gate() -> ExitCode {
     // Report every failing step, not the first. A gate that stops at the first
     // failure makes the operator re-run it once per defect.
     if failed.is_empty() {
-        // Four in-process steps (spdx, workflows, skill, agent docs) plus the commands.
-        println!(
-            "\ngate: PASS — {} step(s) green",
-            steps.len() + IN_PROCESS_STEPS
-        );
+        println!("\ngate: PASS — every selected step green");
         ExitCode::SUCCESS
     } else {
-        println!(
-            "\ngate: FAIL — {}/{} step(s) failed:",
-            failed.len(),
-            steps.len() + IN_PROCESS_STEPS
-        );
+        println!("\ngate: FAIL — {} step(s) failed:", failed.len());
         for label in &failed {
             println!("  - {label}");
         }

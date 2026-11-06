@@ -74,6 +74,7 @@ fn entries() -> Vec<Entry> {
         entry::<crate::model::Model>("model"),
         // Alpha.6's complete, offline task context; no authority is granted.
         entry::<crate::context::task::TaskPacket>("task-context"),
+        entry::<crate::context::units::UnitPacket>("unit-context"),
         // OW-WAR-0148 M3: what a change to one record affects (`war impact`).
         // Additive: the pack version does not move.
         entry::<crate::impact::Impact>("impact"),

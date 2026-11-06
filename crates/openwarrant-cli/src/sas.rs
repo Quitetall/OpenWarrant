@@ -518,6 +518,26 @@ pub(crate) fn historical_revision_bytes(
     repo: &Repository,
     revision: &SasRevision,
 ) -> Result<Vec<u8>, String> {
+    // A one-shot read-only command asks once per revision per use, each a
+    // `git log -S` over history. What is kept is only a success, and a success
+    // is bytes that hashed to `revision.sha256`, so the digest names them.
+    if !crate::gate_cmd::source::tree_reads_remembered() {
+        return historical_revision_bytes_read(repo, revision);
+    }
+    static KEPT: std::sync::OnceLock<crate::ssh_verdicts::Slots<Vec<u8>>> =
+        std::sync::OnceLock::new();
+    KEPT.get_or_init(Default::default).ask(
+        format!("{}\0{}\0{}", repo.root, revision.source, revision.sha256),
+        || historical_revision_bytes_read(repo, revision),
+        |read| read.as_ref().ok().cloned(),
+        Ok,
+    )
+}
+
+fn historical_revision_bytes_read(
+    repo: &Repository,
+    revision: &SasRevision,
+) -> Result<Vec<u8>, String> {
     let source = revision.source.as_str();
     // The record often entered history with its exact source bytes. This is
     // only a search hint: a matching commit is never authority, and wrong or

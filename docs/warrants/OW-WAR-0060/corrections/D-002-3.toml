@@ -1,0 +1,16 @@
+schema = "oh.war/correction/v1"
+warrant = "OW-WAR-0060"
+
+[correction]
+id = "01a1af91-9840-70c4-9ed2-f5ae146d04b6"
+deliverable_id = "D-002"
+target_ref = "xtask/src/main.rs"
+sequence = 3
+superseded_digest = "sha256:952bc7b0aaf62e12d3210afca07a5d5390c59b4780a662e5f78a0e4014d30ee6"
+new_digest = "sha256:a242b2b04ef938a932185deea9af473941fef4a2f96b3a4532a1e9f75fa6d713"
+reason = "the gate shards by id and runs nextest; same steps, one definition Presented on a terminal by `war sign 1.0.0-alpha.6` and confirmed by the signer; the decision is the signer's and the template is the tool's."
+kind = "behaviour-change"
+authorized_by_ref = "person://Brian Lam"
+acting_role_ref = "role://authorizer"
+effective_at = "2026-11-06T06:35:16Z"
+recorded_at = "2026-11-06T06:35:16Z"
