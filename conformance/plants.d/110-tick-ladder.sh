@@ -44,7 +44,7 @@ TL_CL_AFTER_FAIL=$(tl_cl "$TL_T")
 TL_OK=$(TL_GATE=0 tlw done "$TL_T" --check 2>&1); TL_OK_RC=$?
 TL_CL_AFTER_OK=$(tl_cl "$TL_T")
 TL_JOURNAL=$(cat "$PLANT_ROOT/docs/tickets/$TL_T/journal.jsonl" 2>/dev/null)
-if [[ $TL_ADD_RC -eq 0 && $TL_OK_RC -eq 0 ]] && grep -q '\[observed\]' <<<"$TL_CL_AFTER_OK" \
+if [[ $TL_ADD_RC -eq 0 && $TL_OK_RC -eq 0 ]] && grep -qE '"type": ?"work.item_done".*"level": ?"observed"|"level": ?"observed".*"type": ?"work.item_done"' <<<"$TL_JOURNAL" \
     && grep -q "ticked at observed: $TL_T/CHK-unit passed" <<<"$TL_OK" \
     && grep -q 'output_sha256' <<<"$TL_JOURNAL" \
     && grep -q '^## CHK-unit · check' <<<"$TL_CL_AFTER_OK"; then
