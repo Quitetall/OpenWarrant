@@ -506,7 +506,12 @@ the same command as your last test run: `make test && war done --note "..."`,
 which closes it only if the tests pass. Run alone, both work the same; the
 chain only saves the turns. The plugin's SessionStart hook puts the ticket you
 hold (or the open list) in front of the agent before its first turn, and says
-nothing when no ticket is open (`[tickets] session_start = false` turns it off). `war view prime` lists what
+nothing when no ticket is open (`[tickets] session_start = false` turns it off). Its UserPromptSubmit hook
+does the same for the ticket a prompt names (by id, a capital code such as `T8`, a double-quoted phrase or
+its whole title), through `war view prime --prompt`, within 6,144 bytes and without claiming it: take it with
+`war start <id>`. Several matches add one line and no brief, and a prompt naming nothing adds nothing. A
+harness with no such hook can read a short list from `AGENTS.md`, which `war admin agents-md --block --ready 3`
+writes; only that command refreshes it, so run it before agents start. `war view prime` lists what
 is open, one line per ticket, and `war view prime <id>` shows one in full.
 Leave what the next agent needs to know with `war note`. Do not ask the human
 to sign anything during this loop; nothing in it needs a signature.
@@ -537,7 +542,7 @@ All optional, in `openwarrant.toml`:
 dir = "docs/tickets"                        # where tickets live
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
-session_start = true                        # the plugin's SessionStart hook shows the agent its held Warrant, or the overview; false: nothing
+session_start = true                        # the plugin's hooks show the agent its held Warrant, the overview, or the ticket a prompt names; false: nothing
 
 [claims]
 claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands

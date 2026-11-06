@@ -330,7 +330,12 @@ only what it needs; `war done <id> --note "what you did"` closes it.
   with it has only the lines between the markers rewritten. Every byte
   outside the markers stays as it was, and a second run changes nothing.
 - The block never holds the Warrant you are working on or any other state
-  that changes: `war prime` says that, and the file stays stable.
+  that changes: `war prime` says that, and the file stays stable. The one
+  exception is one you ask for: `--ready <N>` lists up to five ready Warrants
+  in `AGENTS.md`, never `CLAUDE.md`, for a harness with no prompt hook. Only
+  running it again refreshes the list, a plain `--block` keeps it, and
+  `--ready 0` removes it. Each refresh that moves the file tells every live
+  claim that `AGENTS.md` changed, so run it before agents start.
 - Refused by rule, with nothing written to any file: a file with two blocks
   (`agents-md.block-duplicate`), a block that never closes
   (`agents-md.block-unterminated`), an end marker with no begin

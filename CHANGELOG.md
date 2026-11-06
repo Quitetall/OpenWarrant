@@ -6,6 +6,21 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `war view prime --prompt <text|->` and the plugin's UserPromptSubmit hook put
+  the brief of the item a prompt names in context before the first turn. A
+  prompt names an item by id, a capital code (`T8`), a double-quoted phrase or
+  its whole title, through the lookup `war start` uses. Several matches add one
+  line and no brief (on the first prompt only); none adds nothing, nor does a
+  Warrant you hold. It reads, claims nothing, stays within 6,144 bytes with any
+  cut declared, adds the same brief once a session, respects `[tickets]
+  session_start = false`, and a hook failure never holds a prompt.
+- `war admin agents-md --block --ready <N>` lists up to five ready Warrants in
+  the block of an `AGENTS.md`, for a harness with no prompt hook. Only running
+  it refreshes the list: `war` never does so by itself, a plain `--block` keeps
+  it, and `CLAUDE.md` gets none. `--ready 0` removes it.
+
 ### Changed
 
 - Bare `war status` is a few lines of counts: the SAS revision, Warrants,
@@ -148,10 +163,11 @@ Notable changes to OpenWarrant. Format loosely follows
     (`<tests> && war done --note "..."`, which closes only when they pass).
     Run alone, both work as before, as do `war claim <item>` and
     `war done <item>`.
-  - Opt-in, `[tickets] session_start = true`: the plugin's SessionStart hook
-    runs `war view prime --session`, which shows the agent the Warrant it
-    holds (a resumed session needs no call to find it), or the open list and
-    how to take the next. Unset, it prints nothing and the hook adds nothing.
+  - On by default (`[tickets] session_start = false` turns it off): the
+    plugin's SessionStart hook runs `war view prime --session`, which shows
+    the agent the Warrant it holds (a resumed session needs no call to find
+    it), or the open list and how to take the next. With nothing open it
+    prints nothing and the hook adds nothing.
 
 ## [1.0.0-alpha.5] — 2026-10-20
 

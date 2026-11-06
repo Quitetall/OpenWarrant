@@ -11,6 +11,14 @@
 //! stamp [`crate::skew`] reads. It never holds the active Warrant's context:
 //! the file stays stable, and what changes lives in `war view prime`.
 //!
+//! The one exception is asked for: `--ready <N>` lists the next ready work in
+//! an `AGENTS.md`, for a harness with no prompt hook. Nothing refreshes that
+//! list by itself. A file holding it changes only when `--ready` runs, because
+//! a tracked file that followed every ticket would conflict across parallel
+//! branches, and because `AGENTS.md` is a source of every task packet, so each
+//! rewrite is a notice to every live claim ([`crate::ticket::live`]). `CLAUDE.md`
+//! gets no list: the plugin's hooks already give Claude Code its work.
+//!
 //! - Which files: every root `AGENTS.md` and `CLAUDE.md` that exists, or
 //!   `AGENTS.md` alone when neither does; `--file` names others.
 //! - Idempotent: a second run changes nothing. Bytes outside the markers are
@@ -231,6 +239,16 @@ pub fn default_targets(root: &Utf8Path) -> Vec<Utf8PathBuf> {
 /// to a file outside the repository (a shared or global CLAUDE.md) is refused,
 /// `agents-md.link-outside`: the block goes only into this repository's files.
 pub fn write_blocks(root: &Utf8Path, targets: &[Utf8PathBuf]) -> Result<Vec<Written>, Refused> {
+    write_blocks_with(root, targets, None)
+}
+
+/// [`write_blocks`], setting the ready list in each target but a `CLAUDE.md`;
+/// `None` keeps what each block holds.
+pub fn write_blocks_with(
+    root: &Utf8Path,
+    targets: &[Utf8PathBuf],
+    ready: Option<&[String]>,
+) -> Result<Vec<Written>, Refused> {
     /// The file a write lands in, its bytes before (none: absent), after.
     struct Pending {
         real: Utf8PathBuf,
@@ -288,7 +306,8 @@ pub fn write_blocks(root: &Utf8Path, targets: &[Utf8PathBuf]) -> Result<Vec<Writ
                 continue;
             }
         };
-        match instruction::upsert(text, version()) {
+        let rows = ready.filter(|_| path.file_name() != Some("CLAUDE.md"));
+        match instruction::upsert_with(text, version(), rows) {
             Ok((out, change)) => {
                 let change = match (existing.is_some(), change) {
                     (false, _) => "created",
@@ -385,7 +404,10 @@ pub fn doctor_for(root: &Utf8Path, running: &str) -> Vec<Diagnostic> {
             ));
             continue;
         };
-        let current = instruction::block_text(running);
+        // A ready list is state, not staleness: however old, it is the
+        // block this `war` would keep.
+        let rows = instruction::block_ready(&text, block);
+        let current = instruction::block_with(running, &rows);
         if text[block.start..block.end] == current {
             out.push(Diagnostic::pass(
                 "doctor.agents-block",

@@ -43,6 +43,7 @@ pub mod ladder;
 pub mod live;
 pub mod merge;
 pub mod parts;
+pub mod prompt;
 pub mod remote;
 mod render;
 pub mod repair;
@@ -1186,12 +1187,9 @@ fn words_of(s: &str) -> Vec<String> {
         .collect()
 }
 
-/// A query that is not an id: the Warrant whose title and labels hold every
-/// one of its words (`war start T8`, `war view prime "monthly budget"`), so a
-/// request that names the work needs no lookup first. Open Warrants are
-/// searched before done ones; one match is the answer, several are refused
-/// with each one's id.
-fn by_words(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
+/// The Warrants whose title and labels hold every word of `query`: the open
+/// ones when any match, else the done ones.
+fn matching_words(tickets: &[Ticket], query: &str) -> Vec<usize> {
     let want = words_of(query);
     let holds = |t: &Ticket| {
         let mut have = words_of(&t.manifest.title);
@@ -1206,11 +1204,20 @@ fn by_words(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
             .collect()
     };
     let open = matching(true);
-    let found = if open.is_empty() {
+    if open.is_empty() {
         matching(false)
     } else {
         open
-    };
+    }
+}
+
+/// A query that is not an id: the Warrant whose title and labels hold every
+/// one of its words (`war start T8`, `war view prime "monthly budget"`), so a
+/// request that names the work needs no lookup first. Open Warrants are
+/// searched before done ones; one match is the answer, several are refused
+/// with each one's id.
+fn by_words(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
+    let found = matching_words(tickets, query);
     match found.as_slice() {
         [n] => Ok(Target::Ticket(*n)),
         [] => Err(Diagnostic::error(
