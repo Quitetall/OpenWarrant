@@ -27,6 +27,26 @@ if [[ ${#PLANT_FILES[@]} -eq 0 ]]; then
     echo "conformance/plants.d/ holds no plants; refusing to report a battery that ran nothing" >&2
     exit 1
 fi
+# OW_PLANT_SHARD=i/n runs one of n shards (CI runs the battery as a matrix).
+# Every file belongs to exactly one shard: file k (0-based, in the order above)
+# is in shard (k mod n) + 1. Each file starts from the restored tree, so a
+# shard is the same plants as the whole, and the shards together are all of
+# them. A malformed selector is refused, never read as "all".
+if [[ -n "${OW_PLANT_SHARD:-}" ]]; then
+    if [[ ! "$OW_PLANT_SHARD" =~ ^([0-9]+)/([0-9]+)$ ]] \
+        || (( BASH_REMATCH[1] < 1 || BASH_REMATCH[1] > BASH_REMATCH[2] || BASH_REMATCH[2] < 1 )); then
+        echo "OW_PLANT_SHARD must be i/n with 1 <= i <= n, not '$OW_PLANT_SHARD'" >&2
+        exit 1
+    fi
+    shard_i=${BASH_REMATCH[1]}
+    shard_n=${BASH_REMATCH[2]}
+    picked=()
+    for k in "${!PLANT_FILES[@]}"; do
+        (( k % shard_n == shard_i - 1 )) && picked+=("${PLANT_FILES[$k]}")
+    done
+    echo "plant shard $shard_i/$shard_n: ${#picked[@]} of ${#PLANT_FILES[@]} plant file(s)"
+    PLANT_FILES=("${picked[@]}")
+fi
 run_plant_files "${PLANT_FILES[@]}"
 unset PLANT_ROOT
 
