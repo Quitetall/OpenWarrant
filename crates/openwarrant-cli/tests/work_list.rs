@@ -349,6 +349,38 @@ fn prime_and_the_terse_status_show_a_level_only_where_it_is_not_the_default() {
     assert!(one.contains("open · Warrant · 0/0 done"), "{one}");
 }
 
+#[cfg(unix)]
+#[test]
+fn work_that_could_not_be_read_is_a_question_mark_never_an_empty_list() {
+    use std::os::unix::fs::PermissionsExt;
+    let root = repo();
+    let id = create(root.path(), "Plain", &[]);
+    war(root.path(), &["plan", "new", "A delivery Warrant"]);
+    let warrants = root.path().join("docs/warrants");
+    let mode = |bits| std::fs::Permissions::from_mode(bits);
+    std::fs::set_permissions(&warrants, mode(0o000)).unwrap();
+    let prime = war_raw(root.path(), &["view", "prime"]);
+    let status = war_raw(root.path(), &["status"]);
+    let tickets = war_raw(root.path(), &["view", "tickets"]);
+    std::fs::set_permissions(&warrants, mode(0o755)).unwrap();
+
+    let said = |out: &std::process::Output| String::from_utf8_lossy(&out.stdout).into_owned();
+    let warned = |out: &std::process::Output| String::from_utf8_lossy(&out.stderr).into_owned();
+    assert!(said(&prime).contains(&id), "{prime:?}");
+    assert!(said(&prime).contains("Also open elsewhere: ?"), "{prime:?}");
+    assert!(
+        warned(&prime).contains("UNKNOWN (work.unreadable)"),
+        "{prime:?}"
+    );
+    assert!(said(&status).contains("Open by level: ?\n"), "{status:?}");
+    assert_ne!(status.status.code(), Some(0), "{status:?}");
+    assert!(said(&tickets).contains(&id), "{tickets:?}");
+    assert!(
+        warned(&tickets).contains("UNKNOWN (work.unreadable)"),
+        "{tickets:?}"
+    );
+}
+
 #[test]
 fn the_json_list_carries_each_rows_level() {
     let root = repo();

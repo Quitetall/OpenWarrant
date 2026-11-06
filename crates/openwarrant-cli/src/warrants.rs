@@ -4,7 +4,7 @@
 //! [`crate::work`] is the one list; it reads these rows beside the tickets.
 //!
 //! A Warrant is one record. Its minimum is a title; everything else is
-//! optional, chosen by its type. It is written down in one of three ways,
+//! optional, chosen by its type. It is written down in one of four ways,
 //! and every one of them reads forever, byte for byte (decision 14):
 //!
 //! - **light** — `docs/tickets/<t-id>/`: a manifest, an intent and a
