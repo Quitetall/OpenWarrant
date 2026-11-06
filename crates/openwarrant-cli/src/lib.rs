@@ -5007,6 +5007,8 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Frontier { all: true, .. } => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let corpus = corpus::Corpus::new(&repository);
             let store = ticket::Store::open(&repository, None)?;
             let (report, g) = graph::build(&corpus, &store)?;
@@ -5025,6 +5027,8 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Estimate => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let corpus = corpus::Corpus::new(&repository);
             let store = ticket::Store::open(&repository, None)?;
             let prior = match go::policy::load(&repository.root) {
@@ -5048,6 +5052,8 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Frontier { alias, .. } => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let (report, f) = frontier::run(&repository, alias.as_deref())?;
             match mode {
                 output::Mode::Human => {
@@ -6336,6 +6342,13 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             index,
         } => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            // Without this each receipt walked the checkout again, 228
+            // `git ls-files` and 228 `git diff` per run.
+            gate_cmd::source::remember_tree_reads();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
             // A built-in preset, else one a profile declares (section 10.4).
             let preset = match context::Preset::builtin(&preset)
                 .map(Ok)

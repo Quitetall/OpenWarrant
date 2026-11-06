@@ -825,6 +825,13 @@ pub fn recorded_state(journal: &Journal, outcome: Option<CommonOutcome>) -> Opti
 /// tracked. `None` means "no committed baseline" — a new journal — and is
 /// not an error.
 fn committed(repo: &Repository, rel: &str) -> Option<String> {
+    // `war check` asks once per Warrant. In a read-only command one reader
+    // answers them all; anything it cannot answer takes the path below.
+    if crate::gate_cmd::source::tree_reads_remembered()
+        && let Some(answer) = baseline::read(&repo.root, rel)
+    {
+        return answer;
+    }
     let out = std::process::Command::new("git")
         .args(["show", &format!("HEAD:{rel}")])
         .current_dir(&repo.root)
@@ -833,6 +840,101 @@ fn committed(repo: &Repository, rel: &str) -> Option<String> {
     out.status
         .success()
         .then(|| String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
+/// The committed baselines of a read-only command, from one `git cat-file
+/// --batch`, the plumbing form of `git show HEAD:<path>` for a blob: no filter
+/// or conversion applies to either, and the bytes are the object's.
+mod baseline {
+    use std::io::{BufRead, BufReader, Read, Write};
+    use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
+    use std::sync::Mutex;
+
+    use camino::{Utf8Path, Utf8PathBuf};
+
+    struct Reader {
+        root: Utf8PathBuf,
+        child: Child,
+        input: ChildStdin,
+        output: BufReader<ChildStdout>,
+    }
+
+    impl Drop for Reader {
+        fn drop(&mut self) {
+            let _ = self.child.kill();
+            let _ = self.child.wait();
+        }
+    }
+
+    /// The process's reader. It closes when the process does: `git` ends at
+    /// the end of its input. A reader that faltered is dropped, not reused.
+    static READER: Mutex<Option<Reader>> = Mutex::new(None);
+
+    fn open(root: &Utf8Path) -> Option<Reader> {
+        let mut child = Command::new("git")
+            .args(["cat-file", "--batch"])
+            .current_dir(root)
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null())
+            .spawn()
+            .ok()?;
+        let input = child.stdin.take()?;
+        let output = BufReader::new(child.stdout.take()?);
+        Some(Reader {
+            root: root.to_owned(),
+            child,
+            input,
+            output,
+        })
+    }
+
+    /// `Some(None)`: `HEAD` holds nothing at `rel`. `Some(Some(text))`: the
+    /// blob there, as `git show` prints it. `None`: not answered here, and
+    /// the caller asks `git show` itself: a path the batch form cannot name,
+    /// something other than a blob, or a reader that faltered.
+    pub(super) fn read(root: &Utf8Path, rel: &str) -> Option<Option<String>> {
+        if rel.contains('\n') {
+            return None;
+        }
+        let mut held = READER
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if held.as_ref().is_none_or(|r| r.root != root) {
+            *held = open(root);
+        }
+        let reader = held.as_mut()?;
+        let spec = format!("HEAD:{rel}");
+        let answer = ask(reader, &spec);
+        if answer.is_none() {
+            *held = None;
+        }
+        answer
+    }
+
+    fn ask(reader: &mut Reader, spec: &str) -> Option<Option<String>> {
+        writeln!(reader.input, "{spec}").ok()?;
+        reader.input.flush().ok()?;
+        let mut header = String::new();
+        if reader.output.read_line(&mut header).ok()? == 0 {
+            return None;
+        }
+        let header = header.strip_suffix('\n')?;
+        if header.strip_suffix(" missing") == Some(spec) {
+            return Some(None);
+        }
+        let mut fields = header.split(' ');
+        let (_oid, kind, size) = (fields.next()?, fields.next()?, fields.next()?);
+        if fields.next().is_some() || kind != "blob" {
+            return None;
+        }
+        let mut body = vec![0u8; size.parse::<usize>().ok()?.checked_add(1)?];
+        reader.output.read_exact(&mut body).ok()?;
+        if body.pop() != Some(b'\n') {
+            return None;
+        }
+        Some(Some(String::from_utf8_lossy(&body).into_owned()))
+    }
 }
 
 /// A journal that does not read: `work.journal-malformed`, or `UNKNOWN`
@@ -1174,6 +1276,53 @@ pub fn show(repo: &Repository, alias: &str) -> Result<String, RepoError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The batch reader answers exactly what `committed`'s `git show` does,
+    /// or declines: over bytes that are not UTF-8, no final newline, a space
+    /// in the path, an absent path, a directory, and a path it cannot name.
+    #[test]
+    fn the_baseline_reader_agrees_with_git_show_or_declines() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = Utf8Path::from_path(temp.path()).unwrap();
+        let git = |args: &[&str]| {
+            let out = std::process::Command::new("git")
+                .current_dir(root)
+                .args(["-c", "user.name=t", "-c", "user.email=t@t"])
+                .args(args)
+                .output()
+                .unwrap();
+            assert!(out.status.success(), "{args:?}");
+            out.stdout
+        };
+        git(&["init", "-q"]);
+        std::fs::create_dir(root.join("d")).unwrap();
+        std::fs::write(root.join("d/plain.jsonl"), "one\ntwo\n").unwrap();
+        std::fs::write(root.join("d/no newline"), "one").unwrap();
+        std::fs::write(root.join("d/bytes"), [b'a', 0xff, 0, b'\n']).unwrap();
+        std::fs::write(root.join("d/empty"), "").unwrap();
+        git(&["add", "."]);
+        git(&["commit", "-qm", "c"]);
+        for rel in ["d/plain.jsonl", "d/no newline", "d/bytes", "d/empty"] {
+            let shown = git(&["show", &format!("HEAD:{rel}")]);
+            assert_eq!(
+                baseline::read(root, rel),
+                Some(Some(String::from_utf8_lossy(&shown).into_owned())),
+                "{rel}"
+            );
+        }
+        assert_eq!(baseline::read(root, "d/absent"), Some(None));
+        assert_eq!(baseline::read(root, "d"), None, "a tree is declined");
+        assert_eq!(baseline::read(root, "new\nline"), None);
+        // Declining a tree dropped the reader; the next ask opens another.
+        assert_eq!(baseline::read(root, "d/empty"), Some(Some(String::new())));
+        // A moved HEAD is another answer: nothing here is kept by path.
+        std::fs::write(root.join("d/empty"), "more").unwrap();
+        git(&["commit", "-qam", "d"]);
+        assert_eq!(
+            baseline::read(root, "d/empty"),
+            Some(Some("more".to_owned()))
+        );
+    }
 
     #[test]
     fn a_journal_round_trips_through_jsonl_and_refuses_a_duplicate_key() {
