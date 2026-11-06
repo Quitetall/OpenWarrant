@@ -6,14 +6,18 @@
 # could be wrong, it was not trusted".
 #
 # On a scratch program (TC) with four tickets, settled past the cache's 2 s:
+# three single-file tickets as `war create` writes them, one with no items,
+# and one directory ticket (`--legacy`), which the cache still has to answer.
 # - warm: OPENWARRANT_CACHE_TRACE says every ticket and the listing came from
 #   the cache, and the answer is the same bytes as with OPENWARRANT_NO_CACHE=1
 #   (which writes and reads nothing). Nothing of it is in `git status`.
-# - an in-place edit of a manifest, same size, same inode, its mtime put back
-#   with `touch -d` to the nanosecond: the edit is seen (ctime moved), the old
-#   title is gone, and the trace names the one re-read.
-# - a new ticket directory made by hand (no `war create`) is listed: the
-#   listing is re-read when the directory changes.
+# - an in-place edit of a document and of a manifest, same size, same inode,
+#   each mtime put back with `touch -d` to the nanosecond: the edits are seen
+#   (ctime moved), the old titles are gone, and the trace names the two re-reads.
+# - a new ticket document and a new ticket directory made by hand (no `war
+#   create`) are listed: the listing is re-read when the directory changes.
+# - a journal is a source of the ticket with no items, whose document does not
+#   move when it is done: the one re-read, and the answer the disabled one.
 # - each cache file corrupted (a byte flipped, truncated, replaced): ignored,
 #   the answer still the disabled one, every ticket re-read, and rebuilt.
 # - a cache written by another build (the same binary copied elsewhere, so
@@ -55,9 +59,11 @@ tc_off() {
 tc_same() { cmp -s "$TC_TMP/$1.out" "$TC_TMP/$2.out" && cmp -s "$TC_TMP/$1.err" "$TC_TMP/$2.err"; }
 tc_trace() { cat "$TC_TMP/$1.trace"; }
 
-for t in Alpha Bravo Charlie Delta; do
+for t in Alpha Charlie; do
     tc_war create "$t ticket" --item "first of $t" --item "second of $t" >/dev/null 2>&1
 done
+tc_war create "Bravo ticket" >/dev/null 2>&1
+tc_war create --legacy "Delta ticket" --item "first of Delta" --item "second of Delta" >/dev/null 2>&1
 git -C "$TC_ROOT" add -A >/dev/null 2>&1
 git -C "$TC_ROOT" -c user.email=plant@invalid -c user.name=plant -c commit.gpgSign=false commit -qm tickets >/dev/null 2>&1
 sleep 3
@@ -80,47 +86,58 @@ else
 fi
 
 # --- an in-place edit with its mtime put back ---------------------------------------------
-TC_MAN=$(grep -l 'Alpha ticket' "$TC_ROOT"/docs/tickets/*/manifest.toml | head -1)
-TC_STAT0=$(stat -c '%s %i %y' "$TC_MAN")
-TC_MTIME=$(stat -c '%y' "$TC_MAN")
-python3 - "$TC_MAN" <<'PY'
+TC_DOC=$(grep -l 'Alpha ticket' "$TC_ROOT"/docs/tickets/*.md | head -1)
+TC_MAN=$(grep -l 'Delta ticket' "$TC_ROOT"/docs/tickets/*/manifest.toml | head -1)
+tc_inplace() {
+    local mtime; mtime=$(stat -c '%y' "$1")
+    python3 - "$1" "$2" "$3" <<'PY'
 import sys
-p = sys.argv[1]
-b = open(p, 'rb').read().replace(b'Alpha ticket', b'Omega ticket')
+p, old, new = sys.argv[1], sys.argv[2].encode(), sys.argv[3].encode()
+b = open(p, 'rb').read().replace(old, new)
 with open(p, 'r+b') as f:   # in place: same inode, same size, no truncation
     f.write(b)
 PY
-touch -d "$TC_MTIME" "$TC_MAN"
-TC_STAT1=$(stat -c '%s %i %y' "$TC_MAN")
+    touch -d "$mtime" "$1"
+}
+TC_STAT0=$(stat -c '%s %i %y' "$TC_DOC" "$TC_MAN")
+tc_inplace "$TC_DOC" 'Alpha ticket' 'Omega ticket'
+tc_inplace "$TC_MAN" 'Delta ticket' 'Sigma ticket'
+TC_STAT1=$(stat -c '%s %i %y' "$TC_DOC" "$TC_MAN")
 tc_off offe --json view ready
 tc_traced edit --json view ready
 if [[ "$TC_STAT0" == "$TC_STAT1" ]] && tc_same offe edit \
     && grep -q 'Omega ticket' "$TC_TMP/edit.out" && ! grep -q 'Alpha ticket' "$TC_TMP/edit.out" \
-    && [[ "$(tc_trace edit)" == "ticket cache: 3 of 4 ticket(s) from the cache, 1 read from their files"* ]]; then
-    tc_ok "an in-place edit is seen" "same size, inode and mtime ($TC_STAT1) after touch -d; the new title is listed, the old one never; 1 ticket re-read"
+    && grep -q 'Sigma ticket' "$TC_TMP/edit.out" && ! grep -q 'Delta ticket' "$TC_TMP/edit.out" \
+    && [[ "$(tc_trace edit)" == "ticket cache: 2 of 4 ticket(s) from the cache, 2 read from their files"* ]]; then
+    tc_ok "an in-place edit is seen" "a document and a manifest, each the same size, inode and mtime after touch -d; the new titles are listed, the old never; 2 tickets re-read"
 else
     tc_fail "an in-place edit is seen" "stat '$TC_STAT0' -> '$TC_STAT1'; same as disabled: $(tc_same offe edit && echo y || echo n); trace '$(tc_trace edit)'"
 fi
 
-# --- a ticket directory made by hand -------------------------------------------------------
+# --- a ticket made by hand, in each encoding ----------------------------------------------
+TC_ALIAS=$(basename "$TC_DOC" .md)
 TC_SRC=$(dirname "$TC_MAN")
-TC_NEW="$TC_ROOT/docs/tickets/t-0000aa"
-cp -r "$TC_SRC" "$TC_NEW"
-python3 - "$TC_NEW/manifest.toml" "$(basename "$TC_SRC")" <<'PY'
+TC_NEW_DOC="$TC_ROOT/docs/tickets/t-0000aa.md"
+TC_NEW_DIR="$TC_ROOT/docs/tickets/t-0000ab"
+cp "$TC_DOC" "$TC_NEW_DOC"
+cp -r "$TC_SRC" "$TC_NEW_DIR"
+python3 - "$TC_NEW_DOC" "$TC_ALIAS" "$TC_NEW_DIR/manifest.toml" "$(basename "$TC_SRC")" <<'PY'
 import sys
-p, old = sys.argv[1], sys.argv[2]
-t = open(p).read().replace(f'id = "{old}"', 'id = "t-0000aa"').replace('Omega ticket', 'Hand ticket')
-open(p, 'w').write(t)
+doc, alias, man, old = sys.argv[1:]
+t = open(doc).read().replace(f'alias: {alias}', 'alias: t-0000aa').replace('Omega ticket', 'Hand ticket')
+open(doc, 'w').write(t)
+t = open(man).read().replace(f'id = "{old}"', 'id = "t-0000ab"').replace('Sigma ticket', 'Hewn ticket')
+open(man, 'w').write(t)
 PY
 tc_off offn --json view ready
 tc_traced handmade --json view ready
-if tc_same offn handmade && grep -q 'Hand ticket' "$TC_TMP/handmade.out" \
+if tc_same offn handmade && grep -q 'Hand ticket' "$TC_TMP/handmade.out" && grep -q 'Hewn ticket' "$TC_TMP/handmade.out" \
     && [[ "$(tc_trace handmade)" == *"the listing from the directory" ]]; then
-    tc_ok "a hand-made ticket is listed" "the directory changed, so the listing was re-read: the new ticket is in view ready, byte-identical to disabled"
+    tc_ok "a hand-made ticket is listed" "the directory changed, so the listing was re-read: a new document and a new directory are in view ready, byte-identical to disabled"
 else
     tc_fail "a hand-made ticket is listed" "same as disabled: $(tc_same offn handmade && echo y || echo n); trace '$(tc_trace handmade)'"
 fi
-command rm -rf "$TC_NEW"
+command rm -rf "$TC_NEW_DOC" "$TC_NEW_DIR"
 sleep 3
 tc_traced settle --json next
 
@@ -192,6 +209,27 @@ if [[ -z "$(tc_trace check)" && -z "$(tc_trace export)" && -z "$(tc_trace hosted
     tc_ok "judging and hosted runs never use it" "war check, host --export and a hosted run: no trace line; the exported basis (members, cache files, hosted result: $TC_MEMBERS) holds no cache file"
 else
     tc_fail "judging and hosted runs never use it" "check '$(tc_trace check)'; export '$(tc_trace export)'; hosted '$(tc_trace hosted)'; members '$TC_MEMBERS'"
+fi
+
+# --- the journal of a ticket with no items --------------------------------------------------
+# Last: the claim it takes lies under .git, where the exported basis above
+# must see nothing, and this binary's own cache has to be back in place after
+# the other build overwrote it.
+tc_traced settle --json view tickets
+TC_BRAVO_DOC=$(grep -l 'Bravo ticket' "$TC_ROOT"/docs/tickets/*.md | head -1)
+TC_BRAVO=$(basename "$TC_BRAVO_DOC" .md)
+TC_BRAVO_SUM=$(sha256sum <"$TC_BRAVO_DOC")
+tc_traced journal0 --json view tickets
+tc_war claim "$TC_BRAVO" >/dev/null 2>"$TC_TMP/claim.err"; TC_CLAIM_RC=$?
+tc_war done "$TC_BRAVO" >/dev/null 2>"$TC_TMP/done.err"; TC_DONE_RC=$?
+tc_off offj --json view tickets
+tc_traced journal --json view tickets
+if [[ $TC_CLAIM_RC -eq 0 && $TC_DONE_RC -eq 0 && "$TC_BRAVO_SUM" == "$(sha256sum <"$TC_BRAVO_DOC")" ]] && tc_same offj journal \
+    && ! tc_same offj journal0 \
+    && [[ "$(tc_trace journal)" == "ticket cache: 3 of 4 ticket(s) from the cache, 1 read from their files"* ]]; then
+    tc_ok "a journal is a source of a ticket" "done with its document unmoved: the one re-read, the answer changed and byte-identical to disabled"
+else
+    tc_fail "a journal is a source of a ticket" "claim exit $TC_CLAIM_RC, done exit $TC_DONE_RC ($(head -1 "$TC_TMP/claim.err" "$TC_TMP/done.err" | tr '\n' ' ')); same as disabled: $(tc_same offj journal && echo y || echo n); trace '$(tc_trace journal)'"
 fi
 
 command rm -rf "$TC_TMP" "$TC_ROOT"
