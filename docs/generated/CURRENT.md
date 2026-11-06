@@ -11131,7 +11131,7 @@ failure, rebuilt.
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | The per-user project list | `crates/openwarrant-cli/src/projects.rs` | verified |
+| D-001 | The per-user project list | `crates/openwarrant-cli/src/projects.rs` | drift |
 | D-002 | war projects; touch on use; war from anywhere | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-004 | docs/TUI.md: the hub | `docs/TUI.md` | drift |
