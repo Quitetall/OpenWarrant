@@ -90,7 +90,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
-      - run: cargo xtask gate --only format,clippy,licenses,spdx,workflows,skill
+      - run: cargo xtask gate --only format,clippy,licenses,spdx,workflows,skill,doc-tests
 
   tests:
     name: full / tests
@@ -113,7 +113,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
-      - run: cargo xtask gate --only tests,doc-tests
+      - run: cargo xtask gate --only tests
 
   corpus:
     name: full / corpus

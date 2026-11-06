@@ -60,7 +60,7 @@ jobs:
         uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2
         with:
           tool: cargo-deny
-      - run: cargo xtask-fast --only format,clippy,licenses,skills
+      - run: cargo xtask-fast --only format,clippy,licenses,skills,doc-tests
 
   tests:
     name: fast / tests
@@ -82,7 +82,7 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
-      - run: cargo xtask-fast --only tests,doc-tests
+      - run: cargo xtask-fast --only tests
 
   corpus:
     name: fast / corpus
