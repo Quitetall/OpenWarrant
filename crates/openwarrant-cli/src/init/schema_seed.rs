@@ -39,6 +39,7 @@ const MEMBERS: &[(&str, &[u8])] = &[
     member!("stage-submission"),
     member!("standing-authorization"),
     member!("task-context"),
+    member!("unit-context"),
     member!("verification"),
     member!("war"),
 ];

@@ -25,7 +25,10 @@
 //! environment, no claim locks, no directory order.
 
 pub mod adapter;
+#[cfg(unix)]
+mod cache;
 pub mod task;
+pub mod units;
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -321,6 +324,9 @@ pub struct Options {
     pub depth: usize,
     /// Refuse rather than give any record by summary only.
     pub strict: bool,
+    /// The budget was asked for, so a target it cannot hold stays refused
+    /// (section 10.3) instead of giving the units that fit ([`units`]).
+    pub explicit_budget: bool,
     /// The preset; its budget and depth are the defaults of the two above.
     pub preset: Preset,
 }
@@ -339,6 +345,7 @@ impl Options {
             budget: preset.budget,
             depth: preset.depth,
             strict: false,
+            explicit_budget: false,
             preset,
         }
     }
@@ -355,6 +362,7 @@ impl Options {
         let mut o = Self::of(preset);
         if let Some(b) = budget.or_else(|| tokens.map(|t| t.saturating_mul(4))) {
             o.budget = Some(b);
+            o.explicit_budget = true;
         }
         if let Some(d) = depth {
             o.depth = d;
@@ -1362,6 +1370,17 @@ pub fn graph_of(corpus: &crate::corpus::Corpus) -> Result<Graph, crate::repo::Re
     Ok(adapter::graph(corpus, &model))
 }
 
+/// The graph `war context` answers from.
+///
+/// # Errors
+/// As [`graph_of`].
+pub fn context_graph(corpus: &crate::corpus::Corpus) -> Result<Graph, crate::repo::RepoError> {
+    #[cfg(unix)]
+    return cache::graph(corpus);
+    #[cfg(not(unix))]
+    return graph_of(corpus);
+}
+
 /// The index file `war admin compile` writes and `war check --generated`
 /// compares: its path and its bytes.
 pub fn index_file(
@@ -1480,9 +1499,25 @@ pub fn answer(
             g.tracking = Some(adapter::tracking(corpus, &g, text, *secs));
             g
         }
-        _ => graph_of(corpus)?,
+        _ => context_graph(corpus)?,
     };
-    let result = compile(&graph, target, opts);
+    let result = match answer_with(corpus, &graph, target, opts) {
+        Answered::Units(p) => {
+            let report = units::report_of(&p);
+            return Ok(match mode {
+                crate::output::Mode::Human => {
+                    let mut out = std::io::stdout().lock();
+                    let _ = out.write_all(p.markdown.as_bytes());
+                    let _ = out.flush();
+                    crate::EXIT_OK
+                }
+                crate::output::Mode::Json => {
+                    crate::output::finish(mode, "context", &report, Some(crate::output::value(&p)))
+                }
+            });
+        }
+        Answered::Records(r) => r,
+    };
     match mode {
         crate::output::Mode::Human => match result {
             Ok(p) => {
@@ -1501,6 +1536,31 @@ pub fn answer(
             let value = result.ok().map(|p| crate::output::value(&p));
             Ok(crate::output::finish(mode, "context", &report, value))
         }
+    }
+}
+
+/// What `war context` answers with.
+pub enum Answered {
+    /// A record packet of section 10, or its refusal.
+    Records(Result<Packet, Refusal>),
+    /// The units that fit, where a record packet would have been refused.
+    Units(units::UnitPacket),
+}
+
+/// [`compile`], and when it refuses, the units that can answer instead.
+#[must_use]
+pub fn answer_with(
+    corpus: &crate::corpus::Corpus,
+    graph: &Graph,
+    target: &str,
+    opts: &Options,
+) -> Answered {
+    match compile(graph, target, opts) {
+        Err(refused) => match units::degrade(corpus, graph, target, opts, refused) {
+            Ok(p) => Answered::Units(p),
+            Err(r) => Answered::Records(Err(r)),
+        },
+        ok => Answered::Records(ok),
     }
 }
 

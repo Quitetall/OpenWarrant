@@ -6,6 +6,20 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `war context` answers what used to end in a refusal, so an agent no longer
+  falls back to reading a whole file (`oh.war/unit-context/v1`). A long
+  document gives its units that fit, ranked, with every cut declared. A unit is
+  named as `COMBAT.md#friendly-fire`, and `## Heading {#id}` keeps that id when
+  the heading is reworded. Words (`war context "friendly fire"`) and code paths
+  find the units that match, locally and with no model. `--strict` refuses a
+  cut and `--full` gives everything. An explicit `--budget` still refuses as
+  Format 1.0 section 10.3 says, until that text changes.
+- `war context` keeps its compiled graph under the git common directory: on
+  this repository a repeat call takes about 170 ms instead of 6 s or more.
+  `OPENWARRANT_NO_CACHE` turns it off.
+
 ## [1.0.0-alpha.6] — 2026-11-05
 
 ### Added
