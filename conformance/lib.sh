@@ -132,6 +132,10 @@ done < <(git -C "$REPO_ROOT" ls-files --cached --others -z -- 'docs/warrants/*/d
 
 PASSED=0
 FAILED=0
+# The plant files this process started, and how long each took in whole
+# seconds: what `plant.sh` reports under OW_PLANT_REPORT.
+PLANT_RAN=()
+declare -A PLANT_SECONDS=()
 
 restore() {
     local dispatch
@@ -474,7 +478,7 @@ plant_fixed_tmp_paths() {
 # is FAILED by name, with the line (plant_fixed_tmp_paths,
 # plant_quiet_grep_pipes; plant_quiet_grep_held names the one exception).
 run_plant_files() {
-    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line _rpf_tmp _rpf_pipe
+    local _rpf_file _rpf_base _rpf_now _rpf_leak _rpf_line _rpf_tmp _rpf_pipe _rpf_started
     local -a _rpf_files=("$@")
     # A sourced file would see these positional parameters; it gets none.
     set --
@@ -486,6 +490,7 @@ run_plant_files() {
         # to test.
         unset PLANT_ROOT
         cd "$REPO_ROOT" || exit 1
+        PLANT_RAN+=("$(basename "$_rpf_file")")
         _rpf_tmp=$(plant_fixed_tmp_paths "$_rpf_file")
         if [[ -n "$_rpf_tmp" ]]; then
             printf 'FAIL  %-34s names a fixed /tmp path, so it was not run (use mktemp -d): %s\n' \
@@ -501,11 +506,13 @@ run_plant_files() {
             continue
         fi
         restore
+        _rpf_started=$SECONDS
         # shellcheck source=/dev/null
         source "$_rpf_file"
         unset PLANT_ROOT
         cd "$REPO_ROOT" || exit 1
         restore
+        PLANT_SECONDS["$(basename "$_rpf_file")"]=$((SECONDS - _rpf_started))
         _rpf_now=$(plant_tree_state)
         [[ "$_rpf_now" == "$_rpf_base" ]] && continue
         _rpf_leak=$(comm -13 <(sort <<<"$_rpf_base") <(sort <<<"$_rpf_now"))
