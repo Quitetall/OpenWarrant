@@ -12,7 +12,7 @@ This is the master document (OW-ADR-0022): what is authoritative in this reposit
 - **Current by construction.** A Warrant is current unless an authorized Warrant declares `supersedes` → it, or its resolution is annulled. Currency is derived from those relations, never written.
 - **Fully expanded.** Every current Warrant's atoms appear below verbatim, in role order. Nothing is paraphrased.
 - **Replaced subjects are one line.** 1 replaced subject(s) appear under *Replaced* as lineage and nothing else; their text is in the history, when this repository keeps one.
-- **Records as of 2026-10-24** — the latest recorded event. 144 current Warrant(s).
+- **Records as of 2026-11-06** — the latest recorded event. 144 current Warrant(s).
 
 ## In force
 
@@ -39676,8 +39676,4 @@ From the [authority register](../../docs/authority/roles.toml).
 
 ## Awaiting a human
 
-Every command here has been judged by the act's dry run (`war sign <target> --dry-run`): the ingest ran with the write withheld. `would record` means the signature is the only thing missing.
-
-| act | Warrant | command | judged | why |
-|---|---|---|---|---|
-| correct | OW-WAR-0060 | `war sign OW-WAR-0060/D-002` | would refuse: sign.needs-decision | xtask/src/main.rs drifted after resolution |
+Nothing awaits a signature.
