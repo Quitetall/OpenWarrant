@@ -30,7 +30,7 @@ tlw() { "$WAR" --root "$PLANT_ROOT" "$@"; }
 tlj() { "$WAR" --root "$PLANT_ROOT" --json "$@" 2>/dev/null; }
 tl_py() { python3 -c "import json, sys; v = json.load(sys.stdin); print($1)" 2>/dev/null; }
 tl_id() { awk 'NR==1{print $1}' <<<"$1"; }
-tl_cl() { cat "$PLANT_ROOT/docs/tickets/$1/atoms/15-checklist.md" 2>/dev/null; }
+tl_cl() { cat "$PLANT_ROOT/docs/tickets/$1.md" 2>/dev/null; }
 tl_item() { tlj show "$1" | tl_py "v['result']['items'][$2]['id']"; }
 
 # ---- 1. a title-only Warrant gains a test --------------------------------------
@@ -45,22 +45,22 @@ TL_OK=$(TL_GATE=0 tlw done "$TL_T" --check 2>&1); TL_OK_RC=$?
 TL_CL_AFTER_OK=$(tl_cl "$TL_T")
 TL_JOURNAL=$(cat "$PLANT_ROOT/docs/tickets/$TL_T/journal.jsonl" 2>/dev/null)
 if [[ $TL_ADD_RC -eq 0 && $TL_OK_RC -eq 0 ]] && grep -q '\[observed\]' <<<"$TL_CL_AFTER_OK" \
-    && grep -q 'ticked at observed: unit passed' <<<"$TL_OK" \
+    && grep -q "ticked at observed: $TL_T/CHK-unit passed" <<<"$TL_OK" \
     && grep -q 'stdout_sha256' <<<"$TL_JOURNAL" \
-    && [[ -f "$PLANT_ROOT/docs/tickets/$TL_T/atoms/30-checks.md" ]]; then
+    && grep -q '^## CHK-unit · check' <<<"$TL_CL_AFTER_OK"; then
     tl_ok "a title-only Warrant gains a test" "$TL_T: --test added, ticked at observed, receipt journalled"
 else
     tl_fail "a title-only Warrant gains a test" "add $TL_ADD_RC, done $TL_OK_RC: $(head -2 <<<"$TL_OK" | tr '\n' '|') $(grep -c . <<<"$TL_CL_AFTER_OK")"
 fi
-if [[ $TL_FAIL_RC -eq 2 ]] && grep -qF 'ticket.check-failed' <<<"$TL_FAIL" \
-    && grep -qF 'unit (`sh gate.sh`) exited non-zero' <<<"$TL_FAIL" \
+if [[ $TL_FAIL_RC -eq 2 ]] && grep -qF 'check.failed' <<<"$TL_FAIL" \
+    && grep -qF "$TL_T/CHK-unit" <<<"$TL_FAIL" \
     && ! grep -q '\[x\]' <<<"$TL_CL_AFTER_FAIL"; then
-    tl_ok "a failing test refuses observed" "ticket.check-failed names unit; nothing ticked"
+    tl_ok "a failing test refuses observed" "check.failed names the check; nothing ticked"
 else
     tl_fail "a failing test refuses observed" "exit $TL_FAIL_RC: $(head -c 300 <<<"$TL_FAIL")"
 fi
 # The create hint: one line, by default; `[warrants] hints = false` hides it.
-TL_HINTS=$(grep -c 'hint (optional): `war add' <<<"$TL_CREATE")
+TL_HINTS=$(grep -c 'hint (optional): `war plan add' <<<"$TL_CREATE")
 printf '\n[warrants]\nhints = false\n' >> "$PLANT_ROOT/openwarrant.toml"
 TL_QUIET=$(tlw create "Quiet one" 2>&1)
 if [[ "$TL_HINTS" == 1 ]] && ! grep -q 'hint' <<<"$TL_QUIET"; then
@@ -210,7 +210,7 @@ else
     tl_fail "the web page: levels apart" "$TL_UI | $(head -c 120 <<<"$TL_API")"
 fi
 # Refusal: a [signed] marker written by hand, with nothing behind it.
-TL_CLF="$PLANT_ROOT/docs/tickets/$TL_W/atoms/15-checklist.md"
+TL_CLF="$PLANT_ROOT/docs/tickets/$TL_W.md"
 sed -i "s/^\(- \[x\] plain ($TL_WP) — done by claude, [0-9-]*\)$/\1 [signed]/" "$TL_CLF"
 assert_present '[signed]' "$TL_CLF"
 TL_SHOWF=$(tlw show "$TL_W" 2>&1)
@@ -230,7 +230,7 @@ TL_K1=$(TL_P95=120 tlw kpi run "$TL_K" 2>&1)
 TL_K2=$(TL_P95=90 tlw kpi run "$TL_K" 2>&1)
 TL_K3=$(TL_P95=99 tlw kpi run "$TL_K" 2>&1)
 TL_KS=$(tlj show "$TL_K" | tl_py "(lambda k: '%s %s %s %s %s' % (k['best'], k['latest'], k['target'], k['runs'], k['latest_verdict']))(v['result']['checks']['kpis'][0])")
-TL_KJ=$(grep -c '"ticket.kpi_run"' "$PLANT_ROOT/docs/tickets/$TL_K/journal.jsonl")
+TL_KJ=$(grep -c '"work.kpi_run"' "$PLANT_ROOT/docs/tickets/$TL_K/journal.jsonl")
 if [[ "$TL_KS" == "90.0 99.0 100.0 3 pass" && "$TL_KJ" == 3 ]] && grep -qF 'best 90, target <= 100, 3 runs' <<<"$TL_K3"; then
     tl_ok "KPI best, latest, target, 3 runs" "best 90, latest 99, target 100; 3 runs journalled"
 else
@@ -253,8 +253,8 @@ else
 fi
 tlw claim "$TL_K" >/dev/null 2>&1
 TL_UD=$(TL_P95=80 tlw done "$TL_K" --check 2>&1); TL_UD_RC=$?
-if [[ $TL_UD_RC -eq 2 ]] && grep -qF 'UNKNOWN (ticket.check-unknown)' <<<"$TL_UD" && ! grep -q '\[x\]' <<<"$(tl_cl "$TL_K")"; then
-    tl_ok "UNKNOWN holds an observed tick" "ticket.check-unknown; nothing ticked"
+if [[ $TL_UD_RC -eq 2 ]] && grep -qF 'UNKNOWN (check.unknown)' <<<"$TL_UD" && ! grep -q '\[x\]' <<<"$(tl_cl "$TL_K")"; then
+    tl_ok "UNKNOWN holds an observed tick" "check.unknown; nothing ticked"
 else
     tl_fail "UNKNOWN holds an observed tick" "exit $TL_UD_RC: $(head -c 300 <<<"$TL_UD")"
 fi
@@ -262,13 +262,13 @@ fi
 # ---- 6. the TaskCompleted hook does nothing on an unrelated task ---------------
 TL_H=$(tl_id "$(tlw create "Hooked" -i "the step" 2>&1)")
 TL_HI=$(tl_item "$TL_H" 0)
-TL_HSUM0=$(sha256sum < "$PLANT_ROOT/docs/tickets/$TL_H/atoms/15-checklist.md")
+TL_HSUM0=$(sha256sum < "$PLANT_ROOT/docs/tickets/$TL_H.md")
 tl_hook() {
     printf '{"hook_event_name":"TaskCompleted","cwd":"%s","task_id":"task-1","task_subject":"%s"}' "$PLANT_ROOT" "$1" \
         | PATH="$REPO_ROOT/target/debug:$PATH" bash "$REPO_ROOT/.claude/hooks/task-completed.sh" 2>"$TL_TMP/hook.err"
 }
 TL_HOUT=$(tl_hook "Implement user authentication"); TL_HRC=$?
-TL_HSUM1=$(sha256sum < "$PLANT_ROOT/docs/tickets/$TL_H/atoms/15-checklist.md")
+TL_HSUM1=$(sha256sum < "$PLANT_ROOT/docs/tickets/$TL_H.md")
 if [[ $TL_HRC -eq 0 && -z "$TL_HOUT" && ! -s "$TL_TMP/hook.err" && "$TL_HSUM0" == "$TL_HSUM1" ]]; then
     tl_ok "the hook ignores an unrelated task" "exit 0, no output, the checklist byte-identical"
 else
@@ -385,7 +385,7 @@ else
     tl_fail "signed: a verified sign-off" "$TL_NOSSH_RC/$TL_SIGN_RC: $(head -c 200 <<<"$TL_SIGN") | $(grep -F 'the release' <<<"$TL_SSHOW")"
 fi
 # The sign-off is over the item's words: reword it, and it no longer reads signed.
-sed -i "s/^- \[x\] the release ($TL_SI)/- [x] the release, reworded ($TL_SI)/" "$PLANT_ROOT/docs/tickets/$TL_S/atoms/15-checklist.md"
+sed -i "s/^- \[x\] the release ($TL_SI)/- [x] the release, reworded ($TL_SI)/" "$PLANT_ROOT/docs/tickets/$TL_S.md"
 TL_SSHOW2=$(tlw show "$TL_S" 2>&1)
 if grep -qF -- "- [x] (claimed) the release, reworded ($TL_SI)" <<<"$TL_SSHOW2" \
     && grep -qF 'text changed since Plant Signer signed it off' <<<"$TL_SSHOW2"; then

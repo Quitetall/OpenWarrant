@@ -1159,7 +1159,14 @@ pub fn fire(store: &Store, sel: &Select<'_>) -> Result<(Firing, Report), RepoErr
         firing.evaluation.failing.extend(e.failing);
         firing.evaluation.unknown.extend(e.unknown);
         for d in r.diagnostics {
-            report.push(d);
+            // A check this firing ran has been reported already, by its run.
+            let said = report
+                .diagnostics
+                .iter()
+                .any(|x| x.rule == d.rule && x.file == d.file);
+            if !said {
+                report.push(d);
+            }
         }
     }
     Ok((firing, report))

@@ -3739,7 +3739,7 @@ impl Store {
                     let c = c.map(|c| *c);
                     let how = match &c {
                         Some(c) if owns_claim(self, c) => Some(Takeover::Own),
-                        Some(c) if c.lease_expired(now) => Some(Takeover::Reclaimed),
+                        Some(c) if !c.reserves(now) => Some(Takeover::Reclaimed),
                         Some(c) if steal && c.age(now) > self.ttl_secs => Some(Takeover::Stolen),
                         _ => None,
                     };
