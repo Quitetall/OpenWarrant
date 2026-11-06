@@ -13,7 +13,7 @@ Notable changes to OpenWarrant. Format loosely follows
   prompt names an item by id, a capital code (`T8`), a double-quoted phrase or
   its whole title, through the lookup `war start` uses. Several matches add one
   line and no brief (on the first prompt only); none adds nothing, nor does a
-  Warrant you hold. It reads, claims nothing, stays within 4,096 bytes with any
+  Warrant you hold. It reads, claims nothing, stays within 6,144 bytes with any
   cut declared, adds the same brief once a session, respects `[tickets]
   session_start = false`, and a hook failure never holds a prompt.
 - `war admin agents-md --block --ready <N>` lists up to five ready Warrants in

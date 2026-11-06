@@ -471,8 +471,8 @@ fn a_prompt_gets_the_brief_of_the_item_it_names_and_never_a_guess() {
 
     // Over budget: cut at a line, the cut declared, and how to get the rest.
     let said = text(&long);
-    assert!(said.len() <= 4096, "{} bytes", said.len());
-    assert!(said.contains("cut to 4096 bytes") && said.contains(&format!("war start {long}")));
+    assert!(said.len() <= 6144, "{} bytes", said.len());
+    assert!(said.contains("cut to 6144 bytes") && said.contains(&format!("war start {long}")));
 
     // From stdin, as the hook hands it over.
     let mut child = Command::new(env!("CARGO_BIN_EXE_war"))

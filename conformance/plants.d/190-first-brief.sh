@@ -6,7 +6,7 @@
 # puts the brief of the item a prompt names in context, through the real hook
 # script. A wrong brief is worse than none, so each claim has its refusal:
 #
-# - A prompt naming an item gets its brief, within 4,096 bytes, and nothing is
+# - A prompt naming an item gets its brief, within 6,144 bytes, and nothing is
 #   claimed. Naming nothing, or a word that only resembles a name, adds nothing.
 # - Several matches add one line and no brief, on the first prompt only.
 # - The same brief is added once a session; a changed item is added again.
@@ -112,7 +112,7 @@ fi
 # --- the budget ------------------------------------------------------------------
 fb_hook s5 "$FB_LONG"
 FB_B=$(printf '%s' "$FB_OUT" | wc -c)
-if [[ $FB_RC -eq 0 && $FB_B -le 4096 && $FB_OUT == *"cut to 4096 bytes"* && $FB_OUT == *"war start $FB_LONG"* ]]; then
+if [[ $FB_RC -eq 0 && $FB_B -le 6144 && $FB_OUT == *"cut to 6144 bytes"* && $FB_OUT == *"war start $FB_LONG"* ]]; then
     fb_ok "a long item is cut, and says so" "$FB_B bytes of $(fb_war view prime "$FB_LONG" 2>/dev/null | wc -c)"
 else
     fb_fail "a long item is cut, and says so" "exit $FB_RC, $FB_B bytes: $(tail -c 200 <<<"$FB_OUT")"

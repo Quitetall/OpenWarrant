@@ -1902,7 +1902,7 @@ enum ViewCommand {
         /// UserPromptSubmit hook), by id, a capital code such as `T8`, a
         /// quoted phrase or its whole title; `-` reads the prompt from
         /// stdin. Several: a line listing them. None, or a Warrant you hold:
-        /// nothing. Bounded to 4,096 bytes, reads only, and claims nothing.
+        /// nothing. Bounded to 6,144 bytes, reads only, and claims nothing.
         #[arg(long, value_name = "TEXT", conflicts_with_all = ["ticket", "session"])]
         prompt: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]

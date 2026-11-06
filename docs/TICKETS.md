@@ -508,7 +508,7 @@ chain only saves the turns. The plugin's SessionStart hook puts the ticket you
 hold (or the open list) in front of the agent before its first turn, and says
 nothing when no ticket is open (`[tickets] session_start = false` turns it off). Its UserPromptSubmit hook
 does the same for the ticket a prompt names (by id, a capital code such as `T8`, a double-quoted phrase or
-its whole title), through `war view prime --prompt`, within 4,096 bytes and without claiming it: take it with
+its whole title), through `war view prime --prompt`, within 6,144 bytes and without claiming it: take it with
 `war start <id>`. Several matches add one line and no brief, and a prompt naming nothing adds nothing. A
 harness with no such hook can read a short list from `AGENTS.md`, which `war admin agents-md --block --ready 3`
 writes; only that command refreshes it, so run it before agents start. `war view prime` lists what
