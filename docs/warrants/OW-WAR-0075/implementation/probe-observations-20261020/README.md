@@ -19,8 +19,11 @@ as its build source. All 22 original cases passed, with unchanged inputs.
 
 The `cases/` files expose individual observed results. They remove duplicate
 unit text only after comparing it byte-for-byte with the named source at the
-observed spans; `source_ref` identifies that source. The complete unmodified
-stdout retains the original text. These are deterministic projections of
+observed spans; `source_ref` identifies that source and its input descriptor.
+The exact input record supplies the duplicate filename, length and SHA-256.
+Each unit's `text_ref` indexes the exact UTF-8 value in the shared `texts`
+dictionary. Together these reconstruct every original observed result.
+The complete unmodified stdout retains the original text. These are deterministic projections of
 actual observations, not new execution or independent judgments.
 
 Packet inspection still found incomplete delivery: the combined stream exposed

@@ -1,0 +1,22 @@
+{
+  "argv": [
+    "cargo",
+    "test",
+    "--locked",
+    "-p",
+    "openwarrant-core",
+    "--test",
+    "document_author",
+    "--test",
+    "document_author_resources"
+  ],
+  "exit_code": 0,
+  "elapsed_seconds": 25.912060697002744,
+  "source_head": "40ecb9bc4dc36e4c610b65ca6696fe87a1e689e4",
+  "source_sha256": {
+    "crates/openwarrant-core/src/document/author.rs": "0cb660ab5ff841a3b8bb9027be559727b32b1cb5623af9b03bc055a92f8f0225",
+    "crates/openwarrant-core/tests/document_author.rs": "802a124ebbeaba3ef7e46f9053c732c7152f2af7da5b32bbdcabea483b6457e2",
+    "crates/openwarrant-core/tests/document_author_resources.rs": "b1b97f5abdf8cabc5650198d6a4423336f6edbe43fae5b130f3cbfed965ed6b7"
+  },
+  "qualification_established": false
+}
