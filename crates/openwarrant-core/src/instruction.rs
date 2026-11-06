@@ -374,9 +374,10 @@ pub fn block_with(version: &str, ready: &[String]) -> String {
         BLOCK_BEGIN,
         "<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->",
         "Ordinary coding needs no Warrant and no ticket: work here as in any repository.",
-        "Tracked work, when there is some: run `war start` with your first look at the code (it",
-        "takes the next ready Warrant, or `war start <words of its title>` a named one, and prints",
-        "only what it needs); close it with your last test run:",
+        "Tracked work, when there is some: run `war start` before reading anything else (it takes",
+        "the next ready item, or `war start T8` a named one, by id or words of its title, and",
+        "prints only what it needs). Don't read docs/tickets/ directly: it costs far more. Close",
+        "it with your last test run:",
         "`<your tests> && war done --note \"what you did\"`. `war view prime` lists all.",
     ]
     .map(str::to_owned)
