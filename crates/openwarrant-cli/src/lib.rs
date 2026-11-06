@@ -5002,6 +5002,8 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Frontier { all: true, .. } => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let corpus = corpus::Corpus::new(&repository);
             let store = ticket::Store::open(&repository, None)?;
             let (report, g) = graph::build(&corpus, &store)?;
@@ -5020,6 +5022,8 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Estimate => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let corpus = corpus::Corpus::new(&repository);
             let store = ticket::Store::open(&repository, None)?;
             let prior = match go::policy::load(&repository.root) {
@@ -5043,6 +5047,8 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Frontier { alias, .. } => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            gate_cmd::source::remember_tree_reads();
             let (report, f) = frontier::run(&repository, alias.as_deref())?;
             match mode {
                 output::Mode::Human => {
