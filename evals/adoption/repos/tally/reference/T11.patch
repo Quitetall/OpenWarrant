@@ -1,0 +1,185 @@
+diff --git a/README.md b/README.md
+index 132825b..d5f39ea 100644
+--- a/README.md
++++ b/README.md
+@@ -25,7 +25,7 @@ python3 -m tally <command> <journal file> [options]
+ | `budget --from DATE --until DATE` | per budgeted account: actual, budget and remaining over the period |
+ | `budget ... --monthly` | one table per calendar month, each headed `FIRST..LAST`; a month's remaining carries into the next month's budget |
+ | `networth --until DATE [--from DATE] [--convert COMMODITY] [--forecast] [--cost]` | Assets plus Liabilities at the end of each month, as `DATE  AMOUNT` |
+-| `import CSV --rules FILE` | a bank CSV export as journal transactions (rules: see `tally/importer.py`) |
++| `import CSV --rules FILE [--journal FILE]` | a bank CSV export as journal transactions (rules: see `tally/importer.py`), leaving out rows the journal already has |
+ | `check` | `ok: ...`, or every problem in the journal as `FILE:LINE: message` |
+ 
+ `ACCOUNT` limits a report to that account and its descendants
+diff --git a/tally/cli.py b/tally/cli.py
+index ef8f324..79d08d9 100644
+--- a/tally/cli.py
++++ b/tally/cli.py
+@@ -18,7 +18,7 @@ from tally.amounts import AmountError, parse_commodity
+ from tally.convert import ConversionError, Converter, latest_date, valuation
+ from tally.errors import JournalError, UsageError
+ from tally.filters import add_date_range_options, date_argument, date_range_from_args, restrict
+-from tally.importer import CsvImportError, import_csv, parse_rules
++from tally.importer import CsvImportError, drop_duplicates, import_csv, parse_rules
+ from tally.model import Journal
+ from tally.parser import load_journal, parse_file
+ from tally.periodic import expand
+@@ -150,8 +150,13 @@ def cmd_budget(args: argparse.Namespace) -> int:
+ def cmd_import(args: argparse.Namespace) -> int:
+     rules = parse_rules(args.rules)
+     transactions = import_csv(args.csv, rules)
++    skipped = 0
++    if args.journal is not None:
++        transactions, skipped = drop_duplicates(transactions, load_journal(args.journal), rules)
+     if transactions:
+         print(render_transactions(transactions))
++    if skipped:
++        print(f"tally: note: skipped {skipped} duplicate row(s)", file=sys.stderr)
+     return EXIT_OK
+ 
+ 
+@@ -289,6 +294,10 @@ def _add_import(sub: argparse._SubParsersAction) -> None:
+     p = sub.add_parser("import", help="convert a bank CSV export into journal transactions")
+     p.add_argument("csv", help="CSV file")
+     p.add_argument("--rules", required=True, metavar="FILE", help="rules file")
++    p.add_argument(
++        "--journal", metavar="FILE",
++        help="leave out rows this journal already records",
++    )
+     p.set_defaults(func=cmd_import)
+ 
+ 
+diff --git a/tally/importer.py b/tally/importer.py
+index d00b5d6..be8c10b 100644
+--- a/tally/importer.py
++++ b/tally/importer.py
+@@ -16,7 +16,11 @@ counter-account by matching its payee against regular expressions::
+ 
+ A positive CSV amount is money into ``account``. Each row becomes a
+ transaction whose first posting is the counter-account with the negated
+-amount and whose second is ``account`` with the amount.
++amount and whose second is ``account`` with the amount. ``commodity CODE``
++gives both postings that commodity.
++
++With an existing journal, rows it already records are left out: see
++:func:`drop_duplicates`.
+ """
+ 
+ from __future__ import annotations
+@@ -28,12 +32,15 @@ from dataclasses import dataclass, field
+ from pathlib import Path
+ 
+ from tally.accounts import account_problem
+-from tally.amounts import AmountError, parse_amount
+-from tally.model import Posting, Transaction
++from tally.amounts import AmountError, parse_amount, parse_commodity
++from tally.model import Journal, Posting, Transaction
+ 
+ REQUIRED = ("account", "date-column", "payee-column", "amount-column")
+ DEFAULT_ACCOUNT = "Expenses:Unknown"
+ DEFAULT_DATE_FORMAT = "%Y-%m-%d"
++# A journal posting dated up to this many days either side of a CSV row's
++# date can match it: the bank books card payments a few days late.
++DUPLICATE_WINDOW_DAYS = 3
+ 
+ 
+ class CsvImportError(Exception):
+@@ -49,6 +56,7 @@ class Rules:
+     date_format: str = DEFAULT_DATE_FORMAT
+     skip: int = 0
+     default_account: str = DEFAULT_ACCOUNT
++    commodity: str = ""
+     rules: list[tuple[re.Pattern, str]] = field(default_factory=list)
+ 
+     def account_for(self, payee: str) -> str:
+@@ -97,6 +105,11 @@ def parse_rules(path: str) -> Rules:
+             rules.skip = _number(where, value, 0)
+         elif key == "date-format":
+             rules.date_format = value
++        elif key == "commodity":
++            try:
++                rules.commodity = parse_commodity(value)
++            except AmountError as exc:
++                raise CsvImportError(f"{where}: {exc}") from None
+         elif key == "rule":
+             regex, sep, account = value.partition(" => ")
+             if not sep or not regex.strip() or not account.strip():
+@@ -143,8 +156,49 @@ def import_csv(path: str, rules: Rules) -> list[Transaction]:
+                 raise CsvImportError(f"{where}: invalid amount '{amount_text}'") from None
+             txn = Transaction(date=date, payee=payee, path=path, line=lineno)
+             txn.postings = [
+-                Posting(rules.account_for(payee), -amount, lineno),
+-                Posting(rules.account, amount, lineno),
++                Posting(rules.account_for(payee), -amount, lineno, rules.commodity),
++                Posting(rules.account, amount, lineno, rules.commodity),
+             ]
+             transactions.append(txn)
+     return transactions
++
++
++def drop_duplicates(
++    transactions: list[Transaction], journal: Journal, rules: Rules
++) -> tuple[list[Transaction], int]:
++    """Leave out the imported transactions ``journal`` already records.
++
++    A row is a duplicate when the journal has a posting to the rules'
++    ``account`` with the row's amount and commodity, dated within
++    DUPLICATE_WINDOW_DAYS of the row. Rows claim postings in CSV order; each
++    journal posting is claimed at most once, the closest in date first and
++    the earliest in the journal on a tie. Returns the kept transactions and
++    the number left out.
++    """
++    candidates = [
++        (txn.date, posting)
++        for txn in journal.transactions
++        for posting in txn.postings
++        if posting.account == rules.account
++    ]
++    used: set[int] = set()
++    kept: list[Transaction] = []
++    for txn in transactions:
++        mine = txn.postings[1]
++        best = None
++        for index, (date, posting) in enumerate(candidates):
++            distance = abs((date - txn.date).days)
++            if (
++                index in used
++                or distance > DUPLICATE_WINDOW_DAYS
++                or posting.amount != mine.amount
++                or posting.commodity != mine.commodity
++            ):
++                continue
++            if best is None or distance < best[0]:
++                best = (distance, index)
++        if best is None:
++            kept.append(txn)
++        else:
++            used.add(best[1])
++    return kept, len(transactions) - len(kept)
+diff --git a/tests/test_importer.py b/tests/test_importer.py
+index fb01018..e01745b 100644
+--- a/tests/test_importer.py
++++ b/tests/test_importer.py
+@@ -38,3 +38,22 @@ def test_import_rejects_unknown_directive(tmp_path):
+     result = run_tally("import", tmp_path / "b.csv", "--rules", tmp_path / "r.rules")
+     assert result.returncode == 2
+     assert result.stderr == f"tally: error: {tmp_path / 'r.rules'}:7: unknown directive 'colour'\n"
++
++
++def test_import_commodity_and_duplicates(tmp_path):
++    (tmp_path / "r.rules").write_text(RULES + "commodity EUR\n")
++    (tmp_path / "b.csv").write_text(CSV)
++    (tmp_path / "main.ledger").write_text(
++        "2026-02-27 Coffee\n    Expenses:Coffee  4.50 EUR\n    Assets:Checking  -4.50 EUR\n"
++    )
++    result = run_tally(
++        "import", tmp_path / "b.csv", "--rules", tmp_path / "r.rules",
++        "--journal", tmp_path / "main.ledger",
++    )
++    assert result.returncode == 0, result.stderr
++    assert result.stdout == (
++        "2026-03-02 Employer\n"
++        "    Expenses:Unknown  -1000.00 EUR\n"
++        "    Assets:Checking  1000.00 EUR\n"
++    )
++    assert result.stderr == "tally: note: skipped 1 duplicate row(s)\n"

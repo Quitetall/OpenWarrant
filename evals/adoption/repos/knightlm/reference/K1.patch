@@ -1,0 +1,159 @@
+diff --git a/README.md b/README.md
+index 08d12de..52fdb5e 100644
+--- a/README.md
++++ b/README.md
+@@ -57,6 +57,7 @@ cargo run --locked -- probes fixtures/start.json
+ cargo run --locked -- render fixtures/start.json --black-bottom --blue-theme
+ cargo run --locked -- evaluate-fixtures fixtures/start.json
+ cargo run --locked -- simulate fixtures/start.json e2e4 e7e5 --budget 8
++cargo run --locked -- perft fixtures/start.json 3 --divide
+ cargo run --locked -- validate-evals fixtures/evaluations.jsonl
+ cargo run --locked -- audit-splits fixtures/splits.json
+ cargo run --locked -- validate-corpora fixtures/corpora.json
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 1bcecc8..1dd6d80 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -48,6 +48,13 @@ enum Command {
+     ValidateCorpora { file: PathBuf },
+     /// Check observed board placement against the authoritative ledger.
+     VerifyObservation { game: PathBuf, observation: PathBuf },
++    /// Count legal move paths from the replayed position (no draw adjudication).
++    Perft {
++        game: PathBuf,
++        depth: u32,
++        #[arg(long)]
++        divide: bool,
++    },
+     /// Apply a bounded sequence of single-ply hypothetical moves.
+     Simulate {
+         game: PathBuf,
+@@ -61,6 +68,9 @@ enum Command {
+     VerifyModel { profile: PathBuf },
+ }
+ 
++/// Perft is a bounded diagnostic, not a search: deeper counts are refused.
++const MAX_PERFT_DEPTH: u32 = 6;
++
+ fn read<T: serde::de::DeserializeOwned>(path: &PathBuf) -> Result<T> {
+     Ok(serde_json::from_reader(BufReader::new(
+         File::open(path).with_context(|| path.display().to_string())?,
+@@ -207,6 +217,30 @@ fn main() -> Result<()> {
+             }
+             emit(&replies, false)?;
+         }
++        Command::Perft {
++            game: path,
++            depth,
++            divide,
++        } => {
++            ensure!(
++                depth <= MAX_PERFT_DEPTH,
++                "perft depth must be at most {MAX_PERFT_DEPTH}"
++            );
++            ensure!(
++                !divide || depth >= 1,
++                "--divide requires depth of at least 1"
++            );
++            let state = game(&path)?;
++            let mut report = serde_json::json!({
++                "fen": state.fen(),
++                "depth": depth,
++                "nodes": state.perft(depth),
++            });
++            if divide {
++                report["divide"] = serde_json::to_value(state.perft_divide(depth))?;
++            }
++            emit(&report, false)?;
++        }
+         Command::TrainSmoke { checkpoint } => emit(&smoke::train_smoke(&checkpoint)?, false)?,
+         Command::VerifyModel { profile } => {
+             let report = verify_model(&read::<ModelProfile>(&profile)?)?;
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index 5124d0f..372c41a 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -322,6 +322,29 @@ impl GameState {
+         Ok(())
+     }
+ 
++    /// Count legal move paths of exactly `depth` plies by the rules of movement
++    /// alone. Draw and dead-position adjudication are deliberately ignored.
++    pub fn perft(&self, depth: u32) -> u64 {
++        perft_board(&self.board, depth)
++    }
++
++    /// Per-root-move perft counts keyed by standard UCI (castling as `e1g1`).
++    pub fn perft_divide(&self, depth: u32) -> BTreeMap<String, u64> {
++        let mut divide = BTreeMap::new();
++        if depth == 0 {
++            return divide;
++        }
++        for mv in self.internal_moves() {
++            let mut child = self.board.clone();
++            child.play_unchecked(mv);
++            divide.insert(
++                cozy_chess::util::display_uci_move(&self.board, mv).to_string(),
++                perft_board(&child, depth - 1),
++            );
++        }
++        divide
++    }
++
+     pub fn features(&self) -> DerivedFeatures {
+         let mut material_counts = BTreeMap::new();
+         let mut attacks = BTreeMap::new();
+@@ -368,6 +391,26 @@ impl GameState {
+     }
+ }
+ 
++fn perft_board(board: &Board, depth: u32) -> u64 {
++    if depth == 0 {
++        return 1;
++    }
++    let mut nodes = 0;
++    board.generate_moves(|moves| {
++        if depth == 1 {
++            nodes += moves.len() as u64;
++        } else {
++            for mv in moves {
++                let mut child = board.clone();
++                child.play_unchecked(mv);
++                nodes += perft_board(&child, depth - 1);
++            }
++        }
++        false
++    });
++    nodes
++}
++
+ /// Each request simulates one ply from an immutable numbered branch.
+ pub struct RuleSession {
+     states: Vec<GameState>,
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index 6d7cd59..d8f1511 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -377,3 +377,22 @@ fn teacher_evaluation_depth_and_score_validation() {
+     row.evals[0].pvs[0].mate = Some(2);
+     assert!(row.validate().is_err());
+ }
++
++#[test]
++fn perft_matches_published_counts_and_ignores_adjudication() {
++    let s = start();
++    assert_eq!(
++        (0..=3).map(|d| s.perft(d)).collect::<Vec<_>>(),
++        [1, 20, 400, 8902]
++    );
++    let divide = s.perft_divide(2);
++    assert_eq!(divide.len(), 20);
++    assert!(divide.values().all(|&n| n == 20));
++    let dead = setup("8/8/4k3/8/8/2B5/8/4K3 w - - 0 1", true);
++    assert_eq!(
++        dead.facts().terminal_reason.as_deref(),
++        Some("proven_dead_position")
++    );
++    assert!(dead.legal_moves().is_empty());
++    assert_eq!(dead.perft(1), 15);
++}

@@ -1,0 +1,9 @@
+[project]
+name = "tally"
+version = "0.3.0"
+description = "A plain-text double-entry ledger"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

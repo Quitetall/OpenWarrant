@@ -1,0 +1,255 @@
+diff --git a/README.md b/README.md
+index da80879..2644849 100644
+--- a/README.md
++++ b/README.md
+@@ -61,6 +61,7 @@ cargo run --locked -- perft fixtures/start.json 3 --divide
+ cargo run --locked -- compile fixtures/start.json --legal-choices --san
+ cargo run --locked -- import-pgn game.pgn --game 1
+ cargo run --locked -- export-pgn fixtures/repetition.json
++cargo run --locked -- encode fixtures/start.json --relative
+ cargo run --locked -- validate-evals fixtures/evaluations.jsonl
+ cargo run --locked -- audit-splits fixtures/splits.json
+ cargo run --locked -- validate-corpora fixtures/corpora.json
+diff --git a/crates/cli/src/main.rs b/crates/cli/src/main.rs
+index 7727289..59ec3a4 100644
+--- a/crates/cli/src/main.rs
++++ b/crates/cli/src/main.rs
+@@ -67,6 +67,13 @@ enum Command {
+     },
+     /// Write a normalized game as PGN with SAN movetext.
+     ExportPgn { game: PathBuf },
++    /// Encode the current position as a flat 64-square board (FEN reading order).
++    Encode {
++        game: PathBuf,
++        /// Mirror the board so the side to move is uppercase at the bottom.
++        #[arg(long)]
++        relative: bool,
++    },
+     /// Apply a bounded sequence of single-ply hypothetical moves.
+     Simulate {
+         game: PathBuf,
+@@ -281,6 +288,13 @@ fn main() -> Result<()> {
+                 knightlm_core::pgn::export(&read::<GameRecord>(&game)?)?
+             )
+         }
++        Command::Encode {
++            game: path,
++            relative,
++        } => emit(
++            &knightlm_core::encode::encode(&game(&path)?, relative),
++            false,
++        )?,
+         Command::TrainSmoke { checkpoint } => emit(&smoke::train_smoke(&checkpoint)?, false)?,
+         Command::VerifyModel { profile } => {
+             let report = verify_model(&read::<ModelProfile>(&profile)?)?;
+diff --git a/crates/core/src/encode.rs b/crates/core/src/encode.rs
+new file mode 100644
+index 0000000..0c92a68
+--- /dev/null
++++ b/crates/core/src/encode.rs
+@@ -0,0 +1,92 @@
++//! Flat, model-facing encoding of the current position. Every field is derived
++//! from the replayed ledger; nothing is inferred from an image or a bare FEN.
++use serde::Serialize;
++
++use crate::state::{GameState, parse_placement};
++
++/// Castling rights of the position (or of the side to move, when relative).
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct CastlingRights {
++    pub white_king_side: bool,
++    pub white_queen_side: bool,
++    pub black_king_side: bool,
++    pub black_queen_side: bool,
++}
++
++#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
++pub struct BoardEncoding {
++    pub fen: String,
++    pub side_to_move: String,
++    pub relative: bool,
++    /// 64 one-character strings, FEN piece letters or `.`, in FEN reading
++    /// order: index 0 is a8, index 7 is h8, index 56 is a1, index 63 is h1.
++    pub squares: Vec<String>,
++    pub castling: CastlingRights,
++    /// Only when an en passant capture is legal now.
++    pub en_passant: Option<String>,
++    pub halfmove_clock: u32,
++    pub fullmove_number: u32,
++    pub repetition_count: Option<u32>,
++}
++
++/// Encode the current position. With `relative` and Black to move, the board is
++/// mirrored vertically with colours swapped, so the side to move is uppercase
++/// and moves up the board; castling and en passant are mirrored to match.
++pub fn encode(state: &GameState, relative: bool) -> BoardEncoding {
++    let fen = state.fen();
++    let fields: Vec<_> = fen.split_whitespace().collect();
++    let squares = parse_placement(fields[0]).expect("ledger placement is well formed");
++    let black = fields[1] == "b";
++    let flip = relative && black;
++    let rights = fields[2];
++    let mut castling = CastlingRights {
++        white_king_side: rights.contains('K'),
++        white_queen_side: rights.contains('Q'),
++        black_king_side: rights.contains('k'),
++        black_queen_side: rights.contains('q'),
++    };
++    let mut en_passant = state.usable_en_passant();
++    let mut cells = Vec::with_capacity(64);
++    for index in 0..64 {
++        // FEN reading order: rank 8 first, files a to h within a rank.
++        let (rank, file) = (7 - index / 8, index % 8);
++        let rank = if flip { 7 - rank } else { rank };
++        let cell = match squares[rank * 8 + file] {
++            Some(piece) if flip => swap_case(piece),
++            Some(piece) => piece,
++            None => '.',
++        };
++        cells.push(cell.to_string());
++    }
++    if flip {
++        castling = CastlingRights {
++            white_king_side: castling.black_king_side,
++            white_queen_side: castling.black_queen_side,
++            black_king_side: castling.white_king_side,
++            black_queen_side: castling.white_queen_side,
++        };
++        en_passant = en_passant.map(|square| {
++            let (file, rank) = square.split_at(1);
++            format!("{file}{}", 9 - rank.parse::<u32>().expect("square rank"))
++        });
++    }
++    BoardEncoding {
++        side_to_move: if black { "black" } else { "white" }.into(),
++        relative,
++        squares: cells,
++        castling,
++        en_passant,
++        halfmove_clock: fields[4].parse().expect("ledger counter"),
++        fullmove_number: fields[5].parse().expect("ledger counter"),
++        repetition_count: state.facts().repetition_count,
++        fen,
++    }
++}
++
++fn swap_case(piece: char) -> char {
++    if piece.is_ascii_uppercase() {
++        piece.to_ascii_lowercase()
++    } else {
++        piece.to_ascii_uppercase()
++    }
++}
+diff --git a/crates/core/src/lib.rs b/crates/core/src/lib.rs
+index e29e3c8..bcf5c8e 100644
+--- a/crates/core/src/lib.rs
++++ b/crates/core/src/lib.rs
+@@ -1,5 +1,6 @@
+ //! Deterministic state and research contracts. No neural inference or engine access.
+ pub mod data;
++pub mod encode;
+ pub mod experiment;
+ pub mod pgn;
+ pub mod san;
+diff --git a/crates/core/src/state.rs b/crates/core/src/state.rs
+index 6ef6423..293ca4a 100644
+--- a/crates/core/src/state.rs
++++ b/crates/core/src/state.rs
+@@ -100,7 +100,7 @@ pub struct SquareMismatch {
+ }
+ 
+ /// FEN piece placement as 64 squares indexed a1 = 0 ... h8 = 63.
+-fn parse_placement(placement: &str) -> Result<[Option<char>; 64]> {
++pub(crate) fn parse_placement(placement: &str) -> Result<[Option<char>; 64]> {
+     let ranks: Vec<_> = placement.split('/').collect();
+     ensure!(ranks.len() == 8, "placement needs eight ranks");
+     let mut squares = [None; 64];
+@@ -192,19 +192,25 @@ impl GameState {
+     pub fn position_key(&self) -> String {
+         let fen = self.board.to_string();
+         let fields: Vec<_> = fen.split_whitespace().collect();
++        format!(
++            "{} {} {} {}",
++            fields[0],
++            fields[1],
++            fields[2],
++            self.usable_en_passant().as_deref().unwrap_or("-")
++        )
++    }
++
++    /// The en passant target square, only when an en passant capture is legal now.
++    pub fn usable_en_passant(&self) -> Option<String> {
+         let ep_usable = self.board.en_passant().is_some()
+             && self.internal_moves().iter().any(|m| {
+                 self.board.piece_on(m.from) == Some(Piece::Pawn)
+                     && m.from.file() != m.to.file()
+                     && self.board.piece_on(m.to).is_none()
+             });
+-        format!(
+-            "{} {} {} {}",
+-            fields[0],
+-            fields[1],
+-            fields[2],
+-            if ep_usable { fields[3] } else { "-" }
+-        )
++        let fen = self.board.to_string();
++        ep_usable.then(|| fen.split_whitespace().nth(3).unwrap().to_owned())
+     }
+ 
+     fn internal_moves(&self) -> Vec<Move> {
+diff --git a/crates/core/tests/contracts.rs b/crates/core/tests/contracts.rs
+index b5c11ea..f8d600d 100644
+--- a/crates/core/tests/contracts.rs
++++ b/crates/core/tests/contracts.rs
+@@ -521,3 +521,33 @@ fn observation_mismatches_are_listed_per_square_and_malformed_input_refused() {
+         assert_eq!(err.to_string(), "malformed observation placement", "{bad}");
+     }
+ }
++
++#[test]
++fn encoding_lists_squares_in_fen_reading_order_and_mirrors_when_relative() {
++    let mut s = start();
++    for m in ["e2e4", "a7a6", "e4e5", "d7d5"] {
++        s.play(m).unwrap();
++    }
++    let absolute = knightlm_core::encode::encode(&s, false);
++    assert_eq!(absolute.squares.len(), 64);
++    assert_eq!(absolute.squares[0], "r");
++    assert_eq!(absolute.squares[63], "R");
++    // e5 is rank 5, file e: index (8 - 5) * 8 + 4.
++    assert_eq!(absolute.squares[3 * 8 + 4], "P");
++    assert_eq!(absolute.en_passant.as_deref(), Some("d6"));
++    assert_eq!(absolute.side_to_move, "white");
++    let mut black = start();
++    black.play("e2e4").unwrap();
++    let relative = knightlm_core::encode::encode(&black, true);
++    assert_eq!(relative.squares[0], "r");
++    assert_eq!(relative.squares[63], "R");
++    // Black's own pawns appear uppercase on the second rank from the bottom.
++    assert_eq!(relative.squares[6 * 8 + 4], "P");
++    // White's e4 pawn becomes a lowercase pawn on e5.
++    assert_eq!(relative.squares[3 * 8 + 4], "p");
++    assert_eq!(relative.en_passant, None);
++    assert_eq!(relative.side_to_move, "black");
++    assert_eq!(knightlm_core::encode::encode(&start(), true).squares, {
++        knightlm_core::encode::encode(&start(), false).squares
++    });
++}
+diff --git a/docs/contracts.md b/docs/contracts.md
+index bbe41c9..fa3d108 100644
+--- a/docs/contracts.md
++++ b/docs/contracts.md
+@@ -29,6 +29,13 @@ by the experiment arm. Partial-history packets can be compiled for inspection;
+ complete-state experiment preparation refuses them. Context overflow is an
+ error, not silent truncation. Packet size varies with relevant history.
+ 
++`encode` flattens the current position for model inputs: 64 squares in FEN
++reading order (index 0 is a8, index 63 is h1), castling rights, only legally
++usable en passant, the counters and the repetition count. `--relative` mirrors
++the board vertically and swaps colours when Black is to move, so the side to
++move is always uppercase and moves up the board; `fen` and `side_to_move` stay
++absolute.
++
+ `dead_position: null` means unknown, not false. The v1 recognizer handles only
+ three elementary material patterns plus kings with bishops that all stand on
+ one square colour. `terminal_reason: null` therefore means no
