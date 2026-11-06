@@ -254,6 +254,32 @@ impl Store {
         })
     }
 
+    /// The Format 1.0 document `query` (`t-x` or `t-x/i-y`, a unique prefix)
+    /// names, relative to the root, whether or not it can be worked: a
+    /// document the loop refuses is no [`Ticket`], so resolving against the
+    /// tickets would call it no record at all.
+    pub fn document_of(&self, query: &str) -> Result<Option<String>, crate::repo::RepoError> {
+        let prefix = query.trim().split('/').next().unwrap_or_default();
+        let mut found = Vec::new();
+        for path in self.entries()? {
+            let Some(name) = path.file_name() else {
+                continue;
+            };
+            if single_file(name).is_some_and(|alias| alias.starts_with(prefix)) {
+                found.push(self.rel(&path));
+            } else if ticket::is_ticket_id(name) && name.starts_with(prefix) {
+                let inner = path.join(INNER);
+                if crate::vfs::exists(&inner) {
+                    found.push(self.rel(&inner));
+                }
+            }
+        }
+        Ok(match found.as_mut_slice() {
+            [one] => Some(std::mem::take(one)),
+            _ => None,
+        })
+    }
+
     /// Every Format 1.0 ticket of the store's directory among `entries`
     /// (its sorted listing), and a diagnostic for each that cannot be
     /// worked. `dirs_to_look_in` names the directories that may hold a

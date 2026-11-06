@@ -4058,7 +4058,16 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if let Some(a) = alias.as_deref().filter(|a| ticket::is_ticket_ref(a)) {
                 let mut report = diagnostic::Report::default();
                 match ticket::Store::open(&repository, None) {
-                    Ok(store) => ticket::check(&store, Some(a), &mut report)?,
+                    Ok(store) => {
+                        // A Format 1.0 ticket is checked as the document it
+                        // is. One the loop refuses is no ticket to go on to.
+                        if let Some(document) = store.document_of(a)? {
+                            format_doc::check_one(&repository, &document, &mut report);
+                        }
+                        if report.is_ready() {
+                            ticket::check(&store, Some(a), &mut report)?;
+                        }
+                    }
                     Err(e) => report.push(diagnostic::Diagnostic::error(
                         "tickets.config",
                         init::CONFIG_FILE.to_owned(),

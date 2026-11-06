@@ -727,9 +727,11 @@ pub mod source {
     }
 
     /// Whether a repository-relative path is a file the ticket loop writes
-    /// while a ticket is worked (t-5d82): `<tickets>/<t-id>/<file>` for the
-    /// files [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
-    /// checklist), and a claim lock directly inside the claims directory.
+    /// while a ticket is worked (t-5d82): a single-file ticket's document
+    /// `<tickets>/<t-id>.md`, `<tickets>/<t-id>/<file>` for the files
+    /// [`crate::ticket::Bookkeeping`] names (manifest, journal, intent,
+    /// checklist, a directory-form document), and a claim lock directly inside
+    /// the claims directory.
     ///
     /// Named file by file: anything else a person keeps in a ticket's
     /// directory stays bound. Nothing under the Warrants root is a ticket
@@ -752,7 +754,7 @@ pub mod source {
             return false;
         };
         let Some((id, file)) = rest.split_once('/') else {
-            return false;
+            return crate::ticket::format::single_file(rest).is_some();
         };
         openwarrant_core::ticket::is_ticket_id(id) && tickets.files.iter().any(|f| f == file)
     }
@@ -2079,6 +2081,7 @@ mod source_tests {
         };
         let t = |p: &str| is_ticket_record(p, &b, "docs/warrants");
         for p in [
+            "docs/tickets/t-5d82.md",
             "docs/tickets/t-5d82/manifest.toml",
             "docs/tickets/t-5d82/journal.jsonl",
             "docs/tickets/t-5d82/atoms/10-intent.md",
@@ -2094,6 +2097,8 @@ mod source_tests {
             "docs/tickets/t-5d82/atoms/20-extra.md",
             "docs/tickets/t-5d82/atoms/generated/x.md",
             "docs/tickets/README.md",
+            "docs/tickets/not-a-ticket.md",
+            "docs/tickets/t-5d82.txt",
             "docs/tickets/manifest.toml",
             "docs/tickets/not-a-ticket/manifest.toml",
             "docs/tickets/t-5d82/sub/journal.jsonl",
