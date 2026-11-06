@@ -888,6 +888,7 @@ pub fn apply(
         part_of: None,
         issue: None,
         scope: crate::ticket::Scope::default(),
+        tests: Vec::new(),
     };
     let outcome = match crate::ticket::create(store, &args) {
         Ok(o) => o,

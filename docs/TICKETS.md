@@ -58,6 +58,7 @@ More, when you need them:
 | `war create "..." --draft --records` | the drafter proposes typed records too (requirements, constraints, decisions, outcomes), and the items implement them; see "From a sentence to records" |
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
 | `war create "..." --implements REQ-pr1` | one item per record, its text the record's first sentence (docs/TYPES.md) |
+| `war create "..." --test "<cmd>"` | a test from the start, repeatable: the same `## CHK-…` section `war plan add --test` writes. `war done` runs it and finishes the work only on a pass. Not with `--legacy` or `--records` |
 | `war plan promote <ticket>` | legacy directory-workflow adapter; ordinary work keeps the same Warrant ID |
 | `war admin import beads <file.jsonl>` | bring Beads issues in as tickets; also `war admin import openspec <dir>`, `war admin import speckit <dir>` (docs/TYPES.md, "Bringing work in") |
 | `war admin export beads` | every ticket as Beads issue JSONL, on stdout |

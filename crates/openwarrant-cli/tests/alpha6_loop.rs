@@ -1289,3 +1289,135 @@ fn a_ticket_declares_what_its_work_may_run_without_changing_how_it_ends() {
     let done = war(&["done", &id, "--note", "finished"]);
     assert!(done.status.success(), "{done:?}");
 }
+
+/// The `## CHK-…` sections of a Warrant's document.
+fn check_sections(root: &std::path::Path, created: &serde_json::Value) -> String {
+    let source = created["result"]["source"].as_str().unwrap();
+    let text = std::fs::read_to_string(root.join(source)).unwrap();
+    text.split_once("\n## CHK-")
+        .map(|(_, checks)| format!("## CHK-{checks}"))
+        .unwrap_or_default()
+        .replace(created["result"]["id"].as_str().unwrap(), "<id>")
+}
+
+#[test]
+fn a_test_given_at_create_is_the_section_plan_add_writes() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "CT"])["exit_code"],
+        0
+    );
+    let at_create = war(
+        root.path(),
+        &[
+            "create",
+            "Both tests at once",
+            "--test",
+            "true",
+            "--test",
+            "test -f passed",
+        ],
+    );
+    assert_eq!(at_create["exit_code"], 0, "{at_create}");
+    let later = war(root.path(), &["create", "Tests added later"]);
+    for (n, command) in ["true", "test -f passed"].iter().enumerate() {
+        let added = war(
+            root.path(),
+            &[
+                "plan",
+                "add",
+                later["result"]["id"].as_str().unwrap(),
+                "--test",
+                command,
+            ],
+        );
+        assert_eq!(added["exit_code"], 0, "test {n}: {added}");
+    }
+    let sections = check_sections(root.path(), &at_create);
+    assert!(
+        sections.starts_with("## CHK-test-1 · check — test-1\nrun: true\non: done\n"),
+        "{sections}"
+    );
+    assert_eq!(sections, check_sections(root.path(), &later));
+    assert_eq!(at_create["result"]["tests"][1]["name"], "test-2");
+    assert!(at_create["result"].get("hint").is_none(), "{at_create}");
+    assert!(later["result"]["hint"].as_str().is_some(), "{later}");
+
+    // `war done` runs what was given, and a failure finishes nothing.
+    let id = at_create["result"]["id"].as_str().unwrap();
+    assert_eq!(war(root.path(), &["check", id])["exit_code"], 0);
+    assert_eq!(war(root.path(), &["start", id])["exit_code"], 0);
+    let failed = war(root.path(), &["done", id]);
+    assert_ne!(failed["exit_code"], 0, "{failed}");
+    let rules = failed["diagnostics"].to_string();
+    assert!(rules.contains("check.failed"), "{failed}");
+    assert_ne!(
+        war(root.path(), &["status", id])["result"]["ticket"]["state"],
+        "done"
+    );
+    std::fs::write(root.path().join("passed"), "").unwrap();
+    let done = war(root.path(), &["done", id]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["ticket_state"], "done", "{done}");
+}
+
+#[test]
+fn a_test_given_at_create_judges_every_item() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "CI"])["exit_code"],
+        0
+    );
+    let created = war(
+        root.path(),
+        &[
+            "create", "Two items", "--item", "One", "--item", "Two", "--test", "test -f passed",
+        ],
+    );
+    let id = created["result"]["id"].as_str().unwrap();
+    assert_eq!(war(root.path(), &["start", id])["exit_code"], 0);
+    let failed = war(root.path(), &["done", id]);
+    assert_ne!(failed["exit_code"], 0, "{failed}");
+    std::fs::write(root.path().join("passed"), "").unwrap();
+    let done = war(root.path(), &["done", id]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["ticket_state"], "done", "{done}");
+}
+
+#[test]
+fn a_refused_test_at_create_leaves_nothing_behind() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "CR"])["exit_code"],
+        0
+    );
+    let tickets = || {
+        std::fs::read_dir(root.path().join("docs/tickets"))
+            .map_or(0, |dir| dir.filter_map(Result::ok).count())
+    };
+    let before = tickets();
+    for (command, rule) in [
+        ("   ", "ticket.test-empty"),
+        ("true\nfalse", "ticket.part-malformed"),
+    ] {
+        let refused = war(root.path(), &["create", "No test", "--test", command]);
+        assert_ne!(refused["exit_code"], 0, "{refused}");
+        assert!(refused["diagnostics"].to_string().contains(rule), "{refused}");
+    }
+    assert_eq!(tickets(), before);
+
+    for flag in ["--legacy", "--draft --records"] {
+        let mut args = vec!["create", "No test", "--test", "true"];
+        args.extend(flag.split(' '));
+        let out = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["--root", root.path().to_str().unwrap()])
+            .args(&args)
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap();
+        assert!(!out.status.success(), "{flag}");
+        let said = String::from_utf8_lossy(&out.stderr);
+        assert!(said.contains("cannot be used with"), "{flag}: {said}");
+    }
+    assert_eq!(tickets(), before);
+}

@@ -8,6 +8,11 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
+  a Warrant can be given its test in the command that makes it. It is the same
+  `## CHK-…` section `war plan add --test` writes, and `war done` runs it and
+  finishes the work only on a pass. A test that cannot be written is refused
+  before anything exists. Not with `--legacy` or `--records`.
 - Any ticket can declare the tools and commands its work may run, as well as
   its paths: `war create --path 'src/**' --tool Read --command 'cargo test'`.
   `war start` turns them into session permissions. They never change how a

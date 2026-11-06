@@ -1642,6 +1642,9 @@ pub struct CreateArgs {
     pub issue: Option<crate::plan::intake::Issue>,
     /// What its work may touch and run: never a change to how it ends.
     pub scope: authoring::Scope,
+    /// `--test`: commands `war plan add --test` writes once the Warrant
+    /// exists; `war done` runs them.
+    pub tests: Vec<String>,
 }
 
 /// Why a type or a label set is refused by the profile, as a refusal.
@@ -1811,6 +1814,9 @@ fn create_with_encoding(
     if let Some(refusal) = refuse_fields(store, args.kind.as_deref(), &labels) {
         return Ok(refusal);
     }
+    if let Some(refusal) = parts::refuse_tests(&args.tests) {
+        return Ok(refusal);
+    }
     let needs_tickets = args.part_of.is_some() || args.issue.is_some();
     let all = if needs_tickets {
         store.load_all()?.0
@@ -1964,6 +1970,35 @@ fn create_with_encoding(
         payload["intake"] = serde_json::to_value(issue.record()).unwrap_or_default();
     }
     store.journal(&t, event::CREATED, &payload)?;
+    // The tests go in through `war plan add`'s own writer, so a test given
+    // here is the section a test added later is.
+    let tests = if args.tests.is_empty() {
+        None
+    } else {
+        let added = parts::add(
+            store,
+            &id,
+            None,
+            &[],
+            &parts::PartsArgs {
+                tests: args.tests.clone(),
+                ..parts::PartsArgs::default()
+            },
+            None,
+        )?;
+        if added.is_refused() {
+            return Ok(Outcome::refused(
+                "ticket.test-not-added",
+                store.rel(&source),
+                format!(
+                    "{id} was created but its tests were not written: {}. Add them with `war \
+                     plan add {id} --test \"<command>\"`",
+                    added.human
+                ),
+            ));
+        }
+        Some(added.result["parts"].clone())
+    };
     let rel = store.rel(&dir);
     let mut human = format!("{id}  {title}\ncreated {rel}/");
     if let Some(issue) = &args.issue {
@@ -1990,14 +2025,34 @@ fn create_with_encoding(
             made.len()
         ));
     }
+    if let Some(parts) = &tests {
+        let names: Vec<&str> = parts
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|p| p["name"].as_str())
+            .collect();
+        human.push_str(&format!(
+            "\n`war done` runs {} and finishes it only on a pass",
+            names.join(", ")
+        ));
+    }
     // OW-WAR-0148 M13 (decision 2): one line, never a refusal, suggesting
     // the test a new Warrant does not have yet. `[warrants] hints = false`
-    // turns it off.
-    let hint = hints_enabled(&store.root).then(|| {
-        format!(
-            "hint (optional): `war plan add {id} --test \"<command>\"` gives it a test, and `war \
-             done <item> --check` then ticks only when it passes"
-        )
+    // turns it off. A directory ticket's tests run on `--check`; a document's
+    // on every `war done`.
+    let hint = (tests.is_none() && hints_enabled(&store.root)).then(|| {
+        if legacy {
+            format!(
+                "hint (optional): `war plan add {id} --test \"<command>\"` gives it a test, and \
+                 `war done <item> --check` then ticks only when it passes"
+            )
+        } else {
+            format!(
+                "hint (optional): `war plan add {id} --test \"<command>\"` gives it a test, and \
+                 `war done` then finishes it only when the test passes"
+            )
+        }
     });
     if let Some(h) = &hint {
         human.push('\n');
@@ -2024,6 +2079,9 @@ fn create_with_encoding(
     }
     if let Some(issue) = &args.issue {
         result["issue"] = serde_json::json!({"number": issue.number, "url": issue.url});
+    }
+    if let Some(parts) = tests {
+        result["tests"] = parts;
     }
     if let Some(h) = hint {
         result["hint"] = serde_json::json!(h);
