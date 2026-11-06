@@ -17,9 +17,36 @@ env:
   CARGO_TERM_COLOR: always
   RUSTFLAGS: -D warnings
 
+# The PR tier, as parallel jobs that run the same definition (`cargo xtask-fast
+# --only <id>`, in xtask/src/bin/fast-gate.rs). `fast-gate` is the required check
+# and keeps its name: it passes only when every job it needs passed. Required
+# checks are matched by name, so the aggregator is the one name branch
+# protection needs, whatever jobs sit under it.
+#
+# The critical path is the longest job, not the sum: the build runs once and the
+# corpus job reuses its binary, while lint, tests and schemas compile in parallel.
 jobs:
-  fast-gate:
-    name: fast-gate
+  build:
+    name: fast / build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          shared-key: ci-dev
+      - run: cargo xtask-fast --only build
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: war-binary
+          path: target/debug/war
+          retention-days: 1
+          if-no-files-found: error
+
+  lint:
+    name: fast / lint
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -27,13 +54,89 @@ jobs:
         with:
           fetch-depth: 0
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
-      - uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2
+        with:
+          shared-key: ci-dev
+      - name: Install cargo-deny
+        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2
         with:
           tool: cargo-deny
+      - run: cargo xtask-fast --only format,clippy,licenses,skills,doc-tests
+
+  tests:
+    name: fast / tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          shared-key: ci-test
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2
+        with:
+          tool: cargo-nextest
       - name: Schema-validation dependency
         run: |
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
-      - name: PR tier and merge-candidate acceptance
-        run: timeout 1500 cargo xtask-fast --base HEAD^1
+      - run: cargo xtask-fast --only tests
+
+  corpus:
+    name: fast / corpus
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: war-binary
+          path: target/debug/
+      - run: chmod +x target/debug/war
+      - name: Schema-validation dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/schema-validation"
+          "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
+          echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      # Acceptance needs the base: on a pull request HEAD^1 is the target branch.
+      - name: Record and candidate acceptance
+        run: cargo xtask-fast --only corpus,acceptance --base HEAD^1
+
+  schemas:
+    name: fast / schemas
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          shared-key: ci-dev
+      - name: Schema-validation dependency
+        run: |
+          python3 -m venv "$RUNNER_TEMP/schema-validation"
+          "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
+          echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      - run: cargo xtask-fast --only schemas
+
+  # The required check. Passes only when every job above passed.
+  fast-gate:
+    name: fast-gate
+    needs: [build, lint, tests, corpus, schemas]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every fast job passed
+        run: |
+          test "${{ needs.build.result }}" = success
+          test "${{ needs.lint.result }}" = success
+          test "${{ needs.tests.result }}" = success
+          test "${{ needs.corpus.result }}" = success
+          test "${{ needs.schemas.result }}" = success
