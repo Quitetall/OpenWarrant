@@ -282,7 +282,11 @@ its holder. Local renewals are a file touch; the remote's copy of a lease is
 renewed by `war admin heartbeat`, and by any ticket command once less than half of
 it is left. When the remote cannot be reached the claim is refused
 (`work.claim-remote-unreachable`, UNKNOWN: whether the claim would have
-held is not something `war` can know) and nothing is claimed. `war view ready`
+held is not something `war` can know) and nothing is claimed. A push that runs
+past its 30 seconds is also UNKNOWN, but it may have landed, and the refusal
+says so: the local claim is given back, a claim that landed refuses other
+agents until its lease runs out, and a retry from the same session takes it
+back. `war view ready`
 reads this machine's claims only; a claim held elsewhere is refused at
 `war claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
 under a fixed `war` identity, and pushes skip hooks.

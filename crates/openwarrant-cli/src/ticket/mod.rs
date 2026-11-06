@@ -3727,11 +3727,40 @@ fn remote_unreachable(store: &Store, remote: &str, what: &str, why: &str, doing:
     )
 }
 
+/// A claim's push ran out of time: `UNKNOWN`, like an unreachable remote, but
+/// the push may have landed, so "nothing was claimed" would be a guess.
+fn claim_unsettled(store: &Store, remote: &str, what: &str, why: &str, lease: u64) -> Outcome {
+    let rule = crate::work_rules::CLAIM_REMOTE_UNREACHABLE;
+    Outcome::unknown(
+        rule,
+        store.rel(&store.root.join(crate::init::CONFIG_FILE)),
+        format!(
+            "{}{}",
+            unsettled_message(what, remote, why, &render::ago(lease)),
+            crate::work_rules::formerly(rule)
+        ),
+    )
+}
+
+/// What a timed-out claim says: the outcome is unknown, what this machine did,
+/// and how the claim clears if it landed.
+fn unsettled_message(what: &str, remote: &str, why: &str, lease: &str) -> String {
+    format!(
+        "{what}: the push to the claims remote `{remote}` did not finish ({why}), so whether \
+         the remote took this claim is unknown. It is not yours: the claim on this machine was \
+         given back. If the push landed, the remote holds the claim in your name until its \
+         lease runs out in {lease}, and until then it refuses other agents. Retrying `war admin \
+         claim {what}` from this session takes it back; after the lease anyone can take it"
+    )
+}
+
 impl Store {
     /// Publish `mine`, just taken locally at `lock`, to the claims remote.
     /// `Ok(None)`: published. `Ok(Some((from, how)))`: published over `from`'s
-    /// claim there. `Err`: not published, refused by name; the caller gives
-    /// its local lock back.
+    /// claim there. `Err`: not established, refused by name; the caller gives
+    /// its local lock back. That holds for a push that timed out too: the
+    /// claim may be on the remote, but a local lock would grant what nothing
+    /// established, and the remote refuses others either way.
     fn publish_claim(
         &self,
         remote_name: &str,
@@ -3782,6 +3811,15 @@ impl Store {
                         what,
                         &e,
                         "nothing was claimed",
+                    )));
+                }
+                remote::Push::Unsettled(e) => {
+                    return Err(Box::new(claim_unsettled(
+                        self,
+                        remote_name,
+                        what,
+                        &e,
+                        self.lease_secs,
                     )));
                 }
                 remote::Push::Lost => {}
@@ -3909,6 +3947,15 @@ impl Store {
                      once its lease runs out, and a plain `war admin claim` takes it then"
                 ),
             )),
+            remote::Push::Unsettled(e) => Some(Diagnostic::warn(
+                crate::work_rules::CLAIM_REMOTE_UNREACHABLE,
+                format!("{remote_name}:{refname}"),
+                format!(
+                    "whether the claim's ref on `{remote_name}` was deleted is unknown ({e}); if \
+                     it was not, it reads expired once its lease runs out, and a plain `war \
+                     admin claim` takes it then"
+                ),
+            )),
         }
     }
 
@@ -3963,6 +4010,12 @@ impl Store {
                 remote::Push::Failed(e) => {
                     problems.push(format!(
                         "{}: not renewed on `{remote_name}` ({e})",
+                        c.target()
+                    ));
+                }
+                remote::Push::Unsettled(e) => {
+                    problems.push(format!(
+                        "{}: whether `{remote_name}` took the renewal is unknown ({e})",
                         c.target()
                     ));
                 }
@@ -5746,4 +5799,24 @@ pub fn check(store: &Store, only: Option<&str>, report: &mut Report) -> Result<(
         ));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod claim_wording_tests {
+    use super::unsettled_message;
+
+    #[test]
+    fn a_timed_out_claim_never_says_nothing_was_claimed() {
+        let said = unsettled_message("t-1/i-2", "origin", "git push took more than 30s", "30m");
+        assert!(!said.contains("nothing was claimed"), "{said}");
+        for part in [
+            "git push took more than 30s",
+            "is unknown",
+            "given back",
+            "in 30m",
+            "`war admin claim t-1/i-2`",
+        ] {
+            assert!(said.contains(part), "{part}: {said}");
+        }
+    }
 }

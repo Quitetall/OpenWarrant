@@ -16,6 +16,14 @@ Notable changes to OpenWarrant. Format loosely follows
   <id>` do not change. A script that read the projection from bare `war status`
   needs `--verbose`.
 
+### Fixed
+
+- A claim whose `git push` to the claims remote timed out no longer says
+  "nothing was claimed": the push may have landed. It stays UNKNOWN
+  (`work.claim-remote-unreachable`), says the outcome is unknown, and says how
+  a claim that landed clears: a retry from the same session, or its lease
+  running out. Timed-out ref deletes and lease renewals say the same.
+
 ### Added
 
 - `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
