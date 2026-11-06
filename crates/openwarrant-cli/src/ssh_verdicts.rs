@@ -46,8 +46,8 @@
 //!   reads this cache, but not by the advice verbs until the binary or an
 //!   input changed. `OPENWARRANT_NO_CACHE=1` turns the cache off.
 //! - **Scope.** Only the commands that call [`permit`] use it: `war view next`,
-//!   `war status`, `war view overview` (plain and `--snapshot`) and `war view
-//!   board` — one-shot read-only advice. `war check` (and `--generated`),
+//!   `war status`, `war view context`, `war view overview` (plain and
+//!   `--snapshot`) and `war view board` — one-shot read-only advice. `war check` (and `--generated`),
 //!   compile, `war sign` (including `--list` and every dry run outside `war
 //!   next`), authorize, resolve, verify, the MCP server and every long-running
 //!   server never permit it: each of those is a judgement or a gate, and asks

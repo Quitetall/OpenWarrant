@@ -6330,6 +6330,13 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             index,
         } => {
             let repository = ctx.open_repo()?;
+            // One-shot and read-only: the tree does not move under it (t-eca6).
+            // Without this each receipt walked the checkout again, 228
+            // `git ls-files` and 228 `git diff` per run.
+            gate_cmd::source::remember_tree_reads();
+            // Advice, not a judgement: a signature already verified over
+            // exactly these bytes is not asked again (ssh_verdicts).
+            ssh_verdicts::permit();
             // A built-in preset, else one a profile declares (section 10.4).
             let preset = match context::Preset::builtin(&preset)
                 .map(Ok)
