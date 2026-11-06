@@ -42,8 +42,9 @@ Everything this repository has recorded, current or not: 145 subject(s), their l
 | 2026-10-15 | 1 | sync.receipt_attached 1 |
 | 2026-10-16 | 49 | authorization.recorded 21, question.answered 9, sync.receipt_attached 7, verification.recorded 12 |
 | 2026-10-17 | 6 | question.asked 1, sync.receipt_attached 1, verification.recorded 4 |
-| 2026-10-20 | 2 | attestation.recorded 1, authorization.recorded 1 |
-| 2026-10-23 | 2 | sync.receipt_attached 2 |
+| 2026-10-20 | 3 | attestation.recorded 1, authorization.recorded 1, sync.receipt_attached 1 |
+| 2026-10-21 | 9 | sync.receipt_attached 5, verification.recorded 4 |
+| 2026-10-23 | 5 | sync.receipt_attached 5 |
 | 2026-10-24 | 2 | attestation.recorded 1, authorization.recorded 1 |
 
 ## Roadmap revisions
@@ -20504,6 +20505,14 @@ on the pinned toolchain; authoritative new gate registration remains separate.
 | D-057 | Actual probe case T09-context-binding | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-651b9a2fc04bad1413a38496bde0f06b449ff593cc7d6844c86942d59406245b.json` | verified |
 | D-058 | Actual probe case T09-context-background-refusal | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-50a87ab0e7ec320e4ab0f6bcf4f0e7aed3a1f0d49ca5e060abb21d52f382bf5a.json` | verified |
 | D-059 | Actual probe case T06-combined-depth-refusal | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/cases/case-344f94c57812883296b7a97ad817536546eb2b29d9a9e5b9fabf345c880bc8d0.json` | verified |
+| D-060 | Actual synchronized-title and CRLF parser readback | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/FOOTER08-title-crlf.json` | verified |
+| D-061 | Actual untouched-unit parser readback | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/T56-revision.json` | verified |
+| D-062 | Actual conflicting-edit and prior-output refusal | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/failure.json` | verified |
+| D-063 | Actual core probe author/edit and parser run | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/core-probe76.json` | verified |
+| D-064 | Foot08 execution identity and request/response hashes | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/execution.json` | verified |
+| D-065 | Foot08 evidence gap and additional observations | `docs/warrants/OW-WAR-0075/implementation/footer08-readback-20261020/README.md` | verified |
+| D-066 | Exact observed unit text dictionary with case and unit uses | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/unit-texts.json` | verified |
+| D-067 | Actual unseen-content mutation and unexpected-refusal controls | `docs/warrants/OW-WAR-0075/implementation/probe-observations-20261020/observer-control.json` | verified |
 
 ### OW-WAR-0076 — Author and edit human-first OpenWarrant documents
 
@@ -20718,6 +20727,54 @@ requires its own observed refusal and exact evidence.
 The driver is planned, not claimed shipped. Phase exit also runs `cargo xtask gate`
 on the pinned toolchain; authoritative new gate registration remains separate.
 <!-- atom docs/warrants/OW-WAR-0076/atoms/60-assurance.md ends -->
+
+#### Deliverables
+
+| id | title | target | digest |
+|---|---|---|---|
+| D-001 | crates/openwarrant-core/src/document/author.rs | `crates/openwarrant-core/src/document/author.rs` | verified |
+| D-002 | conformance/sdk/author/FOOTER08-title-conflict.json | `conformance/sdk/author/FOOTER08-title-conflict.json` | verified |
+| D-003 | conformance/sdk/author/FOOTER08-title-crlf.json | `conformance/sdk/author/FOOTER08-title-crlf.json` | verified |
+| D-004 | conformance/sdk/author/README.md | `conformance/sdk/author/README.md` | verified |
+| D-005 | conformance/sdk/author/T54-minimum.json | `conformance/sdk/author/T54-minimum.json` | verified |
+| D-006 | conformance/sdk/author/T55-duplicate-field.json | `conformance/sdk/author/T55-duplicate-field.json` | verified |
+| D-007 | conformance/sdk/author/T55-footer-injection.json | `conformance/sdk/author/T55-footer-injection.json` | verified |
+| D-008 | conformance/sdk/author/T55-unit-injection.json | `conformance/sdk/author/T55-unit-injection.json` | verified |
+| D-009 | conformance/sdk/author/T56-duplicate-edit.json | `conformance/sdk/author/T56-duplicate-edit.json` | verified |
+| D-010 | conformance/sdk/author/T56-false-assurance.json | `conformance/sdk/author/T56-false-assurance.json` | verified |
+| D-011 | conformance/sdk/author/T56-revision.json | `conformance/sdk/author/T56-revision.json` | verified |
+| D-012 | conformance/sdk/author/T56-unit-edit.json | `conformance/sdk/author/T56-unit-edit.json` | verified |
+| D-013 | conformance/sdk/author/body.md | `conformance/sdk/author/body.md` | verified |
+| D-014 | conformance/sdk/author/cases.json | `conformance/sdk/author/cases.json` | verified |
+| D-015 | conformance/sdk/author/check_observations.py | `conformance/sdk/author/check_observations.py` | verified |
+| D-016 | conformance/sdk/author/minimal.md | `conformance/sdk/author/minimal.md` | verified |
+| D-017 | conformance/sdk/author/revision.md | `conformance/sdk/author/revision.md` | verified |
+| D-018 | conformance/sdk/author/title-crlf.md | `conformance/sdk/author/title-crlf.md` | verified |
+| D-019 | docs/warrants/OW-WAR-0076/implementation/sdk-author-notes.md | `docs/warrants/OW-WAR-0076/implementation/sdk-author-notes.md` | verified |
+| D-020 | docs/warrants/OW-WAR-0076/implementation/evidence-reconciliation-20261023.md | `docs/warrants/OW-WAR-0076/implementation/evidence-reconciliation-20261023.md` | verified |
+| D-021 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/README.md | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/README.md` | verified |
+| D-022 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-15d221ec30e7e0f8ccdddb7f1e08f4fac6724402fed7d12d1f47303ba4af94be.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-15d221ec30e7e0f8ccdddb7f1e08f4fac6724402fed7d12d1f47303ba4af94be.json` | verified |
+| D-023 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-1fca188ac8941dd1e063d1c97cc3095af9e9cd64742a1c917fd4cde8b61075c0.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-1fca188ac8941dd1e063d1c97cc3095af9e9cd64742a1c917fd4cde8b61075c0.json` | verified |
+| D-024 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-253829acb6b84a9caa79a803dfc6cfab2b6d0bb949ca19d9b12a32224b40a719.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-253829acb6b84a9caa79a803dfc6cfab2b6d0bb949ca19d9b12a32224b40a719.json` | verified |
+| D-025 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-39603d19688358da67d851d5eaeaa70876d01cbdf9d4779ae25bddbf7fb38c64.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-39603d19688358da67d851d5eaeaa70876d01cbdf9d4779ae25bddbf7fb38c64.json` | verified |
+| D-026 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-580f9b6df153087956e0b6dc6ed4d2e65dc32dc5d4f8bacfe65db6eed0834ccd.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-580f9b6df153087956e0b6dc6ed4d2e65dc32dc5d4f8bacfe65db6eed0834ccd.json` | verified |
+| D-027 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-58a127ed310845b92fa48154e3f87143f4adae726132551fac6e713f45f240c7.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-58a127ed310845b92fa48154e3f87143f4adae726132551fac6e713f45f240c7.json` | verified |
+| D-028 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-81fe5362a048aca1ec4ff66ef3d9fb12e24b45c118e8f4b3feb6327a4db1fa12.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-81fe5362a048aca1ec4ff66ef3d9fb12e24b45c118e8f4b3feb6327a4db1fa12.json` | verified |
+| D-029 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-86ea8b0beca9d5d0f4c1a738c18510efa4d5296729cde885381737156e2e81b5.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-86ea8b0beca9d5d0f4c1a738c18510efa4d5296729cde885381737156e2e81b5.json` | verified |
+| D-030 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-b662be7cc2c361d89c87bb869fff02c4b466a7121878a1b2a2293816b03e31c9.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-b662be7cc2c361d89c87bb869fff02c4b466a7121878a1b2a2293816b03e31c9.json` | verified |
+| D-031 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-bd74d7d92e85f61685ca60a8cce2a1e5c705f31f945eaa5f49dce43337bd44f3.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/case-bd74d7d92e85f61685ca60a8cce2a1e5c705f31f945eaa5f49dce43337bd44f3.json` | verified |
+| D-032 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/controls.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/controls.json` | verified |
+| D-033 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/core-author-result.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/core-author-result.json` | verified |
+| D-034 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/core-author.stderr | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/core-author.stderr` | verified |
+| D-035 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/core-author.stdout | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/core-author.stdout` | verified |
+| D-036 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/multi-unit-controls.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/multi-unit-controls.json` | verified |
+| D-037 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/probe-process.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/probe-process.json` | verified |
+| D-038 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/run-provenance.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/run-provenance.json` | verified |
+| D-039 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/runtime-identity.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/runtime-identity.json` | verified |
+| D-040 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/sdk-caller-source-equality.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/sdk-caller-source-equality.json` | verified |
+| D-041 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/source-inventory.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/source-inventory.json` | verified |
+| D-042 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/summary.json | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/summary.json` | verified |
+| D-043 | docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/wire.jsonl | `docs/warrants/OW-WAR-0076/implementation/public-observations-20261023/wire.jsonl` | verified |
 
 ### OW-WAR-0077 — Define SDK source types and prove provider resolution integration
 
