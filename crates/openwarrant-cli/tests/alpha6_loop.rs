@@ -1492,3 +1492,47 @@ fn bare_status_is_a_few_lines_and_verbose_is_the_projection() {
     );
     assert!(!text(&["status", "--timeline"]).contains("--verbose"));
 }
+
+#[test]
+fn every_section_an_author_wrote_reaches_the_brief_once() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    assert!(
+        Command::new("git")
+            .args(["init", "-q", "."])
+            .current_dir(root)
+            .status()
+            .unwrap()
+            .success()
+    );
+    let war = |args: &[&str]| {
+        let out = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["--root", root.to_str().unwrap()])
+            .args(args)
+            .current_dir(root)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env_remove("SSH_AUTH_SOCK")
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "{args:?}: {out:?}");
+        String::from_utf8_lossy(&out.stdout).into_owned()
+    };
+    war(&["init", "--namespace", "SB"]);
+    let made = war(&[
+        "create",
+        "T1: Prices",
+        "--body",
+        "Why it matters.\n\n## Design notes\n\nA negative rate is `invalid price`.",
+        "--item",
+        "Reject bad prices",
+    ]);
+    let id = made.split_whitespace().next().unwrap().to_owned();
+    war(&["note", &id, "the owner answered"]);
+    for brief in [war(&["view", "prime", &id]), war(&["start", &id])] {
+        assert!(brief.contains("A negative rate"), "{brief}");
+        assert_eq!(brief.matches("Reject bad prices").count(), 1, "{brief}");
+        assert_eq!(brief.matches("the owner answered").count(), 1, "{brief}");
+        assert_eq!(brief.matches("## Checklist").count(), 0, "{brief}");
+    }
+}

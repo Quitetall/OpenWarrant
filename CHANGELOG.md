@@ -6,6 +6,15 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Fixed
+
+- A single-file ticket's own sections, such as `## Design notes`, reached no
+  brief: `war start`, `war view prime` and the prompt hook showed only its
+  preamble, so an agent never saw them. In the adoption study this failed the
+  same two items in both reps, each a false completion. Every section now
+  reaches the brief. An approval of a ticket with such a section goes stale
+  once, because its statement now covers that text.
+
 ### Added
 
 - `war view prime --prompt <text|->` and the plugin's UserPromptSubmit hook put
