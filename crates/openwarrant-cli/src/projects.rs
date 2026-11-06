@@ -210,10 +210,18 @@ fn holds_records(dir: &Utf8Path) -> bool {
 /// A project's tier, from the list and a few stats: no record is read.
 #[must_use]
 pub fn tier(row: &Row, system_temp: &Utf8Path) -> Tier {
+    if scratch(&row.root, system_temp) {
+        return Tier::Hidden;
+    }
+    checkout_tier(row)
+}
+
+/// A project's tier by what its checkout holds.
+fn checkout_tier(row: &Row) -> Tier {
     let root = Utf8Path::new(&row.root);
     let git = root.join(".git");
     // A linked worktree's `.git` is a file; its main checkout is the project.
-    if row.missing || git.is_file() || scratch(&row.root, system_temp) {
+    if row.missing || git.is_file() {
         return Tier::Hidden;
     }
     if git.is_dir()
@@ -462,37 +470,33 @@ mod tier_tests {
         (dir, root)
     }
 
-    const ELSEWHERE: &str = "/nowhere-temporary";
-
     #[test]
     fn a_main_checkout_with_records_is_governed_and_one_without_is_not() {
         let (_dir, root) = at();
-        let elsewhere = Utf8Path::new(ELSEWHERE);
-        assert_eq!(tier(&row(&root), elsewhere), Tier::Other);
+        assert_eq!(checkout_tier(&row(&root)), Tier::Other);
         std::fs::create_dir_all(root.join("docs/tickets")).unwrap();
         std::fs::write(root.join("docs/tickets/.gitkeep"), "").unwrap();
-        assert_eq!(tier(&row(&root), elsewhere), Tier::Other);
+        assert_eq!(checkout_tier(&row(&root)), Tier::Other);
         std::fs::write(root.join("docs/tickets/t-a.md"), "x").unwrap();
-        assert_eq!(tier(&row(&root), elsewhere), Tier::Governed);
+        assert_eq!(checkout_tier(&row(&root)), Tier::Governed);
     }
 
     #[test]
     fn missing_scratch_and_linked_worktrees_are_hidden() {
         let (_dir, root) = at();
         std::fs::create_dir_all(root.join("docs/warrants/OW-WAR-0001")).unwrap();
-        let elsewhere = Utf8Path::new(ELSEWHERE);
         let mut gone = row(&root);
         gone.missing = true;
-        assert_eq!(tier(&gone, elsewhere), Tier::Hidden);
+        assert_eq!(checkout_tier(&gone), Tier::Hidden);
         assert_eq!(tier(&row(&root), root.parent().unwrap()), Tier::Hidden);
         std::fs::remove_dir_all(root.join(".git")).unwrap();
         std::fs::write(root.join(".git"), "gitdir: elsewhere\n").unwrap();
-        assert_eq!(tier(&row(&root), elsewhere), Tier::Hidden);
+        assert_eq!(checkout_tier(&row(&root)), Tier::Hidden);
     }
 
     #[test]
     fn a_directory_named_tmp_is_scratch_and_a_name_that_contains_it_is_not() {
-        let system = Utf8Path::new(ELSEWHERE);
+        let system = Utf8Path::new("/nowhere-temporary");
         assert!(scratch("/mnt/4tb/tmp/ow-land", system));
         assert!(scratch("/dev/shm/ow-a6", system));
         assert!(!scratch("/mnt/4tb/tmpfs-tools", system));
