@@ -353,3 +353,7 @@ the earlier runs passed all of theirs. Rerunning only those two would flatter th
 result, so `rem-c3` repeats all 22 directed cells as rep 2, on the same build and
 plugin. This was decided after seeing `rem-c2` and before seeing `rem-c3`.
 
+`rem-c3` failed the same two items, and the cause was found: sections of a single-file
+ticket never reached a brief (#391). `rem-c4` repeats the 22 directed cells as rep 3 on
+main at 0d78465442daf0b6b96b0b5a446f3651e9f65adb, with that fix and the plugin from the same commit.
+
