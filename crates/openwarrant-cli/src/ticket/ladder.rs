@@ -803,6 +803,15 @@ impl CheckRound {
 /// HEAD's commit, when the root is a git checkout.
 #[must_use]
 pub fn head_commit(root: &camino::Utf8Path) -> Option<String> {
+    // Off unless a read-only command turned it on; `None` is never kept.
+    crate::gate_cmd::source::tree_read(format!("head-commit\0{root}"), || {
+        head_commit_read(root).map(|head| vec![head]).ok_or(())
+    })
+    .ok()
+    .and_then(|head| head.into_iter().next())
+}
+
+fn head_commit_read(root: &camino::Utf8Path) -> Option<String> {
     let out = std::process::Command::new("git")
         .args(["rev-parse", "HEAD"])
         .current_dir(root)
