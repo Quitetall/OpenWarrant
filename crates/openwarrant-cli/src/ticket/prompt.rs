@@ -26,8 +26,8 @@
 use std::collections::BTreeSet;
 
 use super::{
-    Outcome, RepoError, Store, Target, Ticket, held_by_me, matching_words, owns_claim, render,
-    resolve, words_of,
+    Claims, Outcome, RepoError, Store, Target, Ticket, held_by_me, matching_words, owns_claim,
+    ready_rows_at, render, resolve, words_of,
 };
 
 /// The most a brief adds to an agent's context, in bytes, its first line
@@ -227,6 +227,39 @@ fn listed(tickets: &[Ticket], found: &BTreeSet<usize>) -> String {
         names.push_str(&format!(" and {more} more"));
     }
     format!("{HEAD}{names}{TAIL}")
+}
+
+/// The first `count` Warrants ready by their records alone, one row each, for
+/// the managed block (`war admin agents-md --block --ready`). Claims are left
+/// out: they live outside the tree, so a file holding them would differ
+/// between one moment and the next with nothing tracked having moved. A row
+/// someone has since claimed is refused by `war start`, by name.
+pub fn ready_list(
+    store: &Store,
+    tickets: &[Ticket],
+    count: usize,
+) -> Result<Vec<String>, RepoError> {
+    const TITLE_CHARS: usize = 60;
+    let mut seen = BTreeSet::new();
+    let mut rows = Vec::new();
+    for row in ready_rows_at(store, tickets, Claims::new(), 0)? {
+        if rows.len() == count {
+            break;
+        }
+        if !seen.insert(row.ticket.clone()) {
+            continue;
+        }
+        if let Some(t) = tickets.iter().find(|t| t.id() == row.ticket) {
+            let title = t
+                .manifest
+                .title
+                .split_whitespace()
+                .collect::<Vec<_>>()
+                .join(" ");
+            rows.push(format!("{} {}", t.id(), clipped(&title, TITLE_CHARS)));
+        }
+    }
+    Ok(rows)
 }
 
 /// `war view prime --prompt`: see the module. Writes nothing.

@@ -111,7 +111,9 @@ constrains md:CLAUDE.md#testing
 A Warrant's atoms or a ticket's text that name `md:CLAUDE.md#testing` are
 found by `war plan impact` as documents citing it. The CLAUDE.md file itself is
 never written to with the active Warrant's context: what changes lives in
-`war view prime`, and the file stays stable.
+`war view prime`, and the file stays stable. The list `war admin agents-md
+--block --ready` writes goes in the managed block of `AGENTS.md`, only when
+asked, and is no section.
 
 ## Relations
 

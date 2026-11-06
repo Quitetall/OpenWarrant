@@ -202,7 +202,7 @@ paths = [
 plants = [
     "68-agents-md.sh", "73-plugin.sh", "90-skills.sh", "97-pins.sh", "99-init.sh",
     "101-agent-text.sh", "101-ordinary-work.sh", "12?-instruction-*.sh", "144-notify.sh",
-    "165-go-start.sh", "98-ownership.sh", "110-tick-ladder.sh",
+    "165-go-start.sh", "98-ownership.sh", "110-tick-ladder.sh", "190-first-brief.sh",
 ]
 
 [[rule]]
@@ -348,7 +348,7 @@ paths = [
 plants = [
     "45-tickets.sh", "55-ticket-projections.sh", "55-evidence-tickets.sh", "76-ticket-features.sh",
     "100-concurrency.sh", "102-concurrency-stress.sh", "103-one-noun.sh", "132-first-done.sh",
-    "180-ticket-cache.sh", "188-live-updates.sh",
+    "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh",
 ]
 
 [[rule]]

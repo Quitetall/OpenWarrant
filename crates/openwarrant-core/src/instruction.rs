@@ -41,6 +41,10 @@
 //! is strict: a second block, a begin with no end, or an end with no begin
 //! is reported ([`BlockError`]) by [`scan`] and refused by [`upsert`].
 //!
+//! Asked for, the block also holds a short list of ready work, one line each
+//! ([`READY_HEAD`], [`upsert_with`]), for a harness with no hook to put it in
+//! context. It changes only when someone asks: a plain [`upsert`] keeps it.
+//!
 //! # Citations
 //!
 //! A relation or a document names a section by its id, `md:CLAUDE.md#testing`
@@ -69,6 +73,10 @@ pub const BLOCK_END: &str = "<!-- openwarrant:end -->";
 /// version-skew check reads, and the one the full AGENTS.md template ends
 /// with.
 pub const STAMP_PREFIX: &str = "<!-- openwarrant agents-md: written by war ";
+
+/// The line that opens the block's optional list of ready work.
+pub const READY_HEAD: &str =
+    "Ready when last refreshed (`war view ready` is live; `war start <id>` takes one):";
 
 /// One `##` section of an instruction file.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -355,7 +363,14 @@ pub fn find_block(text: &str) -> Result<Option<Block>, BlockError> {
 /// line ending after the end marker. `version` is the `war` that writes it.
 #[must_use]
 pub fn block_text(version: &str) -> String {
-    [
+    block_with(version, &[])
+}
+
+/// [`block_text`] with `ready`, one line each, listed before the stamp. Each
+/// row becomes a `- ` line, so none can be a marker or open a fence.
+#[must_use]
+pub fn block_with(version: &str, ready: &[String]) -> String {
+    let mut lines: Vec<String> = [
         BLOCK_BEGIN,
         "<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->",
         "Ordinary coding needs no Warrant and no ticket: work here as in any repository.",
@@ -363,10 +378,32 @@ pub fn block_text(version: &str) -> String {
         "takes the next ready Warrant, or `war start <words of its title>` a named one, and prints",
         "only what it needs); close it with your last test run:",
         "`<your tests> && war done --note \"what you did\"`. `war view prime` lists all.",
-        &format!("{STAMP_PREFIX}{version} -->"),
-        BLOCK_END,
     ]
-    .join("\n")
+    .map(str::to_owned)
+    .to_vec();
+    if !ready.is_empty() {
+        lines.push(READY_HEAD.to_owned());
+        lines.extend(
+            ready
+                .iter()
+                .map(|r| format!("- {}", r.split_whitespace().collect::<Vec<_>>().join(" "))),
+        );
+    }
+    lines.push(format!("{STAMP_PREFIX}{version} -->"));
+    lines.push(BLOCK_END.to_owned());
+    lines.join("\n")
+}
+
+/// The rows of the ready list `block` holds in `text`, as written.
+#[must_use]
+pub fn block_ready(text: &str, block: &Block) -> Vec<String> {
+    text[block.start..block.end]
+        .lines()
+        .skip_while(|l| *l != READY_HEAD)
+        .skip(1)
+        .map_while(|l| l.strip_prefix("- "))
+        .map(str::to_owned)
+        .collect()
 }
 
 /// What [`upsert`] did.
@@ -386,12 +423,27 @@ pub enum Change {
 /// the original is a prefix of an insert's result, and the bytes before the
 /// begin marker and after the end marker are those of an update's.
 pub fn upsert(text: &str, version: &str) -> Result<(String, Change), BlockError> {
+    upsert_with(text, version, None)
+}
+
+/// [`upsert`], setting the ready list to `ready`; `None` keeps the list the
+/// block already holds, so a run that does not ask for one neither drops it
+/// nor moves it. An empty list removes it.
+pub fn upsert_with(
+    text: &str,
+    version: &str,
+    ready: Option<&[String]>,
+) -> Result<(String, Change), BlockError> {
     let s = scan(text);
     if let Some(e) = s.problems.into_iter().next() {
         return Err(e);
     }
     let crlf = text.contains("\r\n");
-    let mut block = block_text(version);
+    let kept = s
+        .blocks
+        .first()
+        .map_or_else(Vec::new, |b| block_ready(text, b));
+    let mut block = block_with(version, ready.unwrap_or(&kept));
     if crlf {
         block = block.replace('\n', "\r\n");
     }
@@ -507,6 +559,34 @@ mod tests {
         let d = scan(&newer);
         assert_eq!(c.sections, d.sections);
         assert_eq!(d.blocks.len(), 1);
+    }
+
+    #[test]
+    fn a_ready_list_is_set_kept_and_removed_inside_the_markers() {
+        let rows = vec!["t-1 One".to_owned(), "t-2 Two".to_owned()];
+        let (with, change) = upsert_with(FILE, "1.0.0", Some(&rows)).unwrap();
+        assert_eq!(change, Change::Inserted);
+        assert!(with.starts_with(FILE));
+        let block = find_block(&with).unwrap().unwrap();
+        assert_eq!(block_ready(&with, &block), rows);
+        // A plain run changes nothing, and a new version keeps the list.
+        assert_eq!(
+            upsert(&with, "1.0.0").unwrap(),
+            (with.clone(), Change::Unchanged)
+        );
+        let (newer, _) = upsert(&with, "2.0.0").unwrap();
+        assert_eq!(
+            block_ready(&newer, &find_block(&newer).unwrap().unwrap()),
+            rows
+        );
+        // Empty removes it, back to the plain block.
+        let (gone, _) = upsert_with(&with, "1.0.0", Some(&[])).unwrap();
+        assert_eq!(gone, upsert(FILE, "1.0.0").unwrap().0);
+        // A row cannot be a marker: it is one `- ` line, whatever it holds.
+        let evil = vec![format!("t-3 {BLOCK_END}\n{BLOCK_BEGIN}\n```")];
+        let (safe, _) = upsert_with(FILE, "1.0.0", Some(&evil)).unwrap();
+        assert!(scan(&safe).problems.is_empty());
+        assert_eq!(scan(&safe).blocks.len(), 1);
     }
 
     #[test]

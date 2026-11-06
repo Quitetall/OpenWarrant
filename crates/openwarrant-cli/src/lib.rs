@@ -2224,6 +2224,19 @@ enum AdminCommand {
         /// created when absent). Repeatable.
         #[arg(long = "file", value_name = "PATH", requires = "block")]
         files: Vec<String>,
+        /// With --block: list the next N ready Warrants (at most 5) in the
+        /// block of an AGENTS.md, for a harness with no prompt hook; 0 removes
+        /// the list. Nothing refreshes it but running this again: a plain
+        /// --block keeps it. Each rewrite is a change to a file every live
+        /// claim was given, so run it before agents start, not during.
+        #[arg(
+            long,
+            value_name = "N",
+            requires = "block",
+            conflicts_with = "stdout",
+            value_parser = clap::value_parser!(u8).range(0..=5)
+        )]
+        ready: Option<u8>,
     },
 
     /// Bring work in as Warrants (OW-WAR-0148 M10): `beads <file.jsonl>`
@@ -7050,6 +7063,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             force: _,
             block: true,
             files,
+            ready,
         } => {
             if stdout {
                 println!(
@@ -7083,7 +7097,15 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             if targets.is_empty() {
                 targets = instructions::default_targets(root);
             }
-            match instructions::write_blocks(root, &targets) {
+            let rows = match ready {
+                Some(count) => {
+                    let (_, store) = ctx.tickets(None)?;
+                    let (tickets, _) = store.load_all()?;
+                    Some(ticket::prompt::ready_list(&store, &tickets, count.into())?)
+                }
+                None => None,
+            };
+            match instructions::write_blocks_with(root, &targets, rows.as_deref()) {
                 Ok(written) => {
                     let human = written
                         .iter()
@@ -7128,6 +7150,7 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             force,
             block: false,
             files: _,
+            ready: _,
         } => {
             let repository = ctx.open_repo()?;
             let ns = repository.config.project.namespace.as_str().to_owned();
