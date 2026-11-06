@@ -32,10 +32,18 @@
 //! the rename is what makes it once. `war start` prints the changes and
 //! records them as seen, and `war view prime` shows the line until then.
 //!
+//! # At done
+//!
+//! `war start` also keeps what the item declared its work may touch and run,
+//! once: a resumed start never moves it, or a widening could be started away.
+//! [`standing`] tells `war done` where a claim stands, and
+//! [`crate::ticket::enforce`] decides what that means at the item's level.
+//!
 //! Nothing here signs or touches a signed record, and nothing here is
 //! authority: a claim, and so a notice, is coordination. It is off in a hosted
 //! or recording run and under `OPENWARRANT_NO_NOTICES`. A notice problem never
-//! fails a command: a read ignores it, and a write says so in one warning.
+//! fails a read, and a write says so in one warning; only `war done` on an
+//! item with a trigger or a signature holds it as UNKNOWN.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::sync::OnceLock;
@@ -45,6 +53,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{Store, claim, now_secs, rfc3339, scopes};
 use crate::context::task::{SourceEntry, TaskPacket};
+use crate::go::packet::Allowed;
 use crate::impact::Reach;
 use crate::repo::Repository;
 
@@ -99,6 +108,25 @@ pub struct Kept {
     /// The notices this claim has seen, by id.
     #[serde(default)]
     pub seen: Vec<String>,
+    /// The newest change seen in each file: what its workspace must hold
+    /// before a trigger can be said to run on the new state.
+    #[serde(default)]
+    pub taken: Vec<Taken>,
+    /// What the item declared when work started, and never after. `None`:
+    /// that could not be read, which is not the same as nothing declared.
+    #[serde(default)]
+    pub declared: Option<Allowed>,
+}
+
+/// A change a claim has seen.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct Taken {
+    pub source: String,
+    pub digest: String,
+    pub place: String,
+    /// The commit holding it; `None` when it was uncommitted.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub to: Option<String>,
 }
 
 /// One change, for one claim.
@@ -407,18 +435,33 @@ fn named(units: &[String], ticket: &str) -> String {
     }
 }
 
+/// What one comparison came to.
+#[derive(Debug, Default)]
+struct Scan {
+    posted: usize,
+    /// Files of the claim asked about that could not be compared.
+    unread: Vec<String>,
+}
+
 /// Compare every live claim's watched files with the default branch, and post
 /// what is news. Returns how many notices it posted.
 pub fn detect(store: &Store) -> std::io::Result<usize> {
+    scan(store, None).map(|s| s.posted)
+}
+
+/// [`detect`]. `asked` is a claim whose answer someone is waiting on: it is
+/// compared even past its lease, and what could not be compared is said.
+fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
+    let mut out = Scan::default();
     if !enabled() {
-        return Ok(0);
+        return Ok(out);
     }
     let Some(layout) = &store.layout else {
-        return Ok(0);
+        return Ok(out);
     };
     let kept = all_kept(&store.claims_dir);
     if kept.is_empty() {
-        return Ok(0);
+        return Ok(out);
     }
     let dir = dir_of(layout);
     let claims = store.claims().map_err(std::io::Error::other)?;
@@ -434,15 +477,16 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
             }
         }
     }
+    // No default branch: nothing has happened on it, so nothing is news.
     let Some((branch, tip)) = default_branch(&layout.common_dir, &layout.toplevel) else {
-        return Ok(0);
+        return Ok(out);
     };
     let here = scopes::workspace(store);
     let on_default = checked_out(&layout.toplevel).as_deref() == Some(branch.as_str());
     let tip_file = dir.join(TIP_FILE);
     let tip_moved = std::fs::read_to_string(&tip_file).ok().as_deref() != Some(tip.as_str());
     if !on_default && !tip_moved {
-        return Ok(0);
+        return Ok(out);
     }
     let mut view = View {
         branch,
@@ -452,10 +496,14 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
         read: BTreeMap::new(),
     };
     let now = now_secs();
-    let mut posted = 0;
     let mut bases: BTreeMap<String, Option<String>> = BTreeMap::new();
     for (path, mut k, c) in live {
-        let Some(coord) = c.coordination.clone().filter(|_| !c.lease_expired(now)) else {
+        let is_asked = asked == Some(k.claim.as_str());
+        let Some(coord) = c
+            .coordination
+            .clone()
+            .filter(|_| is_asked || !c.lease_expired(now))
+        else {
             continue;
         };
         let same_workspace = coord.workspace == here;
@@ -466,6 +514,9 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
         let mut learned = false;
         for w in &mut k.watched {
             let Some(now_digest) = view.digest(&w.source) else {
+                if is_asked {
+                    out.unread.push(w.source.clone());
+                }
                 continue;
             };
             if w.known.contains(&now_digest) {
@@ -545,7 +596,7 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
             std::fs::create_dir_all(&dir)?;
             let body = serde_json::to_vec(&notice).map_err(std::io::Error::other)?;
             write_whole(&pending, &body)?;
-            posted += 1;
+            out.posted += 1;
         }
         if learned {
             let body = serde_json::to_vec(&k).map_err(std::io::Error::other)?;
@@ -556,7 +607,7 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
         std::fs::create_dir_all(&dir)?;
         write_whole(&tip_file, tip.as_bytes())?;
     }
-    Ok(posted)
+    Ok(out)
 }
 
 // ---- delivery -------------------------------------------------------------
@@ -839,9 +890,9 @@ fn unit_texts(packet: &TaskPacket, text: &BTreeMap<String, String>) -> BTreeMap<
         .collect()
 }
 
-/// `war start`, once its claim is held: keep what it was given, and, resuming,
-/// take what changed since and record it as seen. `root` is the workspace the
-/// packet was compiled in.
+/// `war start`, once its claim is held: keep what it was given and what the
+/// item declares, and, resuming, take what changed since and record it as
+/// seen. `root` is the workspace the packet was compiled in.
 pub fn started(
     store: &Store,
     root: &Utf8Path,
@@ -849,6 +900,7 @@ pub fn started(
     packet: &TaskPacket,
     text: &BTreeMap<String, String>,
     reach: &[Reach],
+    declared: Option<Allowed>,
 ) -> std::io::Result<Vec<Change>> {
     if !enabled() {
         return Ok(Vec::new());
@@ -875,6 +927,8 @@ pub fn started(
             watched: watch_list(root, packet, reach),
             units: unit_texts(packet, text),
             seen: Vec::new(),
+            taken: Vec::new(),
+            declared,
         };
         let body = serde_json::to_vec(&kept).map_err(std::io::Error::other)?;
         std::fs::create_dir_all(store.claims_dir.join(GIVEN))?;
@@ -905,6 +959,19 @@ pub fn started(
         if n.at >= e.at {
             *e = n;
         }
+    }
+    for n in newest.values() {
+        kept.taken.retain(|t| t.source != n.source);
+        kept.taken.push(Taken {
+            source: n.source.clone(),
+            digest: n.digest.clone(),
+            place: n.place.clone(),
+            to: n.to.clone(),
+        });
+    }
+    // Only a manifest kept before declarations were has none to protect.
+    if kept.declared.is_none() {
+        kept.declared = declared;
     }
     let changes: Vec<Change> = newest
         .values()
@@ -949,10 +1016,199 @@ pub fn started(
 /// [`detect`], with the tip compared whether it moved or not: a resumed start
 /// asks now, and must not wait for a later write to have looked.
 fn detect_for_self(store: &Store) -> std::io::Result<usize> {
+    forget_tip(store);
+    detect(store)
+}
+
+fn forget_tip(store: &Store) {
     if let Some(layout) = &store.layout {
         let _ = std::fs::remove_file(dir_of(layout).join(TIP_FILE));
     }
-    detect(store)
+}
+
+// ---- `war done` -----------------------------------------------------------
+
+/// Where a claim stands when its work is said to be done.
+#[derive(Debug)]
+pub enum Standing {
+    /// Nothing was kept for it: it was not started with `war start`, or
+    /// nothing is on this machine to keep it in.
+    Unrecorded,
+    /// What was kept, or what became of it, could not be read.
+    Unread(String),
+    Read(Box<Given>),
+}
+
+/// What a started claim was given, and what has become of it.
+#[derive(Debug)]
+pub struct Given {
+    pub kept: Kept,
+    /// Changes it has not seen, one per file.
+    pub unseen: Vec<Notice>,
+    /// Changes it has seen and its workspace does not hold.
+    pub behind: Vec<Taken>,
+}
+
+/// The notices for `claim` in `dir`. One that cannot be read may be its own.
+fn claim_notices(dir: &Utf8Path, claim: &str) -> Result<Vec<Notice>, String> {
+    if let Err(e) = std::fs::read_dir(dir)
+        && e.kind() != std::io::ErrorKind::NotFound
+    {
+        return Err(format!("{dir}: {e}"));
+    }
+    let mut out = Vec::new();
+    for path in notice_files(dir) {
+        match read_json::<Notice>(&path) {
+            Some(n) if n.claim == claim => out.push(n),
+            Some(_) => {}
+            None => return Err(format!("{path} could not be read")),
+        }
+    }
+    Ok(out)
+}
+
+/// Whether `root` holds a change: the same bytes, or the commit it came in,
+/// with whatever was done on top of it.
+fn holds(root: &Utf8Path, taken: &Taken) -> bool {
+    own_digest(root, &taken.source).as_deref() == Some(taken.digest.as_str())
+        || taken.to.as_ref().is_some_and(|to| {
+            std::process::Command::new("git")
+                .args(["-C", root.as_str(), "merge-base", "--is-ancestor", to])
+                .arg("HEAD")
+                .output()
+                .is_ok_and(|o| o.status.success())
+        })
+}
+
+/// What `store`'s actor's claim on `ticket` was given and what has become of
+/// it, compared now: a change nobody has run `war` since is still a change.
+#[must_use]
+pub fn standing(store: &Store, ticket: &str) -> Standing {
+    if !crate::vfs::is_disk() {
+        return Standing::Unrecorded;
+    }
+    let Some(layout) = &store.layout else {
+        return Standing::Unrecorded;
+    };
+    let claims = match store.claims() {
+        Ok(claims) => claims,
+        Err(e) => return Standing::Unread(e.to_string()),
+    };
+    let mut found = None;
+    for (name, c) in &claims {
+        let Some(c) = c.as_ref().filter(|c| c.ticket == ticket) else {
+            continue;
+        };
+        if !super::owns_claim(store, c) {
+            continue;
+        }
+        let path = kept_path(store, name);
+        let bytes = match std::fs::read(&path) {
+            Ok(bytes) => bytes,
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Standing::Unread(format!("{path}: {e}")),
+        };
+        match serde_json::from_slice::<Kept>(&bytes) {
+            Ok(k) if k.claim == c.claim => {
+                found = Some(k);
+                break;
+            }
+            Ok(_) => {}
+            Err(e) => return Standing::Unread(format!("{path}: {e}")),
+        }
+    }
+    let Some(kept) = found else {
+        return Standing::Unrecorded;
+    };
+    if !enabled() {
+        return Standing::Unread(format!("notices are off ({DISABLE_ENV})"));
+    }
+    forget_tip(store);
+    match scan(store, Some(&kept.claim)) {
+        Ok(s) if s.unread.is_empty() => {}
+        Ok(s) => return Standing::Unread(format!("could not compare {}", s.unread.join(", "))),
+        Err(e) => return Standing::Unread(e.to_string()),
+    }
+    let dir = dir_of(layout);
+    let mut newest: BTreeMap<String, Notice> = BTreeMap::new();
+    for place in [dir.clone(), dir.join(DELIVERED)] {
+        let notices = match claim_notices(&place, &kept.claim) {
+            Ok(notices) => notices,
+            Err(why) => return Standing::Unread(why),
+        };
+        for n in notices {
+            let seen = kept
+                .watched
+                .iter()
+                .any(|w| w.source == n.source && w.known.contains(&n.digest));
+            if !seen && newest.get(&n.source).is_none_or(|e| n.at >= e.at) {
+                newest.insert(n.source.clone(), n);
+            }
+        }
+    }
+    let root = store.check_root.as_ref().unwrap_or(&store.root);
+    let behind = kept
+        .taken
+        .iter()
+        .filter(|t| !holds(root, t))
+        .cloned()
+        .collect();
+    Standing::Read(Box::new(Given {
+        kept,
+        unseen: newest.into_values().collect(),
+        behind,
+    }))
+}
+
+/// A path pattern `was` allows everything `now` does. `src/a.rs` under
+/// `src/**` is no widening, and neither is `src/x/**`; two patterns neither
+/// of which plainly holds the other are taken as one, which errs towards
+/// saying so.
+fn path_covers(was: &str, now: &str) -> bool {
+    let wild = |p: &str| p.contains(['*', '?', '[', '{']);
+    let (was, now) = (was.trim_start_matches("./"), now.trim_start_matches("./"));
+    if was == now || was == "**" {
+        return true;
+    }
+    if !wild(now) {
+        return crate::context::glob_match(was, now);
+    }
+    was.strip_suffix("/**")
+        .or_else(|| was.strip_suffix('/'))
+        .is_some_and(|dir| !wild(dir) && now.starts_with(&format!("{dir}/")))
+}
+
+/// What `now` allows that `was` did not, by name. Nothing declared means no
+/// limit: there, nothing can widen, and to declare nothing is to lift it.
+#[must_use]
+pub fn widened(was: &Allowed, now: &Allowed) -> Vec<String> {
+    fn axis(
+        key: &str,
+        was: &[String],
+        now: &[String],
+        covers: impl Fn(&str, &str) -> bool,
+    ) -> Vec<String> {
+        if was.is_empty() {
+            return Vec::new();
+        }
+        if now.is_empty() {
+            return vec![format!("{key}: limit removed")];
+        }
+        now.iter()
+            .filter(|n| !was.iter().any(|w| covers(w, n)))
+            .map(|n| format!("{key} + {n}"))
+            .collect()
+    }
+    let same = |w: &str, n: &str| w == n;
+    let mut out = axis("paths", &was.paths, &now.paths, path_covers);
+    out.extend(axis(super::checks::TOOLS_KEY, &was.tools, &now.tools, same));
+    out.extend(axis(
+        super::checks::COMMANDS_KEY,
+        &was.commands,
+        &now.commands,
+        same,
+    ));
+    out
 }
 
 // ---- the hook around a command --------------------------------------------
@@ -1062,6 +1318,8 @@ mod tests {
                 .map(|(id, t)| ((*id).to_owned(), (*t).to_owned()))
                 .collect(),
             seen: Vec::new(),
+            taken: Vec::new(),
+            declared: None,
         }
     }
 
@@ -1146,6 +1404,47 @@ mod tests {
             named(&u(&["t-1/a", "t-1/b", "t-1/c", "t-1/d"]), "t-1"),
             " (a, b, c, +1)"
         );
+    }
+
+    fn allowed(paths: &[&str], tools: &[&str], commands: &[&str]) -> Allowed {
+        let own = |v: &[&str]| v.iter().map(|s| (*s).to_owned()).collect();
+        Allowed {
+            paths: own(paths),
+            tools: own(tools),
+            commands: own(commands),
+        }
+    }
+
+    #[test]
+    fn a_widening_is_named_and_a_narrowing_is_not_one() {
+        let was = allowed(&["src/**"], &["Read"], &["cargo test"]);
+        assert!(widened(&was, &was).is_empty());
+        let wider = allowed(&["src/**", "docs/**"], &["Read", "Bash"], &["cargo test", "rm"]);
+        assert_eq!(
+            widened(&was, &wider),
+            ["paths + docs/**", "x.tools + Bash", "x.commands + rm"]
+        );
+        // Inside what was declared: nothing added.
+        let inside = allowed(&["src/a.rs", "src/x/**"], &["Read"], &["cargo test"]);
+        assert!(widened(&was, &inside).is_empty());
+    }
+
+    #[test]
+    fn lifting_a_limit_widens_and_declaring_a_first_one_does_not() {
+        let was = allowed(&["src/**"], &["Read"], &[]);
+        assert_eq!(
+            widened(&was, &allowed(&[], &["Read"], &[])),
+            ["paths: limit removed"]
+        );
+        assert!(widened(&allowed(&[], &[], &[]), &was).is_empty());
+    }
+
+    #[test]
+    fn one_star_does_not_hold_two() {
+        assert!(!path_covers("src/*", "src/**"));
+        assert!(path_covers("src/*", "src/a.rs"));
+        assert!(!path_covers("src/*", "src/x/a.rs"));
+        assert!(!path_covers("src/a/**", "src/**"));
     }
 
     #[test]

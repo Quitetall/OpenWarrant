@@ -127,18 +127,27 @@ pub fn parse_allowed(text: &str) -> Allowed {
 /// What a light Warrant declares, from its allowed-acts atom.
 #[must_use]
 pub fn allowed_of_ticket(t: &Ticket) -> Allowed {
+    read_allowed(t).unwrap_or_default()
+}
+
+/// [`allowed_of_ticket`], for a reader to whom a declaration that could not
+/// be read is not the same as none: none means no limit.
+pub fn read_allowed(t: &Ticket) -> Result<Allowed, String> {
     if t.format {
         use crate::ticket::checks;
         let bytes = t.checklist_text.as_bytes();
-        return Allowed {
+        return Ok(Allowed {
             tools: checks::declared(bytes, checks::TOOLS_KEY),
             paths: checks::paths_of(bytes),
             commands: checks::declared(bytes, checks::COMMANDS_KEY),
-        };
+        });
     }
-    crate::vfs::read_to_string(t.dir.join(ALLOWED_FILE))
-        .map(|text| parse_allowed(&text))
-        .unwrap_or_default()
+    let path = t.dir.join(ALLOWED_FILE);
+    match crate::vfs::read_to_string(&path) {
+        Ok(text) => Ok(parse_allowed(&text)),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Allowed::default()),
+        Err(e) => Err(format!("{path}: {e}")),
+    }
 }
 
 /// What a directory Warrant declares: its deliverables' files.

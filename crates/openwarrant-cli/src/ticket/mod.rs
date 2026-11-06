@@ -37,6 +37,7 @@ pub use authoring::Scope;
 pub mod cache;
 pub mod checks;
 pub mod claim;
+pub mod enforce;
 pub mod format;
 pub mod ladder;
 pub mod live;
@@ -3450,6 +3451,7 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         &given.packet,
         &given.text,
         &given.reach,
+        crate::go::packet::read_allowed(&tickets[index]).ok(),
     ) {
         Ok(changes) => changes,
         Err(e) => {
@@ -4416,6 +4418,18 @@ fn finish(
         }
         auto_claim = true;
     }
+    // W3: what this item's level holds a change or a widening to. Refused,
+    // nothing below ran. A change seen during this claim runs the trigger.
+    let gate = match enforce::judge(store, t, &what) {
+        Ok(gate) => gate,
+        Err(refusal) => return Ok(*refusal),
+    };
+    if gate.rerun
+        && matches!(how, How::Claimed)
+        && ladder::decides(&ladder::checks_of(t), item_id.as_deref())
+    {
+        how = How::Check;
+    }
     // FORMAT-1.0 §12: a Format 1.0 item a check evaluates with `on: done`
     // (the default) is ticked only if the run passes, at `observed`; a fail
     // or an UNKNOWN run ticks nothing. `--check` runs every check that
@@ -4671,6 +4685,7 @@ fn finish(
             out.report.push(w);
         }
     }
+    enforce::landed(store, &t, &what, gate, &mut out)?;
     Ok(out)
 }
 
@@ -4688,7 +4703,7 @@ fn finish_ticket(
     index: usize,
     note: Option<String>,
     if_rev: Option<&str>,
-    how: How,
+    mut how: How,
 ) -> Result<Outcome, RepoError> {
     let reload = |t: &Ticket| {
         store
@@ -4716,7 +4731,7 @@ fn finish_ticket(
 
     // The claim: every open item held by this actor, by its own claim or the
     // whole ticket's.
-    let mut auto_claimed = None;
+    let mut auto_claim = false;
     if let Some(refusal) = open
         .iter()
         .find_map(|id| may_finish(store, &t, Some(id), &item_what(id)).err())
@@ -4730,6 +4745,21 @@ fn finish_ticket(
         if !(unclaimed && (store.preset == Some(crate::preset::Preset::Vibe) || based)) {
             return Ok(*refusal);
         }
+        auto_claim = true;
+    }
+    // W3, as in `finish`: refused, not even a claim was taken.
+    let gate = match enforce::judge(store, &t, &what) {
+        Ok(gate) => gate,
+        Err(refusal) => return Ok(*refusal),
+    };
+    if gate.rerun
+        && matches!(how, How::Claimed)
+        && ladder::decides(&ladder::checks_of(&t), None)
+    {
+        how = How::Check;
+    }
+    let mut auto_claimed = None;
+    if auto_claim {
         let claimed = claim_cmd(store, &what, false)?;
         if claimed.is_refused() {
             return Ok(claimed);
@@ -4927,6 +4957,7 @@ fn finish_ticket(
             }
         }
     }
+    enforce::landed(store, &t, &what, gate, &mut out)?;
     Ok(out)
 }
 
