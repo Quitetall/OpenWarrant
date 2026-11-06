@@ -189,6 +189,18 @@
       "authority": "generated"
     },
     {
+      "id": "oh.war/unit-context/v1",
+      "schema": "oh.war/unit-context/v1.json",
+      "$id": "oh.war/unit-context/v1",
+      "authority": "generated"
+    },
+    {
+      "id": "oh.war/verification-response/v3",
+      "schema": "oh.war/verification-response/v3.json",
+      "$id": "oh.war/verification-response/v3",
+      "authority": "generated"
+    },
+    {
       "id": "oh.war/verification/v1",
       "schema": "oh.war/verification/v1.json",
       "$id": "oh.war/verification/v1",
@@ -204,12 +216,6 @@
       "id": "oh.war/verification/v3",
       "schema": "oh.war/verification/v3.json",
       "$id": "oh.war/verification/v3",
-      "authority": "generated"
-    },
-    {
-      "id": "oh.war/verification-response/v3",
-      "schema": "oh.war/verification-response/v3.json",
-      "$id": "oh.war/verification-response/v3",
       "authority": "generated"
     },
     {
@@ -240,17 +246,17 @@
       "authority": "normative"
     },
     {
-      "key": "journal-event",
-      "id": "openwarrant/1.0#journal-event",
-      "schema": "format/1.0/journal-event.json",
-      "$id": "https://openwarrant.dev/schemas/format/1.0/journal-event.json",
-      "authority": "normative"
-    },
-    {
       "key": "item",
       "id": "openwarrant/1.0#item",
       "schema": "format/1.0/item.json",
       "$id": "https://openwarrant.dev/schemas/format/1.0/item.json",
+      "authority": "normative"
+    },
+    {
+      "key": "journal-event",
+      "id": "openwarrant/1.0#journal-event",
+      "schema": "format/1.0/journal-event.json",
+      "$id": "https://openwarrant.dev/schemas/format/1.0/journal-event.json",
       "authority": "normative"
     },
     {

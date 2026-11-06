@@ -1903,7 +1903,8 @@ enum ViewCommand {
     /// `--index` prints the index of section 10.2 instead
     /// (docs/generated/llms.txt, as `war admin compile` writes it).
     Context {
-        /// Alias, `war://<uuid>`, item, record id, or repository path.
+        /// Alias, `war://<uuid>`, item, record id, repository path, a
+        /// document unit (`COMBAT.md#friendly-fire`), or words to search for.
         #[arg(required_unless_present = "index")]
         target: Option<String>,
         /// The budget in bytes of the Markdown output (the preset's: 16000
@@ -1917,9 +1918,13 @@ enum ViewCommand {
         /// 3 for `agent`).
         #[arg(long, value_name = "D")]
         depth: Option<usize>,
-        /// Refuse instead of listing any record by its summary only.
+        /// Refuse instead of listing anything by its summary only, or
+        /// leaving anything out.
         #[arg(long)]
         strict: bool,
+        /// Everything, with no budget, however large.
+        #[arg(long, conflicts_with_all = ["budget", "tokens", "strict"])]
+        full: bool,
         /// The preset: agent, agent.min, human, review or resume.
         #[arg(long, value_name = "NAME", default_value = context::DEFAULT_PRESET)]
         preset: String,
@@ -1928,7 +1933,7 @@ enum ViewCommand {
         #[arg(long, value_name = "RFC3339")]
         at: Option<String>,
         /// Print the index (section 10.2) instead of a packet.
-        #[arg(long, conflicts_with_all = ["target", "budget", "tokens", "depth", "strict", "at"])]
+        #[arg(long, conflicts_with_all = ["target", "budget", "tokens", "depth", "strict", "full", "at"])]
         index: bool,
     },
 }
@@ -6331,6 +6336,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             tokens,
             depth,
             strict,
+            full,
             preset,
             at,
             index,
@@ -6391,6 +6397,9 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             }
             let mut opts = context::Options::with(preset, budget, tokens, depth);
             opts.strict = strict;
+            if full {
+                opts.budget = None;
+            }
             let target = context::relative_target(&repository, &target.unwrap_or_default());
             Ok(context::answer(mode, &corpus, &target, &opts, at)?)
         }

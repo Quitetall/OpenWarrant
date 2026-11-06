@@ -160,7 +160,8 @@ pub struct Scan {
     pub open_fence: Option<usize>,
 }
 
-fn digest(bytes: &[u8]) -> String {
+#[must_use]
+pub fn digest(bytes: &[u8]) -> String {
     format!(
         "sha256:{}",
         Sha256::digest(bytes)
