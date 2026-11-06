@@ -340,3 +340,11 @@ whose plan has only the openwarrant arm. It changes no cell.
 
 The baselines ran on other days, so a difference is suggestive, not a controlled
 comparison, and these seven cells are few.
+
+Runs `oc-rem-2-*` measured main at 1203092ac. They found sessions reading every
+ticket file directly, so #390 changed the block's wording, and `oc-rem-3-*`
+measured that alone. Run `rem-c1` then repeats the 26 Claude cells of
+`plan-full-1-hook.json` on main at 2596016db, with the plugin from the same commit
+(`ADOPTION_OW_PLUGIN_REF`), so it has the prompt hook. `full-1` and `full-1-hook`
+are its comparisons. Model, seed, prompts, turn cap and measures are unchanged.
+
