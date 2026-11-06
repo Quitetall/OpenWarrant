@@ -1,0 +1,1 @@
+{"actor_ref":"claude","class":"draft_history","document_uuid":"01a1aea8-29ea-72b6-9267-7d299db518dc","id":"01a1aea8-301f-72ff-9e43-a48cc3cf9374","idempotency_key":"ac6845e136879eeeda23ae39c84905d57688706db8326da3e642c442a0d23859","occurred_at":"2026-11-06T02:20:20Z","payload":{"items":0,"ticket":"t-38d05","title":"W4: agents start with their work"},"type":"work.created","v":2}

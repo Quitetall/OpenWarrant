@@ -1,0 +1,1 @@
+{"actor_ref":"claude","class":"draft_history","document_uuid":"01a1aea7-e78c-7743-a47b-8966ab99b8cc","id":"01a1aea7-efb4-7672-8e46-d2a8f52937b1","idempotency_key":"506a4d7d881e9930614c09f5574c4df9436b5a1508430905c8052867f0015008","occurred_at":"2026-11-06T02:20:03Z","payload":{"items":0,"ticket":"t-8b863","title":"W1: lean core"},"type":"work.created","v":2}

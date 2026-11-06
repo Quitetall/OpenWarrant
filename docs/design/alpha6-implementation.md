@@ -4,6 +4,11 @@ Owner-directed implementation plan, 2026-10-31. Tracked as `t-8956e`.
 This is implementation scope, not formal acceptance of a format edition,
 independent verification, or a release receipt.
 
+Continued by the lean programme, `t-3c16c`, the owner's single plan from
+2026-11-05. It narrows two lines below: overlap refusal and lease-expiry
+reservation apply to writers that declared paths. A claim with no declared
+paths warns on overlap and is reclaimed when its lease runs out.
+
 ## Work model
 
 New work uses one expandable Markdown Warrant with a stable ID. Items and

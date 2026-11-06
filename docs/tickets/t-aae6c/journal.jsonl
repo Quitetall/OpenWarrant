@@ -1,0 +1,1 @@
+{"actor_ref":"claude","class":"draft_history","document_uuid":"01a1aea7-d2cc-7629-b2df-0bcfbef7b391","id":"01a1aea7-d634-7331-a3cb-757df6767a50","idempotency_key":"eb2e9838a49f3d7134b8ed42fddc6017c21880302296bffc508df39f928fcc34","occurred_at":"2026-11-06T02:19:57Z","payload":{"items":0,"ticket":"t-aae6c","title":"W0: land alpha.6 on main"},"type":"work.created","v":2}
