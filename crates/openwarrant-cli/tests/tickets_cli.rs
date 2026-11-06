@@ -175,6 +175,83 @@ fn claiming_a_whole_ticket_names_a_command_that_works() {
 /// description, open items and notes, and the command that closes it. Run
 /// again by the same actor it prints the same one (a session resumes); another
 /// actor gets the next; with nothing left, it says so and claims nothing.
+/// A single-file ticket keeps its notes in the journal, not its body, and
+/// the comment left on its issue still carries them.
+#[cfg(unix)]
+#[test]
+fn the_issue_comment_carries_the_notes_of_a_single_file_ticket() {
+    use std::os::unix::fs::PermissionsExt;
+    let root = scratch("writeback-notes");
+    let bin = root.join("fake-bin");
+    std::fs::create_dir_all(&bin).unwrap();
+    let gh = bin.join("gh");
+    std::fs::write(
+        &gh,
+        "#!/bin/sh\n\
+         case \"$1 $2\" in\n\
+         'issue view') printf '{\"number\":%s,\"title\":\"T\",\"body\":\"B\",\"url\":\"https://github.com/o/r/issues/%s\"}' \"$3\" \"$3\";;\n\
+         'issue comment') printf '%s' \"$5\" > \"$FAKE_GH_COMMENT\";;\n\
+         esac\n",
+    )
+    .unwrap();
+    std::fs::set_permissions(&gh, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let config = root.join("openwarrant.toml");
+    let mut text = std::fs::read_to_string(&config).unwrap();
+    text.push_str(
+        "\n[intake]\nfetch_argv = [\"gh\", \"issue\", \"view\", \"{id}\", \"--json\", \"number,title,body,url\"]\n\
+         [intake.writeback]\ncomment_argv = [\"gh\", \"issue\", \"comment\", \"{id}\", \"--body\", \"{body}\"]\n\
+         close_argv = [\"gh\", \"issue\", \"close\", \"{id}\"]\n",
+    );
+    std::fs::write(&config, text).unwrap();
+    let comment = root.join("comment.txt");
+    let path = format!(
+        "{}:{}",
+        bin.display(),
+        std::env::var("PATH").unwrap_or_default()
+    );
+    let run = |args: &[&str]| {
+        let out = Command::new(env!("CARGO_BIN_EXE_war"))
+            .current_dir(&root)
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .env("PATH", &path)
+            .env("FAKE_GH_COMMENT", &comment)
+            .env_remove("OPENWARRANT_ACTOR")
+            .env_remove("SSH_AUTH_SOCK")
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            out.status.success(),
+            "{args:?}: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        String::from_utf8_lossy(&out.stdout).into_owned()
+    };
+    let made: serde_json::Value =
+        serde_json::from_str(&run(&["--json", "create", "--issue", "13", "-i", "Fix it"])).unwrap();
+    let id = made["result"]["id"].as_str().unwrap();
+    let item = made["result"]["items"][0]["id"].as_str().unwrap();
+    assert!(
+        root.join(format!("docs/tickets/{id}.md")).is_file(),
+        "not a single-file ticket"
+    );
+    run(&["note", id, "root cause: an unchecked empty string"]);
+    let target = format!("{id}/{item}");
+    run(&["claim", &target]);
+    run(&["done", &target, "--note", "guarded"]);
+    let body = std::fs::read_to_string(&comment).unwrap();
+    assert!(
+        body.contains("Fix it") && body.contains(": guarded"),
+        "{body}"
+    );
+    assert!(body.contains("\nNotes:\n\n"), "{body}");
+    assert!(
+        body.contains("root cause: an unchecked empty string"),
+        "{body}"
+    );
+}
+
 #[test]
 fn start_takes_the_next_warrant_and_prints_only_it() {
     let root = scratch("start");

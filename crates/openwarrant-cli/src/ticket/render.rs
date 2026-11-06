@@ -967,10 +967,7 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             children.push(kr);
         }
     }
-    let mut all = notes(&t.intent);
-    if t.format {
-        all.extend(journal_notes(t));
-    }
+    let all = all_notes(t);
     if !all.is_empty() {
         md.push_str("\n## Notes\n\n");
         for n in &all {
@@ -1320,7 +1317,8 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
 /// Every note on `t`, oldest first: those in its intent (`war plan note` on a
 /// directory ticket) and its journal's (`work.note_added` on a Format 1.0
 /// one).
-fn all_notes(t: &Ticket) -> Vec<String> {
+#[must_use]
+pub fn all_notes(t: &Ticket) -> Vec<String> {
     let mut ns = notes(&t.intent);
     if t.format {
         ns.extend(journal_notes(t));
