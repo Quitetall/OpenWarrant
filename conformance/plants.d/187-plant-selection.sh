@@ -61,6 +61,8 @@ for rule in rules:
         continue
     for pattern in rule["paths"]:
         literal = pattern.split("*")[0].rstrip("/")
+        if literal == "crates":  # the tests of every crate; matched on the tail
+            literal = "/tests/"
         for name, text in plants.items():
             if literal in text:
                 print(f"{name} names {literal}, which rule {rule['name']!r} says no plant reads")
