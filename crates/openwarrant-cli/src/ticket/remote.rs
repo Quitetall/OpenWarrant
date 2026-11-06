@@ -13,8 +13,11 @@
 //!
 //! The local lock is taken first, so the worktrees of one clone settle among
 //! themselves before any push. A claim lost at the remote releases the local
-//! lock it took. Finishing or releasing deletes the ref, again with a lease,
-//! so a claim reclaimed meanwhile is never deleted by its previous holder.
+//! lock it took, and so does a push that timed out: the claim may be on the
+//! remote, but nothing established it, and the remote stays the arbiter. The
+//! ref refuses other agents until its lease runs out, whatever this machine's
+//! lock says. Finishing or releasing deletes the ref, again with a lease, so a
+//! claim reclaimed meanwhile is never deleted by its previous holder.
 //!
 //! The commit is written with `git commit-tree --no-gpg-sign` under a fixed
 //! identity: nothing here signs, and nothing reads the commit as anything but
@@ -96,14 +99,40 @@ pub fn remove_sidecar(lock: &Utf8Path) {
     let _ = std::fs::remove_file(sidecar(lock));
 }
 
-/// One git call: its status and output, or why it could not finish.
+/// One git call: its status and output.
 struct Ran {
     ok: bool,
     stdout: String,
     stderr: String,
 }
 
-fn git(root: &Utf8Path, args: &[&str], stdin: Option<&[u8]>) -> Result<Ran, String> {
+/// Why a git call has no answer.
+enum Unanswered {
+    /// It never started: whatever it was to do, it did not do.
+    NotStarted(String),
+    /// It started and was not seen to finish: whatever it was to do may have
+    /// been done.
+    Unfinished(String),
+}
+
+impl From<Unanswered> for String {
+    fn from(u: Unanswered) -> Self {
+        match u {
+            Unanswered::NotStarted(why) | Unanswered::Unfinished(why) => why,
+        }
+    }
+}
+
+fn git(root: &Utf8Path, args: &[&str], stdin: Option<&[u8]>) -> Result<Ran, Unanswered> {
+    git_within(root, args, stdin, DEADLINE)
+}
+
+fn git_within(
+    root: &Utf8Path,
+    args: &[&str],
+    stdin: Option<&[u8]>,
+    deadline: Duration,
+) -> Result<Ran, Unanswered> {
     let started = Instant::now();
     let mut child = Command::new("git")
         .args(["-c", "core.askPass=", "-c", "credential.interactive=never"])
@@ -122,7 +151,7 @@ fn git(root: &Utf8Path, args: &[&str], stdin: Option<&[u8]>) -> Result<Ran, Stri
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("could not run git: {e}"))?;
+        .map_err(|e| Unanswered::NotStarted(format!("could not run git: {e}")))?;
     if let (Some(bytes), Some(mut pipe)) = (stdin, child.stdin.take()) {
         use std::io::Write as _;
         let _ = pipe.write_all(bytes);
@@ -140,18 +169,18 @@ fn git(root: &Utf8Path, args: &[&str], stdin: Option<&[u8]>) -> Result<Ran, Stri
     let status = loop {
         if let Some(s) = child
             .try_wait()
-            .map_err(|e| format!("could not wait for git: {e}"))?
+            .map_err(|e| Unanswered::Unfinished(format!("could not wait for git: {e}")))?
         {
             break s;
         }
-        if started.elapsed() > DEADLINE {
+        if started.elapsed() > deadline {
             let _ = child.kill();
             let _ = child.wait();
-            return Err(format!(
+            return Err(Unanswered::Unfinished(format!(
                 "git {} took more than {}s",
                 args.first().unwrap_or(&""),
-                DEADLINE.as_secs()
-            ));
+                deadline.as_secs()
+            )));
         }
         std::thread::sleep(pause);
         pause = (pause * 2).min(Duration::from_millis(20));
@@ -207,6 +236,10 @@ pub enum Push {
     Lost,
     /// The remote could not be reached, or refused for another reason.
     Failed(String),
+    /// The push was not seen to finish (it ran past [`DEADLINE`]), and it may
+    /// have landed: the remote can apply what it was sent after git is
+    /// killed here. Whether the ref moved is unknown.
+    Unsettled(String),
 }
 
 /// Set `refname` on `remote` to `commit` (or delete it, `commit` `None`) if
@@ -218,9 +251,20 @@ pub fn push(
     commit: Option<&str>,
     expect: Option<&str>,
 ) -> Push {
+    push_within(root, remote, refname, commit, expect, DEADLINE)
+}
+
+fn push_within(
+    root: &Utf8Path,
+    remote: &str,
+    refname: &str,
+    commit: Option<&str>,
+    expect: Option<&str>,
+    deadline: Duration,
+) -> Push {
     let lease = format!("--force-with-lease={refname}:{}", expect.unwrap_or(""));
     let spec = format!("{}:{refname}", commit.unwrap_or(""));
-    let ran = match git(
+    let ran = match git_within(
         root,
         &[
             "push",
@@ -232,9 +276,11 @@ pub fn push(
             &spec,
         ],
         None,
+        deadline,
     ) {
         Ok(r) => r,
-        Err(e) => return Push::Failed(e),
+        Err(Unanswered::NotStarted(e)) => return Push::Failed(e),
+        Err(Unanswered::Unfinished(e)) => return Push::Unsettled(e),
     };
     if ran.ok {
         return Push::Won;
@@ -328,4 +374,90 @@ pub fn read(root: &Utf8Path, remote: &str, refname: &str) -> Result<Held, String
         commit,
         serde_json::from_str::<Claim>(message).ok().map(Box::new),
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn git_in(dir: &std::path::Path, args: &[&str]) {
+        let out = Command::new("git")
+            .args(args)
+            .current_dir(dir)
+            .env("GIT_AUTHOR_NAME", "t")
+            .env("GIT_AUTHOR_EMAIL", "t@example.invalid")
+            .env("GIT_COMMITTER_NAME", "t")
+            .env("GIT_COMMITTER_EMAIL", "t@example.invalid")
+            .output()
+            .unwrap();
+        assert!(out.status.success(), "git {args:?}: {out:?}");
+    }
+
+    /// A clone whose remote answers a push by running `receive_pack`.
+    fn clone_pushing_through(top: &std::path::Path, receive_pack: &str) -> (Utf8PathBuf, String) {
+        use std::os::unix::fs::PermissionsExt as _;
+        let bare = top.join("bare.git");
+        let clone = top.join("clone");
+        std::fs::create_dir(&bare).unwrap();
+        std::fs::create_dir(&clone).unwrap();
+        git_in(&bare, &["init", "-q", "--bare"]);
+        git_in(&clone, &["init", "-q"]);
+        git_in(&clone, &["remote", "add", "origin", bare.to_str().unwrap()]);
+        git_in(&clone, &["commit", "-q", "--allow-empty", "-m", "c"]);
+        let script = top.join("receive-pack");
+        std::fs::write(&script, format!("#!/bin/sh\n{receive_pack}\n")).unwrap();
+        std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o755)).unwrap();
+        git_in(
+            &clone,
+            &[
+                "config",
+                "remote.origin.receivepack",
+                script.to_str().unwrap(),
+            ],
+        );
+        let head = Command::new("git")
+            .args(["rev-parse", "HEAD"])
+            .current_dir(&clone)
+            .output()
+            .unwrap();
+        (
+            Utf8PathBuf::from_path_buf(clone).unwrap(),
+            String::from_utf8(head.stdout).unwrap().trim().to_owned(),
+        )
+    }
+
+    const REF: &str = "refs/openwarrant/claims/t-1";
+
+    #[test]
+    fn a_push_past_its_deadline_is_unsettled_not_failed() {
+        let top = tempfile::tempdir().unwrap();
+        // `exec`: the deadline's kill reaches the sleep, not a shell above it.
+        let (clone, head) = clone_pushing_through(top.path(), "exec sleep 20");
+        let started = Instant::now();
+        let pushed = push_within(
+            &clone,
+            "origin",
+            REF,
+            Some(&head),
+            None,
+            Duration::from_millis(100),
+        );
+        assert!(matches!(pushed, Push::Unsettled(_)), "{pushed:?}");
+        assert!(started.elapsed() < Duration::from_secs(15));
+    }
+
+    #[test]
+    fn a_push_the_remote_answers_with_a_failure_stays_failed() {
+        let top = tempfile::tempdir().unwrap();
+        let (clone, head) = clone_pushing_through(top.path(), "exit 1");
+        let pushed = push_within(
+            &clone,
+            "origin",
+            REF,
+            Some(&head),
+            None,
+            Duration::from_secs(20),
+        );
+        assert!(matches!(pushed, Push::Failed(_)), "{pushed:?}");
+    }
 }

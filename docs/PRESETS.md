@@ -118,7 +118,7 @@ A Warrant is **official** when someone allowed made it, or approved it:
    pass.
 
 `war show <id>` and `war status <id>` end with an `## Official` section, and
-bare `war status` with one line per Warrant (and `official` under
+`war status --verbose` with one line per Warrant (and `official` under
 `--json`), only when a preset or `[roles]` is configured:
 
 ```text

@@ -138,8 +138,8 @@ dimension not written reads `false`). It claims nothing:
 - `war check` replaces the per-level WARN with one NOT CHECKED note naming
   the declaration and how many Warrants' §46.3 minimum is unmet. It never
   adds a PASS.
-- `war status` names it, `independence: single actor (declared)`, and
-  `--json` carries `"independence": {"declared": "single_actor",
+- `war status --verbose` names it, `independence: single actor (declared)`,
+  and `--json` carries `"independence": {"declared": "single_actor",
   "independent": false}`.
 - The compliance score (docs/SCORE.md) never reads `[independence]`:
   `verified` counts ticks an actor other than the performer verified, so the

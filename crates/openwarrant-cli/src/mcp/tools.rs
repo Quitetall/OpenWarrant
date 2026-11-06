@@ -61,6 +61,10 @@ pub struct CreateParams {
     /// Commands this work may run.
     #[serde(default)]
     pub commands: Vec<String>,
+    /// Tests: shell commands whose exit code decides pass or fail. `war_done`
+    /// runs them and finishes the work only when they pass.
+    #[serde(default)]
+    pub tests: Vec<String>,
     /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
@@ -1318,7 +1322,7 @@ impl WarServer {
 
     #[tool(
         name = "war_create",
-        description = "Create a Warrant (`war create`, a ticket): a title, optional checklist items and description. Workable at once; nothing is signed. Returns its id (t-...).",
+        description = "Create a Warrant (`war create`, a ticket): a title, optional checklist items, description and tests. Workable at once; nothing is signed. `war_done` runs its tests. Returns its id (t-...).",
         annotations(read_only_hint = false)
     )]
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
@@ -1337,6 +1341,7 @@ impl WarServer {
                 tools: p.tools,
                 commands: p.commands,
             },
+            tests: p.tests,
         };
         self.ticket("create", p.actor.as_deref(), |s| {
             crate::ticket::create(s, &args)

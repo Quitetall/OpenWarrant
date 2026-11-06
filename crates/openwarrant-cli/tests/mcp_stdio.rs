@@ -231,6 +231,39 @@ fn outside_a_repository_the_server_refuses_before_any_runtime() {
 }
 
 #[test]
+fn war_create_writes_the_tests_it_is_given() {
+    let root = tempfile::tempdir().unwrap();
+    let init = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["--root", root.path().to_str().unwrap()])
+        .args(["init", "--namespace", "MT"])
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .expect("runs");
+    assert!(init.status.success(), "{init:?}");
+    let mut s = Session::start_at(root.path());
+    let made = s.tool(
+        2,
+        "war_create",
+        serde_json::json!({"title":"With a test","tests":["true"]}),
+    );
+    let report = &made["result"]["structuredContent"];
+    assert_eq!(report["exit_code"], 0, "{made}");
+    let source = report["result"]["source"].as_str().expect("source");
+    let text = std::fs::read_to_string(root.path().join(source)).expect("the document");
+    assert!(text.contains("## CHK-test-1 · check"), "{text}");
+    let empty = s.tool(
+        3,
+        "war_create",
+        serde_json::json!({"title":"With no command","tests":[" "]}),
+    );
+    assert_ne!(
+        empty["result"]["structuredContent"]["exit_code"], 0,
+        "{empty}"
+    );
+    assert_eq!(s.finish(), 0);
+}
+
+#[test]
 fn questions_tool_preserves_partial_store_diagnostics() {
     fn copy(from: &std::path::Path, to: &std::path::Path) {
         std::fs::create_dir_all(to).unwrap();

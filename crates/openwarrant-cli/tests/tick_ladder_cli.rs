@@ -242,7 +242,7 @@ fn a_minimum_of_observed_refuses_a_claimed_tick_and_names_the_command() {
     json(&root, &["add", &target, "--test", "true"]);
     let ok = json(&root, &["done", &target, "--check"]);
     assert_eq!(ok["exit_code"], 0, "{ok}");
-    let roadmap_free = text(&war(&root, &["status"]));
+    let roadmap_free = text(&war(&root, &["status", "--verbose"]));
     assert!(roadmap_free.contains("Milestones:"), "{roadmap_free}");
     assert!(roadmap_free.contains("(observed)"), "{roadmap_free}");
 }

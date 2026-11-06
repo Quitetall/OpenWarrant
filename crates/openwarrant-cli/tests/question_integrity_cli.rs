@@ -15,6 +15,43 @@ fn copy_tree(from: &Path, to: &Path) {
 }
 
 #[test]
+fn a_damaged_question_store_reads_as_unknown_in_the_brief_status() {
+    let root = tempfile::tempdir().unwrap();
+    copy_tree(
+        &Path::new(env!("CARGO_MANIFEST_DIR")).join("../../conformance/fixtures/inbox/repository"),
+        root.path(),
+    );
+    let status = || {
+        Command::new(env!("CARGO_BIN_EXE_war"))
+            .arg("status")
+            .current_dir(root.path())
+            .env_remove("OPENWARRANT_VERBOSE")
+            .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+            .output()
+            .unwrap()
+    };
+    let good = status();
+    assert!(good.status.success(), "{good:?}");
+    assert!(
+        String::from_utf8_lossy(&good.stdout).contains("Blocking questions: 1\n"),
+        "{good:?}"
+    );
+    fs::write(
+        root.path()
+            .join("docs/warrants/IX-WAR-0002/questions/Q-002.toml"),
+        "broken TOML",
+    )
+    .unwrap();
+    let bad = status();
+    assert_eq!(bad.status.code(), Some(2), "{bad:?}");
+    let out = String::from_utf8_lossy(&bad.stdout);
+    assert!(out.contains("Blocking questions: ?\n"), "{out}");
+    assert!(out.contains("Awaiting a signature: ?\n"), "{out}");
+    let err = String::from_utf8_lossy(&bad.stderr);
+    assert!(err.contains("UNKNOWN (status.unreadable)"), "{err}");
+}
+
+#[test]
 fn damaged_question_store_is_never_an_empty_success() {
     let root = std::env::temp_dir().join(format!("ow-question-integrity-{}", std::process::id()));
     copy_tree(

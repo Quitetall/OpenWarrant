@@ -258,7 +258,7 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
   <stage>`) is plumbing a newcomer never types.
 - **`ledger` and `score` are under `admin`** (M17, docs/LEDGER.md,
   docs/SCORE.md): both maintain what compile regenerates. The score itself
-  is also the last block of `war status`, and its CI floor is a flag of the
+  is also the last block of `war status --verbose`, and its CI floor is a flag of the
   daily `war check` (`--floor <rev>`, envelope `check.floor`), so neither
   needs a thirteenth daily verb.
 - **`merge-ticket` is listed under `admin`.** It was hidden at the top level

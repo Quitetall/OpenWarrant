@@ -121,6 +121,7 @@ pub mod standing_cmd;
 #[path = "state_cmd.rs"]
 pub mod states;
 pub mod status;
+pub mod status_brief;
 pub mod telemetry;
 pub mod ticket;
 pub mod timeline;
@@ -730,7 +731,7 @@ enum DailyCommand {
         /// Warrant's items implement them (OW-WAR-0148 M7). The records are
         /// validated as authored ones are, then written to one record atom
         /// under `docs/records/<area>/`; a refused proposal writes nothing.
-        #[arg(long, requires = "draft", conflicts_with_all = ["kind", "labels", "part_of", "implements", "issue", "issue_file"])]
+        #[arg(long, requires = "draft", conflicts_with_all = ["kind", "labels", "part_of", "implements", "issue", "issue_file", "tests"])]
         records: bool,
         /// With --records: the area under `docs/records/` the records land in.
         #[arg(long, value_name = "NAME", requires = "records")]
@@ -754,6 +755,11 @@ enum DailyCommand {
         /// A command this work may run; repeat for more.
         #[arg(long = "command", value_name = "CMD", conflicts_with = "legacy")]
         commands: Vec<String>,
+        /// A test: a shell command whose exit code decides pass or fail.
+        /// Repeatable. `war done` runs it and finishes the work only when it
+        /// passes.
+        #[arg(long = "test", value_name = "COMMAND", conflicts_with = "legacy")]
+        tests: Vec<String>,
         /// Make the Warrant from GitHub issue <N>, read once through
         /// `[intake] fetch_argv`; the Warrant records the link. With
         /// `[intake.writeback]` set, finishing it comments on and closes the issue.
@@ -859,7 +865,8 @@ enum DailyCommand {
     },
     /// Where the work stands, from the records.
     ///
-    /// §17.5 `status`; §34.3; §98. Bare `war status` is the corpus projection. `war status <alias>` is the
+    /// §17.5 `status`; §34.3; §98. Bare `war status` is a few lines of counts;
+    /// `--verbose` is the whole corpus projection. `war status <alias>` is the
     /// per-Warrant form §72.5 names. Every count is a ladder; nothing is a
     /// percentage.
     Status {
@@ -3454,6 +3461,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             paths,
             tools,
             commands,
+            tests,
             issue,
             issue_file,
             implements,
@@ -3527,6 +3535,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     tools,
                     commands,
                 },
+                tests,
             };
             let outcome = if legacy {
                 ticket::create_legacy(&store, &args)?
@@ -3723,6 +3732,18 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                             value["independence"] = v;
                         }
                         output::emit(mode, "status", &text, value);
+                    }
+                    // A few lines, not the projection: an agent reads every
+                    // byte of this. `--verbose` is the arm below.
+                    output::Mode::Human if !output::verbose() => {
+                        let brief = status_brief::Brief::read(&repository);
+                        print!("{}", brief.render());
+                        for why in &brief.unknown {
+                            eprintln!("UNKNOWN (status.unreadable): {why}");
+                        }
+                        if !brief.unknown.is_empty() {
+                            return Ok(EXIT_NOT_READY);
+                        }
                     }
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;

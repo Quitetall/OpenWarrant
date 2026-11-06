@@ -63,7 +63,7 @@ RP_I1=$(rp_field "$(rpj impact 'openspec:auth-session#session-expiry')" '",".joi
 RP_I2=$(rp_field "$(rpj impact speckit:001-photo-albums/US1)" '",".join(sorted(a["id"].split("/")[1] for a in v["result"]["affected"]))')
 RP_SH=$(rpw show openspec:add-2fa 2>/dev/null)
 RP_ST=$(rp_field "$(rpj status speckit:001-photo-albums)" 'v["result"]["warrant"]["state"]')
-RP_SS=$(rpw status 2>/dev/null)
+RP_SS=$(rpw status --verbose 2>/dev/null)
 RP_SJ=$(rp_field "$(rpj status)" 'len(v["result"]["read_in_place"]["warrants"])')
 RP_CHK=$(rpw check 2>&1); RP_CS=$?
 if [[ "$RP_I1" == "openspec:add-2fa,openspec:add-2fa/1.1,openspec:add-2fa/1.2,openspec:add-2fa/2.1,openspec:add-2fa/2.2" \

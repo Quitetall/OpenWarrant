@@ -162,7 +162,7 @@ writes nothing.
 war sign resolve --dry-run DM-WAR-0001 # the thirteen §56.1 requirements, honestly
 war sign resolve DM-WAR-0001        # agent: the request
 war sign DM-WAR-0001 --ssh-sign     # HUMAN: one dialog
-war status                          # DM-WAR-0001: resolved / RQ-001: satisfied
+war status --verbose                # DM-WAR-0001: resolved / RQ-001: satisfied
 ```
 
 At every step `war next` says whose act comes next. It never hands an agent a

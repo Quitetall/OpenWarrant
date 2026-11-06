@@ -6,8 +6,31 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- Bare `war status` is a few lines of counts: the SAS revision, Warrants,
+  open tickets, ready work, acts awaiting a signature and blocking questions.
+  On this repository, 37,841 bytes to 180. A figure that cannot be read prints
+  `?`, says why on stderr and exits 2. `war status --verbose` is the old
+  output, byte for byte; `--json`, `--timeline`, `--pending` and `war status
+  <id>` do not change. A script that read the projection from bare `war status`
+  needs `--verbose`.
+
+### Fixed
+
+- A claim whose `git push` to the claims remote timed out no longer says
+  "nothing was claimed": the push may have landed. It stays UNKNOWN
+  (`work.claim-remote-unreachable`), says the outcome is unknown, and says how
+  a claim that landed clears: a retry from the same session, or its lease
+  running out. Timed-out ref deletes and lease renewals say the same.
+
 ### Added
 
+- `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
+  a Warrant can be given its test in the command that makes it. It is the same
+  `## CHK-…` section `war plan add --test` writes, and `war done` runs it and
+  finishes the work only on a pass. A test that cannot be written is refused
+  before anything exists. Not with `--legacy` or `--records`.
 - Any ticket can declare the tools and commands its work may run, as well as
   its paths: `war create --path 'src/**' --tool Read --command 'cargo test'`.
   `war start` turns them into session permissions. They never change how a
@@ -28,16 +51,23 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
-- **Two-Pillar Mission Control TUI (`war tui`)**:
-  - `Pane::Observe` (`o`): Situational telemetry HUD, milestone progress bars,
-    task dependency DAG with critical path identification and write-scope collision detection,
-    live Unix socket streaming of agent transcripts via Herdr (`~/.config/herdr/herdr.sock`),
-    active lease freshness and writer heartbeats, and a unified open question/blocker resolution drawer.
-  - `Pane::Orchestrate` (`O`): Interactive work creation (form and NLP drafting),
-    multi-model agent dispatch (Claude Opus 5.5, Sonnet 4.6, Gemini 3.8 Flash, Gemini 3.5 Pro, local runners),
-    blocker resolution, and batch SSH approval/signing queue (`[s]` batch sign).
+- **Mission Control preview (`war tui`)**, not a finished workspace. This entry
+  first described it as finished; what follows is what shipped.
+  - `Pane::Observe` (`o`): Herdr agent lists and transcripts, read over Herdr's
+    Unix socket (`~/.config/herdr/herdr.sock`), fleet and worktree counts, and
+    the open questions list work. Token and dollar figures are fabricated
+    constants, not telemetry. `LEASES: fresh` is a fixed label: lease, scope and
+    collision details do not show, and there are no writer heartbeats. "Critical
+    path" only means priority 0 or 1. Milestone bars are not progress: a
+    phase's Warrant counts as done unless the roadmap lists it as open work.
+  - `Pane::Orchestrate` (`O`): batch SSH signing works (`[s]`). Create,
+    dispatch and answer do not work from the TUI, and its list of models
+    launches nothing. Use `war create`, `war start --worktree` and
+    `war plan answer`.
+  - The no-Herdr fallback pane does not work.
   - Terminal-only guard (`tui.no-tty`), zero signing key material in UI memory, strictly shelling out to child `war sign --ssh-sign` processes.
-- Herdr IPC socket streaming (`openwarrant_cli::herdr`) for live multi-agent observability and transcript monitoring.
+- Herdr client (`openwarrant_cli::herdr`): reads agents and transcripts from a
+  running Herdr, default session only. Herdr is optional.
 
 ### Changed
 

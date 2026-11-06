@@ -125,7 +125,7 @@ fi
 #    vacuous).
 ON_B0=$(on_bytes)
 for args in "warrants" "tickets --search parser" "ls --state draft" "show $ON_T" "show t-0b1d" \
-    "show ON-WAR-0001" "status $ON_T" "status ON-WAR-0001" "status" "ready" "next" "model" \
+    "show ON-WAR-0001" "status $ON_T" "status ON-WAR-0001" "status" "status --verbose" "ready" "next" "model" \
     "check $ON_T" "check t-0b1d" "check"; do
     # shellcheck disable=SC2086
     onw $args >/dev/null 2>&1

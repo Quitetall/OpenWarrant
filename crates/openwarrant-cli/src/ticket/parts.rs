@@ -63,6 +63,21 @@ fn refused(rule: &str, message: impl Into<String>) -> Outcome {
     Outcome::refused(rule, String::new(), message)
 }
 
+/// Why tests cannot be written as given: `war create --test` asks this before
+/// anything exists, so a refused test leaves no half-made Warrant behind.
+pub(super) fn refuse_tests(tests: &[String]) -> Option<Outcome> {
+    if tests.iter().any(|c| c.trim().is_empty()) {
+        return Some(refused("ticket.test-empty", "--test needs a command"));
+    }
+    if tests.iter().any(|c| c.trim().contains(['\r', '\n'])) {
+        return Some(refused(
+            "ticket.part-malformed",
+            "a run is one command line; put a multiline program in a script file",
+        ));
+    }
+    None
+}
+
 /// `war plan add <ticket|item> [text] --test/--kpi/--milestone/--min`: the parts
 /// written to the checks atom, and the item (when there is text or a
 /// milestone) to the checklist through `war plan add`'s own path.
