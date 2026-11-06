@@ -85,7 +85,11 @@ For each ready node, in order, up to `[go] max_parallel` at once:
    first (`go.dispatched`). Native work also carries the complete required
    `oh.war/task-context/v1` packet, including recorded notes and exact rules.
    Workspace cleanup retains dirty, foreign or uncertain work; it never
-   force-removes progress on retry.
+   force-removes progress on retry. A clean attempt that did not land is given
+   back, so the next starts from the integration branch; commits of its that
+   the branch does not hold stay at `refs/openwarrant/go/kept/<node>/<commit>`.
+   A retained worktree refuses its node's next attempt (`go.worktree`) until a
+   person has looked at it (`war admin worktrees`).
 4. **Answer**: a §51 Stage Submission. It passes exactly the refusals `war
    evidence submit` applies (`submission.malformed`,
    `submission.self-completion`, `submission.unknown-dispatch`,
@@ -230,7 +234,9 @@ A light Warrant declares its allowed acts in an optional
 - `cargo test -p parser`
 ```
 
-A directory Warrant's declared paths are its deliverables' files. Inside a
+A single-file ticket declares its paths in its frontmatter (`paths:`,
+FORMAT-1.0 10.3), and has nowhere yet to declare tools or commands. A directory
+Warrant's declared paths are its deliverables' files. Inside a
 `war start` worktree whose Warrant declares paths, the plugin guard
 (`.claude/hooks/guard-pins.sh`) turns back an edit outside them; a Warrant
 that declares none restricts nothing.

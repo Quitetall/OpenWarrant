@@ -1041,3 +1041,149 @@ print(json.dumps(a))
         "{p}"
     );
 }
+
+/// One ticket of one item, committed, whose node runs `harness` in a
+/// worktree, at most twice; and the node's id.
+fn go_repo(root: &std::path::Path, script: &std::path::Path, harness: &str) -> String {
+    assert_eq!(war(root, &["init", "--namespace", "GR"])["exit_code"], 0);
+    let created = war(root, &["create", "Retried work", "--item", "The item"]);
+    let node = format!(
+        "{}/{}",
+        created["result"]["id"].as_str().unwrap(),
+        created["result"]["items"][0]["id"].as_str().unwrap()
+    );
+    std::fs::write(script, harness).unwrap();
+    let config = root.join("openwarrant.toml");
+    let mut text = std::fs::read_to_string(&config).unwrap();
+    text.push_str(&format!(
+        "\n[go]\nharness_argv = [\"python3\", {:?}]\nmax_parallel = 1\nmax_attempts = 2\n",
+        script.to_str().unwrap()
+    ));
+    std::fs::write(config, text).unwrap();
+    git(root, &["init", "-q"]);
+    git(root, &["add", "-A"]);
+    git(root, &["commit", "-qm", "baseline"]);
+    node
+}
+
+fn git(root: &std::path::Path, args: &[&str]) -> String {
+    let result = Command::new("git")
+        .args([
+            "-c",
+            "user.name=fixture",
+            "-c",
+            "user.email=fixture@invalid",
+            "-c",
+            "commit.gpgsign=false",
+        ])
+        .args(args)
+        .current_dir(root)
+        .output()
+        .unwrap();
+    assert!(
+        result.status.success(),
+        "{args:?}: {}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    String::from_utf8_lossy(&result.stdout).into_owned()
+}
+
+#[test]
+fn a_retry_starts_from_integration_and_keeps_what_the_first_attempt_committed() {
+    let root = tempfile::tempdir().unwrap();
+    let output = tempfile::tempdir().unwrap();
+    let node = go_repo(
+        root.path(),
+        &output.path().join("h.py"),
+        r#"import json, os, subprocess, sys
+p = json.load(sys.stdin)
+wt = p["worktree"]
+if p["attempt"] == 1:
+    open(os.path.join(wt, "first.txt"), "w").write("first\n")
+    git = ["git", "-c", "user.name=h", "-c", "user.email=h@invalid", "-c", "commit.gpgsign=false"]
+    subprocess.check_call(git + ["add", "first.txt"], cwd=wt)
+    subprocess.check_call(git + ["commit", "-qm", "first"], cwd=wt)
+    sys.exit(1)
+assert not os.path.exists(os.path.join(wt, "first.txt")), "not from the integration branch"
+open(os.path.join(wt, "second.txt"), "w").write("second\n")
+a = p["answer"]
+a["requested_next_action"] = "verify"
+a["claims"] = [{"id": "C-001", "statement": "wrote one file"}]
+print(json.dumps(a))
+"#,
+    );
+    let run = war(root.path(), &["evidence", "go", "--prototype"]);
+    assert_eq!(run["exit_code"], 0, "{run}");
+    assert_eq!(run["result"]["requeued"][0]["outcome"], "crashed", "{run}");
+    assert_eq!(run["result"]["landed"][0]["node"], node.as_str(), "{run}");
+    assert_eq!(run["result"]["landed"][0]["attempt"], 2, "{run}");
+    assert_eq!(
+        git(root.path(), &["worktree", "list"]).lines().count(),
+        1,
+        "the node's worktree is given back"
+    );
+    let branch = format!("war-go/{}", node.replace('/', "--"));
+    assert!(git(root.path(), &["branch", "--list", &branch]).is_empty());
+    let kept = git(
+        root.path(),
+        &[
+            "for-each-ref",
+            "--format=%(refname)",
+            "refs/openwarrant/go/kept/",
+        ],
+    );
+    let kept = kept.trim();
+    assert!(!kept.is_empty(), "the first attempt's commit is kept");
+    assert_eq!(
+        git(root.path(), &["show", &format!("{kept}:first.txt")]),
+        "first\n"
+    );
+    assert_eq!(
+        git(root.path(), &["show", "war-go/integration:second.txt"]),
+        "second\n"
+    );
+}
+
+#[test]
+fn a_dirty_attempt_is_retained_and_refuses_the_retry_by_name() {
+    let root = tempfile::tempdir().unwrap();
+    let output = tempfile::tempdir().unwrap();
+    let node = go_repo(
+        root.path(),
+        &output.path().join("h.py"),
+        r#"import json, os, sys
+p = json.load(sys.stdin)
+open(os.path.join(p["worktree"], "progress.txt"), "w").write("not committed\n")
+sys.exit(1)
+"#,
+    );
+    let run = war(root.path(), &["evidence", "go", "--prototype"]);
+    assert_eq!(run["exit_code"], 2, "{run}");
+    assert_eq!(run["result"]["requeued"][0]["outcome"], "crashed", "{run}");
+    assert!(
+        run["result"]["landed"].as_array().unwrap().is_empty(),
+        "{run}"
+    );
+    let refused = run["diagnostics"].as_array().unwrap().iter().any(|d| {
+        d["rule"] == "go.worktree" && d["message"].as_str().unwrap().contains("progress retained")
+    });
+    assert!(refused, "{run}");
+    let slug = node.replace('/', "--");
+    assert_eq!(
+        std::fs::read_to_string(
+            root.path()
+                .join(".openwarrant/worktrees")
+                .join(&slug)
+                .join("progress.txt")
+        )
+        .unwrap(),
+        "not committed\n"
+    );
+    assert!(
+        !git(
+            root.path(),
+            &["branch", "--list", &format!("war-go/{slug}")]
+        )
+        .is_empty()
+    );
+}

@@ -39,7 +39,8 @@
 //! - cargo test -p parser
 //! ```
 //!
-//! A directory Warrant's declared paths are its deliverables' files. With
+//! A single-file ticket declares only `paths:` in its frontmatter (FORMAT-1.0
+//! 10.3). A directory Warrant's declared paths are its deliverables' files. With
 //! `[go] allowed_acts = "projected"`, `war start` writes them as the
 //! session's harness settings inside its worktree; with `declared`, they are
 //! shown and nothing is written.

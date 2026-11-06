@@ -179,7 +179,7 @@ fn execution_never_discards_an_existing_workspace_on_retry() {
         std::fs::read_to_string(work.join("progress.txt")).unwrap(),
         "irreplaceable progress"
     );
-    openwarrant_cli::go::git::remove_worktree(root, work, Some("existing"));
+    openwarrant_cli::go::git::remove_worktree(root, work, Some("existing"), "HEAD");
     assert!(
         work.join("progress.txt").exists(),
         "foreign work is retained"

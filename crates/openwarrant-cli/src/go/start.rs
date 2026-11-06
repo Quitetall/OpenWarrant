@@ -281,7 +281,7 @@ pub fn run(
     let store = Store::open(&wt_repo, Some(&actor))?;
     let undo = |report: &mut Report| {
         if created {
-            git::remove_worktree(&root, &worktree, None);
+            git::remove_worktree(&root, &worktree, None, &policy.integration);
             if git::branch_tip(&root, &branch).is_some_and(|tip| tip == base) {
                 let _ = git::git(&root, &["branch", "-d", &branch]);
             }
