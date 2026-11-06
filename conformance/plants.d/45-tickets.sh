@@ -455,7 +455,7 @@ TK_P=$(tkj promote "$TK")
 TK_W=$(tk_field "$TK_P" 'v["result"]["warrant"]')
 TK_ERR=$(tkw promote "$TK" 2>&1 >/dev/null); TK_S=$?
 if [[ "$TK_W" =~ ^TK-WAR-[0-9]{4}$ && -f "$PLANT_ROOT/docs/warrants/$TK_W/manifest.toml" && $TK_S -eq 2 ]] \
-    && grep -q "promoted_to = \"$TK_W\"" "$PLANT_ROOT/docs/tickets/$TK/manifest.toml" \
+    && grep -q "^promoted_to: $TK_W\$" "$PLANT_ROOT/docs/tickets/$TK.md" \
     && grep -q "From ticket \[$TK\]" "$PLANT_ROOT/docs/warrants/$TK_W/atoms/10-intent.md" \
     && grep -q 'ticket.already-promoted' <<<"$TK_ERR" \
     && ! grep -q "^authorization" <(ls "$PLANT_ROOT/docs/warrants/$TK_W"); then

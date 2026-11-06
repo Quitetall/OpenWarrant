@@ -5388,13 +5388,15 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
     let t = &tickets[index];
-    if let Some(refusal) = format_unsupported(store, t, "`promoted_to` in a manifest") {
-        return Ok(refusal);
-    }
     if let Some(w) = &t.manifest.promoted_to {
+        let record = if t.format {
+            t.checklist_path.clone()
+        } else {
+            t.dir.join("manifest.toml")
+        };
         return Ok(Outcome::refused(
             "ticket.already-promoted",
-            store.rel(&t.dir.join("manifest.toml")),
+            store.rel(&record),
             format!(
                 "{} was promoted into {w} already; work the contract there",
                 t.id()
@@ -5470,10 +5472,28 @@ pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome,
             Ok((next, ()))
         })?;
     }
-    let manifest_path = t.dir.join("manifest.toml");
-    let mut manifest = t.manifest.clone();
-    manifest.promoted_to = Some(alias.clone());
-    atomic::write(&manifest_path, toml_of(&manifest)?)?;
+    if t.format {
+        // One document: the field goes in its frontmatter, last.
+        let written = rewrite(&t.checklist_path, |current| {
+            let Some(at) = current.find("\n---").map(|at| at + 1) else {
+                return Err(Box::new(Outcome::refused(
+                    format::UNSUPPORTED,
+                    store.rel(&t.checklist_path),
+                    format!("{} has no frontmatter to write to", t.id()),
+                )));
+            };
+            let mut next = current.to_owned();
+            next.insert_str(at, &format!("promoted_to: {alias}\n"));
+            Ok((next, ()))
+        })?;
+        if let Err(refused) = written {
+            return Ok(*refused);
+        }
+    } else {
+        let mut manifest = t.manifest.clone();
+        manifest.promoted_to = Some(alias.clone());
+        atomic::write(&t.dir.join("manifest.toml"), toml_of(&manifest)?)?;
+    }
     store.journal(
         t,
         event::PROMOTED,
