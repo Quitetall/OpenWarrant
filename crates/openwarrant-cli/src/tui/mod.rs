@@ -327,6 +327,10 @@ struct Model {
     /// The Projects pane's projects, index-aligned with its first rows;
     /// facts are read one project per idle tick (`tick_projects`).
     projects: Vec<crate::projects::Row>,
+    /// Each project's tier, index-aligned with `projects`.
+    project_tiers: Vec<crate::projects::Tier>,
+    /// Entries of the list the pane leaves out.
+    projects_hidden: usize,
     /// Which project the next idle tick looks at.
     project_cursor: usize,
     /// `n` on Projects: the directory being typed for a new project.
@@ -395,6 +399,8 @@ impl Model {
             fingerprint_pending: None,
             idle_ticks: 0,
             projects: Vec::new(),
+            project_tiers: Vec::new(),
+            projects_hidden: 0,
             project_cursor: 0,
             new_dir: None,
             binary: binary_row(),
@@ -1297,7 +1303,9 @@ impl Model {
     /// most one project read per tick, re-read only when its fingerprint
     /// moves), so a long list never stalls the app.
     fn load_projects(&mut self) {
-        self.projects = crate::projects::listed();
+        let (rows, hidden) = crate::projects::hub();
+        (self.project_tiers, self.projects) = rows.into_iter().unzip();
+        self.projects_hidden = hidden;
         self.project_cursor = 0;
         if self.projects.is_empty() {
             self.status =
@@ -1305,7 +1313,12 @@ impl Model {
                     .to_owned();
         }
         self.render_projects();
-        self.selected.insert(Pane::Projects as u8, 0);
+        let here = self.here();
+        let at = self
+            .projects
+            .iter()
+            .position(|r| here.as_deref() == Some(r.root.as_str()));
+        self.selected.insert(Pane::Projects as u8, at.unwrap_or(0));
     }
 
     /// One idle tick's worth: the first project not yet read, or else the
@@ -1338,9 +1351,21 @@ impl Model {
         self.render_projects();
     }
 
+    /// This app's project, as the list spells a root.
+    fn here(&self) -> Option<String> {
+        self.root.canonicalize_utf8().ok().map(String::from)
+    }
+
     fn render_projects(&mut self) {
+        let here = self.here();
+        let here = |root: &str| here.as_deref() == Some(root);
         let mut rows = Vec::new();
-        for r in &self.projects {
+        for (r, tier) in self.projects.iter().zip(&self.project_tiers) {
+            let mark = match tier {
+                crate::projects::Tier::Governed => "●",
+                _ => "○",
+            };
+            let open = if here(&r.root) { " (open here)" } else { "" };
             let facts = if r.missing {
                 "(missing)".to_owned()
             } else if r.fingerprint.is_none() {
@@ -1350,7 +1375,7 @@ impl Model {
             };
             rows.push(Row {
                 text: format!(
-                    "{:<26} {}  {facts}",
+                    "{mark} {:<26} {}{open}  {facts}",
                     r.program.as_deref().unwrap_or("?"),
                     r.root
                 ),
@@ -1365,6 +1390,22 @@ impl Model {
                 } else {
                     format!("{}\n\n{facts}", r.root)
                 }),
+            });
+        }
+        if self.projects_hidden > 0 {
+            rows.push(Row {
+                text: format!(
+                    "  {} more hidden: gone, scratch or linked worktrees",
+                    self.projects_hidden
+                ),
+                command: "war admin projects".to_owned(),
+                sign_target: None,
+                auto: None,
+                detail: Some(
+                    "● has Warrants or tickets, ○ does not. `war admin projects` lists every \
+                     entry, and `--forget <path>` drops one."
+                        .to_owned(),
+                ),
             });
         }
         for (text, command, detail) in [
