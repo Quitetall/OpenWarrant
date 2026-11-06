@@ -348,3 +348,8 @@ measured that alone. Run `rem-c2` then repeats the 26 Claude cells of
 (`ADOPTION_OW_PLUGIN_REF`), so it has the prompt hook. `full-1` and `full-1-hook`
 are its comparisons. Model, seed, prompts, turn cap and measures are unchanged.
 
+Run `rem-c2` passed 20 of 22 directed cells, both failures false completions, where
+the earlier runs passed all of theirs. Rerunning only those two would flatter the
+result, so `rem-c3` repeats all 22 directed cells as rep 2, on the same build and
+plugin. This was decided after seeing `rem-c2` and before seeing `rem-c3`.
+
