@@ -106,6 +106,60 @@ fn shared_checkout_refuses_overlapping_scopes_before_the_second_claim() {
     assert_eq!(independent["exit_code"], 0, "{independent}");
 }
 
+/// Paths nobody declared are not a scope: a second agent in one checkout is
+/// warned, not refused, and the first claim hides no other work from `next`.
+#[test]
+fn undeclared_paths_warn_and_never_block_other_work() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "UD"])["exit_code"],
+        0
+    );
+    let a = created(root.path(), "First job");
+    let b = created(root.path(), "Second job");
+    let first = war(root.path(), &["admin", "claim", &a, "--as", "ann"]);
+    assert_eq!(first["exit_code"], 0, "{first}");
+    let ready = war(root.path(), &["view", "ready", "--as", "bob"]);
+    assert!(ready.to_string().contains(&b), "{ready}");
+    let second = war(root.path(), &["admin", "claim", &b, "--as", "bob"]);
+    assert_eq!(second["exit_code"], 0, "{second}");
+    assert!(
+        second["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "work.integration-overlap"),
+        "{second}"
+    );
+}
+
+/// A claim with no declared paths keeps M11's rule: when its lease runs out a
+/// plain claim takes it, so a dead agent never strands ordinary work.
+#[test]
+fn an_undeclared_claim_is_reclaimed_when_its_lease_runs_out() {
+    let root = tempfile::tempdir().unwrap();
+    assert_eq!(
+        war(root.path(), &["init", "--namespace", "UE"])["exit_code"],
+        0
+    );
+    let config = root.path().join("openwarrant.toml");
+    let mut toml = std::fs::read_to_string(&config).unwrap();
+    toml.push_str("\n[tickets]\nclaim_lease_minutes = 0\n");
+    std::fs::write(&config, toml).unwrap();
+    let id = created(root.path(), "Left behind");
+    assert_eq!(
+        war(root.path(), &["admin", "claim", &id, "--as", "gone"])["exit_code"],
+        0
+    );
+    std::thread::sleep(std::time::Duration::from_millis(1100));
+    let taken = war(root.path(), &["admin", "claim", &id, "--as", "next"]);
+    assert_eq!(taken["exit_code"], 0, "{taken}");
+    assert_eq!(
+        taken["result"]["reclaimed_from"]["actor"], "gone",
+        "{taken}"
+    );
+}
+
 #[test]
 fn expired_scoped_lease_is_not_proof_that_its_writer_stopped() {
     let root = tempfile::tempdir().unwrap();

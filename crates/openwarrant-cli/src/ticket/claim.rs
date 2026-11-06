@@ -87,11 +87,20 @@ impl Claim {
         now.saturating_sub(self.since_unix)
     }
 
-    /// A managed writer keeps its reservation until released or fenced.
-    /// Only retained legacy claims use expiry alone as reclamation evidence.
+    /// A writer that declared its paths keeps its reservation until released
+    /// or fenced. Any other claim is reclaimed when its lease runs out (M11),
+    /// so an agent that died never strands ordinary work.
     #[must_use]
     pub fn reserves(&self, now: u64) -> bool {
-        self.coordination.is_some() || !self.lease_expired(now)
+        self.declared_writer() || !self.lease_expired(now)
+    }
+
+    /// Whether this claim names the paths its writer will touch.
+    #[must_use]
+    pub fn declared_writer(&self) -> bool {
+        self.coordination
+            .as_ref()
+            .is_some_and(|c| !super::scopes::undeclared(c))
     }
 
     /// Whether the lease has run out at `now`. A claim with no lease (one

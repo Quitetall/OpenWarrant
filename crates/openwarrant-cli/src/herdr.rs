@@ -147,10 +147,17 @@ fn call_herdr(method: &str, params: serde_json::Value) -> Result<serde_json::Val
         serde_json::from_slice(&buf).map_err(|e| format!("invalid JSON from herdr: {e}"))?;
 
     if let Some(err) = val.get("error") {
-        return Err(err.get("message").and_then(|m| m.as_str()).unwrap_or("herdr error").to_owned());
+        return Err(err
+            .get("message")
+            .and_then(|m| m.as_str())
+            .unwrap_or("herdr error")
+            .to_owned());
     }
 
-    Ok(val.get("result").cloned().unwrap_or(serde_json::Value::Null))
+    Ok(val
+        .get("result")
+        .cloned()
+        .unwrap_or(serde_json::Value::Null))
 }
 
 #[cfg(not(unix))]

@@ -523,6 +523,10 @@
 > -
 - doc:docs/design/sdk-standard-amendment.md · document · - · SDK and standard amendment: review entry · docs/design/sdk-standard-amendment.md:1
 
+## docs/design/tui-mission-control.md
+> -
+- doc:docs/design/tui-mission-control.md · document · - · OpenWarrant Mission Control: Two-Pillar Interactive Terminal UI · docs/design/tui-mission-control.md:1
+
 ## docs/design/visual-roadmap.md
 > -
 - doc:docs/design/visual-roadmap.md · document · - · Configurable visual roadmap · docs/design/visual-roadmap.md:1
@@ -635,6 +639,10 @@
 ## docs/releases/alpha5.md
 > -
 - doc:docs/releases/alpha5.md · document · - · OpenWarrant 1.0.0-alpha.5 — Format 1.0 draft 3 and a short first read for agents · docs/releases/alpha5.md:1
+
+## docs/releases/alpha6.md
+> -
+- doc:docs/releases/alpha6.md · document · - · OpenWarrant 1.0.0-alpha.6 — Two-Pillar Mission Control TUI, Herdr IPC, and Lean Agent Loops · docs/releases/alpha6.md:1
 
 ## docs/releases/candidate-rehearsal.md
 > -
@@ -1436,6 +1444,10 @@
 > -
 - doc:docs/sas/drafts/README.md · document · - · OpenWarrant SAS editions · docs/sas/drafts/README.md:1
 
+## docs/tickets/t-005bb.md
+> Herdr events, search, filter and a performance budget.
+- t-005bb · ticket · open · W5 M4: live polish · docs/tickets/t-005bb.md:1
+
 ## docs/tickets/t-03f9c/manifest.toml
 > Observe native performer cancellation and writer fencing on Linux and macOS
 - t-03f9c · ticket · done · Observe native performer cancellation and writer fencing on Linux and macOS · docs/tickets/t-03f9c/manifest.toml:1
@@ -1560,9 +1572,17 @@
 > Preserve legacy telemetry baseline bytes and distinguish actual observation source
 - t-3834a · ticket · done · Preserve legacy telemetry baseline bytes and distinguish actual observation source · docs/tickets/t-3834a/manifest.toml:1
 
+## docs/tickets/t-38d05.md
+> A brief before the first turn, checked on opencode, then the Claude re-measure and study close-out.
+- t-38d05 · ticket · open · W4: agents start with their work · docs/tickets/t-38d05.md:1
+
 ## docs/tickets/t-38f04/manifest.toml
 > M18: every development document is a type
 - t-38f04 · ticket · done · M18: every development document is a type · docs/tickets/t-38f04/manifest.toml:1
+
+## docs/tickets/t-39381.md
+> Create, dispatch, answer, interview and inspector as real commands.
+- t-39381 · ticket · open · W5 M3: Orchestrate that acts · docs/tickets/t-39381.md:1
 
 ## docs/tickets/t-39dc/manifest.toml
 > war deliver: declare a deliverable delivered, by command
@@ -1571,6 +1591,10 @@
 ## docs/tickets/t-3a90c/manifest.toml
 > Run a shared preparation gate once with all selected contracts bound before execution
 - t-3a90c · ticket · done · Run a shared preparation gate once with all selected contracts bound before execution · docs/tickets/t-3a90c/manifest.toml:1
+
+## docs/tickets/t-3c16c.md
+> The owner's one plan: lean model, context compiler, live updates, agents starting with their work, Mission Control.
+- t-3c16c · ticket · open · OpenWarrant lean programme · docs/tickets/t-3c16c.md:1
 
 ## docs/tickets/t-3f3e9/manifest.toml
 > Observe declared Linux storage crash and refusal controls
@@ -1752,6 +1776,10 @@
 > A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier
 - t-7aca · ticket · done · A whole-Warrant verification bundle cut a long gate stream to its tail, so the Warrant's own plant section (printed early) never reached the blind verifier · docs/tickets/t-7aca/manifest.toml:1
 
+## docs/tickets/t-7b536.md
+> Document units and index, unit selection, degrade by default, topic queries, code paths, token accounting.
+- t-7b536 · ticket · open · W2: context compiler that serves real documents · docs/tickets/t-7b536.md:1
+
 ## docs/tickets/t-7b733/manifest.toml
 > Reproduce frozen LamQuant migration and observe parent rationale refusal separately
 - t-7b733 · ticket · done · Reproduce frozen LamQuant migration and observe parent rationale refusal separately · docs/tickets/t-7b733/manifest.toml:1
@@ -1796,6 +1824,10 @@
 > Bind stage submissions to the exact compiled dispatch
 - t-8a876 · ticket · done · Bind stage submissions to the exact compiled dispatch · docs/tickets/t-8a876/manifest.toml:1
 
+## docs/tickets/t-8b863.md
+> One record and view, create --test, terse status, schemas in the binary, init --ci, six commands, interactive mode, tidy releases.
+- t-8b863 · ticket · open · W1: lean core · docs/tickets/t-8b863.md:1
+
 ## docs/tickets/t-8c7f1/manifest.toml
 > M15: native graph executor, pluggable executors
 - t-8c7f1 · ticket · done · M15: native graph executor, pluggable executors · docs/tickets/t-8c7f1/manifest.toml:1
@@ -1836,6 +1868,10 @@
 > Deliver fresh committed context to resumed work and every verification repair stage
 - t-a01e1 · ticket · done · Deliver fresh committed context to resumed work and every verification repair stage · docs/tickets/t-a01e1/manifest.toml:1
 
+## docs/tickets/t-a5715.md
+> Record what each agent was given, find who a change affects, post a notice every worktree sees, enforce at done.
+- t-a5715 · ticket · open · W3: live updates to running agents · docs/tickets/t-a5715.md:1
+
 ## docs/tickets/t-a5c53/manifest.toml
 > Preserve source classification in legacy Dispatch selection and portable disclosure checks
 - t-a5c53 · ticket · done · Preserve source classification in legacy Dispatch selection and portable disclosure checks · docs/tickets/t-a5c53/manifest.toml:1
@@ -1855,6 +1891,10 @@
 ## docs/tickets/t-aade8/manifest.toml
 > Diagnose intermittent draft checkpoint startup timeout in integration suite
 - t-aade8 · ticket · in_progress · Diagnose intermittent draft checkpoint startup timeout in integration suite · docs/tickets/t-aade8/manifest.toml:1
+
+## docs/tickets/t-aae6c.md
+> Green gates, the double-claim count explained, stale plants updated, release notes corrected, #371 superseded.
+- t-aae6c · ticket · open · W0: land alpha.6 on main · docs/tickets/t-aae6c.md:1
 
 ## docs/tickets/t-ad636/manifest.toml
 > M4: fixed states plus declared refinements
@@ -1972,6 +2012,10 @@
 > Correct stale Preflight coverage messages without claiming execution readiness
 - t-e6340 · ticket · done · Correct stale Preflight coverage messages without claiming execution readiness · docs/tickets/t-e6340/manifest.toml:1
 
+## docs/tickets/t-e9074.md
+> Remove fake data, background reader, real sources, the TUI driven in tests.
+- t-e9074 · ticket · open · W5 M1: honest Observe · docs/tickets/t-e9074.md:1
+
 ## docs/tickets/t-e9b0a/manifest.toml
 > Retain successful corrected native packaging and phase observations (OW85/89/90)
 - t-e9b0a · ticket · done · Retain successful corrected native packaging and phase observations (OW85/89/90) · docs/tickets/t-e9b0a/manifest.toml:1
@@ -1991,6 +2035,10 @@
 ## docs/tickets/t-f4858/manifest.toml
 > Bind W86 integration evidence to the SDK actually resolved by Cargo
 - t-f4858 · ticket · done · Bind W86 integration evidence to the SDK actually resolved by Cargo · docs/tickets/t-f4858/manifest.toml:1
+
+## docs/tickets/t-f5f4a.md
+> A report from recorded usage; UNKNOWN for the rest; dollars only from a dated price table.
+- t-f5f4a · ticket · open · W5 M2: real usage data · docs/tickets/t-f5f4a.md:1
 
 ## docs/tickets/t-f815/manifest.toml
 > OW-WAR-0120's budget at 1,000 Warrants: check --generated, compile, next and console over their limits

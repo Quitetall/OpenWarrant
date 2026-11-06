@@ -2789,7 +2789,7 @@ pub(crate) fn claim_scoped_at(
         let same_target =
             old.ticket == t.id() && (old.item.is_none() || item.is_none() || old.item == item);
         let ours = owns_claim(store, old);
-        if same_target && !ours && (old.lease_expired(now) || steal) && old.coordination.is_some() {
+        if same_target && !ours && (old.lease_expired(now) || steal) && old.declared_writer() {
             return Ok(Outcome::unknown(
                 "work.writer-unfenced",
                 store.rel(&t.intent_path),
@@ -2825,7 +2825,10 @@ pub(crate) fn claim_scoped_at(
                 if matches!(overlap, Ok(false)) {
                     continue;
                 }
-                if other.workspace == coordination.workspace {
+                if other.workspace == coordination.workspace
+                    && !scopes::undeclared(&coordination)
+                    && !scopes::undeclared(other)
+                {
                     let why = match overlap {
                         Err(why) => format!("overlap cannot be ruled out: {why}"),
                         _ => format!("{wanted} overlaps {held}"),

@@ -10,7 +10,8 @@
 //! (`merge=war-ticket`) and configured once per clone by `war init` or
 //! `war admin merge-ticket --install`.
 //!
-//! - A **checklist** merges item by item, keyed by item id: an item changed
+//! - A **checklist**, or a Format 1.0 ticket document (`docs/tickets/t-x.md`,
+//!   which holds its checklist), merges item by item, keyed by item id: an item changed
 //!   on one side takes that side's line; one changed identically on both is
 //!   kept once; an item added on either side is kept (theirs after ours); an
 //!   item removed on one side and untouched on the other is removed.
@@ -41,6 +42,8 @@ pub const GITATTRIBUTES: &str = "\
 # war (M11): ticket checklists merge item by item, notes by appending
 # (`war admin merge-ticket`; `war admin merge-ticket --install` configures this clone).
 docs/tickets/*/atoms/*.md merge=war-ticket
+docs/tickets/*.md merge=war-ticket
+docs/tickets/*/ticket.md merge=war-ticket
 ";
 
 /// How a merge came out.
@@ -61,9 +64,10 @@ pub fn merge(path: &str, base: &str, ours: &str, theirs: &str) -> Merged {
     if ours == theirs {
         return Merged::Appends(ours.to_owned());
     }
-    let checklist = Utf8Path::new(path)
-        .file_name()
-        .is_some_and(|n| n.contains("checklist") || n.contains(CHECKLIST_ROLE));
+    let checklist = super::format::is_document_path(path)
+        || Utf8Path::new(path)
+            .file_name()
+            .is_some_and(|n| n.contains("checklist") || n.contains(CHECKLIST_ROLE));
     if checklist {
         return match items(base, ours, theirs) {
             Ok(m) => Merged::Items(m),
@@ -340,6 +344,38 @@ mod tests {
                 &theirs
             ),
             Merged::Text(_)
+        ));
+    }
+
+    /// A single-file ticket holds its checklist, so two branches ticking
+    /// adjacent items and adding one each merge as a checklist does; one item
+    /// changed two ways is still git's to stop on.
+    #[test]
+    fn a_single_file_ticket_merges_item_by_item() {
+        let head = "---\nformat: openwarrant/1.0\nalias: t-43c0\n---\n# Layout\n\nWhy.\n\n## Checklist\n\n";
+        let base = format!("{head}- [ ] One (i-0001)\n- [ ] Two (i-0002)\n");
+        let ours = format!(
+            "{head}- [x] One (i-0001) — done by a, 2026-11-06\n- [ ] Two (i-0002)\n- [ ] Added (i-0003)\n"
+        );
+        let theirs = format!(
+            "{head}- [ ] One (i-0001)\n- [x] Two (i-0002) — done by b, 2026-11-06\n- [ ] Also (i-0004)\n"
+        );
+        let Merged::Items(m) = merge("docs/tickets/t-43c0.md", &base, &ours, &theirs) else {
+            panic!("not merged item by item");
+        };
+        assert!(m.starts_with(head), "{m}");
+        for line in [
+            "- [x] One (i-0001) — done by a",
+            "- [x] Two (i-0002) — done by b",
+            "- [ ] Added (i-0003)",
+            "- [ ] Also (i-0004)",
+        ] {
+            assert!(m.contains(line), "{line} in {m}");
+        }
+        let reworded = format!("{head}- [ ] One, reworded (i-0001)\n- [ ] Two (i-0002)\n");
+        assert!(matches!(
+            merge("docs/tickets/t-43c0.md", &base, &ours, &reworded),
+            Merged::Text(why) if why.contains("i-0001")
         ));
     }
 

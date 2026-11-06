@@ -27029,7 +27029,7 @@ the app shows a `human` remedy and stops.
 | D-032 | The confinement test and NOT_YET | `crates/openwarrant-cli/src/main.rs` | verified |
 | D-033 | The poller opened to the app | `crates/openwarrant-cli/src/watch.rs` | drift |
 | D-034 | The app plants | `conformance/plants.d/97-tui.sh` | verified |
-| D-035 | docs/TUI.md: every pane, every key, the rendering rule | `docs/TUI.md` | verified |
+| D-035 | docs/TUI.md: every pane, every key, the rendering rule | `docs/TUI.md` | drift |
 | D-036 | README: one line | `README.md` | drift |
 | D-037 | AGENTS.md: agents call war status and war next, never bare war | `AGENTS.md` | drift |
 | D-038 | OW-ADR-0020 accepted, governs this Warrant | `docs/adr/atoms/OW-ADR-0020-ratatui-for-the-terminal-dashboard.md` | verified |
@@ -27584,7 +27584,7 @@ Only by answering; presets ask, and an unanswered required heading is named.
 | D-034 | README.md points at CURRENT.md | `README.md` | drift |
 | D-035 | QUICKSTART.md points at CURRENT.md | `QUICKSTART.md` | drift |
 | D-036 | AGENTS.md: read CURRENT.md first | `AGENTS.md` | drift |
-| D-037 | docs/TUI.md: Help lists CURRENT.md first | `docs/TUI.md` | verified |
+| D-037 | docs/TUI.md: Help lists CURRENT.md first | `docs/TUI.md` | drift |
 | D-038 | the plants | `conformance/plants.d/69-current.sh` | drift |
 | D-039 | §91.5 test 33 under OW-ADR-0022: a supersession derives currency (AM-002) | `conformance/plants/33-supersession-without-currency.py` | verified |
 | D-040 | The corpus plant that runs test 33, re-aimed at the derived rule (AM-002) | `conformance/plants.d/00-corpus.sh` | not_content_addressed |
@@ -28303,7 +28303,7 @@ assert it with.
 | D-027 | rc2 plan retired | `docs/design/rc2-implementation-roadmap.json` | verified |
 | D-028 | rc.3 plan retired | `docs/sas/drafts/1.0.0-rc.3/roadmap.json` | verified |
 | D-029 | CONTEXT.md: the term | `CONTEXT.md` | drift |
-| D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | verified |
+| D-030 | docs/TUI.md: the Roadmap pane | `docs/TUI.md` | drift |
 | D-031 | the plants | `conformance/plants.d/70-roadmap.sh` | verified |
 | D-032 | compile: the roadmap gathered for CURRENT.md and HISTORY.md (AM-003) | `crates/openwarrant-cli/src/compile.rs` | drift |
 | D-033 | compiler: earlier roadmap revisions in HISTORY.md (AM-003) | `crates/openwarrant-compiler/src/history.rs` | verified |
@@ -28547,7 +28547,7 @@ failure, rebuilt.
 | D-001 | The per-user project list | `crates/openwarrant-cli/src/projects.rs` | verified |
 | D-002 | war projects; touch on use; war from anywhere | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
-| D-004 | docs/TUI.md: the hub | `docs/TUI.md` | verified |
+| D-004 | docs/TUI.md: the hub | `docs/TUI.md` | drift |
 | D-005 | README.md: war from anywhere | `README.md` | drift |
 | D-006 | The hub plants | `conformance/plants.d/71-hub.sh` | verified |
 

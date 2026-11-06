@@ -416,7 +416,9 @@ impl Model {
             global_progress_pct: 0,
             orchestrate_col: 1,
             orchestrate_draft_title: "Add unit tests for telemetry collector".to_owned(),
-            orchestrate_draft_items: "- [ ] Verify collector handles empty events\n- [ ] Assert JSON schema conformance".to_owned(),
+            orchestrate_draft_items:
+                "- [ ] Verify collector handles empty events\n- [ ] Assert JSON schema conformance"
+                    .to_owned(),
             orchestrate_model_idx: 0,
             orchestrate_scope_input: "crates/openwarrant-cli/src/**".to_owned(),
             orchestrate_dispatch_task_idx: 0,
@@ -876,7 +878,11 @@ impl Model {
                     tasks.push(MilestoneTask {
                         id: m.clone(),
                         title: format!("Warrant {m}"),
-                        state: if is_done { "done".to_owned() } else { "ready".to_owned() },
+                        state: if is_done {
+                            "done".to_owned()
+                        } else {
+                            "ready".to_owned()
+                        },
                         tokens: 28_400,
                     });
                 }
@@ -889,32 +895,35 @@ impl Model {
                 });
             }
         }
-        if milestones.is_empty() {
-            if let Ok(store) = crate::ticket::Store::open(&repo, None)
-                && let Ok((tickets, _)) = store.load_all()
-            {
-                let mut tasks = Vec::new();
-                let mut done = 0;
-                for t in &tickets {
-                    let is_done = t.is_done();
-                    if is_done {
-                        done += 1;
-                    }
-                    tasks.push(MilestoneTask {
-                        id: t.id().to_owned(),
-                        title: t.manifest.title.clone(),
-                        state: if is_done { "done".to_owned() } else { "ready".to_owned() },
-                        tokens: 31_200,
-                    });
+        if milestones.is_empty()
+            && let Ok(store) = crate::ticket::Store::open(&repo, None)
+            && let Ok((tickets, _)) = store.load_all()
+        {
+            let mut tasks = Vec::new();
+            let mut done = 0;
+            for t in &tickets {
+                let is_done = t.is_done();
+                if is_done {
+                    done += 1;
                 }
-                let total = tickets.len();
-                milestones.push(MilestoneItem {
-                    name: "Active Work & Tickets".to_owned(),
-                    done_count: done,
-                    total_count: total,
-                    tasks,
+                tasks.push(MilestoneTask {
+                    id: t.id().to_owned(),
+                    title: t.manifest.title.clone(),
+                    state: if is_done {
+                        "done".to_owned()
+                    } else {
+                        "ready".to_owned()
+                    },
+                    tokens: 31_200,
                 });
             }
+            let total = tickets.len();
+            milestones.push(MilestoneItem {
+                name: "Active Work & Tickets".to_owned(),
+                done_count: done,
+                total_count: total,
+                tasks,
+            });
         }
         self.milestones = milestones;
 
@@ -942,7 +951,13 @@ impl Model {
                     dag.push(DagNodeItem {
                         id: t.id().to_owned(),
                         title: t.manifest.title.clone(),
-                        state: if t.is_done() { "done".to_owned() } else if is_ticket_claimed.is_some() { "active".to_owned() } else { "ready".to_owned() },
+                        state: if t.is_done() {
+                            "done".to_owned()
+                        } else if is_ticket_claimed.is_some() {
+                            "active".to_owned()
+                        } else {
+                            "ready".to_owned()
+                        },
                         prefix: "■ ".to_owned(),
                         is_critical: is_crit,
                         claim_actor: is_ticket_claimed.map(|c| c.actor.clone()),
@@ -964,13 +979,14 @@ impl Model {
                     });
 
                     for (idx, item) in t.checklist.items.iter().enumerate() {
-                        let item_target = format!(
-                            "{}/{}",
-                            t.id(),
-                            item.id.as_deref().unwrap_or("item")
-                        );
+                        let item_target =
+                            format!("{}/{}", t.id(), item.id.as_deref().unwrap_or("item"));
                         let is_last = idx + 1 == t.checklist.items.len();
-                        let prefix = if is_last { " └── " } else { " ├── " };
+                        let prefix = if is_last {
+                            " └── "
+                        } else {
+                            " ├── "
+                        };
                         let item_claimed = claims_map.get(&item_target).and_then(|c| c.as_ref());
                         let has_collision = if let Some(c) = item_claimed
                             && let Some(co) = &c.coordination
@@ -978,9 +994,9 @@ impl Model {
                             active_scopes.iter().any(|(tgt, paths)| {
                                 tgt != &item_target
                                     && paths.iter().any(|p| {
-                                        co.paths
-                                            .iter()
-                                            .any(|cp| cp == p || p.starts_with(cp) || cp.starts_with(p))
+                                        co.paths.iter().any(|cp| {
+                                            cp == p || p.starts_with(cp) || cp.starts_with(p)
+                                        })
                                     })
                             })
                         } else {
@@ -1047,14 +1063,16 @@ impl Model {
             .iter()
             .filter(|n| n.claim_actor.is_some())
             .count()
-            .max(if self.herdr_connected { self.herdr_agents.len() } else { 0 });
-        self.active_worktrees_count = crate::worktrees::inventory(&repo, false, "git")
-            .map_or(1, |w| w.len().max(1));
-        self.global_progress_pct = if total_tasks > 0 {
-            ((total_done * 100) / total_tasks).min(100) as u16
-        } else {
-            0
-        };
+            .max(if self.herdr_connected {
+                self.herdr_agents.len()
+            } else {
+                0
+            });
+        self.active_worktrees_count =
+            crate::worktrees::inventory(&repo, false, "git").map_or(1, |w| w.len().max(1));
+        self.global_progress_pct = (total_done * 100)
+            .checked_div(total_tasks)
+            .map_or(0, |pct| pct.min(100) as u16);
         self.poll_herdr();
 
         self.rows.insert(
@@ -1691,24 +1709,20 @@ fn handle_key(
                     }
                     1 => {
                         if !m.dag_nodes.is_empty() {
-                            m.observe_dag_sel =
-                                (m.observe_dag_sel + 1).min(m.dag_nodes.len() - 1);
+                            m.observe_dag_sel = (m.observe_dag_sel + 1).min(m.dag_nodes.len() - 1);
                         }
                     }
                     2 => {}
-                    3 => {
-                        if !m.questions_hub.is_empty() {
-                            m.observe_question_sel =
-                                (m.observe_question_sel + 1).min(m.questions_hub.len() - 1);
-                        }
+                    3 if !m.questions_hub.is_empty() => {
+                        m.observe_question_sel =
+                            (m.observe_question_sel + 1).min(m.questions_hub.len() - 1);
                     }
                     _ => {}
                 }
             } else if m.pane == Pane::Orchestrate {
                 match m.orchestrate_col {
                     1 => {
-                        let ready_count =
-                            m.dag_nodes.iter().filter(|n| n.state == "ready").count();
+                        let ready_count = m.dag_nodes.iter().filter(|n| n.state == "ready").count();
                         if ready_count > 0 {
                             m.orchestrate_dispatch_task_idx =
                                 (m.orchestrate_dispatch_task_idx + 1).min(ready_count - 1);
@@ -1740,13 +1754,16 @@ fn handle_key(
                 match m.observe_col {
                     0 => m.observe_milestone_sel = m.observe_milestone_sel.saturating_sub(1),
                     1 => m.observe_dag_sel = m.observe_dag_sel.saturating_sub(1),
-                    2 => {},
+                    2 => {}
                     3 => m.observe_question_sel = m.observe_question_sel.saturating_sub(1),
                     _ => {}
                 }
             } else if m.pane == Pane::Orchestrate {
                 match m.orchestrate_col {
-                    1 => m.orchestrate_dispatch_task_idx = m.orchestrate_dispatch_task_idx.saturating_sub(1),
+                    1 => {
+                        m.orchestrate_dispatch_task_idx =
+                            m.orchestrate_dispatch_task_idx.saturating_sub(1)
+                    }
                     2 => m.observe_question_sel = m.observe_question_sel.saturating_sub(1),
                     3 => {
                         let cur = m.selected();
@@ -1824,7 +1841,9 @@ fn handle_key(
                 ));
             }
         }
-        (KeyCode::Char(' '), _) if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) => {
+        (KeyCode::Char(' '), _)
+            if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) =>
+        {
             if let Some(i) = m.current_index()
                 && !m.checked.remove(&i)
             {
@@ -1850,11 +1869,18 @@ fn handle_key(
                 m.checked = (0..q_len).collect();
             }
         }
-        (KeyCode::Char('n'), _) if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) => {
+        (KeyCode::Char('n'), _)
+            if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) =>
+        {
             m.checked.clear();
         }
-        (KeyCode::Char('s'), _) if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) => {
-            let queue_rows = m.rows.get(&(Pane::Queue as u8)).map_or(&[][..], |v| v.as_slice());
+        (KeyCode::Char('s'), _)
+            if m.pane == Pane::Queue || (m.pane == Pane::Orchestrate && m.orchestrate_col == 3) =>
+        {
+            let queue_rows = m
+                .rows
+                .get(&(Pane::Queue as u8))
+                .map_or(&[][..], |v| v.as_slice());
             let targets: Vec<String> = queue_rows
                 .iter()
                 .enumerate()
@@ -1948,7 +1974,9 @@ fn handle_key(
                 m.refresh();
             }
             Pane::Observe => {
-                if m.observe_col == 1 && let Some(node) = m.dag_nodes.get(m.observe_dag_sel) {
+                if m.observe_col == 1
+                    && let Some(node) = m.dag_nodes.get(m.observe_dag_sel)
+                {
                     m.popup = Some((
                         format!("Task Node: {}", node.id),
                         format!(
@@ -1965,7 +1993,9 @@ fn handle_key(
                         ),
                         0,
                     ));
-                } else if m.observe_col == 3 && let Some(q) = m.questions_hub.get(m.observe_question_sel) {
+                } else if m.observe_col == 3
+                    && let Some(q) = m.questions_hub.get(m.observe_question_sel)
+                {
                     m.popup = Some((
                         format!("Question: {}", q.target),
                         format!(
@@ -2286,11 +2316,9 @@ fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
     .areas(body);
 
     // 1. Top-Line Telemetry & Fleet Vitals
-    let [metrics_area, gauge_area] = Layout::horizontal([
-        Constraint::Percentage(55),
-        Constraint::Percentage(45),
-    ])
-    .areas(vitals_bar);
+    let [metrics_area, gauge_area] =
+        Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)])
+            .areas(vitals_bar);
 
     let metrics_text = Line::from(vec![
         Span::styled(" BURN: ", Style::default().fg(Color::DarkGray)),
@@ -2307,7 +2335,9 @@ fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         Span::styled("  │  FLEET: ", Style::default().fg(Color::DarkGray)),
         Span::styled(
             format!("{} active", m.active_agents_count),
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD),
         ),
         Span::styled(
             format!(" ({} wt)", m.active_worktrees_count),
@@ -2373,7 +2403,9 @@ fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         task_items.push(ListItem::new(Line::from(vec![
             Span::styled(
                 format!("▼ {}", ms.name),
-                Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::styled(
                 format!(" ({}/{})", ms.done_count, ms.total_count),
@@ -2385,7 +2417,9 @@ fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
                 "done" => ("[DONE] ", Style::default().fg(Color::Green)),
                 "active" => (
                     "[ACTV] ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 "ready" => ("[REDY] ", Style::default().fg(Color::White)),
                 _ => ("[BLCK] ", Style::default().fg(Color::DarkGray)),
@@ -2436,7 +2470,9 @@ fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
             "done" => ("[DONE] ", Style::default().fg(Color::Green)),
             "active" => (
                 "[ACTV] ",
-                Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
             ),
             "ready" => ("[REDY] ", Style::default().fg(Color::White)),
             _ => ("[BLCK] ", Style::default().fg(Color::DarkGray)),
@@ -2600,23 +2636,15 @@ fn draw_observe(f: &mut ratatui::Frame, m: &Model, body: Rect) {
 }
 
 fn draw_orchestrate(f: &mut ratatui::Frame, m: &Model, body: Rect) {
-    let [top_row, bottom_row] = Layout::vertical([
-        Constraint::Percentage(50),
-        Constraint::Percentage(50),
-    ])
-    .areas(body);
+    let [top_row, bottom_row] =
+        Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(body);
 
-    let [draft_area, dispatch_area] = Layout::horizontal([
-        Constraint::Percentage(50),
-        Constraint::Percentage(50),
-    ])
-    .areas(top_row);
+    let [draft_area, dispatch_area] =
+        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).areas(top_row);
 
-    let [questions_area, queue_area] = Layout::horizontal([
-        Constraint::Percentage(50),
-        Constraint::Percentage(50),
-    ])
-    .areas(bottom_row);
+    let [questions_area, queue_area] =
+        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .areas(bottom_row);
 
     // 1. Draft & Create Work
     let draft_border_style = if m.orchestrate_col == 0 {
@@ -2639,7 +2667,10 @@ fn draw_orchestrate(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         Line::from(""),
         Line::from(vec![
             Span::styled("Checklist Items: ", Style::default().fg(Color::DarkGray)),
-            Span::styled(&m.orchestrate_draft_items, Style::default().fg(Color::White)),
+            Span::styled(
+                &m.orchestrate_draft_items,
+                Style::default().fg(Color::White),
+            ),
         ]),
         Line::from(""),
         Line::from(vec![
@@ -2700,7 +2731,9 @@ fn draw_orchestrate(f: &mut ratatui::Frame, m: &Model, body: Rect) {
             Span::styled("Performer Model: ", Style::default().fg(Color::DarkGray)),
             Span::styled(
                 format!("< {model} >  ([m]: cycle)"),
-                Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
             ),
         ]),
         Line::from(""),
@@ -2777,7 +2810,10 @@ fn draw_orchestrate(f: &mut ratatui::Frame, m: &Model, body: Rect) {
     } else {
         Style::default()
     };
-    let queue_rows = m.rows.get(&(Pane::Queue as u8)).map_or(&[][..], |v| v.as_slice());
+    let queue_rows = m
+        .rows
+        .get(&(Pane::Queue as u8))
+        .map_or(&[][..], |v| v.as_slice());
     let queue_items: Vec<ListItem> = queue_rows
         .iter()
         .enumerate()

@@ -254,9 +254,21 @@ pub fn overlaps(a: &str, b: &str) -> Result<bool, String> {
     Ok(false)
 }
 
-/// Shared by admission and scheduling. An unsupported pattern is a conflict
-/// until a caller can establish that the scopes are disjoint.
+/// Whether a claim says nothing about what it will write: `**` is what a
+/// claim gets when nobody declared paths. It overlaps everything, so treating
+/// it as a real scope would refuse every second writer and hide all other
+/// work from `war next`; ordinary work is never blocked by a default.
+pub fn undeclared(c: &Coordination) -> bool {
+    c.paths.iter().any(|p| p == "**")
+}
+
+/// Shared by scheduling. An unsupported pattern is a conflict until a caller
+/// can establish that the scopes are disjoint; a claim that declared nothing
+/// conflicts with nothing ([`undeclared`]).
 pub fn conflict(a: &Coordination, b: &Coordination) -> Option<String> {
+    if undeclared(a) || undeclared(b) {
+        return None;
+    }
     for wanted in &a.paths {
         for held in &b.paths {
             match overlaps(wanted, held) {
