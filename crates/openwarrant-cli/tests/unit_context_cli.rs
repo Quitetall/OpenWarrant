@@ -124,6 +124,21 @@ fn one_unit_is_named_by_its_explicit_id_with_or_without_the_prefix() {
 }
 
 #[test]
+fn a_selector_that_misses_ranks_the_words_in_its_slug_and_says_so() {
+    let dir = repo();
+    let near = stdout(&war(dir.path(), &["context", "docs/COMBAT.md#friendly"]));
+    assert!(near.contains("[F] md:docs/COMBAT.md#ff"), "{near}");
+    assert!(near.contains("has no unit `friendly`"), "{near}");
+    refused(
+        &war(
+            dir.path(),
+            &["context", "docs/COMBAT.md#friendly", "--strict"],
+        ),
+        "context.over-budget",
+    );
+}
+
+#[test]
 fn a_unit_too_big_for_its_budget_falls_to_its_parts() {
     let dir = repo();
     let md = stdout(&war(dir.path(), &["context", "docs/COMBAT.md#huge"]));
@@ -156,6 +171,17 @@ fn a_code_path_finds_the_units_that_name_it() {
         &war(dir.path(), &["context", "src/nothing_names_this.rs"]),
         "context.target-unknown",
     );
+}
+
+#[test]
+fn a_file_nothing_names_falls_to_its_directory_and_says_so() {
+    let dir = repo();
+    let doc = dir.path().join("docs/COMBAT.md");
+    let text = std::fs::read_to_string(&doc).unwrap();
+    std::fs::write(&doc, text.replace("src/world.rs", "game/combat/world.rs")).unwrap();
+    let md = stdout(&war(dir.path(), &["context", "game/combat/nearby.rs"]));
+    assert!(md.contains("nothing names game/combat/nearby.rs"), "{md}");
+    assert!(md.contains("[F] md:docs/COMBAT.md#ff"), "{md}");
 }
 
 #[test]

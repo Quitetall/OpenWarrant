@@ -345,6 +345,7 @@ fn render(
     kind: &str,
     candidates: Vec<Candidate>,
     budget: Option<usize>,
+    notes: Vec<String>,
 ) -> UnitPacket {
     let listed = budget.map_or(candidates.len(), |b| {
         let mut room = b / INDEX_SHARE;
@@ -407,7 +408,7 @@ fn render(
         })
         .collect();
     let summary_only = listed - given.len();
-    let mut cut = Vec::new();
+    let mut cut = notes;
     if summary_only > 0 {
         cut.push(format!(
             "{summary_only} unit(s) by title only: `war context '<id>'` gives one in full"
@@ -489,6 +490,7 @@ pub fn degrade(
     }
     let budget = opts.budget;
     let root = &corpus.repo().root;
+    let mut notes = Vec::new();
     let plain = target.trim().strip_prefix("md:").unwrap_or(target.trim());
     let (path, slug) = match plain.split_once('#') {
         Some((p, s)) => (normalize_path(p), Some(s)),
@@ -502,9 +504,17 @@ pub fn degrade(
         match slug {
             Some(s) => {
                 let known: Vec<String> = found.iter().map(|(u, _)| u.id.clone()).collect();
-                match one_unit(found, s, budget) {
-                    Some(c) => ("unit", c),
-                    None => {
+                let pool: Vec<Candidate> = found.iter().map(|(_, c)| c.clone()).collect();
+                if let Some(c) = one_unit(found, s, budget) {
+                    ("unit", c)
+                } else {
+                    let words = s.replace(['-', '_'], " ");
+                    let mut near = rank(pool, &words, &BTreeSet::new());
+                    // A title that says it is the answer; the rest only mention it.
+                    if near.iter().any(|c| c.title.to_lowercase().contains(&words)) {
+                        near.retain(|c| c.title.to_lowercase().contains(&words));
+                    }
+                    if near.is_empty() {
                         return Err(Refusal {
                             rule: RULE_TARGET_UNKNOWN,
                             message: format!(
@@ -519,6 +529,8 @@ pub fn degrade(
                             needed: None,
                         });
                     }
+                    notes.push(format!("{path} has no unit `{s}`: these match its words"));
+                    ("unit", near)
                 }
             }
             None => ("document", document(found, budget)),
@@ -533,7 +545,23 @@ pub fn degrade(
             || path.rsplit_once('.').is_some_and(|(_, e)| e.len() <= 5);
         let (pool, closed_sources) = search_pool(corpus, graph);
         let mut ranked = if is_path {
-            rank_path(pool, graph, &path)
+            let mut found = rank_path(pool.clone(), graph, &path);
+            let mut parent = path.as_str();
+            while found.is_empty() {
+                let Some((up, _)) = parent.trim_end_matches('/').rsplit_once('/') else {
+                    break;
+                };
+                parent = up;
+                // A top-level directory says nothing about one file.
+                if !parent.contains('/') {
+                    break;
+                }
+                found = rank_path(pool.clone(), graph, parent);
+                if !found.is_empty() {
+                    notes.push(format!("nothing names {path}: these name {parent}/"));
+                }
+            }
+            found
         } else {
             rank(pool, target, &closed_sources)
         };
@@ -543,7 +571,7 @@ pub fn degrade(
     if candidates.is_empty() {
         return Err(refused);
     }
-    let packet = render(corpus, target.trim(), kind, candidates, budget);
+    let packet = render(corpus, target.trim(), kind, candidates, budget, notes);
     if opts.strict && !packet.cut.is_empty() {
         return Err(Refusal {
             rule: RULE_OVER_BUDGET,
