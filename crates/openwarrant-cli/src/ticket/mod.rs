@@ -4752,10 +4752,7 @@ fn finish_ticket(
         Ok(gate) => gate,
         Err(refusal) => return Ok(*refusal),
     };
-    if gate.rerun
-        && matches!(how, How::Claimed)
-        && ladder::decides(&ladder::checks_of(&t), None)
-    {
+    if gate.rerun && matches!(how, How::Claimed) && ladder::decides(&ladder::checks_of(&t), None) {
         how = How::Check;
     }
     let mut auto_claimed = None;

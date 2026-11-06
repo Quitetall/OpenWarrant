@@ -164,9 +164,9 @@ pub fn judge(store: &Store, t: &Ticket, what: &str) -> Result<Gate, Box<Outcome>
             gate.rerun = !given.kept.seen.is_empty();
             let now = crate::go::packet::read_allowed(t);
             let (Some(was), Ok(now)) = (&given.kept.declared, &now) else {
-                let why = now.err().unwrap_or_else(|| {
-                    "what it declared at `war start` was not kept".to_owned()
-                });
+                let why = now
+                    .err()
+                    .unwrap_or_else(|| "what it declared at `war start` was not kept".to_owned());
                 return Err(Box::new(Outcome::unknown(
                     SEEN_UNKNOWN,
                     doc,

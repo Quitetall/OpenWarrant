@@ -236,15 +236,20 @@ de_order() { # title, as many items as asked; the first is the one a person sign
     de_as owner "$DE_ROOT" plan add "$id/$(de_field result.items.0.id)" --min signed
     printf '%s' "$id"
 }
-de_item() { de_as owner "$DE_ROOT" --json view show "$1"; de_field "result.items.$2.id"; }
+# An item by its words: a milestone moves the item it holds.
+de_item() {
+    de_as owner "$DE_ROOT" --json view show "$1"
+    python3 -c 'import json,sys
+print(next(i["id"] for i in json.load(open(sys.argv[1]))["result"]["items"] if i["text"] == sys.argv[2]))' "$DE_T/out" "$2"
+}
 DE_O1=$(de_order "An unchanged Order" "the release" "the notes")
-DE_O1A=$(de_item "$DE_O1" 0); DE_O1B=$(de_item "$DE_O1" 1)
+DE_O1A=$(de_item "$DE_O1" "the release"); DE_O1B=$(de_item "$DE_O1" "the notes")
 DE_O2=$(de_order "A widened Order" "the release" "the notes")
-DE_O2A=$(de_item "$DE_O2" 0); DE_O2B=$(de_item "$DE_O2" 1)
+DE_O2B=$(de_item "$DE_O2" "the notes")
 DE_O3=$(de_order "An amended Order" "the release" "the notes" "the rest")
-DE_O3A=$(de_item "$DE_O3" 0); DE_O3B=$(de_item "$DE_O3" 1); DE_O3C=$(de_item "$DE_O3" 2)
+DE_O3B=$(de_item "$DE_O3" "the notes"); DE_O3C=$(de_item "$DE_O3" "the rest")
 DE_O4=$(de_order "An Order nobody signed yet" "the release" "the notes")
-DE_O4B=$(de_item "$DE_O4" 1)
+DE_O4B=$(de_item "$DE_O4" "the notes")
 de_commit 'orders'
 
 de_as oren "$DE_ROOT" start "$DE_O1"
@@ -324,8 +329,8 @@ DE_UK=$(de_create "A ticket whose standing goes unread")
 DE_UM=$(de_create "A Warrant whose manifest goes unread" --test true)
 DE_US=$(de_create "A Warrant done with the switch on" --test true)
 DE_UL=$(de_create --legacy "A light Warrant of unknown level" -i "one")
-printf 'test oops\n' >"$DE_ROOT/docs/tickets/$DE_UL/checks.md"
 de_commit 'for the unknowns'
+mkdir -p "$DE_ROOT/docs/tickets/$DE_UL/atoms/30-checks.md"
 for id in "$DE_UW" "$DE_UK" "$DE_UM" "$DE_US"; do de_as uma "$DE_ROOT" start "$id"; done
 DE_N="$DE_ROOT/.git/openwarrant/notices"
 mkdir -p "$DE_N"

@@ -1419,7 +1419,11 @@ mod tests {
     fn a_widening_is_named_and_a_narrowing_is_not_one() {
         let was = allowed(&["src/**"], &["Read"], &["cargo test"]);
         assert!(widened(&was, &was).is_empty());
-        let wider = allowed(&["src/**", "docs/**"], &["Read", "Bash"], &["cargo test", "rm"]);
+        let wider = allowed(
+            &["src/**", "docs/**"],
+            &["Read", "Bash"],
+            &["cargo test", "rm"],
+        );
         assert_eq!(
             widened(&was, &wider),
             ["paths + docs/**", "x.tools + Bash", "x.commands + rm"]

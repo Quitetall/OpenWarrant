@@ -347,13 +347,10 @@ pub fn run(
             &given.packet,
             &given.text,
             &given.reach,
-            store
-                .load_all()
-                .ok()
-                .and_then(|(tickets, _)| {
-                    let t = tickets.into_iter().find(|t| t.id() == ticket)?;
-                    crate::go::packet::read_allowed(&t).ok()
-                }),
+            store.load_all().ok().and_then(|(tickets, _)| {
+                let t = tickets.into_iter().find(|t| t.id() == ticket)?;
+                crate::go::packet::read_allowed(&t).ok()
+            }),
         )
         .unwrap_or_else(|e| {
             report.push(Diagnostic::warn(
