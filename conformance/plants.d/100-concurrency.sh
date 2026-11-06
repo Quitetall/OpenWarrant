@@ -255,8 +255,8 @@ CC_TX=$(mktemp -p "$CC_TMP")
 } > "$CC_TX"
 CC_MCP=$(cd "$CC_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$CC_WAR" "$CC_TX" 2>/dev/null)
 if grep -q '"id":2.*work.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"exit_code":0' <<<"$CC_MCP" \
-    && grep -q '"text":"fresh"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl" \
-    && ! grep -q '"text":"stale"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl"; then
+    && grep -q '"note":"fresh"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl" \
+    && ! grep -q '"note":"stale"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl"; then
     cc_ok "if_rev over MCP" "war_note: stale refused by name, current written"
 else
     cc_fail "if_rev over MCP" "$(head -c 400 <<<"$CC_MCP")"
@@ -340,7 +340,7 @@ CC_OUT=$(cc_war "$CC_X/$CC_LM" claim "$CC_M/$CC_MB" --as heir 2>&1); CC_S=$?
 CC_NOW=$(git -C "$CC_X/bare.git" log -1 --format=%B "refs/openwarrant/claims/$CC_M--$CC_MB" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
 CC_JLINE=$(grep '"work.claim_reclaimed"' "$CC_X/$CC_LM/docs/tickets/$CC_M/journal.jsonl")
 if [[ $CC_S -eq 0 && "$CC_NOW" == heir ]] && grep -q 'reclaimed from gone' <<<"$CC_OUT" \
-    && grep -q 'from\\":\\"gone' <<<"$CC_JLINE" && grep -q 'remote\\":\\"origin:refs/openwarrant/claims/' <<<"$CC_JLINE"; then
+    && grep -q '"from":"gone"' <<<"$CC_JLINE" && grep -q '"remote":"origin:refs/openwarrant/claims/' <<<"$CC_JLINE"; then
     cc_ok "a lapsed lease, reclaimed across" "the remote held gone's claim, its lease out; heir reclaimed it, journalled from gone"
 else
     cc_fail "a lapsed lease, reclaimed across" "claim $CC_S ($CC_OUT); remote holder '$CC_NOW'"

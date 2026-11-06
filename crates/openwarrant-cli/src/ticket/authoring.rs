@@ -198,10 +198,17 @@ pub(crate) fn edit(
     if let Err(refusal) = written {
         return Ok(*refusal);
     }
+    // The same change can repeat (a priority set back, by someone else), and a
+    // repeated payload is an idempotency conflict after the document was
+    // written. The edit's own id keeps every edit's key distinct.
     store.journal(
         t,
         super::event::EDITED,
-        &serde_json::json!({"ticket":t.id(),"changed":changes}),
+        &serde_json::json!({
+            "ticket": t.id(),
+            "changed": changes,
+            "edit": super::WarUuid::mint().to_string(),
+        }),
     )?;
     Ok(Outcome::ok(
         format!("{}: updated {}", t.id(), store.rel(&t.intent_path)),

@@ -46,7 +46,7 @@ TL_CL_AFTER_OK=$(tl_cl "$TL_T")
 TL_JOURNAL=$(cat "$PLANT_ROOT/docs/tickets/$TL_T/journal.jsonl" 2>/dev/null)
 if [[ $TL_ADD_RC -eq 0 && $TL_OK_RC -eq 0 ]] && grep -q '\[observed\]' <<<"$TL_CL_AFTER_OK" \
     && grep -q "ticked at observed: $TL_T/CHK-unit passed" <<<"$TL_OK" \
-    && grep -q 'stdout_sha256' <<<"$TL_JOURNAL" \
+    && grep -q 'output_sha256' <<<"$TL_JOURNAL" \
     && grep -q '^## CHK-unit · check' <<<"$TL_CL_AFTER_OK"; then
     tl_ok "a title-only Warrant gains a test" "$TL_T: --test added, ticked at observed, receipt journalled"
 else

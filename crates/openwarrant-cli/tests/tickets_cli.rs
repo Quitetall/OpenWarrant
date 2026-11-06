@@ -413,6 +413,24 @@ fn start_takes_a_warrant_named_by_words_of_its_title() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// A value can be set back: each edit is its own fact, whoever makes it.
+#[test]
+fn an_edit_may_repeat_an_earlier_value() {
+    let root = scratch("edit-repeat");
+    let id = json(&root, &["create", "Job", "--item", "one"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    for (priority, actor) in [("1", "ann"), ("3", "ann"), ("1", "bob"), ("3", "ann")] {
+        let edited = json(&root, &["edit", &id, "--priority", priority, "--as", actor]);
+        assert_eq!(edited["exit_code"], 0, "{edited}");
+    }
+    let journal =
+        std::fs::read_to_string(root.join("docs/tickets").join(&id).join("journal.jsonl")).unwrap();
+    assert_eq!(journal.matches("\"work.edited\"").count(), 4, "{journal}");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 /// Agents side by side in linked worktrees share the repository's claims. Named
 /// by nobody, each acts as the performer named for its worktree, so the second
 /// takes the next Warrant instead of resuming the first one's as its own.

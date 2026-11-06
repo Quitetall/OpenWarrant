@@ -168,7 +168,7 @@ fi
 # it is killed. Refused while it lives; reclaimed from the other machine once
 # its lease has run out.
 ST_W1="${ST_AT[1]}"
-printf '\n[tickets]\nclaim_lease_minutes = 0.0834\n' >> "$ST_W1/openwarrant.toml"
+sed -i 's/^claim_lease_minutes = 600$/claim_lease_minutes = 0.0834/' "$ST_W1/openwarrant.toml"
 st_war "$ST_W1" claim "$ST_V" --as victim >/dev/null 2>&1; ST_S=$?
 ( while :; do st_war "$ST_W1" heartbeat --as victim >/dev/null 2>&1; sleep 1; done ) &
 ST_HB=$!
@@ -181,7 +181,7 @@ ST_VREF=$(git -C "$ST_TMP/bare.git" log -1 --format=%B "refs/openwarrant/claims/
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
 ST_VJ=$(grep '"work.claim_reclaimed"' "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")
 if [[ $ST_S -eq 0 && $ST_S2 -eq 2 && $ST_S3 -eq 0 && "$ST_VREF" == heir ]] && grep -q 'claimed on the remote .origin. by victim' <<<"$ST_ERR" \
-    && grep -q 'reclaimed from victim' <<<"$ST_OUT" && grep -q 'from\\":\\"victim' <<<"$ST_VJ"; then
+    && grep -q 'reclaimed from victim' <<<"$ST_OUT" && grep -q '"from":"victim"' <<<"$ST_VJ"; then
     st_ok "a killed holder's item is reclaimed" "6 s in, heartbeating: heir refused by name; killed, its 5 s lease ran out: heir reclaimed it across the remote, journalled from victim"
 else
     st_fail "a killed holder's item is reclaimed" "claim $ST_S; while alive $ST_S2 ($ST_ERR); after $ST_S3 ($ST_OUT); remote holder '$ST_VREF'"
@@ -194,7 +194,7 @@ import json, sys
 for line in open(sys.argv[1]):
     e = json.loads(line)
     if e["type"] == "work.edited":
-        p = e["payload"].get("priority")
+        p = e["payload"].get("changed", {}).get("priority")
         if p is not None:
             print(p)
 ' "$ST_ROOT/docs/tickets/$ST_K/journal.jsonl"; }
