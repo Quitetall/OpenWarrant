@@ -38,6 +38,17 @@ acceptance checks; CI uses `HEAD^1` on its merge candidate. `--list` prints the
 steps without executing them. This tier does not run the full violation battery
 or establish independent qualification.
 
+Fast CI also runs the plants a change touches. `conformance/plant-select.py
+affected` reads the diff and `conformance/plant-map.toml`, then four legs run the
+selection under a cap of five minutes each. Every doubt runs more: a path no rule
+names selects every plant and warns on the pull request, and a plant no rule names
+always runs. The cap names each plant it leaves out as NOT RUN, which is unknown,
+not a pass; the full gate runs it. To try a selection locally:
+
+```bash
+python3 conformance/plant-select.py affected --base origin/main --shard 1/1 --cap 1200
+```
+
 The complete checkpoint gate remains:
 
 ```bash
@@ -49,7 +60,10 @@ corpus drift, attestations and the full planted-violation battery. Each has an
 id that `cargo xtask gate --only <id>[,<id>...]` selects (`spdx`, `workflows`,
 `skill`, `build`, `format`, `clippy`, `tests`, `doc-tests`, `licenses`,
 `corpus`, `attest`, `plants`, `schemas`); CI runs the battery as four shards
-with `OW_PLANT_SHARD=i/4`, and `full-gate` passes only when every job did. It reports
+with `OW_PLANT_SHARD=i/4` (locally, `conformance/plant.sh --shard i/4`, each in its
+own clone, since the plants mutate the tree). `plants-total` then requires every
+plant file exactly once across what the shards report and prints the one total,
+and `full-gate` passes only when every job did. It reports
 every failing step rather than the first. Run it before tags, releases or
 downstream pins, nightly and on demand. A fast-tier pass is not a full-gate pass.
 

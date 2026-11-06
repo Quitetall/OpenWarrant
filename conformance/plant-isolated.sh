@@ -51,6 +51,10 @@ if [[ -n "$target" && -d "$target" ]]; then
     export CARGO_TARGET_DIR="$target"
 fi
 
+# This gate's receipt says "the battery". A selector left in the caller's
+# environment would pass it on a fraction of the plants.
+unset OW_PLANT_SHARD OW_PLANT_FILES OW_PLANT_REPORT
+
 battery="${OPENWARRANT_ISOLATED_PLANT_SH:-conformance/plant.sh}"
 status=0
 (cd "$clone/r" && OPENWARRANT_IN_BATTERY=1 bash "$battery") || status=$?
