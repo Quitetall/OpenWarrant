@@ -1,17 +1,28 @@
 // SPDX-License-Identifier: Apache-2.0
-//! One loader for both layouts of a Format 1.0 work document
-//! (`docs/design/one-format.md`).
+//! One loader for every layout of a Format 1.0 work document
+//! (`docs/design/one-format.md`). The layout is decided here and nowhere
+//! else: the roots, which file in a directory is the document, where its
+//! state goes, and where new work is written.
 //!
-//! A Warrant document is `<root>/<id>.md` or `<root>/<id>/warrant.md`. Its
-//! state (authorization, evidence, verdicts, resolution, `deliverables.toml`,
-//! `generated/`) lives in `<root>/<id>/` in both layouts (FORMAT-1.0 §4.3), so
-//! every act that takes a Warrant directory takes that one.
+//! | layout | the document | its state |
+//! |---|---|---|
+//! | master | `docs/work/<id>/<id>-<slug>.md` (or `<id>.md`) | `docs/work/<id>/` |
+//! | file | `<root>/<id>.md` | `<root>/<id>/` |
+//! | directory | `<root>/<id>/warrant.md` | `<root>/<id>/` |
+//!
+//! The id is identity: a hash id for new work (`w-<hex>` a work order,
+//! `d-<hex>` a document; the prefix shows the kind, never the tier), an alias for
+//! older work, or one of the fixed singleton ids ([`SINGLETONS`]). The slug is
+//! cosmetic: an item is found by id whatever its slug, and renaming it moves
+//! no digest, because the state directory is named by the id alone and no path
+//! is inside a contract. The `docs/warrants/` and `docs/tickets/` roots stay
+//! readable where they are; nothing signed moves.
 //!
 //! [`load`] lowers the document, in memory, to the Compilation Basis the acts
 //! already consume. The manifest bytes are the document's exact bytes, so the
 //! contract digest binds every byte; the sources are ids, never paths, so the
-//! digest is the same in both layouts and `war plan expand` moves nothing a
-//! signature covers. Nothing here writes.
+//! digest is the same in every layout and `war plan expand` moves nothing a
+//! signature covers. Nothing here writes except [`expand`].
 //!
 //! A legacy Warrant (`manifest.toml` and atoms) is not read here; nor is a
 //! document of profile `ticket`, which no formal act takes.
@@ -25,9 +36,18 @@ use openwarrant_core::{MANIFEST_SCHEMA, Manifest};
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::{Loaded, RepoError, Repository};
 
+/// Where every master lives, and where new work is written.
+pub const WORK_ROOT: &str = "docs/work";
+
+/// The ids that are not hashes: one Spec and one Roadmap, each a master
+/// like any other (`docs/work/spec/spec.md`, `docs/work/roadmap/roadmap.md`).
+pub const SINGLETONS: [&str; 2] = ["spec", "roadmap"];
+
 /// Where a document's bytes are.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Layout {
+    /// `docs/work/<id>/<id>-<slug>.md`.
+    Master,
     /// `<root>/<id>.md`.
     File,
     /// `<root>/<id>/warrant.md`.
@@ -45,16 +65,111 @@ pub struct Found {
     pub layout: Layout,
 }
 
+/// `docs/work/` in `repo`.
+#[must_use]
+pub fn work_root(repo: &Repository) -> Utf8PathBuf {
+    repo.root.join(WORK_ROOT)
+}
+
 /// The work roots, in the order an id is looked up. A level never chooses
-/// the root: an item found in either is the same kind of thing.
+/// the root: an item found in any is the same kind of thing.
 #[must_use]
 pub fn roots(repo: &Repository) -> Vec<Utf8PathBuf> {
-    let mut out = vec![repo.warrants_dir()];
+    let mut out = vec![work_root(repo), repo.warrants_dir()];
     let tickets = crate::format_doc::tickets_dir(repo);
     if !out.contains(&tickets) {
         out.push(tickets);
     }
     out
+}
+
+/// Whether `name` can be an item's id: an alias, a hash id or a singleton.
+#[must_use]
+pub fn is_id(name: &str) -> bool {
+    crate::format_doc::is_alias(name) || SINGLETONS.contains(&name)
+}
+
+/// The value of `key` in a document's frontmatter, read without parsing it.
+fn frontmatter_value<'a>(text: &'a str, key: &str) -> Option<&'a str> {
+    let mut lines = text.trim_start_matches('\u{feff}').lines();
+    if lines.next()?.trim_end() != "---" {
+        return None;
+    }
+    for line in lines {
+        let line = line.trim_end();
+        if line == "---" {
+            return None;
+        }
+        if let Some(v) = line.strip_prefix(key).and_then(|r| r.strip_prefix(':')) {
+            return Some(v.trim().trim_matches(['"', '\'']));
+        }
+    }
+    None
+}
+
+/// A slug for `title`: lowercase ASCII letters and digits joined by `-`, at
+/// most 48 bytes. Cosmetic: nothing reads identity from it.
+#[must_use]
+pub fn slug(title: &str) -> String {
+    let mut out = String::new();
+    for word in title
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .filter(|w| !w.is_empty())
+    {
+        if out.len() + word.len() + 1 > 48 {
+            break;
+        }
+        if !out.is_empty() {
+            out.push('-');
+        }
+        out.push_str(&word.to_ascii_lowercase());
+    }
+    out
+}
+
+/// What a directory holds as the document of `id`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Held {
+    None,
+    One(Utf8PathBuf),
+    /// More than one file claims to be it: no subject, and `war check` says so.
+    Many(Vec<Utf8PathBuf>),
+}
+
+/// The document directory `dir` holds for `id`: `warrant.md`, `ticket.md`,
+/// `<id>.md`, or `<id>-<slug>.md` whose frontmatter `alias` is `id` (so a
+/// slug never decides identity).
+#[must_use]
+pub fn document_in(dir: &Utf8Path, id: &str) -> Held {
+    let mut found = Vec::new();
+    for name in ["warrant.md", "ticket.md"] {
+        if crate::vfs::is_file(dir.join(name)) {
+            found.push(dir.join(name));
+        }
+    }
+    let prefix = format!("{id}-");
+    let mut named: Vec<Utf8PathBuf> = crate::vfs::read_dir_utf8(dir)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|p| {
+            p.file_name().is_some_and(|n| {
+                n == format!("{id}.md") || (n.starts_with(&prefix) && n.ends_with(".md"))
+            }) && crate::vfs::is_file(p)
+        })
+        .filter(|p| {
+            crate::vfs::read(p).is_ok_and(|b| {
+                let text = String::from_utf8_lossy(&b);
+                format::declares_format(&text) && frontmatter_value(&text, "alias") == Some(id)
+            })
+        })
+        .collect();
+    named.sort();
+    found.extend(named);
+    match found.len() {
+        0 => Held::None,
+        1 => Held::One(found.remove(0)),
+        _ => Held::Many(found),
+    }
 }
 
 /// Whether the file at `path` is a Format 1.0 document a formal act takes:
@@ -68,36 +183,38 @@ fn is_formal(path: &Utf8Path) -> bool {
         && crate::format_doc::frontmatter_profile(&text).is_some_and(|p| p != "ticket")
 }
 
-/// `alias` in `root`, in either layout. A directory holding a manifest is a
-/// legacy Warrant and is not a document. Both layouts at once is refused by
-/// `war check` (`format.document-duplicate`) and is not a subject here.
+/// `alias` in `root`, in any layout. A directory holding a manifest is a
+/// legacy Warrant and is not a document. Two documents for one id is refused
+/// by `war check` (`format.document-duplicate`) and is not a subject here.
 fn in_root(root: &Utf8Path, alias: &str) -> Option<Found> {
     if alias.is_empty() || alias.contains(['/', '\\']) || alias.starts_with('.') {
         return None;
     }
     let state = root.join(alias);
-    if crate::vfs::is_file(state.join("manifest.toml"))
-        && !crate::format_doc::is_document_dir(&state)
-    {
+    let inner = document_in(&state, alias);
+    if crate::vfs::is_file(state.join("manifest.toml")) && inner == Held::None {
         return None;
     }
     let file = root.join(format!("{alias}.md"));
-    let inner = state.join("warrant.md");
-    match (crate::vfs::is_file(&file), crate::vfs::is_file(&inner)) {
-        (true, false) if is_formal(&file) => Some(Found {
-            alias: alias.to_owned(),
-            file,
-            state,
-            layout: Layout::File,
-        }),
-        (false, true) if is_formal(&inner) => Some(Found {
-            alias: alias.to_owned(),
-            file: inner,
-            state,
-            layout: Layout::Directory,
-        }),
-        _ => None,
-    }
+    let master = root.ends_with(WORK_ROOT);
+    let (file, layout) = match (crate::vfs::is_file(&file) && !master, inner) {
+        (true, Held::None) => (file, Layout::File),
+        (false, Held::One(inner)) => {
+            let layout = if master {
+                Layout::Master
+            } else {
+                Layout::Directory
+            };
+            (inner, layout)
+        }
+        _ => return None,
+    };
+    is_formal(&file).then(|| Found {
+        alias: alias.to_owned(),
+        file,
+        state,
+        layout,
+    })
 }
 
 /// The document `alias` names, in any work root.
@@ -113,6 +230,13 @@ pub fn of_state(dir: &Utf8Path) -> Option<Found> {
     in_root(dir.parent()?, alias)
 }
 
+/// Whether `dir` is a document's state directory rather than a legacy
+/// Warrant: a reader that models documents itself skips it.
+#[must_use]
+pub fn is_document_state(dir: &Utf8Path) -> bool {
+    !crate::vfs::is_file(dir.join("manifest.toml")) && of_state(dir).is_some()
+}
+
 /// Every document a formal act takes, by state directory, sorted.
 #[must_use]
 pub fn all(repo: &Repository) -> Vec<Found> {
@@ -125,7 +249,7 @@ pub fn all(repo: &Repository) -> Vec<Found> {
             .filter_map(Result::ok)
             .filter_map(|e| e.file_name().into_string().ok())
             .map(|n| n.strip_suffix(".md").map_or(n.clone(), str::to_owned))
-            .filter(|n| crate::format_doc::is_alias(n))
+            .filter(|n| is_id(n))
             .collect();
         names.sort();
         names.dedup();
@@ -148,12 +272,8 @@ pub fn has_act(found: &Found) -> bool {
 /// when `path` is no such document.
 #[must_use]
 pub fn signed_bytes_refusal(path: &Utf8Path) -> Option<String> {
-    let found = if path.file_name() == Some("warrant.md") {
-        of_state(path.parent()?)
-    } else {
-        let alias = path.file_stem()?;
-        in_root(path.parent()?, alias)
-    }?;
+    let parent = path.parent()?;
+    let found = of_state(parent).or_else(|| in_root(parent, path.file_stem()?))?;
     (found.file == path && has_act(&found)).then(|| {
         format!(
             "subject.signed-bytes: {} has a recorded act, and its bytes are what that \
@@ -161,6 +281,133 @@ pub fn signed_bytes_refusal(path: &Utf8Path) -> Option<String> {
              to the document is a new revision for a person to authorize",
             found.file, found.state
         )
+    })
+}
+
+/// Where a new master for `id` titled `title` is written.
+#[must_use]
+pub fn master_path(repo: &Repository, id: &str, title: &str) -> Utf8PathBuf {
+    let dir = work_root(repo).join(id);
+    if SINGLETONS.contains(&id) {
+        return dir.join(format!("{id}.md"));
+    }
+    let slug = slug(title);
+    if slug.is_empty() {
+        dir.join(format!("{id}.md"))
+    } else {
+        dir.join(format!("{id}-{slug}.md"))
+    }
+}
+
+/// `war plan new <title>`: a new master, `docs/work/<id>/<id>-<slug>.md`, its
+/// id `w-` and the hash of a fresh UUIDv7 (merge-safe; two branches never take one).
+/// The bytes are those `war plan new --format 1.0` writes, with this id.
+pub fn create_master(
+    repo: &Repository,
+    title: &str,
+    delivery: bool,
+) -> Result<(String, Utf8PathBuf), RepoError> {
+    let title = title.trim();
+    if title.is_empty() || title.contains('\n') {
+        return Err(RepoError::Message(
+            "new.title: a work order needs a one-line title".to_owned(),
+        ));
+    }
+    let taken = all(repo).len() + count_entries(&work_root(repo));
+    for attempt in 0..16usize {
+        let uuid = openwarrant_core::WarUuid::mint().to_string();
+        let len = openwarrant_core::ticket::ticket_id_len(taken) + attempt / 4;
+        let id = openwarrant_core::ticket::hash_id("w-", &uuid, len);
+        if roots(repo).iter().any(|r| crate::vfs::exists(r.join(&id)) || crate::vfs::exists(r.join(format!("{id}.md")))) {
+            continue;
+        }
+        let path = master_path(repo, &id, title);
+        let dir = path.parent().unwrap_or(&path).to_owned();
+        std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
+            context: format!("could not create {dir}"),
+            source,
+        })?;
+        let text = crate::new::format_template(&id, &uuid, title, delivery);
+        match std::fs::OpenOptions::new().write(true).create_new(true).open(&path) {
+            Ok(mut file) => {
+                use std::io::Write as _;
+                file.write_all(text.as_bytes()).map_err(|source| RepoError::Io {
+                    context: format!("could not write {path}"),
+                    source,
+                })?;
+                return Ok((id, path));
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(source) => {
+                return Err(RepoError::Io {
+                    context: format!("could not create {path}"),
+                    source,
+                });
+            }
+        }
+    }
+    Err(RepoError::Message(
+        "new.id: could not mint an unused id after 16 attempts".to_owned(),
+    ))
+}
+
+fn count_entries(dir: &Utf8Path) -> usize {
+    crate::vfs::read_dir_utf8(dir).map_or(0, |v| v.len())
+}
+
+/// What [`expand`] did.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Expanded {
+    pub alias: String,
+    pub from: Utf8PathBuf,
+    pub to: Utf8PathBuf,
+}
+
+/// `war plan expand <id>`: a file document, `<root>/<id>.md`, becomes the
+/// directory form, `<root>/<id>/<id>-<slug>.md`, beside the state already
+/// in `<root>/<id>/`. The bytes move unchanged and the id stays, so the
+/// contract digest, and every signature over it, stands. Nothing else moves.
+pub fn expand(repo: &Repository, id: &str) -> Result<Expanded, RepoError> {
+    let found = find(repo, id).ok_or_else(|| {
+        RepoError::Message(format!(
+            "expand.unknown: no single-file Warrant document is named {id}"
+        ))
+    })?;
+    if found.layout != Layout::File {
+        return Err(RepoError::Message(format!(
+            "expand.already: {id} is already a directory, {}",
+            repo.relative(&found.file)
+        )));
+    }
+    let bytes = crate::vfs::read(&found.file).map_err(|source| RepoError::Io {
+        context: format!("could not read {}", found.file),
+        source,
+    })?;
+    let doc = format::parse(&bytes);
+    let title = doc.title.unwrap_or_default();
+    let name = match slug(&title).as_str() {
+        "" => format!("{id}.md"),
+        s => format!("{id}-{s}.md"),
+    };
+    let to = found.state.join(name);
+    std::fs::create_dir_all(&found.state).map_err(|source| RepoError::Io {
+        context: format!("could not create {}", found.state),
+        source,
+    })?;
+    if crate::vfs::exists(&to) {
+        return Err(RepoError::Message(format!(
+            "expand.occupied: {} already exists; nothing moved",
+            repo.relative(&to)
+        )));
+    }
+    std::fs::rename(&found.file, &to).map_err(|source| RepoError::Io {
+        context: format!("could not move {} to {to}", found.file),
+        source,
+    })?;
+    Ok(Expanded {
+        alias: id.to_owned(),
+        from: found.file,
+        to,
     })
 }
 
@@ -421,4 +668,31 @@ pub fn load(repo: &Repository, found: &Found) -> Result<Loaded, RepoError> {
         validated: Some(validated),
         report,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn a_slug_is_lowercase_words_and_never_identity() {
+        assert_eq!(slug("A note is Delivered!"), "a-note-is-delivered");
+        assert_eq!(slug("  "), "");
+        assert!(slug(&"word ".repeat(40)).len() <= 48);
+    }
+
+    #[test]
+    fn a_directory_holds_one_document_by_its_alias_not_its_slug() {
+        let tmp = tempfile::tempdir().expect("tmp");
+        let dir = Utf8Path::from_path(tmp.path()).expect("utf8").join("w-3c16");
+        std::fs::create_dir_all(&dir).expect("dir");
+        let doc = |alias: &str| format!("---\nformat: openwarrant/1.0\nprofile: delivery\nalias: {alias}\n---\n# T\n");
+        assert_eq!(document_in(&dir, "w-3c16"), Held::None);
+        std::fs::write(dir.join("w-3c16-some-slug.md"), doc("w-3c16")).expect("write");
+        // A file whose name has the prefix but whose alias is another id is not it.
+        std::fs::write(dir.join("w-3c16-other.md"), doc("w-9999")).expect("write");
+        assert_eq!(document_in(&dir, "w-3c16"), Held::One(dir.join("w-3c16-some-slug.md")));
+        std::fs::write(dir.join("w-3c16-copy.md"), doc("w-3c16")).expect("write");
+        assert!(matches!(document_in(&dir, "w-3c16"), Held::Many(v) if v.len() == 2));
+    }
 }

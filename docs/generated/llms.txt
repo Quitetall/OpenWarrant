@@ -477,7 +477,7 @@
 
 ## docs/design/one-format.md
 > -
-- doc:docs/design/one-format.md · document · - · One format, two layouts · docs/design/one-format.md:1
+- doc:docs/design/one-format.md · document · - · One format, one model, masters and views · docs/design/one-format.md:1
 
 ## docs/design/one-view.md
 > -

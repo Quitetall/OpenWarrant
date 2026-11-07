@@ -272,9 +272,6 @@ pub struct Work {
     tickets_unread: Option<String>,
     claims_unread: Option<String>,
     others_unread: Option<String>,
-    /// The places of documents the corpus compiles (`crate::subject`): they
-    /// are listed with the corpus, so never again beside it.
-    subjects: std::collections::BTreeSet<String>,
 }
 
 /// The repository-relative documents the corpus compiles.
@@ -361,7 +358,6 @@ impl Work {
     }
 
     fn read_others(&mut self, repo: &Repository) {
-        self.subjects = subject_places(repo);
         self.types = crate::warrants::type_words(repo);
         match crate::warrants::other_rows(repo) {
             Ok((rows, faults)) => {
@@ -387,11 +383,7 @@ impl Work {
     pub fn documents(&self) -> Vec<Item> {
         self.items
             .iter()
-            .filter(|i| {
-                i.encoding == Encoding::SingleFile
-                    && i.level != Level::Ticket
-                    && !self.subjects.contains(&i.place)
-            })
+            .filter(|i| i.encoding == Encoding::SingleFile && i.level != Level::Ticket)
             .cloned()
             .collect()
     }

@@ -1514,6 +1514,11 @@ fn rewrite<T>(
     path: &Utf8Path,
     mut edit: impl FnMut(&str) -> Result<(String, T), Box<Outcome>>,
 ) -> Result<Result<T, Box<Outcome>>, RepoError> {
+    // docs/design/one-format.md: a document under a recorded act is never
+    // rewritten; its progress belongs in its state directory.
+    if let Some(why) = crate::subject::signed_bytes_refusal(path) {
+        return Err(RepoError::Message(why));
+    }
     let _held = path.parent().and_then(dir_lock);
     for _ in 0..8 {
         let bytes = crate::vfs::read(path).map_err(io(format!("could not read {path}")))?;

@@ -13,6 +13,14 @@ Notable changes to OpenWarrant. Format loosely follows
   with its state in `docs/warrants/<alias>/`. Its contract digest covers the
   document's exact bytes, so an edit after authorization lapses it
   (docs/design/one-format.md).
+- `war plan new <title>` writes a master, `docs/work/<id>/<id>-<slug>.md`,
+  with a merge-safe hash id (`w-<hex>`). The slug is cosmetic: the item is found
+  by id and renaming the file moves no digest. `--format legacy`, `--preset`,
+  `--parent` and the old spelling `war new` still write a manifest and atoms;
+  `--format 1.0` still writes `docs/warrants/<alias>.md`.
+- `war plan expand <id>` moves `docs/warrants/<id>.md` into its directory
+  beside its state, byte for byte: the same id and contract, so its signatures
+  stand.
 
 ## [1.0.0-alpha.7] — 2026-11-07
 

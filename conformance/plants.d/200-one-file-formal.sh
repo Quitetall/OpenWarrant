@@ -9,7 +9,9 @@
 #   an edit after authorization moves the contract, and resolve refuses the old signature;
 #   evidence, an independent verifier fixture and a person's resolution close it;
 #   an agent cannot resolve it; the performer cannot verify it;
-#   the old directory Warrant still goes the same way.
+#   the old directory Warrant still goes the same way;
+#   expand keeps the id and the bytes, and refuses twice;
+#   a master's slug is not identity, its text is; two documents for one id are refused.
 
 echo "== one-file formal path (one-format) =="
 SF_ROOT=$(scratch_corpus SF)
@@ -227,9 +229,57 @@ if grep -q "$SF_A .*NOTE.md" <<<"$SF_PINS"; then
 else
     sf_fail "its deliverable is pinned" "$(head -3 <<<"$SF_PINS" | tr '\n' '|')"
 fi
+# Expand moves the resolved document into its directory: the same id, the
+# same bytes, so the contract its signatures name does not move. A second
+# expand, and an id that names no single file, are refused.
+SF_BEFORE=$(sha256sum < "$SF_DOC")
+SF_EXP=$(sf plan expand "$SF_A" 2>&1); SF_EXP_RC=$?
+SF_MOVED=$(find "$SF_STATE" -maxdepth 1 -name "$SF_A-*.md" | head -1)
+SF_AGAIN=$(sf plan expand "$SF_A" 2>&1); SF_AGAIN_RC=$?
+SF_NONE=$(sf plan expand "$SF_D" 2>&1); SF_NONE_RC=$?
+if [[ $SF_EXP_RC -eq 0 && ! -f "$SF_DOC" && -n "$SF_MOVED" && "$(sha256sum < "$SF_MOVED")" == "$SF_BEFORE" \
+    && "$(sf_digest "$SF_A")" == "$SF_C1" && $SF_AGAIN_RC -ne 0 && $SF_NONE_RC -ne 0 ]] \
+    && grep -q 'expand.already' <<<"$SF_AGAIN" && grep -q 'expand.unknown' <<<"$SF_NONE"; then
+    sf_ok "expand keeps id and bytes" "${SF_MOVED#"$SF_ROOT"/}: same bytes, contract ${SF_C1:0:8}…; twice and a directory Warrant refused"
+else
+    sf_fail "expand keeps id and bytes" "exit $SF_EXP_RC, moved '$SF_MOVED', digest $(sf_digest "$SF_A"): $SF_EXP | $SF_AGAIN | $SF_NONE"
+fi
+sf compile >/dev/null 2>&1; sf_commit "expanded $SF_A"
+SF_ST=$(sf admin pins --resolved-only 2>&1)
+if grep -qE "^resolved +$SF_A +D-001 +NOTE.md" <<<"$SF_ST"; then
+    sf_ok "still resolved after expand" "pins --resolved-only: resolved $SF_A D-001 NOTE.md"
+else
+    sf_fail "still resolved after expand" "$(head -3 <<<"$SF_ST" | tr '\n' '|')"
+fi
+
+# A master: `war plan new` writes docs/work/<id>/<id>-<slug>.md with a hash
+# id. Renaming the slug moves no digest; editing the text does; a second
+# document claiming the id is refused.
+SF_M=$(sf --json plan new "A master copy" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["alias"])' 2>/dev/null)
+SF_MFILE=$(find "$SF_ROOT/docs/work/$SF_M" -maxdepth 1 -name "$SF_M-*.md" 2>/dev/null | head -1)
+SF_M1=$(sf_digest "$SF_M")
+if [[ "$SF_M" =~ ^w-[0-9a-f]+$ && -n "$SF_MFILE" && "$SF_M1" =~ ^[0-9a-f]{64}$ ]]; then
+    sf_ok "plan new writes a master" "${SF_MFILE#"$SF_ROOT"/}, contract ${SF_M1:0:8}…"
+else
+    sf_fail "plan new writes a master" "id '$SF_M', file '$SF_MFILE', digest '$SF_M1'"
+fi
+mv "$SF_MFILE" "$SF_ROOT/docs/work/$SF_M/$SF_M-another-name.md"
+SF_M2=$(sf_digest "$SF_M")
+printf '\nA sentence added.\n' >> "$SF_ROOT/docs/work/$SF_M/$SF_M-another-name.md"
+SF_M3=$(sf_digest "$SF_M")
+cp "$SF_ROOT/docs/work/$SF_M/$SF_M-another-name.md" "$SF_ROOT/docs/work/$SF_M/$SF_M-a-copy.md"
+SF_DUP=$(sf check 2>&1); SF_DUP_RC=$?
+if [[ "$SF_M2" == "$SF_M1" && -n "$SF_M3" && "$SF_M3" != "$SF_M1" && $SF_DUP_RC -ne 0 ]] \
+    && grep -q 'format.document-duplicate' <<<"$SF_DUP"; then
+    sf_ok "the slug is not identity" "renamed: same contract; edited: ${SF_M3:0:8}…; two documents for $SF_M refused"
+else
+    sf_fail "the slug is not identity" "$SF_M1 / $SF_M2 / $SF_M3, check $SF_DUP_RC: $(grep -E '^ERROR' <<<"$SF_DUP" | head -2 | tr '\n' '|')"
+fi
+/usr/bin/rm -f "$SF_ROOT/docs/work/$SF_M/$SF_M-a-copy.md"
+
 SF_FINAL=$(sf check 2>&1); SF_FINAL_RC=$?
 [[ $SF_FINAL_RC -eq 0 ]] || sf_fail "the program checks after" "exit $SF_FINAL_RC: $(grep -E '^ERROR' <<<"$SF_FINAL" | head -3 | tr '\n' '|')"
 
 /usr/bin/rm -rf "$SF_TMP"
 unset SF_ROOT SF_TMP SF_RESP SF_NEW SF_A SF_DOC SF_STATE SF_D SF_DDIR sf_pair sf_w SF_CHECK SF_CHECK_RC SF_C1 SF_C2
-unset SF_VERIFIER SF_SELF_N SF_IND SF_IND_N sf_dir sf_rest sf_file SF_PINS SF_OUT SF_RC SF_DRY SF_EV SF_SELF SF_SELF_RC SF_FINAL SF_FINAL_RC SF_SAS
+unset SF_BEFORE SF_EXP SF_EXP_RC SF_MOVED SF_AGAIN SF_AGAIN_RC SF_NONE SF_NONE_RC SF_ST SF_M SF_MFILE SF_M1 SF_M2 SF_M3 SF_DUP SF_DUP_RC SF_VERIFIER SF_SELF_N SF_IND SF_IND_N sf_dir sf_rest sf_file SF_PINS SF_OUT SF_RC SF_DRY SF_EV SF_SELF SF_SELF_RC SF_FINAL SF_FINAL_RC SF_SAS

@@ -1,109 +1,104 @@
-# One format, two layouts
+# One format, one model, masters and views
 
-A work document is the unit (FORMAT-1.0 §4.1). It has two layouts, and every act
-reads both through one loader, `crate::subject`.
+A Format 1.0 document is the unit. Every act reads it through one loader,
+`crate::subject`, which is also the only place the layout is decided: the roots,
+which file in a directory is the document, where state goes, and where new work is
+written.
+
+## Layouts
 
 | layout | the document | its state (§4.3) |
 |---|---|---|
-| file | `<root>/<id>.md` | `<root>/<id>/` |
-| directory | `<root>/<id>/warrant.md` | the same directory |
+| master | `docs/work/<id>/<id>-<slug>.md` | `docs/work/<id>/` |
+| file (older) | `docs/warrants/<alias>.md` | `docs/warrants/<alias>/` |
+| directory (older) | `docs/warrants/<alias>/warrant.md` or `<alias>-<slug>.md` | the same directory |
+| legacy | `docs/warrants/<alias>/manifest.toml` and `atoms/` | the same directory |
 
+Masters are what people and agents edit, and what the context compiler reads.
 The state directory holds what only a directory can: `deliverables.toml`,
-evidence and receipts, `authorization.toml`, `resolution.toml`, verifications,
-amendments, `generated/`, runtime receipts, the journal. It exists beside a file
-document as soon as an act writes state, so no act needs the document moved.
-A legacy Warrant (`manifest.toml` and `atoms/`) is a third encoding, read in place
-forever and never rewritten.
+evidence and receipts, `authorization.toml`, verdicts, `resolution.toml`,
+amendments, `generated/`, the journal. Nothing signed moves: `docs/warrants/`,
+`docs/tickets/`, `docs/sas/` and `docs/roadmap/` stay readable where they are.
+
+## Identity
+
+- The id is identity. New work orders get `w-<hex>` and new documents `d-<hex>`,
+  the head of the SHA-256 of a fresh UUIDv7, so two branches never take the same
+  one. The prefix shows the kind, never the tier, so a promote changes no id.
+  `t-` ids and `OW-WAR-NNNN` aliases stay valid and are never renamed. `spec` and
+  `roadmap` are the only fixed ids.
+- The slug is cosmetic. It is in the file name only. The directory is named by
+  the id, so renaming the slug moves no state and no digest. The loader finds an
+  item by id whatever its slug, and confirms it by the frontmatter `alias`. Two
+  documents claiming one id is refused (`format.document-duplicate`).
+- A human number is a display ordinal. Views read it from an append-only index
+  that the main-only views job writes, and fall back to the id. It is never
+  computed from dates and never stored in a file name.
 
 ## Sections and atoms
 
-`subject::lower` turns a document into the Compilation Basis every act already
-consumes, in memory. Nothing is written.
+`subject::load` lowers a document, in memory, to the Compilation Basis the acts
+already use. Nothing is written.
 
 | document | basis |
 |---|---|
 | frontmatter `alias`, `uuid`, `profile`, `assurance_level`, `# ` title | the manifest fields |
-| the document's exact bytes | `manifest_bytes` (so `manifest_digest` is over every byte) |
-| `## Intent`, `## Basis`, `## Work order` | atoms `intent`, `basis`, `work_order`: the section's exact span |
-| `## Assurance` and its obligation records | atom `assurance`, the records restated as `### OBL-NNN — title` with `- **field:**` bullets |
-| any other section | not an atom; still inside `manifest_bytes` |
+| the document's exact bytes | `manifest_bytes`, so `manifest_digest` covers every byte |
+| `## Intent`, `## Basis`, `## Work order` (`## Decision` for `decision`) | atoms holding the section's exact span |
+| `## Assurance` and its obligation records | atom `assurance`, with the records restated as `### OBL-NNN — title` blocks with `- **field:**` bullets |
+| milestone records | the milestones atom; each obligation `part_of` one is in its `obligation_refs` |
+| stage records | not lowered (`subject.stages-unlowered`, UNKNOWN) |
 
-Sources are ids, not paths (`OW-WAR-0007`, `OW-WAR-0007#S-intent`), so the basis,
-and with it the contract digest, is the same in both layouts.
+Sources are ids, not paths (`w-3c16`, `w-3c16#intent`), so the contract digest is
+the same in every layout and under any slug.
 
 ## What a signature covers
 
-An act's response echoes the contract digest, as for a legacy Warrant. For a
-document that digest is over its exact bytes, its identity and the lowered atoms.
-Any edit after authorization therefore moves the digest: the authorization stops
-matching the contract, `war resolve` refuses it, and `war check` reports it as it
-does for a legacy Warrant. Amending means a new authorization over the new bytes.
-Moving the bytes between layouts moves nothing, because no path is in the digest.
+An act's response echoes the contract digest, the same as for a legacy Warrant.
+For a document, that digest covers its exact bytes, its identity and the lowered
+atoms. Any edit after authorization moves it: the authorization stops matching,
+`war resolve` refuses it, and a new authorization is needed. Moving the bytes, by
+expanding or renaming the slug, changes nothing.
 
-Progress never rewrites a signed document. Once an act is recorded for a subject
-(`authorization.toml` or `resolution.toml` in its state directory), a tick, note
-or check result is refused as a document write (`subject.signed-bytes`). It
-belongs in `<id>/` state, and the checklist shown to people is a projection of
-that state. Plain Tickets with no act behave as before. The other choice, a
-digest over a canonical form without tick markers, would need a new FORMAT rule.
+Progress never rewrites a document once an act is recorded (`authorization.toml`
+or `resolution.toml` in its state). `ticket::rewrite`, the store's one document
+writer, refuses such a write (`subject.signed-bytes`). Ticks, notes and check
+results belong in `<id>/` state, and the checklist people see is a projection of
+it. No command writes to a non-ticket document today, so this guard has nothing
+to refuse yet. Plain Tickets are unchanged.
 
 ## Which acts need a directory
 
-None of authorize, evidence record, verify, resolve, compile, check or status
-needs one: their state goes in the state directory. The layout question remains
-for features whose input only the legacy encoding can express, which a document
-does not have:
+None of authorize, evidence record, verify, resolve, compile, check, status or
+pins. Each writes into the state directory. Features that only the legacy
+encoding can express stay legacy: namespaced extension roles, atoms bound to a
+file outside the Warrant, dispatchable stages, `--parent` revisions, presets'
+atom headings, and `plan --apply`'s atom operations. Splitting a document into
+legacy atoms re-encodes it, and C.3 says that lapses its acts, so it is not built.
 
-- a namespaced extension role or an atom `bound` to a file outside the Warrant
-  (an ADR atom, a `ref =` atom);
-- a structured `45-milestones.yaml` with dispatchable stages;
-- `plan --apply` operations that revise an existing atom.
+## Expand
 
-Each of these refuses a document and names `war plan expand <id>`.
-
-## The expand step
-
-`war plan expand <id>` moves `<root>/<id>.md` to `<root>/<id>/warrant.md`, byte for
-byte, beside any state already there. Same id, same bytes, same contract digest, so
-authorization, verdicts and resolution stand. It refuses when the directory already
-holds a document or a manifest. Splitting the sections into legacy atom files is a
-re-encoding: C.3 says the act lapses when a covered revision changes. So `--atoms`
-is offered only while no act is recorded, and is not built in this slice.
+`war plan expand <id>` moves `docs/warrants/<id>.md` to
+`docs/warrants/<id>/<id>-<slug>.md`, beside its state. It keeps the same id and
+the same bytes, so the contract digest is unchanged and every signature stands.
+It refuses a document already in a directory. Moving older work into `docs/work/`
+is the migration tool's job, not this one.
 
 ## Where new work goes
 
-`war plan new`, `war plan --apply` and `war init --program` write one file by
-default; `--format legacy` (or a profile with extension roles) still writes the
-legacy directory. `war create` is unchanged.
-
-## A single root (not done here)
-
-The loader takes a list of work roots, today `[paths] warrants` and `[tickets] dir`,
-and finds an id in any of them; a level never chooses the root, so a level change
-never moves a file. One configured root needs `[paths] work`, new work written
-there, and the old roots kept in the list. Identity is the `uuid` (UUIDv7) and the
-id; `OW-WAR-NNNN` is allocated by ordinal and is not merge-safe, so in a single root
-the number should become a display ordinal over a hex id like a ticket's. One
-`docs/generated/` instead of per-Warrant `generated/` needs `check --generated`
-(check.rs, pinned) and the compiler changed.
-
-What must stay where it is, because signed records or resolved pins name it:
-
-- every legacy `docs/warrants/<alias>/`: `manifest_source` and atom sources are
-  repository-relative paths inside its contract digest, so a move lapses its
-  authorization and stales its resolution;
-- `docs/authority/responses/*` and their `.sig` files;
-- every `target_ref` in a resolved `deliverables.toml` (`war admin pins --resolved-only`);
-- `docs/sas/` and its revisions; `docs/tickets/<id>/journal.jsonl` and sign-offs
-  naming items.
+`war plan new <title>` writes a master by default. `--format 1.0` writes
+`docs/warrants/<alias>.md`, and `--format legacy`, `--preset`, `--parent` and the
+old spelling `war new` (which keeps its bytes) write the legacy directory.
+`war plan --apply` and `war init --program` still write legacy directories,
+because their inputs are atom operations and atom templates.
 
 ## Normative text that waits for a signing sitting
 
-- C.3 defines a Format 1.0 subject digest over `[id, revision, content_digest]`.
-  Responses still carry the contract digest, which binds every byte and is
-  stronger, but is not that value. Recording the C.3 digest beside it is a schema
-  change (`oh.war/*-response/v1`).
-- §4.1 says nothing of a document's sections split across files. Atoms for a
-  Format 1.0 document need wording, or stay legacy-only.
-- §4.3 should name the state directory as the place for every act's records.
-- A single work root and display ordinals change §5 and §4.1's paths.
+- §5 ids: `w-<hex>`, `d-<hex>` and the fixed ids `spec` and `roadmap` as aliases;
+  the slug in a master's file name; display ordinals.
+- §4.1 and §4.3 paths: masters in `docs/work/<id>/`, and the state directory as
+  where every act's records go.
+- C.3 defines a subject digest over `[id, revision, content_digest]`. Responses
+  carry the contract digest instead, which binds every byte and is stronger, but
+  is a different value. Recording C.3's value beside it is a response-schema change.
+- §4.1 has no wording for a document's sections split across files.
