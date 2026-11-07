@@ -673,7 +673,7 @@ enum DailyCommand {
         /// Ask the setup questions at a terminal: who signs, the SAS, the
         /// first Warrant. Refused without a terminal; plain `war init` asks
         /// nothing.
-        #[arg(long, visible_alias = "interactive", conflicts_with_all = ["non_interactive", "namespace"])]
+        #[arg(short = 'I', long, visible_alias = "interactive", conflicts_with_all = ["non_interactive", "namespace"])]
         guided: bool,
         /// Never ask. Plain `war init` already asks nothing; the flag is kept
         /// so scripts that pass it keep working.
@@ -727,7 +727,7 @@ enum DailyCommand {
         #[arg(required_unless_present_any = ["issue", "issue_file", "interactive"])]
         title: Option<String>,
         /// Ask for what is not given. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
         /// Keep the old manifest-and-atoms encoding for a legacy integration.
         #[arg(long, hide = true)]
@@ -834,7 +834,7 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
         /// Pick from what is ready. Needs a terminal.
-        #[arg(long, conflicts_with = "worktree")]
+        #[arg(short = 'I', long, conflicts_with = "worktree")]
         interactive: bool,
         /// Only take it, with no brief: `war admin claim`.
         #[arg(long, conflicts_with = "worktree", group = "takes_paths")]
@@ -875,7 +875,7 @@ enum DailyCommand {
         #[arg(long)]
         check: bool,
         /// Pick what you hold and say what was done. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
         /// Give the claim back without finishing it: `war admin release`.
         #[arg(long, requires = "target", conflicts_with_all = ["note", "check", "reopen"])]
@@ -939,7 +939,7 @@ enum DailyCommand {
         #[arg(long, conflicts_with = "alias")]
         pending: bool,
         /// Pick an item to show. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
         /// What is ready, and whose step it is: `war view next`.
         #[arg(long, conflicts_with_all = ["alias", "timeline", "pending", "ready"])]
@@ -1016,7 +1016,7 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
         /// Pick what to check. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
     },
 }
