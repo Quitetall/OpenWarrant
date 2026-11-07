@@ -1,0 +1,44 @@
+ 1 Watch  2 Act  3 Records  p Repos
+┌ Create ──────────────────────────────────────────────────┐┌ Ready (dispatch unavailable in this build: the bottom line is the command) ────────────┐
+│unavailable in this build                                 ││t-1a2b3/i-2 Docs                                                                        │
+│Run `war create "what this work accomplishes"` in a shell.││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+│                                                          ││                                                                                        │
+└──────────────────────────────────────────────────────────┘└────────────────────────────────────────────────────────────────────────────────────────┘
+┌ Answer (unavailable in this build: the bottom line is the command) ─────┐┌ Sign — 2 act(s); space checks, s signs checked, Enter signs row, v shows┐
+│OW-WAR-0001/Q-001: Which queue?                                          ││[ ] authorize authorize:OW-WAR-0001                                      │
+│                                                                         ││[ ] authorize resolve:OW-WAR-0002                                        │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+│                                                                         ││                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘└─────────────────────────────────────────────────────────────────────────┘
+  $ war sign authorize:OW-WAR-0001 --ssh-sign
+  fixture · /work/repo · SAS 1.1.0 · 2 act(s) awaiting a signature   ? keys · q quit

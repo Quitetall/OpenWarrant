@@ -245,6 +245,38 @@ pub fn held(store: &Store) -> Vec<(claim::Claim, Option<Kept>)> {
         .collect()
 }
 
+/// The directory notices are posted to, for a watcher of this clone.
+#[must_use]
+pub fn directory(store: &Store) -> Option<Utf8PathBuf> {
+    store.layout.as_ref().map(dir_of)
+}
+
+/// Every notice to a live claim, for a screen, with whether it has been told
+/// (`war` printed its line) and seen (`war start` showed the change). Reads
+/// only: unlike [`unseen_line`], looking at one delivers nothing.
+#[must_use]
+pub fn board(store: &Store) -> Vec<(Notice, bool, bool)> {
+    let Some(dir) = directory(store).filter(|_| enabled()) else {
+        return Vec::new();
+    };
+    let held = held(store);
+    let mut out = Vec::new();
+    for (place, told) in [(dir.clone(), false), (dir.join(DELIVERED), true)] {
+        for path in notice_files(&place) {
+            let Some(notice) = read_json::<Notice>(&path) else {
+                continue;
+            };
+            let Some((_, kept)) = held.iter().find(|(c, _)| c.claim == notice.claim) else {
+                continue;
+            };
+            let seen = kept.as_ref().is_some_and(|k| k.seen.contains(&notice.id));
+            out.push((notice, told, seen));
+        }
+    }
+    out.sort_by(|a, b| b.0.at.cmp(&a.0.at));
+    out
+}
+
 // ---- git, by what it costs ------------------------------------------------
 
 /// `<common>/<name>`, loose or packed. No process.

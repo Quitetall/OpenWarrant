@@ -1794,6 +1794,14 @@ enum ViewCommand {
         /// it is restored. Hidden; the battery's.
         #[arg(long, hide = true)]
         panic_after_setup: bool,
+        /// Draw one frame as text and exit: `watch`, `act`, `records` or
+        /// `repos`. Hidden; the battery cannot drive a pipe.
+        #[arg(long, hide = true, value_name = "WHAT")]
+        render: Option<String>,
+        /// Parse every command line the app builds, or the ones in a file,
+        /// with the real CLI. Hidden; the battery's.
+        #[arg(long, hide = true, value_name = "FILE", num_args = 0..=1, default_missing_value = "")]
+        check_argv: Option<Utf8PathBuf>,
     },
     /// Read-only project board, including every stage and exact approval commands.
     Board {
@@ -6530,9 +6538,20 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 &ticket::list(&store, &work, &filter)?,
             ))
         }
-        ViewCommand::Tui { panic_after_setup } => {
+        ViewCommand::Tui {
+            panic_after_setup,
+            render,
+            check_argv,
+        } => {
             if matches!(mode, output::Mode::Json) {
                 return Ok(tui::refuse_json());
+            }
+            if let Some(file) = check_argv {
+                let file = (!file.as_str().is_empty()).then_some(file);
+                return Ok(tui::check_argv(ctx.root.clone(), file.as_deref())?);
+            }
+            if let Some(what) = render {
+                return Ok(tui::render(ctx.root.clone(), &what)?);
             }
             Ok(tui::run(ctx.root.clone(), panic_after_setup)?)
         }

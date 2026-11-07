@@ -110,8 +110,8 @@ plants = ["*webui*.sh", "69-board-tree-reads.sh", "69-overview-tree-reads.sh", "
 
 [[rule]]
 name = "tui"
-paths = ["crates/openwarrant-cli/src/tui/**"]
-plants = ["97-tui.sh"]
+paths = ["crates/openwarrant-cli/src/tui/**", "crates/openwarrant-cli/src/herdr.rs"]
+plants = ["97-tui.sh", "71-hub.sh", "191-tui-honest.sh"]
 
 [[rule]]
 name = "mcp"

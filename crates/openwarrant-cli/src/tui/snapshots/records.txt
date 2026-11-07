@@ -1,0 +1,44 @@
+ 1 Watch  2 Act  3 Records  p Repos
+┌ Tickets — state and progress, remaining items; Enter shows checklist and notes  [ ] 1/9 · Esc back ────────────────────────────────────────────────┐
+│▶ open t-1a2b3 0/2 p1 Reset passwords                                                                                                               │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+│                                                                                                                                                    │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+  $ war view show t-1a2b3
+  fixture · /work/repo · SAS 1.1.0 · 2 act(s) awaiting a signature   ? keys · q quit

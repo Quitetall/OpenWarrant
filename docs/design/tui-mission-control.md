@@ -1,161 +1,134 @@
-# OpenWarrant Mission Control: Two-Pillar Interactive Terminal UI
+# OpenWarrant Mission Control: the interactive terminal UI
 
-Owner-directed working vision, 2026-11-04.
-Design specification for the next-generation Ratatui interface (`OW-WAR-0112` successor).
+Owner-directed design, 2026-11-04, corrected against the code 2026-11-06 (t-3c16c W5).
+`docs/TUI.md` is what the app does today. This file is why it has that shape and what
+it may not do. Successor to the viewer of `OW-WAR-0112`.
 
 ---
 
-## 1. Problem & First Principles
+## 1. The problem
 
-### The Problem with the 12-Tab Viewer
-The initial OpenWarrant terminal viewer (`crates/openwarrant-cli/src/tui/mod.rs`) faithfully mapped the internal protocol taxonomy to twelve separate tabs: `Setup`, `Help`, `Queue`, `Questions`, `Frontier`, `Corpus`, `Obligations`, `Evidence`, `Journal`, `Roadmap`, `Projects`, `Tickets`.
+The first terminal viewer mapped the protocol's taxonomy onto 14 panes, with low-level
+validation rungs competing with daily work for keys. It was structurally safe (clean
+terminal restoration, no key handling) but passive, and its newest two panes showed
+numbers nobody had recorded. A person in front of OpenWarrant needs two things:
 
-While technically complete and structurally safe (clean terminal restoration, zero key leakage), this layout imposes severe friction:
-1. **Protocol internals are exposed as navigation**: Low-level validation rungs (`Corpus`, `Obligations`, `Evidence`) compete for screen space with daily developer tasks (`Tickets`, `Queue`).
-2. **Passive viewer, not a workspace**: The human can observe and batch-sign, but cannot draft, create, assign, dispatch, or answer questions without exiting to a shell prompt.
-3. **Subprocess bouncing**: Operations like `Setup` (`war init`) or roadmap editing exit raw mode, shell out to the CLI, prompt "press Enter to return", and reboot the TUI.
-4. **Zero visibility into autonomous agent execution**: As agents (Claude Code, Gemini, local models) work concurrently in isolated worktrees, the human cannot see their live edits, heartbeats, token burn, or write-scope boundaries.
-
-### The First-Principles Solution: Two Core Jobs
-From first principles, a developer or engineering lead sitting in front of OpenWarrant needs only two things:
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│  [1] OBSERVE (Information, Topology, Telemetry & Live Execution)       │
-├────────────────────────────────────────────────────────────────────────┤
-│  [2] ORCHESTRATE (Draft, Create, Assign, Dispatch, Unblock & Sign)     │
-└────────────────────────────────────────────────────────────────────────┘
+[1] WATCH   where the work stands, who is on it, what they are doing
+[2] ACT     create, dispatch, answer, sign
 ```
 
-The entire interface collapses from a 12-tab pager into a responsive, high-density **Two-Pillar Mission Control** built on Ratatui.
+The rest stays one key away: **Records** (`3`) over either mode, **Repos** (`p`) from
+anywhere.
 
----
+## 2. Terminal rule
 
-## 2. Pillar 1: OBSERVE (The Situational HUD)
+1. **No signing keys.** The TUI never touches a private key, never invokes `ssh-keygen`
+   and never reads `SSH_AUTH_SOCK`. Every signature is a child `war sign … --ssh-sign`
+   that owns the terminal, and the `ssh-add -c` dialog is the human act.
+2. **No state of its own.** It consumes the canonical providers (`status::build`,
+   `roadmap_cmd::view_with`, `work::Work`, `graph::build`, `estimate::schedule`,
+   `ticket::scopes`, `ticket::live`, `watch::fingerprint`). It holds a cursor.
+3. **Every action is a real, tested command.** A key handler returns the argv as a
+   value, and the test suite and a plant parse each with the real CLI
+   (`Cli::try_parse_from`). An action that does not work yet reads as unavailable.
+4. **Unknown is shown as UNKNOWN**, never estimated into a real-looking number.
+5. **Terminal integrity.** Entered and left through a `Drop` guard; a panic restores the
+   alternate screen, cursor and echo.
 
-The Observe mode provides total operational awareness at a glance: where the program stands, where parallel agents are working, what they are spending, and what they are blocked on.
+## 3. Watch
 
-### 2.1 Top-Line Telemetry & Fleet Vitals
-Positioned permanently in the header bar:
-- **Token Burn & Spend**: Total tokens consumed across all sessions, dollar-denominated cost estimate based on active model rates, and burn velocity (tokens/min).
-- **Fleet Vitals**: Active agents count, active worktree count, and write-scope collision warnings.
-- **Global Milestone Progress**: High-level completion gauge (e.g. `Phase 1: 68% · 24/35 Warrants`).
+**Top lines.** Counts only, each from a record:
 
-### 2.2 Milestone Progress Bars & Task Column (Left Pane)
-A structured columnar view of roadmap milestones:
-- Each milestone renders with a Ratatui `Gauge` showing progress toward the milestone exit criteria.
-- Under each milestone, tasks/Warrants are listed with:
-  - Stable task ID and descriptive title.
-  - State badge: `DONE` (green), `ACTIVE` (cyan), `READY` (white), `BLOCKED` (yellow/dim).
-  - **Token Burn & Cost per Task**: Displayed inline (e.g. `$0.42 · 28k tok`).
-  - Distinction between *unverified completed work* and *formally accepted work*.
+- *Tokens*: what the records hold, known or `UNKNOWN`. Sources are `war evidence go`
+  node tokens and runtime capture receipts (`docs/design/tui-usage.md`). No session
+  usage is recorded today, so a repository that has never run `war evidence go` reads
+  `UNKNOWN`. Dollars appear only from a dated, configured price table, labelled as an
+  estimate. There is no burn velocity: nothing records one.
+- *Fleet*: claims, lease state, worktrees, collisions.
+- *Progress*: counts from `status::build` and `roadmap_cmd::view_with`, for example
+  `29/145 resolved`. There is no percentage and no gauge. A roadmap phase's exit
+  criteria are not a measure a percentage can be taken of, and Warrants are not equal.
 
-### 2.3 Task Dependency Tree / DAG (Center Pane)
-A visual hierarchy rendering dependencies, parallel tracks, and critical paths:
-- Shows which tasks are unblocked and executable in parallel vs. which tasks form the critical path.
-- **Active Task Metadata**: For any task currently claimed by an agent, the tree node displays:
-  - **Agent / Model Name**: e.g., `claude-opus-5.5-w1`, `gemini-3.8-flash`.
-  - **Last Heartbeat**: Relative time since last agent activity (e.g., `4s ago`).
-  - **Lease Freshness**: Countdown to claim TTL expiry (e.g., `fresh (3m 42s left)`).
-  - **Claimed Worktree Directory**: e.g., `.worktrees/wt-78a2`.
-  - **Assigned Write Path Scope**: e.g., `crates/openwarrant-cli/src/context/**`. Collisions between overlapping active writers are highlighted in bright red.
-- **Direct Dispatch Action**: Highlighting any unblocked node and pressing `d` immediately transitions to dispatching an agent to that node.
+**Work** lists open items in any encoding, with remaining checklist items. There is no
+rendered DAG. The critical path from `estimate::schedule` is marked on the rows, and
+waiting and blocked states come from `graph::build`. The whole graph remains `war plan
+frontier --all`.
 
-### 2.4 Live Transcript Streaming via Herdr Integration (Right Pane)
-Integrates directly with the local `herdr` daemon (`~/.config/herdr/herdr.sock`):
-- Connects over the UNIX domain socket to query running agent panes (`herdr agent list`).
-- On a 250ms polling tick, streams terminal output and live file diffs from the focused agent (`herdr agent read <id>`).
-- Lets the human watch Claude Code or other agents as they reason, call tools, and edit code in their isolated worktree.
-- Allows switching between agent transcripts via `[` and `]`.
+**Claims** come from the lock files: actor, age, lease left, workspace and declared
+paths. There is no agent heartbeat. What a lock records is the mtime the holder's `war`
+commands renew, and the app labels it `lock renewed`. Collisions come from
+`ticket::scopes::conflict`, and an undeclared claim collides with nothing.
 
-### 2.5 Unified Questions Hub (Bottom Drawer)
-When any agent encounters an ambiguity, missing requirement, or design decision (via `oh.war/intake-questions/v1` or an interview hook):
-- The question immediately surfaces in the centralized Questions Hub across all worktrees.
-- Shows: Target task, asking agent, question text, and the agent's recommended answer.
-- Pressing `a` opens an inline answering box to resolve the question on the spot, unblocking the waiting agent without leaving the TUI.
+**Live** reads the focused agent's terminal through Herdr, or without it `git status`,
+`git diff --stat` and the journal's newest events for the selected workspace. It shows
+terminal text and diff statistics, not a file diff stream: Herdr has terminal output,
+and no notion of an agent's diff.
 
----
+**Questions** are the open intake questions the console's board lists, across Warrants.
+They are not gathered from running agents, which file them through `war ask`.
 
-## 3. Pillar 2: ORCHESTRATE (The Action Center)
+**Notices** are W3's notices, with how far each got.
 
-The Orchestrate mode gives the human active control over drafting, dispatching, unblocking, and certifying work.
+## 4. Act
 
-### 3.1 Draft & Create Work (NLP & Direct)
-Creates new Warrants/tickets as single-source Markdown documents:
-- **NLP Generation**: An input box allows typing a high-level engineering request (e.g. *"Add rate limiting with token bucket fallback to dispatch"*). Pressing `Enter` runs OpenWarrant's deterministic drafter (`war plan --draft`) to propose structured items, obligations, and suggested gates.
-- **Direct Form**: An instant editor modal for typing a title, checklist items, and dependency links (`--after <id>`).
-- Written directly to `docs/tickets/` or `docs/warrants/` without manual file scaffolding.
+**Create** goes through `war create`, from a title and checklist items. The drafter is
+not deterministic: `war plan --draft` runs whatever `[plan] drafter_argv` configures, so
+the option appears only when that is set, and is described as a configured process.
 
-### 3.2 Task Dispatch & Worktree Provisioning
-Provides a clean interface for assigning work to autonomous workers:
-1. **Target Selection**: Pick an unblocked task from the tree.
-2. **Model / Harness Selection**: Choose from configured performers (`claude-opus-5.5`, `claude-sonnet-4.6`, `gemini-3.8-flash`, local runner).
-3. **Write Scope Assignment**: Declare the file/directory glob the agent is permitted to touch (e.g. `crates/openwarrant-cli/src/dispatch/**`). OpenWarrant verifies that no active lease overlaps this scope.
-4. **Execution Mode**: Choose between an isolated Git worktree or the main workspace.
-5. **Launch**: Spawns the worktree, records the scoped claim in the journal, and launches the agent inside Herdr (`herdr agent start`).
+**Dispatch** picks a task from the ready list, then an executor from `[go]` (there is no
+built-in model list), then a write scope, then a worktree, then claims with
+`claim_scoped_at` and launches. Two adapters:
 
-### 3.3 Question & Blocker Resolution
-- Complete interview interface for structured design decisions (`war plan interview <target>`).
-- Supports multi-choice selection, freeform rationale entry, and default acceptances.
-- Records the answer directly into the Warrant's intake record, updating the task's context packet for subsequent agent turns.
+1. Herdr: `tab.create`, then `agent.start` in the tab's pane.
+2. Detached `war start --worktree`.
 
-### 3.4 Approval & Signing Queue (Human Authority Seam)
-Where finished work is presented for human sign-off:
-- Lists completed tasks awaiting sign-off, SAS amendments, and resolution receipts.
-- **Diff & Evidence Inspector**: Selecting an item displays the git diff, test/gate receipts, and compliance verification report in the inspector.
-- **Batch SSH Confirmation**:
-  - `Space` checks rows, `a` checks all.
-  - Pressing `s` executes a single batch signing operation (`war sign --batch=... --ssh-sign`).
-  - Terminal raw mode is suspended cleanly for the hardware security key / `ssh-add -c` confirmation prompt and resumed immediately upon completion.
+`claim_scoped_at` refuses an overlapping declared scope, by name, and the refusal is
+what the person sees.
 
----
+**Answer** is `war plan answer` for a stage's question and `war note` otherwise. Neither
+pushes anything to a running agent: the agent reads an answer at its next `war` call or
+`war start`, unless Herdr can deliver it (`agent.prompt`). The panel says which. There
+is no multi-choice answer until a question record has an options field; `war plan
+interview` is read-only and is shown as such.
 
-## 4. Architecture & Invariants
+**Sign**: `space` checks, `a` all, `s` signs one or a batch in one dialog. A check
+belongs to an act, not a row, so a queue re-read cannot move it. `v` shows the request;
+the diff and evidence of what is being signed are read here too.
 
-### 4.1 Safety Invariants
-1. **Zero Key Delegation**: The TUI never touches private keys, never invokes `ssh-keygen`, and never accesses `SSH_AUTH_SOCK` internally. Every signature remains an interactive human confirmation through `ssh-add -c`.
-2. **Single Source of Truth**: The TUI computes no shadow state. It strictly consumes existing canonical data providers (`status::build`, `ticket::claim`, `spend::report`, `watch::fingerprint`, `context::adapter`).
-3. **Terminal Integrity**: Entered and exited through an immutable `Drop` guard. Panics and exits cleanly restore the alternate screen, cursor, and terminal echo.
+## 5. Herdr is an optional adapter
 
-### 4.2 Herdr IPC Interface
-- Connects to `~/.config/herdr/herdr.sock` via `std::os::unix::net::UnixStream`.
-- Protocol: JSON-RPC request/response matching Herdr's API schemas (`agent.list`, `agent.read`, `agent.prompt`).
-- Fallback: When Herdr is not running, the transcript pane displays standard Git diffs and journal progress for the selected worktree.
+Everything works without it. It is a local daemon with a Unix socket and a line protocol
+of its own: one JSON object per line, `{"id", "method", "params"}` answered by
+`{"id", "result"}` or `{"id", "error"}`. It is not JSON-RPC. Its fields are nullable,
+and only ids and status are promised.
 
-### 4.3 Input & Navigation Model
-- **Mode Toggle**: `Tab` or `1` / `2` switches between **Observe** and **Orchestrate**.
-- **Global Keys**:
-  - `j` / `k` or `↑` / `↓`: Navigate trees and lists.
-  - `h` / `l` or `←` / `→`: Navigate across split panes.
-  - `/`: Fuzzy filter across visible tasks and agents.
-  - `?`: Toggle contextual keyboard shortcuts overlay.
-  - `q`: Cleanly exit the app.
-- **Observe Actions**:
-  - `Enter`: Inspect selected task / zoom transcript.
-  - `[` / `]`: Cycle between active agent transcripts.
-  - `a`: Quick-answer focused question in the bottom hub.
-  - `d`: Jump to Orchestrate with the selected task pre-filled for dispatch.
-- **Orchestrate Actions**:
-  - `c`: Create new task.
-  - `s`: Sign/approve checked batch.
-  - `x`: Run automated remedy.
+The socket is `HERDR_SOCKET_PATH`, else the session `HERDR_SESSION` names
+(`<config>/sessions/<name>/herdr.sock`), else `<config>/herdr.sock`. `ping` decides
+whether Herdr is there. Every call runs on a background thread, so a dead socket never
+holds a key. Used: `ping`, `agent.list`, `agent.read`, `agent.prompt`, `tab.create`,
+`agent.start`, `events.subscribe`.
 
----
+## 6. Structure
 
-## 5. Implementation Roadmap
+A key handler runs nothing and returns an `Effect`. The event loop performs effects.
+Background threads read the records into a finished `Snapshot` and send it over a
+channel, so a corpus reload never stalls a keypress. Input stays `crossterm::event::poll`
+with no async executor (OW-ADR-0014).
 
-1. **Step 1: State Machine & Split Layout**
-   - Replace the 12-variant `Pane` enum in `crates/openwarrant-cli/src/tui/mod.rs` with `ViewMode::Observe` and `ViewMode::Orchestrate`.
-   - Implement the master-detail split layout (Left: Milestone list & DAG, Right: Transcript/Inspector, Bottom: Questions drawer).
+```
+tui/mod.rs             run, terminal guard, event loop, keys, top-level draw
+tui/model.rs           the cursor and the plain data of a Snapshot
+tui/reader.rs          background threads and the one read
+tui/herdr_adapter.rs   Herdr, and the working tree without it
+tui/watch.rs           Watch
+tui/act.rs             Act
+tui/records.rs         Records and Repos
+tui/argv.rs            every command line the app builds
+```
 
-2. **Step 2: DAG, Telemetry & Claims Renderer**
-   - Wire `context::adapter::Graph` into a tree renderer.
-   - Embed token burn, last heartbeat, worktree path, and lease countdown into active tree rows.
+## 7. Keys
 
-3. **Step 3: Herdr Socket Client**
-   - Implement `crates/openwarrant-cli/src/herdr.rs` for IPC over `herdr.sock`.
-   - Stream live terminal output into the Ratatui transcript widget.
-
-4. **Step 4: Interactive Orchestration Flows**
-   - Implement inline task creation drawer (NLP prompt + direct input).
-   - Implement dispatch modal connecting to `ticket::claim_scoped_at` and `herdr agent start`.
-   - Wire the in-TUI question answerer and review queue.
+No key differs from another by case alone. `Tab` flips the modes, `1` and `2` go direct,
+`3` calls up Records, `p` calls up Repos. The table is in `docs/TUI.md`, and a test holds
+it to the `?` overlay.
