@@ -15,6 +15,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- Who may answer a question follows the ladder (OW-ADR-0034, superseding OW-WAR-0069's
+  human-only rule below an Order): on a Ticket or a Warrant, any actor except the
+  asker (`question.own`), recorded with its kind; on an Order, signed text, an
+  intake question or `--needs-human`, a person (`question.agent`). With no
+  `docs/authority/roles.toml`, a person is whoever is at a terminal with a git
+  identity and in no agent session; a register still decides when there is one.
+  `war plan answer --as` is optional.
 - `war admin mcp` serves seven tools by default (`war_create`, `war_start`,
   `war_done`, `war_status`, `war_check`, `war_context`, `war_note`), with the
   CLI's folds as arguments: `war_status` takes `next`, `ready` and `view`,
@@ -32,6 +39,14 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- Questions find their answerer (OW-ADR-0034). `war plan note <id> --ask "..."`
+  (`--blocking`, `--needs-human`, `--recommend`) asks of the holder of the parent
+  work, else the dispatcher, else the creator, else anyone; `war plan note <id>
+  --answer Q-001 "..."` answers. The party sees it at the top of `war status`, in
+  `war status --next` with the answer command, in `war view prime` and in Mission
+  Control; the asker hears the answer once, on its next `war` call or `war start`.
+  Both travel as W3 notices, across clones with `[claims] remote`. MCP `war_note`
+  takes `ask` and `answer`. Ticket questions live in `docs/questions/<id>/`.
 - The formal path reads a single-file Warrant: authorize, evidence record,
   verify, resolve, compile, check, status and pins take `docs/warrants/<alias>.md`,
   with its state in `docs/warrants/<alias>/`. Its contract digest covers the

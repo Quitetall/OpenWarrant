@@ -1,7 +1,9 @@
 # The hotline: how a question blocks, who can answer, and the limits on a performance
 
-An agent asks and a human answers (§27.2, OW-WAR-0069). This page covers what
-OW-WAR-0132 added around that exchange:
+Anyone asks; who may answer follows the ladder (OW-ADR-0034, which supersedes
+OW-WAR-0069's human-only rule below an Order; docs/TICKETS.md, "Questions"). A
+directory Warrant on a signing profile is an Order, so its questions still wait on a
+person (§27.2). This page covers what OW-WAR-0132 added around that exchange:
 
 - what a blocking question does to its stage;
 - what happens when nobody can answer it;
@@ -62,10 +64,11 @@ for the next `war perform`.
 
 ## No responder is UNKNOWN
 
-`war answer` accepts an actor who holds an assignment in
+On an Order, `war answer` accepts an actor who holds an assignment in
 `docs/authority/roles.toml` and whose `actor_kind` is not `agent`. If a
 repository's register names no such actor, a blocking question there can never
-be answered.
+be answered. A repository with no register at all has a responder: the person at
+a terminal (OW-ADR-0034).
 
 So for each stage blocked by a question when the register holds no such actor,
 or cannot be read, `war frontier` reports UNKNOWN `question.no-responder`
