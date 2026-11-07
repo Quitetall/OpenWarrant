@@ -878,7 +878,10 @@ fn a_displayed_command_counts_only_when_it_is_whole() {
 /// one argv is a command the CLI refuses.
 #[test]
 fn a_shell_chain_is_no_auto_remedy() {
-    assert_eq!(argv::of_action("war evidence record a && war evidence verify a"), None);
+    assert_eq!(
+        argv::of_action("war evidence record a && war evidence verify a"),
+        None
+    );
     assert_eq!(
         argv::of_action("war evidence record a"),
         Some(argv::words(&["war", "evidence", "record", "a"]))
