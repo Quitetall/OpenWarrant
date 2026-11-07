@@ -381,3 +381,73 @@ Relay and parallel weren't repeated after the fix: `rem-c2` cost 1.89 and 0.88 a
 3.28 and 1.26 before it. The study's value here was the four false completions, which
 found a bug no test had: sections of a single-file ticket never reached a brief.
 
+
+## Amendment 5 (2026-11-07): OpenWarrant versions as arms
+
+Written before any run under it. Amendment 4 compared builds run on different days, so
+its differences were suggestive only. From here, at the owner's direction, OpenWarrant
+versions are arms of one run: they run side by side, on the same day, on the same
+cells, and the comparison between them is controlled. The result decides which `war`
+the owner uses: if alpha.7 beats alpha.6, the owner's `war` moves to alpha.7, otherwise
+it stays on alpha.6; if `next` beats alpha.7, `next` is released as alpha.7.1.
+
+**Arms.** Each is the `openwarrant` arm, seeded by the same code; only the `war` binary
+in the sandbox and the plugin ref differ (`run.py` `OW_VERSIONS`).
+
+| arm | `war` | sha256 | plugin ref |
+|---|---|---|---|
+| `openwarrant@a6` | the published release, `~/.local/lib/openwarrant/1.0.0-alpha.6/bin/war` (reports `war 1.0.0-alpha.6 (unreleased, commit 9cbe852edd4d)`, the tag's commit) | `ad3cbaf2c15368e62efc75191525b59a9c9012144ca8f7f241faa54a6193e72d` | `v1.0.0-alpha.6` |
+| `openwarrant@a7` | the published release, `~/.local/lib/openwarrant/1.0.0-alpha.7/bin/war` (`war 1.0.0-alpha.7`, tag at `9e4948385`) | `1200b197f95f5dc8386748f71d855531a223c454cb61dd6b64966fdb60353722` | `v1.0.0-alpha.7` |
+| `openwarrant@next` | a local build of main, whatever main is when it runs (`ADOPTION_WAR_NEXT`) | recorded | the commit it was built from (`ADOPTION_OW_PLUGIN_REF_NEXT`) |
+
+`run.json` (now also written to the keep store, with the plan) records each arm's binary
+path, version string and sha256 and its plugin ref, and every cell's `result.json`
+records its own arm's. The unversioned `openwarrant` arm is unchanged for old runs; its
+pin moves to alpha.7 (`PINS`), which is also the `war` the other arms' sandboxes hold.
+Under opencode no plugin loads (amendment 2); the ref is recorded all the same.
+
+**Seeding is the same.** Checked before any run: tally's directed T8 cell (T1 to T7
+done, opencode layout) seeded for `openwarrant@a6`, `openwarrant@a7`, and the old
+`openwarrant` arm with `ADOPTION_WAR` set to alpha.7. Ticket ids, item ids, uuids,
+timestamps, hashes, commits and the seed path differ on every seeding, even with one
+binary, so they were named first (ticket ids by the item each holds). Then the old arm
+on alpha.7 and `openwarrant@a7` are identical, and alpha.6 against alpha.7 differ only
+in what `war init` itself writes: the managed block in `AGENTS.md` (alpha.7 says to run
+`war start` before reading anything else, and not to read `docs/tickets/` directly),
+two `merge=war-ticket` lines in `.gitattributes`, and alpha.6's `schemas/` directory.
+Every ticket and journal is the same.
+
+**Held fixed across arms:** the seed, the prompts, the agent (opencode 2.2.1), the model
+(`lithosai/deepseek-ai/DeepSeek-V4.1-Flash`), the turn cap, and the measures. The turn
+cap is 60 for every arm in these runs (`execute --turns 60`), not the 25 of the earlier
+opencode runs, so these runs are not compared with those. Relay session 2 stays cut at 5.
+
+**Reported, not a new measure.** Each directed row adds the median number of turns
+before the first code edit (`turns_before_first_code_edit`, from the same transcripts
+and the same edit rule as orientation cost), sessions that never edited code, and median
+tokens per cell. No measure is changed.
+
+**Win rule, fixed now, the same for every pair** (`run.py` `win_rule`; `report` prints
+each step's numbers). It is applied to the directed cells both arms ran; relay cells are
+reported beside it.
+
+1. False completions first: a version with more loses, whatever else it does.
+2. Then passes: more hidden-test passes wins. A difference of one cell or less is a tie.
+3. On a tie, median tokens per cell (input, cache reads and writes, output): at least
+   10% fewer wins; within 10% is a tie.
+4. A tie overall is no win: the owner stays on the current version.
+
+A cell that errored for harness reasons, not the model's (the endpoint refusing, an
+emptied registry, a grade that never ran), is rerun once for every arm, or excluded for
+every arm, and the report says which. Pairs: `openwarrant@a7` against `openwarrant@a6`
+now, `openwarrant@next` against `openwarrant@a7` once alpha.8 work lands on main.
+
+**First run, `oc-v5-1`.** The 14 cells of `plan-oc-base.json` (tally T8 to T10, knightlm
+K7 to K9, one tally relay) on `plain`, `openwarrant@a6` and `openwarrant@a7`: 21 cells,
+arms interleaved per item, `--jobs 3`, under `systemd-run --user`. The endpoint was up
+and reported no price on 2026-11-07, as on 2026-10-29. No Claude cells: they cost money
+and wait for the owner. `openwarrant@next` waits for alpha.8 work; until then it is
+proved only by fixture runs on a build of main at `9e4948385`, which is alpha.7's own
+commit. Fixture runs (`fixture-reference`, `fixture-claim`) on tally T8 already showed
+`openwarrant@a6` and `openwarrant@a7` seed, grade and read their trackers: the reference
+passes in both, and a claimed but undone item is a false completion in both.

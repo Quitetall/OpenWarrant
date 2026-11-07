@@ -22,6 +22,15 @@ import subprocess
 from pathlib import Path
 
 ARMS = ("plain", "plans", "speckit", "beads", "openwarrant", "jira")
+# Amendment 5: OpenWarrant versions as arms, run side by side. Each is the `openwarrant` arm, seeded
+# by the same code; only the `war` binary and the plugin ref differ (run.py OW_VERSIONS).
+VERSION_ARMS = ("openwarrant@a6", "openwarrant@a7", "openwarrant@next")
+ALL_ARMS = ARMS + VERSION_ARMS
+
+
+def tool_of(arm: str) -> str:
+    """The tool an arm sets up: `openwarrant@a7` is the `openwarrant` arm on alpha.7's binary."""
+    return arm.split("@", 1)[0]
 
 SEED_ENV = {
     "GIT_AUTHOR_NAME": "study-seed",
@@ -403,6 +412,7 @@ def deliver_answer(arm: str, repo: Path, backlog: dict, item: dict, env: dict) -
     """The owner's reply to an item's open question, through the arm's own update channel."""
     text = _answer_text(item)
     iid = item["id"]
+    arm = tool_of(arm)
     if arm == "plain":
         p = instructions(repo, env)
         lines = p.read_text().splitlines()
@@ -464,9 +474,10 @@ def seed(arm: str, repo: Path, backlog: dict, done: set[str], tools: dict) -> No
     env = {**os.environ, **SEED_ENV, **tools}
     env.pop("SSH_AUTH_SOCK", None)
     env.pop("SSH_AGENT_PID", None)
-    SEEDERS[arm](repo, backlog, done, env)
+    # The commit message names the tool, not the version: the seed is the same for every version.
+    SEEDERS[tool_of(arm)](repo, backlog, done, env)
     _run(["git", "add", "-A"], repo, env)
-    _run(["git", "commit", "-q", "--no-verify", "-m", f"seed: {arm} backlog"], repo, env, check=False)
+    _run(["git", "commit", "-q", "--no-verify", "-m", f"seed: {tool_of(arm)} backlog"], repo, env, check=False)
 
 
 def scaffold(arm: str, repo: Path, backlog: dict, tools: dict) -> None:
@@ -493,4 +504,4 @@ def scaffold(arm: str, repo: Path, backlog: dict, tools: dict) -> None:
 def tracker(arm: str, repo: Path, backlog: dict, tools: dict) -> dict:
     env = {**os.environ, **SEED_ENV, **tools}
     env.pop("SSH_AUTH_SOCK", None)
-    return TRACKERS[arm](repo, backlog, env)
+    return TRACKERS[tool_of(arm)](repo, backlog, env)

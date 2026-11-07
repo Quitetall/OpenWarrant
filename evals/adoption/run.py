@@ -64,12 +64,12 @@ HOME = Path.home()
 
 PINS = {
     "claude": "2.1.301",
-    "war": "1.0.0-alpha.5",
+    "war": "1.0.0-alpha.7",
     "bd": "1.3.1",
     "specify": "v1.2.2",
     "rust": "1.97.1",
     "pytest": "9.0.2",
-    "ow_plugin": "v1.0.0-alpha.5",   # the OpenWarrant Claude Code plugin, from this tag
+    "ow_plugin": "v1.0.0-alpha.7",   # the OpenWarrant Claude Code plugin, from this tag
     "opencode": "2.2.1",
 }
 # Where `prepare` gets Beads and Spec Kit. Beads publishes checksums.txt: the pin below is its
@@ -128,12 +128,69 @@ SCENARIOS = ("directed", "relay", "parallel")
 # ------------------------------------------------------------------ tools
 
 
-def tools() -> dict:
+# Amendment 5: OpenWarrant versions as arms. A published version names its installed release and
+# the tag its plugin comes from; `next` names a local build (ADOPTION_WAR_NEXT, main as alpha.8
+# develops) and the commit it was built from (ADOPTION_OW_PLUGIN_REF_NEXT). Nothing else differs.
+OW_VERSIONS = {
+    "openwarrant@a6": {"war": str(HOME / ".local/lib/openwarrant/1.0.0-alpha.6/bin/war"),
+                       "version": "1.0.0-alpha.6", "plugin_ref": "v1.0.0-alpha.6"},
+    "openwarrant@a7": {"war": str(HOME / ".local/lib/openwarrant/1.0.0-alpha.7/bin/war"),
+                       "version": "1.0.0-alpha.7", "plugin_ref": "v1.0.0-alpha.7"},
+    "openwarrant@next": {"war_env": "ADOPTION_WAR_NEXT", "plugin_env": "ADOPTION_OW_PLUGIN_REF_NEXT"},
+}
+
+
+def arm_war(arm: str = "") -> str:
+    """The `war` an arm's sandbox gets. Unversioned arms keep the run-wide choice: ADOPTION_WAR, a
+    local build to measure instead of the pinned release, or the pin."""
+    v = OW_VERSIONS.get(arm)
+    if v:
+        return v["war"] if "war" in v else os.environ.get(v["war_env"], "")
+    return os.environ.get("ADOPTION_WAR") or str(HOME / ".local/lib/openwarrant" / PINS["war"] / "bin/war")
+
+
+def arm_plugin_ref(arm: str = "") -> str:
+    v = OW_VERSIONS.get(arm)
+    if v:
+        return v["plugin_ref"] if "plugin_ref" in v else os.environ.get(v["plugin_env"], "")
+    return os.environ.get("ADOPTION_OW_PLUGIN_REF", PINS["ow_plugin"])
+
+
+def plugin_dir(arm: str = "") -> Path:
+    """Where the arm's Claude Code plugin is unpacked. The unversioned arm keeps `prepare`'s copy."""
+    if arm in OW_VERSIONS:
+        return STUDY / "tools" / f"ow-plugin-{arm_plugin_ref(arm)}"
+    return STUDY / "tools" / "ow-plugin"
+
+
+def unpack_plugin(dest: Path, ref: str) -> None:
+    dest.mkdir(parents=True)
+    archive = subprocess.run(["git", "-C", str(OW_REPO), "archive", ref, *PLUGIN_FILES],
+                             capture_output=True, check=True, timeout=120).stdout
+    subprocess.run(["tar", "-x", "-C", str(dest)], input=archive, check=True, timeout=120)
+
+
+_BUILDS: dict = {}
+
+
+def arm_build(arm: str) -> dict:
+    """What an arm ran: its `war` (path, version string, sha256) and its plugin ref. Recorded in
+    run.json and in every cell's result."""
+    if arm not in _BUILDS:
+        war = arm_war(arm)
+        out = ""
+        if war and Path(war).exists():
+            out = subprocess.run([war, "--version"], capture_output=True, text=True, timeout=60).stdout.strip()
+        _BUILDS[arm] = {"war": war, "war_version": out,
+                        "war_sha256": _sha256(Path(war)) if war and Path(war).exists() else None,
+                        "plugin_ref": arm_plugin_ref(arm)}
+    return _BUILDS[arm]
+
+
+def tools(arm: str = "") -> dict:
     t = STUDY / "tools"
     return {
-        # ADOPTION_WAR: a local build to measure instead of the pinned release.
-        "STUDY_WAR": os.environ.get("ADOPTION_WAR")
-        or str(HOME / ".local/lib/openwarrant" / PINS["war"] / "bin/war"),
+        "STUDY_WAR": arm_war(arm),
         "STUDY_BD": str(t / "beads/bd"),
         "STUDY_SPECIFY": str(t / "bin/specify"),
         "STUDY_CLAUDE": str(HOME / ".local/share/claude/versions" / PINS["claude"]),
@@ -141,8 +198,21 @@ def tools() -> dict:
     }
 
 
-def check_tools(agent: str = "claude") -> list[str]:
+def check_tools(agent: str = "claude", arm_list: list[str] | None = None) -> list[str]:
     problems = []
+    for arm in sorted(set(arm_list or []) & set(OW_VERSIONS)):
+        v, war, ref = OW_VERSIONS[arm], arm_war(arm), arm_plugin_ref(arm)
+        if not war or not Path(war).exists():
+            problems.append(f"{arm}: no war at {war!r}" + (f" (set {v['war_env']})" if "war_env" in v else ""))
+            continue
+        out = subprocess.run([war, "--version"], text=True, capture_output=True, timeout=60).stdout
+        if "version" in v and v["version"] not in out:
+            problems.append(f"{arm}: {war} reports {out.strip()[:80]!r}, not {v['version']}")
+        if not ref:
+            problems.append(f"{arm}: no plugin ref (set {v['plugin_env']} to the commit the build came from)")
+        elif subprocess.run(["git", "-C", str(OW_REPO), "rev-parse", "--verify", "-q", f"{ref}^{{commit}}"],
+                            capture_output=True, timeout=60).returncode != 0:
+            problems.append(f"{arm}: plugin ref {ref!r} is not a commit in {OW_REPO}")
     # Amendment 4: a re-measure of one arm need not have every other arm's tools.
     only_ow = os.environ.get("ADOPTION_ONLY_OPENWARRANT") == "1"
     probes = {
@@ -177,6 +247,15 @@ def check_tools(agent: str = "claude") -> list[str]:
 def speckit_at_pin() -> bool:
     receipt = STUDY / "tools/uv-tools/specify-cli/uv-receipt.toml"
     return receipt.exists() and SPECKIT_COMMIT in receipt.read_text()
+
+
+def harness_commit() -> dict:
+    """The harness's own commit, and whether its files differ from it: the run names the code it ran."""
+    head = subprocess.run(["git", "-C", str(HERE), "rev-parse", "HEAD"], capture_output=True, text=True,
+                          timeout=30).stdout.strip()
+    dirty = subprocess.run(["git", "-C", str(HERE), "status", "--porcelain", "--", "."], capture_output=True,
+                           text=True, timeout=30).stdout.strip()
+    return {"commit": head, "dirty": bool(dirty)}
 
 
 def _sha256(path: Path) -> str:
@@ -301,7 +380,7 @@ def seed_repo(repo: str, arm: str, dest: Path, done: list[str], extra: dict | No
     backlog = load_backlog(repo)
     materialize(repo, dest)
     apply_reference(repo, dest, done)
-    arms.seed(arm, dest, backlog, set(done), {**tools(), **(extra or {})})
+    arms.seed(arm, dest, backlog, set(done), {**tools(arm), **(extra or {})})
     return backlog
 
 
@@ -310,7 +389,7 @@ def seed_scaffold(repo: str, arm: str, dest: Path, done: list[str], extra: dict 
     backlog = load_backlog(repo)
     materialize(repo, dest)
     apply_reference(repo, dest, done)
-    arms.scaffold(arm, dest, backlog, {**tools(), **(extra or {})})
+    arms.scaffold(arm, dest, backlog, {**tools(arm), **(extra or {})})
     return backlog
 
 
@@ -424,7 +503,7 @@ class Sandbox:
     def argv(self, inner: list[str], cwd: str, net: bool, hidden: Path | None = None,
              config: Path | None = None, extra_env: dict | None = None,
              harness: bool = False, key_fd: int | None = None, binds: list | None = None) -> list[str]:
-        t = tools()
+        t = tools(self.arm)
         a = ["bwrap", "--die-with-parent", "--new-session", "--unshare-all"]
         if net:
             a.append("--share-net")
@@ -441,9 +520,9 @@ class Sandbox:
               "--ro-bind", t["STUDY_BD"], "/opt/study/bin/bd",
               "--ro-bind", t["STUDY_CLAUDE"], "/opt/study/bin/claude",
               "--bind", str(self.cell), self.WORK]
-        if self.arm == "openwarrant" and not harness and self.agent == "claude":
+        if arms.tool_of(self.arm) == "openwarrant" and not harness and self.agent == "claude":
             # The plugin QUICKSTART tells a Claude Code user to install: skills, MCP server, hooks.
-            a += ["--ro-bind", str(STUDY / "tools" / "ow-plugin"), "/opt/study/ow-plugin"]
+            a += ["--ro-bind", str(plugin_dir(self.arm)), "/opt/study/ow-plugin"]
         if self.agent == "opencode" and not harness:
             a += ["--ro-bind", t["STUDY_OPENCODE"], "/opt/study/bin/opencode"]
         if key_fd is not None:
@@ -646,6 +725,7 @@ OPENCODE_ARM_MCP = {} if os.environ.get("ADOPTION_OC_OW_MCP") != "1" else ARM_MC
 
 def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "",
                budget: float = SESSION_BUDGET_USD, no_web: bool = False) -> list[str]:
+    arm = arms.tool_of(arm)
     if agent == "claude":
         argv = ["/opt/study/bin/claude", "-p", prompt, "--model", model,
                 "--output-format", "stream-json", "--verbose",
@@ -695,6 +775,7 @@ def parse_stream(path: Path) -> dict:
     seen, msgs, result = set(), [], None
     tools_used: dict[str, int] = {}
     first_edit_ctx = None
+    first_edit_turn = None
     processed_before_edit = 0
     bash_tracker_calls = 0
     if not path.exists():
@@ -742,12 +823,14 @@ def parse_stream(path: Path) -> dict:
                 processed_before_edit += ctx + u.get("output_tokens", 0)
             if edits_code:
                 first_edit_ctx = ctx
+                first_edit_turn = len(msgs) - 1  # assistant messages before the one that edits
     out = {
         "assistant_messages": len(msgs),  # distinct message ids
         "tools": tools_used,
         "tracker_bash_calls": bash_tracker_calls,
         "context_at_first_code_edit": first_edit_ctx,
         "tokens_processed_before_first_code_edit": processed_before_edit if first_edit_ctx is not None else None,
+        "turns_before_first_code_edit": first_edit_turn,
         "peak_context": max(msgs) if msgs else 0,
     }
     if result and result.get("is_error") and str(result.get("result", "")).startswith("API Error"):
@@ -819,11 +902,11 @@ def parse_opencode(path: Path, max_turns: int) -> dict:
         elif kind == "error":
             errors.append(json.dumps(ev.get("error") or part)[:400])
     ctxs = [st["input"] + st["read"] + st["write"] for st in steps]
-    first_edit_ctx, processed = None, 0
-    for st, ctx in zip(steps, ctxs):
+    first_edit_ctx, first_edit_turn, processed = None, None, 0
+    for n, (st, ctx) in enumerate(zip(steps, ctxs)):
         processed += ctx + st["output"]
         if st["msg"] in edit_msgs:
-            first_edit_ctx = ctx
+            first_edit_ctx, first_edit_turn = ctx, n  # steps before the one that edits
             break
     out = {
         "assistant_messages": len({st["msg"] for st in steps}),
@@ -831,6 +914,7 @@ def parse_opencode(path: Path, max_turns: int) -> dict:
         "tracker_bash_calls": bash_tracker_calls,
         "context_at_first_code_edit": first_edit_ctx,
         "tokens_processed_before_first_code_edit": processed if first_edit_ctx is not None else None,
+        "turns_before_first_code_edit": first_edit_turn,
         "peak_context": max(ctxs) if ctxs else 0,
         "num_turns": len(steps),
         "subtype": ("error_max_turns" if len(steps) >= max_turns else "success") if steps and not errors
@@ -853,6 +937,7 @@ def parse_opencode(path: Path, max_turns: int) -> dict:
 def opencode_config(arm: str, max_turns: int, no_web: bool = False) -> dict:
     """A session's opencode config: the provider, every tool allowed (the sandbox is the boundary,
     as with Claude Code's bypassPermissions), the turn cap, and the arm's MCP server."""
+    arm = arms.tool_of(arm)
     cfg = {
         "$schema": "https://opencode.ai/config.json",
         "autoupdate": False, "share": "disabled",
@@ -946,7 +1031,7 @@ def cell_dir(run_id: str, c: dict) -> Path:
     return RUNS / run_id / c["scenario"] / c["repo"] / c["arm"] / c.get("item", "-") / f"r{c['rep']}"
 
 
-def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
+def run_cell(run_id: str, c: dict, agent: str, model: str, turns: int = SESSION_TURNS) -> dict:
     cell = cell_dir(run_id, c)
     if (cell / "result.json").exists():
         return json.loads((cell / "result.json").read_text())
@@ -959,12 +1044,13 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
     backlog = load_backlog(c["repo"])
     layout = "opencode" if c["scenario"] == "spec" else ""
     sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent, layout=layout)
-    fixture_env = {"STUDY_ARM": c["arm"], "STUDY_REPO": c["repo"]}
-    result: dict = {"cell": c, "agent": agent, "model": model, "sessions": []}
+    fixture_env = {"STUDY_ARM": arms.tool_of(c["arm"]), "STUDY_REPO": c["repo"]}
+    result: dict = {"cell": c, "agent": agent, "model": model, "turn_cap": turns,
+                    "build": arm_build(c["arm"]), "sessions": []}
     t0 = time.time()
     extra = {**(jira_env(cell) if c["arm"] == "jira" else {}), **AGENT_SEED.get(layout or agent, {})} or None
     try:
-        _run_cell_body(c, cell, sb, backlog, agent, model, fixture_env, result, extra)
+        _run_cell_body(c, cell, sb, backlog, agent, model, fixture_env, result, extra, turns)
     finally:
         if c["arm"] == "jira":
             result["jira_issues_deleted"] = jira_arm.cleanup(jira_label(cell), jira_env(cell))
@@ -979,7 +1065,7 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
 
 
 def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str, model: str,
-                   fixture_env: dict, result: dict, extra: dict | None) -> None:
+                   fixture_env: dict, result: dict, extra: dict | None, turns: int = SESSION_TURNS) -> None:
 
     if c["scenario"] == "spec":
         idx = backlog["order"].index(c["item"])
@@ -1011,7 +1097,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
         item = next(i for i in backlog["item"] if i["id"] == c["item"])
         result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         prompt = PROMPTS["directed"].format(id=item["id"], title=item["title"])
-        m = run_session(sb, cell / "s01", f"{sb.WORK}/repo", prompt, agent, model, SESSION_TURNS,
+        m = run_session(sb, cell / "s01", f"{sb.WORK}/repo", prompt, agent, model, turns,
                         {**fixture_env, "STUDY_TARGET": item["id"]}, arm=c["arm"])
         sb.inside(["_git", "snapshot", "s01"], f"{sb.WORK}/repo")
         obs = observe(sb, cell / "s01", f"{sb.WORK}/repo", c["repo"], c["arm"])
@@ -1031,8 +1117,8 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
         prev_tracker: dict = read_tracker(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         for s in range(1, n_max + 1):
             sdir = cell / f"s{s:02d}"
-            turns = INTERRUPT_TURNS if s == 2 else SESSION_TURNS
-            m = run_session(sb, sdir, f"{sb.WORK}/repo", PROMPTS["relay"], agent, model, turns, fixture_env,
+            cap = INTERRUPT_TURNS if s == 2 else turns
+            m = run_session(sb, sdir, f"{sb.WORK}/repo", PROMPTS["relay"], agent, model, cap, fixture_env,
                             arm=c["arm"])
             snap = sb.inside(["_git", "snapshot", f"s{s:02d}"], f"{sb.WORK}/repo")
             stat = sb.inside(["_git", "diffstat", "HEAD~1"], f"{sb.WORK}/repo")
@@ -1070,7 +1156,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
 
         def one(j: int):
             m = run_session(sb, cell / f"a{j}", f"{sb.WORK}/w{j}", PROMPTS["parallel"], agent, model,
-                            SESSION_TURNS, {**fixture_env, "CARGO_TARGET_DIR": f"{sb.WORK}/target-{j}"},
+                            turns, {**fixture_env, "CARGO_TARGET_DIR": f"{sb.WORK}/target-{j}"},
                             arm=c["arm"])
             sb.inside(["_git", "snapshot", f"agent{j}"], f"{sb.WORK}/w{j}")
             with lock:
@@ -1163,7 +1249,8 @@ def cmd_execute(args) -> None:
     cells = json.loads(Path(args.plan).read_text())["cells"]
     if any(c["scenario"] == "spec" for c in cells):
         cells = resolve_specs(cells, args.specs_run, args.skip_unwritten)
-    problems = check_tools(args.agent)
+    arm_list = sorted({c["arm"] for c in cells})
+    problems = check_tools(args.agent, arm_list)
     if args.agent == "opencode":
         if not os.environ.get(OPENCODE_KEY_ENV):
             problems.append(f"opencode needs {OPENCODE_KEY_ENV} in the environment (run under `secrets run --`)")
@@ -1178,15 +1265,26 @@ def cmd_execute(args) -> None:
     problems += [p for p in (registry_problem(r) for r in sorted({c["repo"] for c in cells})) if p]
     if problems:
         raise SystemExit("not ready:\n  " + "\n  ".join(problems))
+    if args.agent == "claude":  # only Claude Code loads the plugin
+        for arm in arm_list:
+            if arm in OW_VERSIONS and not plugin_dir(arm).exists():
+                unpack_plugin(plugin_dir(arm), arm_plugin_ref(arm))
     run_root = RUNS / args.run_id
     run_root.mkdir(parents=True, exist_ok=True)
-    (run_root / "run.json").write_text(json.dumps({
+    run_doc = json.dumps({
         "run_id": args.run_id, "agent": args.agent, "model": args.model, "pins": PINS,
         "war_build": os.environ.get("ADOPTION_WAR"), "plugin_ref": os.environ.get("ADOPTION_OW_PLUGIN_REF"),
+        "arm_builds": {arm: arm_build(arm) for arm in arm_list}, "turn_cap": args.turns,
+        "plan": str(Path(args.plan).resolve()), "harness_commit": harness_commit(),
         "ow_session_start": os.environ.get("ADOPTION_OW_SESSION_START") == "1",
         "opencode_ow_mcp": args.agent == "opencode" and os.environ.get("ADOPTION_OC_OW_MCP") == "1",
         "auth": auth_mode(), "budget_usd": args.budget_usd, "specs_run": args.specs_run,
-        "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1))
+        "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1)
+    (run_root / "run.json").write_text(run_doc)
+    (KEEP / args.run_id).mkdir(parents=True, exist_ok=True)  # the keep store outlives a run root in /dev/shm
+    if not (KEEP / args.run_id / "run.json").exists():
+        (KEEP / args.run_id / "run.json").write_text(run_doc)
+        (KEEP / args.run_id / "plan.json").write_text(Path(args.plan).read_text())
     spent = 0.0
     lock = threading.Lock()
     stop = threading.Event()
@@ -1195,7 +1293,7 @@ def cmd_execute(args) -> None:
         nonlocal spent
         if stop.is_set():
             return None
-        r = run_cell(args.run_id, c, args.agent, args.model)
+        r = run_cell(args.run_id, c, args.agent, args.model, args.turns)
         with lock:
             spent += r.get("cost_usd") or 0
             done_line = f"[{spent:8.2f} USD] {c['scenario']:8} {c['repo']:9} {c['arm']:11} {c.get('item','-'):3} r{c['rep']}"
@@ -1228,8 +1326,67 @@ def bootstrap_ci(diffs: list[float], n: int = 10000, seed: int = 20261022) -> tu
     return (round(means[int(0.025 * n)], 3), round(means[int(0.975 * n) - 1], 3))
 
 
+def median(xs: list) -> float | None:
+    xs = sorted(xs)
+    if not xs:
+        return None
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def cell_tokens(r: dict) -> int:
+    """Every token a cell's sessions processed: input, cache reads and writes, and output."""
+    return sum((m.get("input_tokens") or 0) + (m.get("cache_read_tokens") or 0)
+               + (m.get("cache_creation_tokens") or 0) + (m.get("output_tokens") or 0)
+               for m in ((s.get("metrics") or {}) for s in r["sessions"]))
+
+
+# Amendment 5: which versions are compared, newer first.
+VERSION_PAIRS = (("openwarrant@a7", "openwarrant@a6"), ("openwarrant@next", "openwarrant@a7"))
+
+
+def win_rule(results: list[dict], new: str, old: str) -> dict:
+    """Amendment 5's rule, fixed before any run, on the directed cells both arms ran. False
+    completions first (more loses), then passes (a difference of one cell or less is a tie), then
+    median tokens per cell (10% fewer wins, within 10% ties). A tie overall is no win."""
+    cells = {}
+    for r in results:
+        c = r["cell"]
+        if c["scenario"] == "directed" and c["arm"] in (new, old):
+            cells.setdefault(c["arm"], {})[(c["repo"], c["item"], c["rep"])] = r
+    common = sorted(set(cells.get(new, {})) & set(cells.get(old, {})))
+    a = [cells[new][k] for k in common]
+    b = [cells[old][k] for k in common]
+    steps = [f"cells both ran: {len(common)}"]
+    fa = sum(1 for r in a if r.get("tracker_says_done") and not r.get("success"))
+    fb = sum(1 for r in b if r.get("tracker_says_done") and not r.get("success"))
+    steps.append(f"false completions: {new} {fa}, {old} {fb}")
+    if fa != fb:
+        winner = new if fa < fb else old
+        return {"new": new, "old": old, "cells": len(common), "steps": steps,
+                "result": f"{winner} wins on false completions"}
+    pa, pb = sum(1 for r in a if r.get("success")), sum(1 for r in b if r.get("success"))
+    steps.append(f"passes: {new} {pa}, {old} {pb} (difference {pa - pb}; one cell or less is a tie)")
+    if abs(pa - pb) > 1:
+        winner = new if pa > pb else old
+        return {"new": new, "old": old, "cells": len(common), "steps": steps,
+                "result": f"{winner} wins on passes"}
+    ta, tb = median([cell_tokens(r) for r in a]), median([cell_tokens(r) for r in b])
+    if not ta or not tb:
+        steps.append("median tokens per cell: not available")
+        return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": "tie: no win"}
+    steps.append(f"median tokens per cell: {new} {ta:,.0f}, {old} {tb:,.0f} "
+                 f"({new} is {100 * (ta - tb) / tb:+.1f}% against {old}; 10% fewer wins)")
+    if ta <= 0.9 * tb:
+        return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": f"{new} wins on tokens"}
+    if tb <= 0.9 * ta:
+        return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": f"{old} wins on tokens"}
+    return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": "tie: no win"}
+
+
 def paired_differences(results: list[dict]) -> list[dict]:
-    """OpenWarrant minus each other arm on the primary measures, over cells both arms ran."""
+    """Each OpenWarrant arm minus each non-OpenWarrant arm on the primary measures, over cells both
+    arms ran. Versioned arms (amendment 5) are compared with each other by win_rule instead."""
     measures = {
         "directed success": ("directed", lambda c: (c["repo"], c["item"], c["rep"]),
                              lambda r: 1.0 if r.get("success") else 0.0),
@@ -1245,16 +1402,20 @@ def paired_differences(results: list[dict]) -> list[dict]:
             c = r["cell"]
             if c["scenario"] == scenario:
                 cells.setdefault(c["arm"], {})[key(c)] = value(r)
-        ow = cells.get("openwarrant", {})
-        for arm, vals in sorted(cells.items()):
-            if arm == "openwarrant":
-                continue
-            common = sorted(set(ow) & set(vals))
-            if len(common) < 2:
-                continue
-            diffs = [ow[k] - vals[k] for k in common]
-            out.append({"measure": name, "arm": arm, "cells": len(common),
-                        "mean": round(sum(diffs) / len(diffs), 3), "ci95": bootstrap_ci(diffs)})
+        for ow_arm in sorted(a for a in cells if arms.tool_of(a) == "openwarrant"):
+            ow = cells[ow_arm]
+            for arm, vals in sorted(cells.items()):
+                if arms.tool_of(arm) == "openwarrant":
+                    continue
+                common = sorted(set(ow) & set(vals))
+                if len(common) < 2:
+                    continue
+                diffs = [ow[k] - vals[k] for k in common]
+                row = {"measure": name, "arm": arm, "cells": len(common),
+                       "mean": round(sum(diffs) / len(diffs), 3), "ci95": bootstrap_ci(diffs)}
+                if ow_arm != "openwarrant":
+                    row["openwarrant_arm"] = ow_arm
+                out.append(row)
     return out
 
 
@@ -1469,6 +1630,13 @@ def cmd_report(args) -> None:
             k = sum(1 for r in rs if r.get("success"))
             ctx = [s["metrics"].get("context_at_first_code_edit") for r in rs for s in r["sessions"]
                    if s["metrics"].get("context_at_first_code_edit") is not None]
+            tbe = sorted(s["metrics"].get("turns_before_first_code_edit") for r in rs for s in r["sessions"]
+                         if s["metrics"].get("turns_before_first_code_edit") is not None)
+            per_session["median_turns_before_first_edit"] = median(tbe)
+            per_session["no_code_edit"] = sum(1 for r in rs for s in r["sessions"]
+                                              if s["metrics"].get("context_at_first_code_edit") is None)
+            per_session["median_ktokens_per_cell"] = (round(median([cell_tokens(r) for r in rs]) / 1000, 1)
+                                                      if rs else None)
             rows.append({"scenario": scenario, "arm": arm, "cells": len(rs), "success": k,
                          "success_ci95": wilson(k, len(rs)), "cost_usd": round(cost, 2),
                          "cost_per_success": round(cost / k, 2) if k else None,
@@ -1492,8 +1660,10 @@ def cmd_report(args) -> None:
                          "merge_conflicts": sum(r.get("merge_conflicts", 0) for r in rs),
                          "cost_usd": round(cost, 2), **per_session})
     paired = paired_differences(results)
+    wins = [win_rule(results, new, old) for new, old in VERSION_PAIRS
+            if any(r["cell"]["arm"] == new for r in results) and any(r["cell"]["arm"] == old for r in results)]
     (root / "results.json").write_text(json.dumps({"run_id": args.run_id, "rows": rows,
-                                                   "paired_vs_openwarrant": paired}, indent=1))
+                                                   "paired_vs_openwarrant": paired, "version_pairs": wins}, indent=1))
     lines = [f"# Adoption study run {args.run_id}", ""]
     for scenario in SCENARIOS:
         sub = [r for r in rows if r["scenario"] == scenario]
@@ -1504,9 +1674,14 @@ def cmd_report(args) -> None:
         lines += ["| " + " | ".join(str(r.get(k)) for k in keys) + " |" for r in sub] + [""]
     if paired:
         lines += ["## OpenWarrant minus each arm (paired cells, bootstrap 95% interval)", "",
-                  "| measure | other arm | cells | mean difference | interval |", "|---|---|---|---|---|"]
-        lines += [f"| {d['measure']} | {d['arm']} | {d['cells']} | {d['mean']} | {d['ci95']} |" for d in paired]
+                  "| measure | openwarrant arm | other arm | cells | mean difference | interval |",
+                  "|---|---|---|---|---|---|"]
+        lines += [f"| {d['measure']} | {d.get('openwarrant_arm', 'openwarrant')} | {d['arm']} | {d['cells']} | "
+                  f"{d['mean']} | {d['ci95']} |" for d in paired]
         lines.append("")
+    for w in wins:
+        lines += [f"## {w['new']} against {w['old']} (amendment 5's rule, directed cells both ran)", ""]
+        lines += [f"- {step}" for step in w["steps"]] + ["", f"**Result: {w['result']}**", ""]
     (root / "REPORT.md").write_text("\n".join(lines))
     print("\n".join(lines))
 
@@ -1625,19 +1800,21 @@ def main() -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("prepare")
     v = sub.add_parser("validate"); v.add_argument("repo")
-    s = sub.add_parser("seed"); s.add_argument("repo"); s.add_argument("arm", choices=arms.ARMS)
+    s = sub.add_parser("seed"); s.add_argument("repo"); s.add_argument("arm", choices=arms.ALL_ARMS)
     s.add_argument("dest"); s.add_argument("--done", nargs="*", default=[])
     s.add_argument("--spec", help="a stored spec's digest, in place of backlog.toml")
-    s.add_argument("--layout", default="opencode", choices=("claude", "opencode"), help="with --spec: whose files")
+    s.add_argument("--layout", choices=("claude", "opencode"),
+                   help="whose files: with --spec the default is opencode, without it claude")
     pa = sub.add_parser("parity"); pa.add_argument("repo"); pa.add_argument("--keep", action="store_true")
     pl = sub.add_parser("plan"); pl.add_argument("--pilot", action="store_true")
     pl.add_argument("--smoke", action="store_true", help="one directed tally T6 session, plain arm")
     pl.add_argument("--reps", type=int, default=3); pl.add_argument("--k", type=int, default=3)
     pl.add_argument("--out")
-    pl.add_argument("--arms", nargs="*", choices=arms.ARMS, help="arms for the full plan (default: all but jira)")
+    pl.add_argument("--arms", nargs="*", choices=arms.ALL_ARMS, help="arms for the full plan (default: all but jira)")
     ex = sub.add_parser("execute"); ex.add_argument("plan"); ex.add_argument("--run-id", required=True)
     ex.add_argument("--agent", required=True); ex.add_argument("--model", default=DEFAULT_MODEL)
     ex.add_argument("--jobs", type=int, default=2); ex.add_argument("--budget-usd", type=float, default=0)
+    ex.add_argument("--turns", type=int, default=SESSION_TURNS, help="a session's turn cap (amendment 5: 60)")
     ex.add_argument("--specs-run", help="the run whose specs a spec plan's worker cells use")
     ex.add_argument("--skip-unwritten", action="store_true", help="leave out cells whose spec was never written")
     sp = sub.add_parser("spec"); sp.add_argument("plan"); sp.add_argument("--run-id", required=True)
@@ -1667,9 +1844,9 @@ def main() -> None:
             dest = Path(args.dest).resolve()
             dest.parent.mkdir(parents=True, exist_ok=True)
             sb = Sandbox(dest.parent, args.repo, arm=args.arm, agent="fixture", layout=args.layout)
-            seed_spec(sb, args.repo, args.arm, dest, args.done, args.spec, AGENT_SEED.get(args.layout, {}))
+            seed_spec(sb, args.repo, args.arm, dest, args.done, args.spec, AGENT_SEED.get(args.layout or "opencode", {}))
         else:
-            seed_repo(args.repo, args.arm, Path(args.dest), args.done)
+            seed_repo(args.repo, args.arm, Path(args.dest), args.done, AGENT_SEED.get(args.layout or "claude"))
         print(args.dest)
     elif args.cmd == "parity":
         cmd_parity(args)
