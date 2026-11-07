@@ -117,9 +117,14 @@ pub(super) fn words(args: &[&str]) -> Vec<String> {
 /// Whether `args` (without the leading `war`) is a command line the real CLI
 /// accepts. The error is clap's own.
 pub fn parses(args: &[String]) -> Result<(), String> {
-    crate::Cli::try_parse_from(std::iter::once("war").chain(args.iter().map(String::as_str)))
-        .map(drop)
-        .map_err(|e| e.render().to_string())
+    use clap::error::ErrorKind;
+    match crate::Cli::try_parse_from(std::iter::once("war").chain(args.iter().map(String::as_str)))
+    {
+        Ok(_) => Ok(()),
+        // `--help` parses: clap reports it the way it reports a refusal.
+        Err(e) if matches!(e.kind(), ErrorKind::DisplayHelp | ErrorKind::DisplayVersion) => Ok(()),
+        Err(e) => Err(e.render().to_string()),
+    }
 }
 
 /// Every command the builders above make, with sample values.
@@ -154,15 +159,25 @@ pub fn table() -> Vec<Vec<String>> {
     ]
 }
 
-/// A row's displayed command as argv, when it is a whole one: no placeholder,
-/// no comment, no ellipsis.
+/// A row's displayed command as argv, each step of a `&&` chain its own, when
+/// they are whole: no placeholder, no comment, no ellipsis.
 #[must_use]
-pub fn of_display(command: &str) -> Option<Vec<String>> {
+pub fn of_display(command: &str) -> Vec<Vec<String>> {
     if command.contains('<') || command.contains("...") || command.contains('#') {
-        return None;
+        return Vec::new();
     }
-    let rest = command.strip_prefix("war ")?;
-    Some(rest.split_whitespace().map(str::to_owned).collect())
+    command
+        .split(" && ")
+        .filter_map(|step| step.strip_prefix("war "))
+        .map(|rest| rest.split_whitespace().map(str::to_owned).collect())
+        .collect()
+}
+
+/// A next action as the argv `x` may run: one command, or none. `x` runs no
+/// shell, so a `&&` chain stays a line to copy.
+#[must_use]
+pub fn of_action(command: &str) -> Option<Vec<String>> {
+    (!command.contains("&&")).then(|| command.split_whitespace().map(str::to_owned).collect())
 }
 
 /// The lines of a planted argv file: one command to a line, words separated

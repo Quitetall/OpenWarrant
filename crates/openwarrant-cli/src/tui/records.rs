@@ -311,7 +311,8 @@ pub fn help_rows(
                     .strip_prefix("war sign ")
                     .map(|t| t.split_whitespace().next().unwrap_or(t).to_owned()),
                 auto: (a.actor == crate::next::Actor::Agent && !a.command.starts_with("war sign"))
-                    .then(|| a.command.split_whitespace().map(str::to_owned).collect()),
+                    .then(|| argv::of_action(&a.command))
+                    .flatten(),
                 command: a.command.clone(),
                 detail: None,
             });

@@ -859,12 +859,35 @@ fn a_bad_argv_is_refused() {
 fn a_displayed_command_counts_only_when_it_is_whole() {
     assert_eq!(
         argv::of_display("war view show t-1"),
-        Some(argv::words(&["view", "show", "t-1"]))
+        [argv::words(&["view", "show", "t-1"])]
     );
-    assert_eq!(argv::of_display("war init --root <directory>"), None);
-    assert_eq!(argv::of_display("war check  # rule"), None);
-    assert_eq!(argv::of_display("war create \"...\""), None);
-    assert_eq!(argv::of_display("cargo install"), None);
+    assert_eq!(
+        argv::of_display("war evidence record a && war evidence verify a"),
+        [
+            argv::words(&["evidence", "record", "a"]),
+            argv::words(&["evidence", "verify", "a"])
+        ]
+    );
+    assert!(argv::of_display("war init --root <directory>").is_empty());
+    assert!(argv::of_display("war check  # rule").is_empty());
+    assert!(argv::of_display("war create \"...\"").is_empty());
+    assert!(argv::of_display("cargo install").is_empty());
+}
+
+/// `x` runs no shell: this repository's `next` hands out `a && b`, which as
+/// one argv is a command the CLI refuses.
+#[test]
+fn a_shell_chain_is_no_auto_remedy() {
+    assert_eq!(argv::of_action("war evidence record a && war evidence verify a"), None);
+    assert_eq!(
+        argv::of_action("war evidence record a"),
+        Some(argv::words(&["war", "evidence", "record", "a"]))
+    );
+}
+
+#[test]
+fn help_is_a_command_line_that_parses() {
+    argv::parses(&argv::words(&["sign", "authority", "--help"])).expect("--help parses");
 }
 
 // ---- snapshots ------------------------------------------------------------
