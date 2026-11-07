@@ -2481,13 +2481,17 @@ enum AdminCommand {
         #[arg(long)]
         output: Option<Utf8PathBuf>,
     },
-    /// Serve the Model Context Protocol over stdio (OW-ADR-0014): every
-    /// read, request half and agent-permitted write as a tool; no signing,
-    /// no ingest. `--describe` prints the tool table instead of serving.
+    /// Serve the Model Context Protocol over stdio (OW-ADR-0014): the daily
+    /// commands as tools, answering in the CLI's text; `--all` serves every
+    /// read, request half and agent-permitted write. No signing, no ingest.
+    /// `--describe` prints the tool table instead of serving.
     Mcp {
         /// Print the tools, the refusal list and the resources, then exit.
         #[arg(long)]
         describe: bool,
+        /// Serve the whole tool table (also `[mcp] tools = "all"`).
+        #[arg(long)]
+        all: bool,
     },
 
     /// §67 Knowledge Fabric seam. `health` reads; `act` WRITES and needs
@@ -8392,15 +8396,16 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             let report = schemas::run(&repository, check)?;
             Ok(output::finish(mode, "schemas", &report, None))
         }
-        AdminCommand::Mcp { describe } => {
+        AdminCommand::Mcp { describe, all } => {
             // Discover BEFORE any runtime exists: outside a repository this
             // is an ordinary CLI refusal, never a half-started server.
             let repository = ctx.open_repo()?;
+            let opts = mcp::Options::read(&repository.root, all)?;
             if describe {
-                print!("{}", mcp::describe(repository));
+                print!("{}", mcp::describe(repository, opts));
                 return Ok(EXIT_OK);
             }
-            mcp::run(repository)?;
+            mcp::run(repository, opts)?;
             Ok(EXIT_OK)
         }
         AdminCommand::Preflight { alias } => {

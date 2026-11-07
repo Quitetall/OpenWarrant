@@ -554,9 +554,11 @@ run it again.
 
 Over MCP (`war admin mcp`, for a harness without a shell; one with a shell is
 better served by the commands above) the same loop is `war_start` and `war_done`, with
-`war_prime`, `war_ready`, `war_claim`, `war_create`, `war_add`, `war_note`,
-`war_show`, `war_tickets` and `war_heartbeat` around it.
-Each takes an optional `actor`; `war_done` also takes `check` (`--check`);
+`war_create`, `war_note` and `war_status` around it (`war_status` takes
+`next`, `ready` and `target`; `war_start` takes `claim`; `war_done` takes
+`check`, `release` and `reopen`). `war admin mcp --all` adds `war_prime`,
+`war_ready`, `war_claim`, `war_add`, `war_show`, `war_tickets` and
+`war_heartbeat`. Each takes an optional `actor`;
 `war_create` also takes `type`, `labels` and
 `part_of`, and `war_tickets` the filters above (`type`, `labels`, `state`,
 `text`, `search`, `epic`). Finding the right ticket is

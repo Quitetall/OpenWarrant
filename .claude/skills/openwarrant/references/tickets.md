@@ -37,7 +37,8 @@ prove that its writer stopped.
 
 Find work with `war view prime`, `war view warrants --search "<words>"`,
 `war view next`, and `war view show <id>`. Over MCP, use `war_start`,
-`war_done`, `war_create`, `war_add`, `war_note`, and the read-only view tools.
+`war_done`, `war_create`, `war_note` and `war_status`; `war admin mcp --all`
+serves the rest.
 Existing flat command spellings remain compatible.
 
 Authority requirements are optional unless the Warrant or repository requires
