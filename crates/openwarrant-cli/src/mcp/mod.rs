@@ -294,7 +294,7 @@ pub fn enveloped(mut r: CallToolResult) -> CallToolResult {
     r
 }
 
-/// An envelope as lines: each finding but a pass, then the answer (its
+/// An envelope as lines: each finding but a pass, its notes, then the answer (its
 /// Markdown or rendering when it has one, else compact JSON).
 fn lines_of(env: &serde_json::Value) -> String {
     let mut out: Vec<String> = Vec::new();
@@ -319,11 +319,16 @@ fn lines_of(env: &serde_json::Value) -> String {
             "{n} more warning(s) folded; `verbose: true` lists them"
         ));
     }
-    for n in env["notes"].as_array().into_iter().flatten() {
-        if let Some(line) = n.as_str().filter(|l| l.starts_with("notice: ")) {
-            out.push(line.to_owned());
-        }
-    }
+    // A note is what the CLI prints beside its answer (which pin was read, a
+    // notice of a change under you).
+    out.extend(
+        env["notes"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(serde_json::Value::as_str)
+            .map(str::to_owned),
+    );
     let result = &env["result"];
     if let Some(md) = result["markdown"]
         .as_str()
