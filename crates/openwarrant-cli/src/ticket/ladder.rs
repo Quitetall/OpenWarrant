@@ -184,10 +184,7 @@ pub fn left_for_a_person(store: &Store, t: &Ticket, except: Option<&str>) -> Vec
         .filter(|i| !i.done && (i.id.is_none() || i.id.as_deref() != except))
         .collect();
     let signature = |id: &String| minimum(store, t, &checks, Some(id)).0 >= Level::Signed;
-    if left
-        .iter()
-        .all(|i| i.id.as_ref().is_some_and(|id| signature(id)))
-    {
+    if left.iter().all(|i| i.id.as_ref().is_some_and(signature)) {
         left.iter().filter_map(|i| i.id.clone()).collect()
     } else {
         Vec::new()

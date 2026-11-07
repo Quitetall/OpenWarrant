@@ -1092,6 +1092,7 @@ mod tests {
             claimed: 0,
             done: 0,
             blocked: 2,
+            documents: Vec::new(),
         };
         let mut report = crate::diagnostic::Report::default();
         report.push(crate::diagnostic::Diagnostic::unknown(
