@@ -253,12 +253,7 @@ pub fn run(
             &root,
             &["cat-file", "-e", &format!("{base}:{manifest_rel}")],
         )
-        .ok
-            || !git::git(
-                &top,
-                &["diff", "--quiet", &base, "--", &manifest_rel],
-            )
-            .ok)
+        .ok || !git::git(&top, &["diff", "--quiet", &base, "--", &manifest_rel]).ok)
     {
         report.push(Diagnostic::error(
             "go.start-uncommitted",

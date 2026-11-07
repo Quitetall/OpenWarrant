@@ -291,8 +291,14 @@ fn start_takes_the_next_warrant_and_prints_only_it() {
         String::from_utf8_lossy(&out.stderr)
     );
     let brief = String::from_utf8_lossy(&out.stdout).into_owned();
+    // The first line is where the work is done; the brief follows it.
+    let (place, rest) = brief.split_once('\n').unwrap();
     assert!(
-        brief.starts_with(&format!("# {first} — First job")),
+        place.starts_with("work in ") && place.contains("(repo "),
+        "{brief}"
+    );
+    assert!(
+        rest.starts_with(&format!("# {first} — First job")),
         "{brief}"
     );
     for want in [
@@ -629,8 +635,10 @@ fn start_takes_a_warrant_named_by_words_of_its_title() {
         String::from_utf8_lossy(&out.stderr)
     );
     let brief = String::from_utf8_lossy(&out.stdout).into_owned();
+    let (place, rest) = brief.split_once('\n').unwrap();
+    assert!(place.starts_with("work in "), "{brief}");
     assert!(
-        brief.starts_with(&format!("# {t8} — T8: Monthly budget report")),
+        rest.starts_with(&format!("# {t8} — T8: Monthly budget report")),
         "{brief}"
     );
     // Several words, in any order, each a whole word of the title.
@@ -762,8 +770,10 @@ fn mcp_ticket_tools_read_like_the_cli_and_refuse_a_misnamed_parameter() {
     );
     let started = call(&mut mcp, "war_start", serde_json::json!({"ticket": "T8"}));
     let text = started["result"]["content"][0]["text"].as_str().unwrap();
+    let (place, rest) = text.split_once('\n').unwrap();
+    assert!(place.starts_with("work in "), "{text}");
     assert!(
-        text.starts_with(&format!("# {id} — T8: Monthly budget")),
+        rest.starts_with(&format!("# {id} — T8: Monthly budget")),
         "{text}"
     );
     // The text alone by default; the envelope only when asked.

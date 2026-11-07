@@ -288,11 +288,12 @@ work in /src/wmd/.openwarrant/worktrees/t-1a2b (repo wmd, branch war-go/t-1a2b, 
 A plain `war start` in a checkout records that checkout. While the lease is
 live, `war start`, `war done` and `war note` on that work from any other
 worktree are refused (`work.other-worktree`), naming the one to `cd` to; a
-read never is, and `war done --release` gives it back from anywhere. Claiming
-for another actor in this checkout (`war admin claim <id> --as <other>`) is
-dispatching it beside your own work, and is refused (`dispatch.here`) unless
-asked for with `--here`; `war start --worktree <id> --as <other>` gives it a
-worktree of its own. Work of another repository (`war start hpr:t-abc`, through
+read never is, and `war done --release` gives it back from anywhere. While you
+hold live work in this checkout, claiming for another actor here (`war admin
+claim <id> --as <other>`) dispatches it beside yours, and is refused
+(`dispatch.here`) unless asked for with `--here`; `war start --worktree <id>
+--as <other>` gives it a worktree of its own. `--as` alone only names who you
+are. Work of another repository (`war start hpr:t-abc`, through
 `[repos]`) is refused here (`work.other-repo`), naming that repository, the
 pin this one reads it at, and the command that starts it there.
 

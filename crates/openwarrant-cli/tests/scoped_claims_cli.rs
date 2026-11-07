@@ -4,13 +4,9 @@ use serde_json::Value;
 use std::{path::Path, process::Command};
 
 fn war(root: &Path, args: &[&str]) -> Value {
-    // These tests put several writers in one checkout on purpose: a claim for
-    // another actor says so with `--here`.
-    let here = args.starts_with(&["admin", "claim"]) && args.contains(&"--as");
     let out = Command::new(env!("CARGO_BIN_EXE_war"))
         .args(["--root", root.to_str().unwrap(), "--json"])
         .args(args)
-        .args(here.then_some("--here"))
         .current_dir(root)
         .env("OPENWARRANT_NO_PROJECTS", "1")
         .env("OPENWARRANT_NO_UPDATE_CHECK", "1")

@@ -13,8 +13,8 @@ Notable changes to OpenWarrant. Format loosely follows
   (`work in <wt> (repo <name>, branch <b>, from <commit>)`), as do `war status <id>`,
   `war view show`, `war status --next` and Mission Control's claim detail. `war start`,
   `war done` and `war note` on work held from another worktree are refused
-  (`work.other-worktree`) naming it; claiming for another actor in this checkout needs
-  `--here` (`dispatch.here`); `war start hpr:t-...` is refused (`work.other-repo`)
+  (`work.other-worktree`) naming it; claiming for another actor in a checkout where you
+  hold live work needs `--here` (`dispatch.here`); `war start hpr:t-...` is refused (`work.other-repo`)
   naming that repository, its pin and where to work. Plant 260.
 
 ### Fixed

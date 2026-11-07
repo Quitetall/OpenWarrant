@@ -481,6 +481,23 @@ pub fn own_actor(repo: &Repository) -> String {
         .unwrap_or_else(|| default_actor(repo))
 }
 
+/// Whether `actor` holds live work taken in this checkout: a claim for
+/// another actor here would put that work beside it.
+#[must_use]
+pub fn holds_here(store: &Store, actor: &str) -> bool {
+    let now = now_secs();
+    let here = scopes::workspace(store);
+    store.claims().is_ok_and(|claims| {
+        claims.values().flatten().any(|c| {
+            c.actor == actor
+                && !c.lease_expired(now)
+                && c.coordination
+                    .as_ref()
+                    .is_some_and(|co| co.workspace == here)
+        })
+    })
+}
+
 fn default_actor(repo: &Repository) -> String {
     let performer = repo.performer();
     match repo.root.file_name() {
@@ -2975,13 +2992,8 @@ pub(crate) fn claim_scoped_at(
     // One work order, one place: work held from another worktree is
     // continued there, by whoever holds it.
     if !steal
-        && let Some(there) = claimed_elsewhere(
-            &claims,
-            t.id(),
-            item.as_deref(),
-            workspace.as_str(),
-            now,
-        )
+        && let Some(there) =
+            claimed_elsewhere(&claims, t.id(), item.as_deref(), workspace.as_str(), now)
     {
         return Ok(elsewhere_refusal(&what, "Continue it", &there));
     }

@@ -7,7 +7,8 @@
 #   `done` and `note` from another worktree are refused naming the right one,
 #     and from the claim's own worktree they pass; a read is never refused;
 #   `war start` of work held from another worktree is refused naming it;
-#   claiming for another actor in this checkout is refused without `--here`;
+#   claiming for another actor in a checkout where you hold live work is
+#     refused without `--here`;
 #   a Warrant not committed (a single file, a docs/work/ master), or edited
 #     since, is refused at dispatch with the command that fixes it;
 #   work of another repository (`hpr:t-...`) names that repository and its pin

@@ -60,7 +60,8 @@ impl Coordination {
         };
         self.branch = git(&["symbolic-ref", "--short", "-q", "HEAD"])
             .or_else(|| git(&["rev-parse", "--verify", "-q", "HEAD"]).map(|_| "detached".into()));
-        self.remote_url = git(&["config", "--get", "remote.origin.url"]).map(|u| without_userinfo(&u));
+        self.remote_url =
+            git(&["config", "--get", "remote.origin.url"]).map(|u| without_userinfo(&u));
         self.repo = Some(store.project.trim().to_owned())
             .filter(|p| !p.is_empty())
             .or_else(|| {
@@ -403,7 +404,10 @@ mod holder_tests {
         c.repo = Some("wmd".into());
         c.branch = Some("agent/x".into());
         c.base_revision = Some("1a2b3c4d5e6f7a8b".into());
-        assert_eq!(c.place(), "work in /w (repo wmd, branch agent/x, from 1a2b3c4d5e6f)");
+        assert_eq!(
+            c.place(),
+            "work in /w (repo wmd, branch agent/x, from 1a2b3c4d5e6f)"
+        );
     }
 
     #[test]

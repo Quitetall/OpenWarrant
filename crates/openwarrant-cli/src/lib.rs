@@ -7696,20 +7696,24 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             answer_at(at.as_deref())?;
             ticket::cache::permit();
             let (repository, store) = ctx.tickets(actor.as_deref())?;
-            // Claiming for another actor is dispatching it; into this
-            // checkout only when asked (a replay, `--at`, dispatches nothing).
+            // Claiming for another actor while your own work is live in
+            // this checkout is dispatching it beside yours: only when asked.
+            // `--as` alone names who you are, and a replay (`--at`)
+            // dispatches nothing.
+            let own = ticket::own_actor(&repository);
             if !here
                 && at.is_none()
                 && actor.is_some()
-                && store.actor != ticket::own_actor(&repository)
+                && store.actor != own
+                && ticket::holds_here(&store, &own)
             {
                 let refusal = ticket::Outcome::refused(
                     "dispatch.here",
                     target.clone(),
                     format!(
                         "claiming {target} for {} would put its work in this checkout, beside \
-                         yours. Give it a worktree of its own: `war start --worktree {target} --as \
-                         {0}`; or put it here on purpose with `--here`",
+                         {own}'s. Give it a worktree of its own: `war start --worktree {target} \
+                         --as {0}`; or put it here on purpose with `--here`",
                         store.actor
                     ),
                 );

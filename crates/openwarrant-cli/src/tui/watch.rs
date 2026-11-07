@@ -227,7 +227,9 @@ fn detail(m: &mut Model) {
                      tokens recorded: {}\nheld: {}\n{}\n\
                      A lock is renewed by the holder's `war` commands. It says when one last ran, \
                      not that an agent is alive.",
-                    c.actor.as_deref().unwrap_or("UNKNOWN (the lock could not be read)"),
+                    c.actor
+                        .as_deref()
+                        .unwrap_or("UNKNOWN (the lock could not be read)"),
                     span(m.now_unix.saturating_sub(c.since_unix)),
                     lease(c, m.now_unix),
                     renewed(c, m.now_unix),
