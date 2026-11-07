@@ -70,7 +70,7 @@ if [[ "$sect" == *"#7 \`w-0a0a1\`"* && "$road" != *"w-0b0b2"* ]]; then
 else
     mv_fail "open work under its phase" "$(tr '\n' '|' <<<"$road" | head -c 400)"
 fi
-if [[ "$hist" == *"\`w-0b0b2\`"* && "$hist" != *"#"*"\`w-0b0b2\`"* && "$hist" != *"w-0a0a1"* ]]; then
+if [[ "$hist" == *"- \`w-0b0b2\`"* && "$hist" != *"w-0a0a1"* ]]; then
     mv_ok "closed work in HISTORY, unnumbered" "w-0b0b2 shown as its id"
 else
     mv_fail "closed work in HISTORY, unnumbered" "$(tr '\n' '|' <<<"$hist" | head -c 400)"

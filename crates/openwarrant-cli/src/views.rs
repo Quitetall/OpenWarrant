@@ -154,7 +154,12 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
         .iter()
         .find(|d| d.doc.alias.as_deref() == Some("roadmap"))
     {
-        for u in roadmap.doc.units.iter().filter(|u| u.record_type == "phase") {
+        for u in roadmap
+            .doc
+            .units
+            .iter()
+            .filter(|u| u.record_type == "phase")
+        {
             phases.push((format!("roadmap/{}", u.id), u.title.clone()));
         }
     }
@@ -162,11 +167,10 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
         .iter()
         .filter_map(|d| {
             let id = d.doc.alias.as_deref()?;
-            let phase = d
-                .doc
-                .relations
-                .iter()
-                .find(|r| r.kind == "part_of" && phases.iter().any(|(p, _)| *p == r.target.id))?;
+            let phase =
+                d.doc.relations.iter().find(|r| {
+                    r.kind == "part_of" && phases.iter().any(|(p, _)| *p == r.target.id)
+                })?;
             Some((id, phase.target.id.clone()))
         })
         .collect();
@@ -225,7 +229,11 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
     for item in &items {
         let level = tier_of.get(item.id.as_str()).map_or_else(
             || item.level.as_str().to_owned(),
-            |t| t.map_or("UNKNOWN".to_owned(), |t| format_doc::tier_name("work", t).to_owned()),
+            |t| {
+                t.map_or("UNKNOWN".to_owned(), |t| {
+                    format_doc::tier_name("work", t).to_owned()
+                })
+            },
         );
         let line = format!(
             "- {} {} · {level} · {} · {}\n",

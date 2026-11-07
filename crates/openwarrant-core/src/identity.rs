@@ -242,7 +242,6 @@ impl schemars::JsonSchema for WarUuid {
     }
 }
 
-
 /// FORMAT-1.0 §5 (revision 4): a master's id, which no namespace owns.
 fn is_master_id(alias: &str) -> bool {
     crate::ticket::is_work_id(alias)
