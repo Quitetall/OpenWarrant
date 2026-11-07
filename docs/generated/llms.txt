@@ -664,6 +664,10 @@
 > -
 - doc:docs/releases/alpha6.md · document · - · OpenWarrant 1.0.0-alpha.6 — Lean Agent Loops and a Mission Control Preview · docs/releases/alpha6.md:1
 
+## docs/releases/alpha7.md
+> -
+- doc:docs/releases/alpha7.md · document · - · OpenWarrant 1.0.0-alpha.7: One Item, Three Levels · docs/releases/alpha7.md:1
+
 ## docs/releases/candidate-rehearsal.md
 > -
 - doc:docs/releases/candidate-rehearsal.md · document · - · Candidate packaging and installation rehearsal · docs/releases/candidate-rehearsal.md:1

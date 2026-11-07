@@ -187,5 +187,5 @@ the next ready item, or `war start T8` a named one, by id or words of its title,
 prints only what it needs). Don't read docs/tickets/ directly: it costs far more. Close
 it with your last test run:
 `<your tests> && war done --note "what you did"`. `war view prime` lists all.
-<!-- openwarrant agents-md: written by war 1.0.0-alpha.6 -->
+<!-- openwarrant agents-md: written by war 1.0.0-alpha.7 -->
 <!-- openwarrant:end -->

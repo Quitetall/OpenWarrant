@@ -15,6 +15,14 @@ name: Checkpoint and Bonsai
 
 on:
   workflow_dispatch:
+  # Release calls this same checkpoint before packaging, so a release cannot be
+  # greener than main and runs the sharded battery, not one 75-minute job.
+  workflow_call:
+    inputs:
+      full:
+        description: Run the full checkpoint (always, when called)
+        type: boolean
+        default: true
   schedule:
     - cron: "27 7 * * *"
   push:
@@ -23,7 +31,9 @@ on:
     branches: [main]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Prefixed: when Release calls this, github.workflow is "Release", and group
+  # names ignore case, so an unprefixed group would be Release's own and cancel it.
+  group: checkpoint-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -47,7 +57,7 @@ jobs:
   # minute cap; the plant battery is now four shards of that work.
   build:
     name: full / build
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -71,7 +81,7 @@ jobs:
 
   lint:
     name: full / lint
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -94,7 +104,7 @@ jobs:
 
   tests:
     name: full / tests
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -118,7 +128,7 @@ jobs:
   corpus:
     name: full / corpus
     needs: build
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -151,7 +161,7 @@ jobs:
   plants:
     name: full / plants ${{ matrix.shard }}/4
     needs: build
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full
     runs-on: ubuntu-latest
     timeout-minutes: 45
     strategy:
@@ -193,7 +203,7 @@ jobs:
   plants-total:
     name: full / plants total
     needs: plants
-    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -214,7 +224,7 @@ jobs:
 
   schemas:
     name: full / schemas
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -235,7 +245,7 @@ jobs:
   full-gate:
     name: full-gate
     needs: [build, lint, tests, corpus, plants, plants-total, schemas]
-    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    if: always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || inputs.full)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

@@ -6,6 +6,8 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.7] — 2026-11-07
+
 ### Added
 
 - `war status --json` (`single_file`), `war status --verbose` and `war plan
@@ -15,6 +17,117 @@ Notable changes to OpenWarrant. Format loosely follows
 
 - `-I` is the short form of `--interactive` on all six commands. `-i` stays
   `--item` on `create`.
+
+- `--interactive` on `init`, `create`, `start`, `done`, `status` and `check`. A
+  caller with no terminal, or under `--json`, is refused by name and never
+  prompted.
+- `war status --next`, `--ready` and `--view`, `war start --claim`, and `war done
+  --release` and `--reopen` are the commands they fold, envelope included. The
+  old spellings keep working. A retiring top-level spelling says so on stderr at
+  a terminal, or anywhere with `OPENWARRANT_DEPRECATIONS=warn`; a pipe sees
+  nothing. `docs/COMMANDS.md` has a parity table, and a test holds it to the
+  command tree.
+- `war init --ci` writes one opt-in workflow running `war check --changed` and
+  the repository's tests on each pull request. `--test` names the tests;
+  otherwise they are found from what the repository holds.
+- `war create --sign` makes an Order, one document like the other levels.
+- `war check`, `war status`, `war view show` take a single-file Warrant's alias,
+  and `war view next` lists open single-file and read-in-place work under
+  `elsewhere`.
+- Work across repositories (`docs/INTERFACES.md`). `[repos.<name>]` names a
+  submodule or sibling, and a pin is read from its gitlink, a `pin` field or
+  `Cargo.lock`. `war context hpr:CL-step` and `war view prime hpr:t-abc` read from
+  the other repository's objects at that commit; what can't be read is UNKNOWN.
+  `war create --depends-on` holds an item out of `ready`, and prime says *done
+  upstream, not pinned here* until the pin moves. `war done` warns on a Ticket and
+  refuses a Warrant or an Order. `war check` counts open clauses and flags late
+  ones, `--clauses` runs them, `--record` writes `docs/interfaces.lock`, and
+  `war status` shows drift in one line. `--change breaking|compatible --clause`
+  makes a change request, and `war plan impact` lists claims on both sides. Notices
+  follow the pin, and reach other clones through `refs/openwarrant/notices`.
+- `war plan types add interfaces` adds an `interface` document type: numbered
+  clauses two sides build against, each saying how it's verified, with an open
+  value declared `tbd` or `tbr`. `docs/INTERFACES.md` shows it.
+- `war view prime --prompt <text|->` and the plugin's UserPromptSubmit hook put
+  the brief of the item a prompt names in context before the first turn. A
+  prompt names an item by id, a capital code (`T8`), a double-quoted phrase or
+  its whole title, through the lookup `war start` uses. Several matches add one
+  line and no brief (on the first prompt only); none adds nothing, nor does a
+  Warrant you hold. It reads, claims nothing, stays within 6,144 bytes with any
+  cut declared, adds the same brief once a session, respects `[tickets]
+  session_start = false`, and a hook failure never holds a prompt.
+- `war admin agents-md --block --ready <N>` lists up to five ready Warrants in
+  the block of an `AGENTS.md`, for a harness with no prompt hook. Only running
+  it refreshes the list: `war` never does so by itself, a plain `--block` keeps
+  it, and `CLAUDE.md` gets none. `--ready 0` removes it.
+
+- Live updates to running agents, on one machine (t-3c16c W3): `war start` keeps
+  the claim's source manifest beside it, every `war` write and `check --changed`
+  compare it with the default branch, and the affected agent's next `war` call
+  prints one line, once (`notes` under `--json`). `war start` then prints only
+  what changed and records it as seen; `war view prime` keeps the line until
+  then. `war plan impact` names the claims a change reaches. See
+  [Tickets](docs/TICKETS.md#when-something-changes-under-you).
+- `war done` holds a change and a widening to the item's level (t-3c16c W3).
+  A Ticket warns and closes. A Warrant is refused until the change is seen and
+  held, then runs its trigger on the new state; a widening of its `paths`,
+  `x.tools` or `x.commands` since `war start` is flagged and journalled. An
+  Order is held the same, and a widening or a change to what was signed is
+  refused until a human signs a new revision. What cannot be read answers
+  `UNKNOWN` on a Warrant or an Order and warns on a Ticket. An approval's
+  statement now binds what the item declares; an item that declares none reads
+  as it did, and an approval of one that does goes stale once.
+
+- `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
+  a Warrant can be given its test in the command that makes it. It is the same
+  `## CHK-…` section `war plan add --test` writes, and `war done` runs it and
+  finishes the work only on a pass. A test that cannot be written is refused
+  before anything exists. Not with `--legacy` or `--records`.
+- Any ticket can declare the tools and commands its work may run, as well as
+  its paths: `war create --path 'src/**' --tool Read --command 'cargo test'`.
+  `war start` turns them into session permissions. They never change how a
+  ticket ends, and none declared means no limit.
+- `war context` answers what used to end in a refusal, so an agent no longer
+  falls back to reading a whole file (`oh.war/unit-context/v1`). A long
+  document gives its units that fit, ranked, with every cut declared. A unit is
+  named as `COMBAT.md#friendly-fire`, and `## Heading {#id}` keeps that id when
+  the heading is reworded. Words (`war context "friendly fire"`) and code paths
+  find the units that match, locally and with no model. `--strict` refuses a
+  cut and `--full` gives everything. An explicit `--budget` still refuses as
+  Format 1.0 section 10.3 says, until that text changes.
+- `war context` keeps its compiled graph under the git common directory: on
+  this repository a repeat call takes about 170 ms instead of 6 s or more.
+  `OPENWARRANT_NO_CACHE` turns it off.
+
+### Changed
+
+- A notice now reaches a claim that depends on, or cites, an item in another repository
+  (`hpr:t-abc`), as it did for a clause. So a Warrant that depends on one now holds at
+  `war done` until the change is seen, then until the pin holds it.
+
+- `war plan promote` adds a field in place and writes no document: a sign-off
+  item, so the work is an Order, or with `--test` a test, so it is a Warrant.
+  The id stays. Drafting a directory Warrant from a ticket, which is what it
+  did before, is `war plan new --from <ticket>`.
+
+- `war init` no longer writes `schemas/`: the schemas are in the binary, and an
+  archive of a repository with no copy retains the binary's pack.
+  `war init --schemas` writes a copy, on a new repository or one already set up.
+
+- Bare `war status` is a few lines of counts: the SAS revision, Warrants,
+  open tickets, ready work, acts awaiting a signature and blocking questions.
+  On this repository, 37,841 bytes to 180. A figure that cannot be read prints
+  `?`, says why on stderr and exits 2. `war status --verbose` is the old
+  output, byte for byte; `--json`, `--timeline`, `--pending` and `war status
+  <id>` do not change. A script that read the projection from bare `war status`
+  needs `--verbose`.
+- `war view prime`, `war view tickets` and the terse `war status` read all work
+  through one list (`crate::work`, `docs/design/one-view.md`). An item's level,
+  Ticket, Warrant or Order, is derived from its fields and never stored. `prime`
+  marks a non-default level (` · Warrant`) and adds one line counting open work
+  outside the ticket store; `war status` adds `Open by level:`; `--json` rows
+  carry `level`. `war view warrants` now lists single-file Warrants, which no
+  list showed before.
 
 ### Fixed
 
@@ -67,130 +180,11 @@ Notable changes to OpenWarrant. Format loosely follows
   reaches the brief. An approval of a ticket with such a section goes stale
   once, because its statement now covers that text.
 
-### Changed
-
-- A notice now reaches a claim that depends on, or cites, an item in another repository
-  (`hpr:t-abc`), as it did for a clause. So a Warrant that depends on one now holds at
-  `war done` until the change is seen, then until the pin holds it.
-
-- `war plan promote` adds a field in place and writes no document: a sign-off
-  item, so the work is an Order, or with `--test` a test, so it is a Warrant.
-  The id stays. Drafting a directory Warrant from a ticket, which is what it
-  did before, is `war plan new --from <ticket>`.
-
-- `war init` no longer writes `schemas/`: the schemas are in the binary, and an
-  archive of a repository with no copy retains the binary's pack.
-  `war init --schemas` writes a copy, on a new repository or one already set up.
-
-### Added
-
-- `--interactive` on `init`, `create`, `start`, `done`, `status` and `check`. A
-  caller with no terminal, or under `--json`, is refused by name and never
-  prompted.
-- `war status --next`, `--ready` and `--view`, `war start --claim`, and `war done
-  --release` and `--reopen` are the commands they fold, envelope included. The
-  old spellings keep working. A retiring top-level spelling says so on stderr at
-  a terminal, or anywhere with `OPENWARRANT_DEPRECATIONS=warn`; a pipe sees
-  nothing. `docs/COMMANDS.md` has a parity table, and a test holds it to the
-  command tree.
-- `war init --ci` writes one opt-in workflow running `war check --changed` and
-  the repository's tests on each pull request. `--test` names the tests;
-  otherwise they are found from what the repository holds.
-- `war create --sign` makes an Order, one document like the other levels.
-- `war check`, `war status`, `war view show` take a single-file Warrant's alias,
-  and `war view next` lists open single-file and read-in-place work under
-  `elsewhere`.
-- Work across repositories (`docs/INTERFACES.md`). `[repos.<name>]` names a
-  submodule or sibling, and a pin is read from its gitlink, a `pin` field or
-  `Cargo.lock`. `war context hpr:CL-step` and `war view prime hpr:t-abc` read from
-  the other repository's objects at that commit; what can't be read is UNKNOWN.
-  `war create --depends-on` holds an item out of `ready`, and prime says *done
-  upstream, not pinned here* until the pin moves. `war done` warns on a Ticket and
-  refuses a Warrant or an Order. `war check` counts open clauses and flags late
-  ones, `--clauses` runs them, `--record` writes `docs/interfaces.lock`, and
-  `war status` shows drift in one line. `--change breaking|compatible --clause`
-  makes a change request, and `war plan impact` lists claims on both sides. Notices
-  follow the pin, and reach other clones through `refs/openwarrant/notices`.
-- `war plan types add interfaces` adds an `interface` document type: numbered
-  clauses two sides build against, each saying how it's verified, with an open
-  value declared `tbd` or `tbr`. `docs/INTERFACES.md` shows it.
-- `war view prime --prompt <text|->` and the plugin's UserPromptSubmit hook put
-  the brief of the item a prompt names in context before the first turn. A
-  prompt names an item by id, a capital code (`T8`), a double-quoted phrase or
-  its whole title, through the lookup `war start` uses. Several matches add one
-  line and no brief (on the first prompt only); none adds nothing, nor does a
-  Warrant you hold. It reads, claims nothing, stays within 6,144 bytes with any
-  cut declared, adds the same brief once a session, respects `[tickets]
-  session_start = false`, and a hook failure never holds a prompt.
-- `war admin agents-md --block --ready <N>` lists up to five ready Warrants in
-  the block of an `AGENTS.md`, for a harness with no prompt hook. Only running
-  it refreshes the list: `war` never does so by itself, a plain `--block` keeps
-  it, and `CLAUDE.md` gets none. `--ready 0` removes it.
-
-### Changed
-
-- Bare `war status` is a few lines of counts: the SAS revision, Warrants,
-  open tickets, ready work, acts awaiting a signature and blocking questions.
-  On this repository, 37,841 bytes to 180. A figure that cannot be read prints
-  `?`, says why on stderr and exits 2. `war status --verbose` is the old
-  output, byte for byte; `--json`, `--timeline`, `--pending` and `war status
-  <id>` do not change. A script that read the projection from bare `war status`
-  needs `--verbose`.
-- `war view prime`, `war view tickets` and the terse `war status` read all work
-  through one list (`crate::work`, `docs/design/one-view.md`). An item's level,
-  Ticket, Warrant or Order, is derived from its fields and never stored. `prime`
-  marks a non-default level (` · Warrant`) and adds one line counting open work
-  outside the ticket store; `war status` adds `Open by level:`; `--json` rows
-  carry `level`. `war view warrants` now lists single-file Warrants, which no
-  list showed before.
-
-### Fixed
-
 - A claim whose `git push` to the claims remote timed out no longer says
   "nothing was claimed": the push may have landed. It stays UNKNOWN
   (`work.claim-remote-unreachable`), says the outcome is unknown, and says how
   a claim that landed clears: a retry from the same session, or its lease
   running out. Timed-out ref deletes and lease renewals say the same.
-
-### Added
-
-- Live updates to running agents, on one machine (t-3c16c W3): `war start` keeps
-  the claim's source manifest beside it, every `war` write and `check --changed`
-  compare it with the default branch, and the affected agent's next `war` call
-  prints one line, once (`notes` under `--json`). `war start` then prints only
-  what changed and records it as seen; `war view prime` keeps the line until
-  then. `war plan impact` names the claims a change reaches. See
-  [Tickets](docs/TICKETS.md#when-something-changes-under-you).
-- `war done` holds a change and a widening to the item's level (t-3c16c W3).
-  A Ticket warns and closes. A Warrant is refused until the change is seen and
-  held, then runs its trigger on the new state; a widening of its `paths`,
-  `x.tools` or `x.commands` since `war start` is flagged and journalled. An
-  Order is held the same, and a widening or a change to what was signed is
-  refused until a human signs a new revision. What cannot be read answers
-  `UNKNOWN` on a Warrant or an Order and warns on a Ticket. An approval's
-  statement now binds what the item declares; an item that declares none reads
-  as it did, and an approval of one that does goes stale once.
-
-- `war create --test "<command>"`, repeatable, and `tests` on MCP `war_create`:
-  a Warrant can be given its test in the command that makes it. It is the same
-  `## CHK-…` section `war plan add --test` writes, and `war done` runs it and
-  finishes the work only on a pass. A test that cannot be written is refused
-  before anything exists. Not with `--legacy` or `--records`.
-- Any ticket can declare the tools and commands its work may run, as well as
-  its paths: `war create --path 'src/**' --tool Read --command 'cargo test'`.
-  `war start` turns them into session permissions. They never change how a
-  ticket ends, and none declared means no limit.
-- `war context` answers what used to end in a refusal, so an agent no longer
-  falls back to reading a whole file (`oh.war/unit-context/v1`). A long
-  document gives its units that fit, ranked, with every cut declared. A unit is
-  named as `COMBAT.md#friendly-fire`, and `## Heading {#id}` keeps that id when
-  the heading is reworded. Words (`war context "friendly fire"`) and code paths
-  find the units that match, locally and with no model. `--strict` refuses a
-  cut and `--full` gives everything. An explicit `--budget` still refuses as
-  Format 1.0 section 10.3 says, until that text changes.
-- `war context` keeps its compiled graph under the git common directory: on
-  this repository a repeat call takes about 170 ms instead of 6 s or more.
-  `OPENWARRANT_NO_CACHE` turns it off.
 
 ## [1.0.0-alpha.6] — 2026-11-05
 

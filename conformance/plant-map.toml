@@ -198,6 +198,7 @@ paths = [
     ".claude/**", ".agents/**", ".claude-plugin/**", ".mcp.json", "AGENTS.md", "CONTEXT.md",
     "docs/agents/**", "docs/SKILLS.md", "conformance/agent-text/**", "conformance/skills/**",
     "crates/openwarrant-cli/src/instructions.rs", "crates/openwarrant-cli/src/skew.rs",
+    "crates/openwarrant-cli/templates/AGENTS.md.tmpl",
 ]
 plants = [
     "68-agents-md.sh", "73-plugin.sh", "90-skills.sh", "97-pins.sh", "99-init.sh",
