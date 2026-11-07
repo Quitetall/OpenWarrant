@@ -339,6 +339,10 @@
 > -
 - OW-ADR-0032 · adr · - · ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale · docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md:1
 
+## docs/adr/atoms/OW-ADR-0033-mission-control-and-herdr.md
+> -
+- OW-ADR-0033 · adr · - · ADR OW-0033: Mission Control, with Herdr as an optional adapter · docs/adr/atoms/OW-ADR-0033-mission-control-and-herdr.md:1
+
 ## docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md
 > -
 - OW-ADR-alpha6-unified-work-8956e · adr · - · One Warrant model and a small daily loop · docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md:1

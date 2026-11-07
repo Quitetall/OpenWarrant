@@ -93,7 +93,8 @@ every key until `Enter` finishes it or `Esc` leaves it with nothing done.
   executor, write scope, worktree, launch. Executors come from `[go]`: there is no
   built-in list, and an external executor, which `war evidence go` runs by its route,
   shows as unavailable for one chosen task. `war start --worktree --print --paths`
-  takes the claim and makes the worktree. A scope overlapping another worktree's is
+  takes the claim and makes the worktree, which starts from `HEAD`: work created and not
+  yet committed is refused, `go.start-uncommitted`, and starts once it is. A scope overlapping another worktree's is
   allowed and shows in Watch as a collision, a merge matter; in one checkout it is
   refused, `work.write-conflict`. It then launches through a Herdr tab (`tab.create`, then `agent.start`), this
   terminal, or detached with a log at `.openwarrant/start.log` in the worktree. A
@@ -102,11 +103,14 @@ every key until `Enter` finishes it or `Esc` leaves it with nothing done.
   with `war admin claim` and starts nothing. The claim's actor is the executor's name.
 - **Answer** (`a`): `war plan answer`, as a human the register names; an empty answer
   takes the recommendation. `i` shows `war plan interview`, read-only. There are no
-  multiple choices: a question has no options field.
-- **Notes**: `a` on Watch's Work or Claims is `war note`. Neither an answer nor a note
-  reaches a running agent by itself, and the form says when it will: its next `war`
-  command, or `war start`. With a Herdr agent in the holder's workspace, `Tab` delivers
-  a note as a prompt now.
+  multiple choices: a question has no options field. Questions and answers live in this
+  checkout's records: a question asked in a worktree shows here, and an answer given here
+  reaches a worktree, only once it is committed and merged across.
+- **Notes**: `a` on Watch's Work or Claims is `war note`, written in the holder's
+  workspace, so a holder in a worktree reads it. Neither an answer nor a note reaches a
+  running agent by itself, and the form says when it will: its next `war view show`,
+  `war view prime <id>` or `war start`. With a Herdr agent in the holder's workspace,
+  `Tab` delivers a note as a prompt now.
 - **Sign**: see Queue. `e` shows the obligations and evidence behind the highlighted
   act, and `f` its `war admin diff`.
 

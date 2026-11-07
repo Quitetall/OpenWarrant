@@ -22,6 +22,7 @@ fn runtime(root: &Utf8Path, path: &Utf8Path, evidence: &Utf8Path) -> bool {
         || path.starts_with(root.join(".openwarrant/state"))
         || path == root.join(".openwarrant/go-packet.json")
         || path == root.join(".openwarrant/session.json")
+        || path == root.join(".openwarrant/start.log")
 }
 
 fn file_hash(root: &Utf8Path, path: &Utf8Path, budget: &mut usize) -> Result<String, String> {
@@ -166,6 +167,7 @@ pub fn capture(root: &Utf8Path, evidence: &Utf8Path) -> Result<Basis, String> {
             ":(exclude,literal).openwarrant/state".to_owned(),
             ":(exclude,literal).openwarrant/go-packet.json".to_owned(),
             ":(exclude,literal).openwarrant/session.json".to_owned(),
+            ":(exclude,literal).openwarrant/start.log".to_owned(),
         ];
         if let Ok(relative) = evidence.strip_prefix(root) {
             excluded.push(format!(":(exclude,literal){relative}"));
