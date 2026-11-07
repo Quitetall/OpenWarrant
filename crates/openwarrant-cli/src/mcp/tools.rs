@@ -1467,7 +1467,9 @@ impl WarServer {
             });
         }
         self.ticket("start", p.actor.as_deref(), |s| {
-            crate::ticket::start_cmd(s, p.target.as_deref())
+            let mut outcome = crate::ticket::start_cmd(s, p.target.as_deref())?;
+            crate::session_usage::after_start(&self.repo.root, s, &mut outcome);
+            Ok(outcome)
         })
     }
 
@@ -1521,7 +1523,15 @@ impl WarServer {
                     Err(refusal) => return Ok(refusal),
                 },
             };
-            crate::ticket::done_with(s, &target, p.note.as_deref(), p.if_rev.as_deref(), p.check)
+            let mut outcome = crate::ticket::done_with(
+                s,
+                &target,
+                p.note.as_deref(),
+                p.if_rev.as_deref(),
+                p.check,
+            )?;
+            crate::session_usage::after_done(&self.repo.root, s, &mut outcome, None);
+            Ok(outcome)
         })
     }
 

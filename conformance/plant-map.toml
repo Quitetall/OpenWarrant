@@ -111,7 +111,12 @@ plants = ["*webui*.sh", "69-board-tree-reads.sh", "69-overview-tree-reads.sh", "
 [[rule]]
 name = "tui"
 paths = ["crates/openwarrant-cli/src/tui/**", "crates/openwarrant-cli/src/herdr.rs"]
-plants = ["97-tui.sh", "71-hub.sh", "191-tui-honest.sh", "199-tui-pty.sh"]
+plants = ["97-tui.sh", "71-hub.sh", "191-tui-honest.sh", "199-tui-pty.sh", "220-session-usage.sh"]
+
+[[rule]]
+name = "session usage"
+paths = ["crates/openwarrant-cli/src/session_usage.rs", "conformance/fixtures/usage/**"]
+plants = ["220-session-usage.sh", "191-tui-honest.sh", "189-done-enforce.sh"]
 
 [[rule]]
 name = "mcp"
@@ -230,6 +235,7 @@ paths = [
 plants = [
     "188-live-updates.sh", "189-done-enforce.sh", "79-host.sh", "77-typed-demo.sh",
     "121-instruction-records.sh", "184-format-spec-acceptance.sh", "192-repos.sh",
+    "210-two-machines.sh",
 ]
 
 [[rule]]
@@ -363,7 +369,7 @@ paths = [
 plants = [
     "45-tickets.sh", "55-ticket-projections.sh", "55-evidence-tickets.sh", "76-ticket-features.sh",
     "100-concurrency.sh", "102-concurrency-stress.sh", "103-one-noun.sh", "132-first-done.sh",
-    "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh",
+    "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh", "210-two-machines.sh",
 ]
 
 [[rule]]

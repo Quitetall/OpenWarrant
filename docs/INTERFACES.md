@@ -221,7 +221,9 @@ repository: a Warrant refuses until the change is seen, and again until the pin
 holds it. A Ticket warns.
 
 With `[claims] remote`, a notice is also published to
-`refs/openwarrant/notices/<key>`, so another clone hears before it fetches.
+`refs/openwarrant/notices/<key>`, so another clone hears before it fetches, and
+each clone compares its claims with the default branch as the remote holds it
+(docs/TICKETS.md, "Two machines").
 
 ## An example: WMD and HPR
 

@@ -335,6 +335,9 @@ impl Drop for Reader {
     }
 }
 
+/// The least time between two reads for the claims remote's sake.
+const REMOTE_EVERY_MIN_SECS: u64 = 5;
+
 fn spawn_named(name: &str, f: impl FnOnce() + Send + 'static) {
     let _ = std::thread::Builder::new()
         .name(format!("{THREAD_PREFIX}{name}"))
@@ -376,12 +379,21 @@ fn records_thread(root: &Utf8Path, binary: &Row, ask: &Receiver<Ask>, tx: &Sende
     if !send_read(root, binary, tx) {
         return;
     }
+    // With `[claims] remote`, what another machine holds moves nothing here:
+    // read again once its `remote_ttl` has passed.
+    let remote_every = Repository::discover(Some(root.to_owned()))
+        .ok()
+        .and_then(|r| crate::ticket::Store::open(&r, None).ok())
+        .filter(|s| s.remote.is_some())
+        .map(|s| Duration::from_secs(s.remote_ttl_secs.max(REMOTE_EVERY_MIN_SECS)));
+    let mut last_read = std::time::Instant::now();
     let mut pending = None;
     loop {
         match ask.recv_timeout(FINGERPRINT_EVERY) {
             Ok(Ask::Reload) => {
                 read_at = fingerprint();
                 pending = None;
+                last_read = std::time::Instant::now();
                 if !send_read(root, binary, tx) {
                     return;
                 }
@@ -389,9 +401,12 @@ fn records_thread(root: &Utf8Path, binary: &Row, ask: &Receiver<Ask>, tx: &Sende
             Err(RecvTimeoutError::Disconnected) => return,
             Err(RecvTimeoutError::Timeout) => {
                 let now = fingerprint();
-                if pending == Some(now) && now != read_at {
+                if (pending == Some(now) && now != read_at)
+                    || remote_every.is_some_and(|every| last_read.elapsed() >= every)
+                {
                     read_at = now;
                     pending = None;
+                    last_read = std::time::Instant::now();
                     if !send_read(root, binary, tx) {
                         return;
                     }
@@ -654,6 +669,12 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
         Ok(s) => claim_rows(s, work.claims()),
         Err(_) => Vec::new(),
     };
+    // Held on another machine: read with the claims above, on this thread.
+    if let Ok(s) = &store
+        && let Some(Err(why)) = s.remote_line()
+    {
+        fault("the claims remote", why);
+    }
     let notices = store.as_ref().map(notice_rows).unwrap_or_default();
     let worktrees = crate::worktrees::inventory(&repo, false, "git")
         .map(|w| w.into_iter().map(|r| r.path).collect::<Vec<_>>())
@@ -742,6 +763,7 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
         (View::Corpus, corpus),
         (View::Obligations, obligations),
         (View::Evidence, evidence),
+        (View::Usage, super::usage::rows(&snap.usage)),
         (View::Journal, journal),
         (View::Roadmap, roadmap),
     ] {
@@ -987,6 +1009,7 @@ fn claim_rows(store: &crate::ticket::Store, claims: &crate::ticket::Claims) -> V
                     .filter(|co| !scopes::undeclared(co))
                     .map(|co| co.paths.clone())
                     .unwrap_or_default(),
+                remote: c.elsewhere.clone(),
             }
         })
         .collect()
@@ -1092,6 +1115,7 @@ mod tests {
                 paths: paths.iter().map(|p| (*p).to_owned()).collect(),
                 display_name: actor.to_owned(),
             })),
+            elsewhere: None,
         }
     }
 

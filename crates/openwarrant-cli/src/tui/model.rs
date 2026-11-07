@@ -21,6 +21,7 @@ pub enum View {
     Corpus,
     Obligations,
     Evidence,
+    Usage,
     Journal,
     Roadmap,
     Setup,
@@ -28,12 +29,13 @@ pub enum View {
 }
 
 impl View {
-    pub const ALL: [Self; 9] = [
+    pub const ALL: [Self; 10] = [
         Self::Tickets,
         Self::Frontier,
         Self::Corpus,
         Self::Obligations,
         Self::Evidence,
+        Self::Usage,
         Self::Journal,
         Self::Roadmap,
         Self::Setup,
@@ -47,6 +49,7 @@ impl View {
             Self::Corpus => "Corpus",
             Self::Obligations => "Obligations",
             Self::Evidence => "Evidence",
+            Self::Usage => "Usage",
             Self::Journal => "Journal",
             Self::Roadmap => "Roadmap",
             Self::Setup => "Setup",
@@ -171,6 +174,9 @@ pub struct ClaimRow {
     pub workspace: Option<String>,
     /// Declared write paths; empty when none were.
     pub scope: Vec<String>,
+    /// Held on another machine: the claims remote it was read from. Its lock
+    /// is not in this clone, so `renewed_unix` is `None`.
+    pub remote: Option<String>,
 }
 
 /// Two claims whose declared paths cannot be proved disjoint.

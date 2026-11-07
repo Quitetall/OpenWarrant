@@ -50,7 +50,7 @@ mod md;
 mod model;
 mod reader;
 mod records;
-mod usage;
+pub(crate) mod usage;
 mod watch;
 
 #[cfg(test)]
@@ -180,6 +180,7 @@ pub fn render(root: Option<Utf8PathBuf>, what: &str) -> Result<u8, RepoError> {
         "watch" => {}
         "act" => m.mode = Mode::Act,
         "records" => m.overlay = Overlay::Records(View::Tickets),
+        "usage" => m.overlay = Overlay::Records(View::Usage),
         "repos" => {
             m.overlay = Overlay::Repos;
             let (rows, hidden) = crate::projects::hub();
@@ -187,7 +188,7 @@ pub fn render(root: Option<Utf8PathBuf>, what: &str) -> Result<u8, RepoError> {
         }
         other => {
             return Err(RepoError::Message(format!(
-                "--render takes watch, act, records or repos, not {other}"
+                "--render takes watch, act, records, usage or repos, not {other}"
             )));
         }
     }

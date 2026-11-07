@@ -315,10 +315,50 @@ held is not something `war` can know) and nothing is claimed. A push that runs
 past its 30 seconds is also UNKNOWN, but it may have landed, and the refusal
 says so: the local claim is given back, a claim that landed refuses other
 agents until its lease runs out, and a retry from the same session takes it
-back. `war view ready`
-reads this machine's claims only; a claim held elsewhere is refused at
-`war admin claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
+back. Nothing is signed: the commit is written with `--no-gpg-sign`
 under a fixed `war` identity, and pushes skip hooks.
+
+Every view reads the remote's claims too: `war status`, `war view ready`,
+`war view next`, `war view prime`, `war view tickets` and Mission Control
+show a claim held on another machine with its holder, its workspace there,
+the lease the remote holds for it, and `elsewhere` (Mission Control: `REMOTE`).
+`war view ready` and `war start` never offer it, and `war start <it>` is
+refused by name. The remote is read with one `git ls-remote` at most once per
+`[claims] remote_ttl` seconds (default 30) for every worktree of the clone,
+kept in `<git common dir>/openwarrant/remote-claims.json`; this clone's own
+push reads it again at once. A remote that cannot be read is `UNKNOWN`, never
+free: the views say so (`work.claims-remote-unknown`), `war status` prints
+`Ready: ?`, and they exit as an UNKNOWN does. Mission Control reads it on its
+reader thread, never on a keypress. Without `[claims] remote` nothing here asks
+the network.
+
+### Two machines
+
+One repository, one git remote both machines can push to, nothing else to run.
+Set it once and commit it:
+
+```sh
+war init --claims-remote origin     # writes [claims] remote = "origin" to openwarrant.toml
+git commit -m "claims through origin" openwarrant.toml && git push origin HEAD
+```
+
+On the other machine, `git pull`. From then on:
+
+```sh
+# machine B
+war start t-1a2b                    # claims it here and on origin
+# machine A
+war view ready                      # t-1a2b is not offered; `held elsewhere: t-1a2b by bob (on origin, ...)`
+war start t-1a2b                    # refused (work.claimed-by-other): claimed on the remote `origin` by bob ...
+```
+
+A change pushed to the default branch from A reaches the claims on B it
+concerns, once, as a notice on B's next `war` call after `remote_ttl` has
+passed since B last looked: B fetches the branch into
+`refs/openwarrant/upstream/<branch>` (no branch or remote-tracking ref of yours
+moves) and compares what each of its claims watches. A claim it does not
+concern hears nothing. A lease that runs out on B (its holder stopped renewing)
+is taken on A by a plain `war start`.
 
 ### Branches that merge
 

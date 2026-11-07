@@ -189,6 +189,27 @@ fn elsewhere_items(repo: &Repository, next: &mut Next) {
     }
 }
 
+/// With `[claims] remote`: what is held on another machine, and so not
+/// offered here, or `UNKNOWN` when the remote could not be read.
+fn claims_remote(repo: &Repository, next: &mut Next) {
+    let Some(line) = crate::ticket::Store::open(repo, None)
+        .ok()
+        .and_then(|s| s.remote_line())
+    else {
+        return;
+    };
+    let (rule, severity, message) = match line {
+        Ok(m) => ("work.held-elsewhere", "info", m),
+        Err(m) => ("work.claims-remote-unknown", "unknown", m),
+    };
+    next.findings.push(Finding {
+        rule: rule.to_owned(),
+        severity: severity.to_owned(),
+        file: None,
+        message,
+    });
+}
+
 /// A finding carried into `war view next`, in the envelope diagnostic's shape.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Finding {
@@ -588,7 +609,7 @@ fn ticket_side(corpus: &crate::corpus::Corpus) -> TicketSide {
     let ready = move || -> Result<Vec<ReadyItem>, RepoError> {
         let store = store?;
         let (tickets, _faults) = corpus.tickets()?;
-        let claims = claims.unwrap_or_else(|| store.claims())?;
+        let claims = claims.unwrap_or_else(|| store.claims_seen())?;
         crate::ticket::ready_rows_with(&store, tickets, claims)
             .map(|rows| rows.into_iter().map(ReadyItem::of).collect())
     };
@@ -654,6 +675,7 @@ fn judged(
         });
     }
     elsewhere_items(repo, &mut next);
+    claims_remote(repo, &mut next);
     if next.actions.is_empty() && next.ready.is_empty() {
         // M9: an empty list is said as what it means for ordinary work. A
         // ticket store that could not be read counts as tracked: "nothing

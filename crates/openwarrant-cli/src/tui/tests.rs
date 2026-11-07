@@ -108,6 +108,7 @@ fn fixture() -> Model {
                 renewed_unix: Some(NOW - 4),
                 workspace: Some("/work/wt-a".to_owned()),
                 scope: vec!["src/a/**".to_owned()],
+                remote: None,
             },
             ClaimRow {
                 target: "t-9/i-1".to_owned(),
@@ -117,6 +118,7 @@ fn fixture() -> Model {
                 renewed_unix: None,
                 workspace: None,
                 scope: vec!["src/a/b.rs".to_owned()],
+                remote: None,
             },
         ],
         collisions: vec![Collision {
@@ -280,7 +282,44 @@ fn dollars_say_they_are_an_estimate_and_the_date_of_their_prices() {
         prices.as_ref(),
     );
     let s = screen(&m);
-    assert!(s.contains("~$12.00 estimate, prices of 2026-11-01"), "{s}");
+    assert!(s.contains("~$12.00 est., prices of 2026-11-01"), "{s}");
+    assert!(!s.contains("STALE"), "{s}");
+    // A table past its date says so beside every dollar figure.
+    if let Some(d) = m.snap.usage.dollars.as_mut() {
+        d.stale_days = usage::stale("2026-01-01", "2026-11-07");
+    }
+    let s = screen(&m);
+    assert!(
+        s.contains("prices of 2026-11-01 (STALE, 310 days old)"),
+        "{s}"
+    );
+}
+
+/// A claim's recorded tokens show on its row, and recent recorded work no
+/// claim holds after the claims. Refusal: with nothing recorded the row
+/// carries no token count at all, so no number stands for UNKNOWN.
+#[test]
+fn claims_show_recorded_tokens_and_recent_work() {
+    let mut m = fixture();
+    let s = screen(&m);
+    assert!(!s.contains(" tok"), "{s}");
+    let run = |item: &str, n: u64, at: &str| usage::Run {
+        item: item.to_owned(),
+        tokens: Some(n),
+        at: at.to_owned(),
+        source: "claude-code".to_owned(),
+        ..usage::Run::default()
+    };
+    m.snap.usage = usage::sum(
+        &[
+            run("t-1a2b3/i-1", 4242, "2026-11-07T10:00:00Z"),
+            run("t-77", 9, "2026-11-06T10:00:00Z"),
+        ],
+        None,
+    );
+    let s = screen(&m);
+    assert!(s.contains("t-1a2b3/i-1 2m 05s · 4242 tok"), "{s}");
+    assert!(s.contains("recent t-77 · 9 tok recorded 2026-11-06"), "{s}");
 }
 
 #[test]
@@ -295,6 +334,15 @@ fn claims_say_who_how_long_what_lease_and_where_and_name_the_renewal() {
     assert!(s.contains("lock renewed UNKNOWN"), "{s}");
     assert!(s.contains("COLLISION"), "{s}");
     assert!(!s.to_lowercase().contains("heartbeat"), "{s}");
+}
+
+#[test]
+fn a_claim_held_on_another_machine_says_so_and_one_here_does_not() {
+    let mut m = fixture();
+    m.snap.claims[1].remote = Some("origin".to_owned());
+    let s = screen(&m);
+    assert!(s.contains("codex t-9/i-1 1h 01m REMOTE (origin)"), "{s}");
+    assert!(!s.contains("claude t-1a2b3/i-1 2m 05s REMOTE"), "{s}");
 }
 
 #[test]
