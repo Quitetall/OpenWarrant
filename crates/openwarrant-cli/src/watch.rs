@@ -39,11 +39,20 @@ pub struct Snapshot {
 /// The trees whose change can change the pending set. `pub(crate)`: the app
 /// polls the same fingerprint (OW-WAR-0112), one poller and not two.
 pub(crate) fn watched_dirs(repo: &Repository) -> Vec<camino::Utf8PathBuf> {
-    vec![
+    let mut dirs = vec![
         repo.root.join(&repo.config.paths.warrants),
         repo.root.join("docs/authority"),
         repo.root.join(&repo.config.paths.sas).join("revisions"),
-    ]
+    ];
+    // The ticket store, its claims and the notices to them: a `war done` or a
+    // `war start` in another terminal moves the fingerprint too.
+    dirs.extend(crate::ticket::watched(repo));
+    dirs.extend(
+        crate::ticket::Store::open(repo, None)
+            .ok()
+            .and_then(|s| crate::ticket::live::directory(&s)),
+    );
+    dirs
 }
 
 /// A cheap fingerprint of the trees: every file's path, length and mtime,

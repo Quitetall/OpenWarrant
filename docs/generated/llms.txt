@@ -197,7 +197,7 @@
 
 ## docs/TUI.md
 > -
-- doc:docs/TUI.md · document · - · `war` — the app · docs/TUI.md:1
+- doc:docs/TUI.md · document · - · `war` — Mission Control · docs/TUI.md:1
 
 ## docs/TYPES.md
 > -
@@ -537,7 +537,11 @@
 
 ## docs/design/tui-mission-control.md
 > -
-- doc:docs/design/tui-mission-control.md · document · - · OpenWarrant Mission Control: Two-Pillar Interactive Terminal UI · docs/design/tui-mission-control.md:1
+- doc:docs/design/tui-mission-control.md · document · - · OpenWarrant Mission Control: the interactive terminal UI · docs/design/tui-mission-control.md:1
+
+## docs/design/tui-usage.md
+> -
+- doc:docs/design/tui-usage.md · document · - · Usage data in Mission Control · docs/design/tui-usage.md:1
 
 ## docs/design/visual-roadmap.md
 > -

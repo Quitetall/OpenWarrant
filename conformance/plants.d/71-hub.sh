@@ -101,7 +101,7 @@ else
     hub_fail "an unwritable list changes nothing" "exit $HUB_WANT with a list, $HUB_GOT without"
 fi
 
-# OBL-002: outside any repository, at a pty, `war` opens the Projects pane.
+# OBL-002: outside any repository, at a pty, `war` opens Repos.
 if command -v script >/dev/null 2>&1; then
     HUB_NOWHERE=$(mktemp -d)
     # A pty with no size draws nothing; ratatui writes cell by cell between
@@ -109,8 +109,8 @@ if command -v script >/dev/null 2>&1; then
     HUB_PTY=$( (sleep 3; printf q) | XDG_CONFIG_HOME="$HUB_CFG" OPENWARRANT_NO_PROJECTS= timeout 20 \
         script -qec "stty cols 200 rows 40; cd '$HUB_NOWHERE' && '$HUB_WAR'" /dev/null 2>&1 \
         | python3 -c 'import re, sys; s = sys.stdin.buffer.read().decode("utf8", "replace"); print(re.sub(r" +", " ", re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", " ", s)))')
-    if grep -q 'Projects — every repository' <<<"$HUB_PTY" && grep -q "$(realpath "$HUB_A")" <<<"$HUB_PTY"; then
-        hub_ok "war from anywhere opens the hub" "the Projects pane, listing the scratch project"
+    if grep -q 'Repos — every repository' <<<"$HUB_PTY" && grep -q "$(realpath "$HUB_A")" <<<"$HUB_PTY"; then
+        hub_ok "war from anywhere opens the hub" "Repos, listing the scratch project"
     else
         hub_fail "war from anywhere opens the hub" "$(tr -d '\r' <<<"$HUB_PTY" | tail -c 200 | tr '\n' ' ')"
     fi
@@ -119,14 +119,14 @@ else
     hub_ok "war from anywhere opens the hub" "(script(1) absent; the pty plant did not run)"
 fi
 
-# OBL-002: the Help pane's first row names the running binary's version and
+# OBL-002: Help's first row names the running binary's version and
 # path. The pty stream is replayed onto a 300x40 grid (ratatui redraws only
 # the cells that change, so the raw stream is not the screen), and the row
 # under the Help title must carry `war --version`'s line and this binary's
 # canonical path.
 if command -v script >/dev/null 2>&1; then
     HUB_VER=$("$HUB_WAR" --version 2>/dev/null | head -1)
-    HUB_SCREEN=$( (sleep 4; printf 2; sleep 3; printf q) | XDG_CONFIG_HOME="$HUB_CFG" OPENWARRANT_NO_PROJECTS= timeout 30 \
+    HUB_SCREEN=$( (sleep 4; printf 3; sleep 1; printf '['; sleep 3; printf q) | XDG_CONFIG_HOME="$HUB_CFG" OPENWARRANT_NO_PROJECTS= timeout 30 \
         script -qec "stty cols 300 rows 40; cd '$HUB_A' && '$HUB_WAR'" /dev/null 2>/dev/null \
         | python3 -c '
 import re, sys
