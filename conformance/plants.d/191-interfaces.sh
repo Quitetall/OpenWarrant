@@ -58,7 +58,7 @@ if [[ $IF_BAD_RC -ne 0 ]] && grep -q 'format.field-shape' <<<"$IF_BAD"; then
 else
     if_fail "a status outside the set" "exit $IF_BAD_RC"
 fi
-IF_BAD=$(if_try '0,/^verify: test/d'); IF_BAD_RC=$?
+IF_BAD=$(if_try '/^verify: test/d'); IF_BAD_RC=$?
 if [[ $IF_BAD_RC -ne 0 ]] && grep -q 'format.field-missing' <<<"$IF_BAD"; then
     if_ok "a clause must say how it's proved" "format.field-missing"
 else
