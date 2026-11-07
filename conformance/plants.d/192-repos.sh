@@ -156,11 +156,15 @@ rp_git -C "$RP_TMP/wmd/vendor/hpr" checkout -q origin/main
 RP_UNCOMMITTED=$(wmd owner view prime 2>&1)
 rp_git -C "$RP_TMP/wmd" add vendor/hpr && rp_git -C "$RP_TMP/wmd" commit -qm "move the pin"
 RP_MOVED=$(wmd owner view prime 2>&1)
+# The item it depends on changed since it started, so it is told first.
+RP_UNSEEN=$(wmd a done "$RP_TESTED" 2>&1); RP_UNSEEN_RC=$?
+wmd a start "$RP_TESTED" >/dev/null 2>&1
 RP_DONE=$(wmd a done "$RP_TESTED" 2>&1); RP_DONE_RC=$?
-if grep -q 'done upstream' <<<"$RP_UNCOMMITTED" && ! grep -q 'held:' <<<"$RP_MOVED" && [[ $RP_DONE_RC -eq 0 ]]; then
-    rp_ok "a pin bump releases the item" "only once committed; the Warrant then closes"
+if grep -q 'done upstream' <<<"$RP_UNCOMMITTED" && ! grep -q 'held:' <<<"$RP_MOVED" && [[ $RP_DONE_RC -eq 0 ]] \
+    && [[ $RP_UNSEEN_RC -ne 0 ]] && grep -q 'done.unseen' <<<"$RP_UNSEEN"; then
+    rp_ok "a pin bump releases the item" "only once committed; seen, the Warrant then closes"
 else
-    rp_fail "a pin bump releases the item" "$RP_DONE_RC $RP_DONE | $RP_MOVED"
+    rp_fail "a pin bump releases the item" "$RP_UNSEEN_RC $RP_DONE_RC $RP_DONE | $RP_UNSEEN | $RP_MOVED"
 fi
 
 

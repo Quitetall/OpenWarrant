@@ -505,6 +505,7 @@ pub fn list(
     // typo, never an empty answer.
     if let Some(k) = &filter.kind
         && k != openwarrant_core::ticket::TICKET_PROFILE
+        && k != super::change::TYPE
         && !work.types().iter().any(|t| t == k)
         && let Some(why) = store.definition.fields.refuse_type(k)
     {

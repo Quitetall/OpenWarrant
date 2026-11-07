@@ -237,7 +237,7 @@ paths = [
     "crates/openwarrant-cli/src/ticket/change.rs",
     "docs/INTERFACES.md",
 ]
-plants = ["192-repos.sh", "191-interfaces.sh", "79-host.sh"]
+plants = ["192-repos.sh", "197-repos-cargo-pin.sh", "191-interfaces.sh", "79-host.sh"]
 
 [[rule]]
 name = "plan and intake"
