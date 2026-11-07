@@ -77,7 +77,7 @@ for attempt in $(seq 1 "$ATTEMPTS"); do
     git add -A --pathspec-from-file="$WORK/paths"
     # Exactly the listed paths, and nothing left over.
     if ! diff <(sort -u "$WORK/paths") <(git diff --cached --name-only --no-renames | sort -u) >/dev/null \
-        || [[ -n "$(git status --porcelain --untracked-files=all)" ]]; then
+        || ! git diff --quiet || [[ -n "$(git ls-files --others --exclude-standard)" ]]; then
         echo "views: refused: what is staged is not exactly the listed views; nothing pushed"
         git status --short | head -20
         exit 1
