@@ -3754,7 +3754,7 @@ fn check_action(
 fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     let command = match interactive::answer(ctx, command)? {
-        interactive::Answered::Run(command) => command,
+        interactive::Answered::Run(command) => *command,
         interactive::Answered::Stopped(why) => {
             println!("{why}");
             return Ok(EXIT_OK);

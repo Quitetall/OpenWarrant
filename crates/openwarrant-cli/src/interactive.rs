@@ -152,7 +152,7 @@ pub fn check<R: BufRead, W: Write>(
 /// What `--interactive` turned a command into.
 pub(crate) enum Answered {
     /// The command, with the answers in its arguments.
-    Run(crate::DailyCommand),
+    Run(Box<crate::DailyCommand>),
     /// Nothing to do, and why: an empty answer writes nothing.
     Stopped(String),
 }
@@ -181,7 +181,7 @@ pub(crate) fn answer(
         D::Check {
             interactive: true, ..
         } => "check",
-        _ => return Ok(Answered::Run(command)),
+        _ => return Ok(Answered::Run(Box::new(command))),
     };
     if let Some(why) = refusal(name, ctx.json, crate::sign::at_a_terminal()) {
         return Err(Box::new(crate::repo::RepoError::Message(why)));
@@ -286,7 +286,7 @@ pub(crate) fn answer(
         }
         _ => {}
     }
-    Ok(Answered::Run(command))
+    Ok(Answered::Run(Box::new(command)))
 }
 
 #[cfg(test)]
