@@ -143,14 +143,14 @@ OW_VERSIONS = {
 def arm_war(arm: str = "") -> str:
     """The `war` an arm's sandbox gets. Unversioned arms keep the run-wide choice: ADOPTION_WAR, a
     local build to measure instead of the pinned release, or the pin."""
-    v = OW_VERSIONS.get(arm)
+    v = OW_VERSIONS.get(arms.version_arm(arm))
     if v:
         return v["war"] if "war" in v else os.environ.get(v["war_env"], "")
     return os.environ.get("ADOPTION_WAR") or str(HOME / ".local/lib/openwarrant" / PINS["war"] / "bin/war")
 
 
 def arm_plugin_ref(arm: str = "") -> str:
-    v = OW_VERSIONS.get(arm)
+    v = OW_VERSIONS.get(arms.version_arm(arm))
     if v:
         return v["plugin_ref"] if "plugin_ref" in v else os.environ.get(v["plugin_env"], "")
     return os.environ.get("ADOPTION_OW_PLUGIN_REF", PINS["ow_plugin"])
@@ -158,7 +158,7 @@ def arm_plugin_ref(arm: str = "") -> str:
 
 def plugin_dir(arm: str = "") -> Path:
     """Where the arm's Claude Code plugin is unpacked. The unversioned arm keeps `prepare`'s copy."""
-    if arm in OW_VERSIONS:
+    if arms.version_arm(arm) in OW_VERSIONS:
         return STUDY / "tools" / f"ow-plugin-{arm_plugin_ref(arm)}"
     return STUDY / "tools" / "ow-plugin"
 
@@ -200,8 +200,8 @@ def tools(arm: str = "") -> dict:
 
 def check_tools(agent: str = "claude", arm_list: list[str] | None = None) -> list[str]:
     problems = []
-    for arm in sorted(set(arm_list or []) & set(OW_VERSIONS)):
-        v, war, ref = OW_VERSIONS[arm], arm_war(arm), arm_plugin_ref(arm)
+    for arm in sorted(a for a in set(arm_list or []) if arms.version_arm(a) in OW_VERSIONS):
+        v, war, ref = OW_VERSIONS[arms.version_arm(arm)], arm_war(arm), arm_plugin_ref(arm)
         if not war or not Path(war).exists():
             problems.append(f"{arm}: no war at {war!r}" + (f" (set {v['war_env']})" if "war_env" in v else ""))
             continue
@@ -937,6 +937,7 @@ def parse_opencode(path: Path, max_turns: int) -> dict:
 def opencode_config(arm: str, max_turns: int, no_web: bool = False) -> dict:
     """A session's opencode config: the provider, every tool allowed (the sandbox is the boundary,
     as with Claude Code's bypassPermissions), the turn cap, and the arm's MCP server."""
+    mcp = arms.with_mcp(arm)
     arm = arms.tool_of(arm)
     cfg = {
         "$schema": "https://opencode.ai/config.json",
@@ -947,8 +948,11 @@ def opencode_config(arm: str, max_turns: int, no_web: bool = False) -> dict:
     }
     if no_web:
         cfg["permission"].update({"webfetch": "deny", "websearch": "deny"})
+    # Amendment 6: an `openwarrant-mcp@X` arm registers `war mcp` (its default tool set) as a local,
+    # stdio MCP server, the way opencode's `mcp` config section takes one; opencode starts it in the
+    # session's directory, and `war mcp` finds the repository from there.
     servers = {name: {"type": "local", "command": [d["command"], *d["args"]], "enabled": True}
-               for name, d in OPENCODE_ARM_MCP.get(arm, {}).items()}
+               for name, d in (ARM_MCP if mcp else OPENCODE_ARM_MCP).get(arm, {}).items()}
     if servers:
         cfg["mcp"] = servers
     return cfg
@@ -1267,7 +1271,7 @@ def cmd_execute(args) -> None:
         raise SystemExit("not ready:\n  " + "\n  ".join(problems))
     if args.agent == "claude":  # only Claude Code loads the plugin
         for arm in arm_list:
-            if arm in OW_VERSIONS and not plugin_dir(arm).exists():
+            if arms.version_arm(arm) in OW_VERSIONS and not plugin_dir(arm).exists():
                 unpack_plugin(plugin_dir(arm), arm_plugin_ref(arm))
     run_root = RUNS / args.run_id
     run_root.mkdir(parents=True, exist_ok=True)
@@ -1342,18 +1346,22 @@ def cell_tokens(r: dict) -> int:
 
 
 # Amendment 5: which versions are compared, newer first.
-VERSION_PAIRS = (("openwarrant@a7", "openwarrant@a6"), ("openwarrant@next", "openwarrant@a7"))
+VERSION_PAIRS = (("openwarrant@a7", "openwarrant@a6"), ("openwarrant@next", "openwarrant@a7"),
+                 ("openwarrant-mcp@next", "openwarrant-mcp@a7"))
+# Amendment 6: compared descriptively only, no win rule.
+MCP_TWINS = (("openwarrant-mcp@a7", "openwarrant@a7"), ("openwarrant-mcp@next", "openwarrant@next"))
 
 
-def win_rule(results: list[dict], new: str, old: str) -> dict:
+def win_rule(results: list[dict], new: str, old: str, tie: int = 1) -> dict:
     """Amendment 5's rule, fixed before any run, on the directed cells both arms ran. False
-    completions first (more loses), then passes (a difference of one cell or less is a tie), then
-    median tokens per cell (10% fewer wins, within 10% ties). A tie overall is no win."""
+    completions first (more loses), then passes (a difference of `tie` cells or less is a tie: one
+    per replicate, amendment 6), then median tokens per cell (10% fewer wins, within 10% ties). A tie
+    overall is no win. Pooled results carry `_run`, so cells of different runs stay apart."""
     cells = {}
     for r in results:
         c = r["cell"]
         if c["scenario"] == "directed" and c["arm"] in (new, old):
-            cells.setdefault(c["arm"], {})[(c["repo"], c["item"], c["rep"])] = r
+            cells.setdefault(c["arm"], {})[(r.get("_run", ""), c["repo"], c["item"], c["rep"])] = r
     common = sorted(set(cells.get(new, {})) & set(cells.get(old, {})))
     a = [cells[new][k] for k in common]
     b = [cells[old][k] for k in common]
@@ -1366,8 +1374,9 @@ def win_rule(results: list[dict], new: str, old: str) -> dict:
         return {"new": new, "old": old, "cells": len(common), "steps": steps,
                 "result": f"{winner} wins on false completions"}
     pa, pb = sum(1 for r in a if r.get("success")), sum(1 for r in b if r.get("success"))
-    steps.append(f"passes: {new} {pa}, {old} {pb} (difference {pa - pb}; one cell or less is a tie)")
-    if abs(pa - pb) > 1:
+    steps.append(f"passes: {new} {pa}, {old} {pb} (difference {pa - pb}; "
+                 + ("one cell or less is a tie)" if tie == 1 else f"{tie} cells or less is a tie)"))
+    if abs(pa - pb) > tie:
         winner = new if pa > pb else old
         return {"new": new, "old": old, "cells": len(common), "steps": steps,
                 "result": f"{winner} wins on passes"}
@@ -1382,6 +1391,54 @@ def win_rule(results: list[dict], new: str, old: str) -> dict:
     if tb <= 0.9 * ta:
         return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": f"{old} wins on tokens"}
     return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": "tie: no win"}
+
+
+def describe(results: list[dict], arm: str) -> dict:
+    """An arm's directed cells in the terms of the win rule, for a side-by-side comparison."""
+    rs = [r for r in results if r["cell"]["scenario"] == "directed" and r["cell"]["arm"] == arm]
+    ms = [s.get("metrics") or {} for r in rs for s in r["sessions"]]
+    return {"arm": arm, "cells": len(rs), "passes": sum(1 for r in rs if r.get("success")),
+            "false_completions": sum(1 for r in rs if r.get("tracker_says_done") and not r.get("success")),
+            "median_tokens_per_cell": median([cell_tokens(r) for r in rs]),
+            "turns_per_session": round(sum(m.get("num_turns") or 0 for m in ms) / len(ms), 1) if ms else None,
+            "median_turns_before_first_edit": median([m["turns_before_first_code_edit"] for m in ms
+                                                      if m.get("turns_before_first_code_edit") is not None])}
+
+
+def cmd_pool(args) -> None:
+    """Amendment 6: the win rule over the pooled directed cells of several runs, per pair, with a tie
+    of one cell per replicate the pair ran in; and each MCP arm beside its twin, descriptively."""
+    results = []
+    for run_id in args.run_ids:
+        for p in sorted((KEEP / run_id).rglob("result.json")):
+            results.append({**json.loads(p.read_text()), "_run": run_id})
+    lines = [f"# Pooled: {', '.join(args.run_ids)}", ""]
+    out = {"runs": args.run_ids, "pairs": [], "twins": []}
+    for new, old in VERSION_PAIRS:
+        runs = [rid for rid in args.run_ids
+                if {new, old} <= {r["cell"]["arm"] for r in results if r["_run"] == rid}]
+        if not runs:
+            continue
+        w = win_rule([r for r in results if r["_run"] in runs], new, old, tie=len(runs))
+        w["runs"] = runs
+        out["pairs"].append(w)
+        lines += [f"## {new} against {old}, pooled over {', '.join(runs)} (tie: {len(runs)} cells or less)", ""]
+        lines += [f"- {step}" for step in w["steps"]] + ["", f"**Result: {w['result']}**", ""]
+    for mcp_arm, twin in MCP_TWINS:
+        runs = [rid for rid in args.run_ids
+                if {mcp_arm, twin} <= {r["cell"]["arm"] for r in results if r["_run"] == rid}]
+        if not runs:
+            continue
+        rows = [describe([r for r in results if r["_run"] in runs], a) for a in (mcp_arm, twin)]
+        out["twins"].append({"runs": runs, "rows": rows})
+        keys = list(rows[0])
+        lines += [f"## {mcp_arm} beside {twin}, pooled over {', '.join(runs)} (descriptive, no win rule)", "",
+                  "| " + " | ".join(keys) + " |", "|" + "---|" * len(keys)]
+        lines += ["| " + " | ".join(str(r[k]) for k in keys) + " |" for r in rows] + [""]
+    name = "pool-" + "-".join(args.run_ids)
+    (KEEP / f"{name}.json").write_text(json.dumps(out, indent=1))
+    (KEEP / f"{name}.md").write_text("\n".join(lines))
+    print("\n".join(lines))
 
 
 def paired_differences(results: list[dict]) -> list[dict]:
@@ -1825,6 +1882,7 @@ def main() -> None:
     sub.add_parser("spec-check")
     sub.add_parser("spec-selfcheck")
     rp = sub.add_parser("report"); rp.add_argument("run_id")
+    po = sub.add_parser("pool"); po.add_argument("run_ids", nargs="+")
     # inside the sandbox only
     g = sub.add_parser("_grade"); g.add_argument("repo")
     t = sub.add_parser("_tracker"); t.add_argument("repo"); t.add_argument("arm")
@@ -1875,6 +1933,8 @@ def main() -> None:
         spec_selfcheck.main()
     elif args.cmd == "report":
         cmd_report(args)
+    elif args.cmd == "pool":
+        cmd_pool(args)
     elif args.cmd == "_grade":
         print(json.dumps(_inside_grade(args.repo)))
     elif args.cmd == "_answers":

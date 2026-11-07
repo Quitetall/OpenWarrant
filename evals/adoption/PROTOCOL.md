@@ -516,3 +516,58 @@ Claude Code shell after the change: tally's T8 cell seeded for `openwarrant@a7` 
 `openwarrant@next` (main at `f028d53da`) is identical once per-seeding ids are named,
 except the `AGENTS.md` block `war init` writes, and no journal holds a `work.usage` event
 or a Claude session.
+
+## Amendment 6 (2026-11-07): two more replicates, and opencode with `war mcp`
+
+Written and pushed before any run under it, at the owner's direction.
+
+**`next` moves to main at `d9b524f5c`** (#409, the instruction-block fix). Release build;
+it reports `war 1.0.0-alpha.7 (unreleased, commit d9b524f5c0ef)`, sha256
+`6f09c3d2349c6071b90dbaad076bdf98f7ef80efdd04db740a88cb46f83720cc`, plugin ref
+`d9b524f5c`. Every `@next` arm in `oc-v5-3` and `oc-v5-4` uses it. `oc-v5-2`'s `next` was
+`f028d53da`; it is pooled with these as the same arm, as the owner directed.
+
+**New arms, opencode only.** `openwarrant-mcp@a7` and `openwarrant-mcp@next` are
+`openwarrant@a7` and `openwarrant@next` with `war mcp` connected: the same build, seed,
+`AGENTS.md`, prompts, model and turn cap, and one difference, the session's opencode
+config. Its `mcp` section registers a local stdio server, `{"openwarrant": {"type":
+"local", "command": ["war", "mcp"], "enabled": true}}` (`run.py` `opencode_config`), with
+`war mcp`'s default tool set and no flags. opencode starts it in the session's directory,
+where `war mcp` finds the repository. opencode 2.2.1 reaches MCP tools through its code
+mode: the agent searches a namespace and calls `tools.openwarrant.<tool>` inside its
+`execute` tool. (`opencode mcp list` prints "No MCP servers configured" under the same
+config, though `opencode debug config` shows the server parsed and sessions use it; that
+command doesn't show what a session loads.)
+
+Proved before the runs, in the study's sandbox for tally's T8 cell, with one short
+session per build on the endpoint (not a study cell): asked to list the server's tools
+and call one, the agent found them by `search` and called them through `execute`.
+- `openwarrant-mcp@a7`: 42 tools listed; `war_next` returned a well-formed `oh.war/report/v1` envelope.
+- `openwarrant-mcp@next`: 7 tools listed (#406's lean default: `war_check`, `war_context`,
+  `war_create`, `war_done`, `war_note`, `war_start`, `war_status`); no `war_next`, so it
+  called `war_status({next: true})`, which returned the ready list.
+
+A plain MCP client in the same sandbox, with no model, also listed alpha.7's 42 tools and
+called `war_next`. Seeds, with per-seeding ids named: `openwarrant@next` and
+`openwarrant-mcp@next` are identical; alpha.7 and `next` differ only in the `AGENTS.md` block.
+
+**Runs.** `oc-v5-3`, then `oc-v5-4`: each one `systemd-run` unit holding all five arms,
+`plain`, `openwarrant@a7`, `openwarrant@next`, `openwarrant-mcp@a7` and
+`openwarrant-mcp@next`, on the 7 cells per arm of `oc-v5-2` (35 cells, arms interleaved per
+item, `plan-oc-v6.json`), at 60 turns, `--jobs 3`, after checking the endpoint is free and
+the grader's registry holds crates. Seeding goes through `arms.seed_env()`.
+
+**Pooling, fixed now** (`run.py pool <run-id>...`). For each pair, amendment 5's rule over
+the directed cells of every run holding both arms: `openwarrant@next` against
+`openwarrant@a7` over `oc-v5-2`, `oc-v5-3` and `oc-v5-4`; `openwarrant-mcp@next` against
+`openwarrant-mcp@a7` over `oc-v5-3` and `oc-v5-4`. False completions and passes are
+summed; passes tie when they differ by no more cells than the number of replicates
+pooled. Tokens are the median over the pooled cells, with the 10% band. Each MCP arm is
+also shown beside its twin (`openwarrant-mcp@X` beside `openwarrant@X`): passes, false
+completions, median tokens per cell, turns and turns before the first edit, with no win rule.
+
+**A harness error, defined now.** The machine is shared, and at a load average near 180 on
+2026-11-07 opencode twice stalled at startup and produced no event at all before a timeout.
+A session whose transcript holds no model step is a harness error, not the agent's
+result. Amendment 5's rule applies: the cell is rerun once for every arm, or excluded for
+every arm, and the report says which.

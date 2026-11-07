@@ -24,13 +24,27 @@ from pathlib import Path
 ARMS = ("plain", "plans", "speckit", "beads", "openwarrant", "jira")
 # Amendment 5: OpenWarrant versions as arms, run side by side. Each is the `openwarrant` arm, seeded
 # by the same code; only the `war` binary and the plugin ref differ (run.py OW_VERSIONS).
-VERSION_ARMS = ("openwarrant@a6", "openwarrant@a7", "openwarrant@next")
+# Amendment 6: `openwarrant-mcp@X` is `openwarrant@X` with `war mcp` registered in opencode's config.
+VERSION_ARMS = ("openwarrant@a6", "openwarrant@a7", "openwarrant@next",
+                "openwarrant-mcp@a7", "openwarrant-mcp@next")
 ALL_ARMS = ARMS + VERSION_ARMS
 
 
 def tool_of(arm: str) -> str:
-    """The tool an arm sets up: `openwarrant@a7` is the `openwarrant` arm on alpha.7's binary."""
-    return arm.split("@", 1)[0]
+    """The tool an arm sets up: `openwarrant@a7` and `openwarrant-mcp@a7` are both the `openwarrant`
+    arm on alpha.7's binary."""
+    base = arm.split("@", 1)[0]
+    return "openwarrant" if base == "openwarrant-mcp" else base
+
+
+def with_mcp(arm: str) -> bool:
+    """An arm whose agent has `war mcp` connected as an MCP server (amendment 6)."""
+    return arm.startswith("openwarrant-mcp@")
+
+
+def version_arm(arm: str) -> str:
+    """The version arm whose build an arm uses: `openwarrant-mcp@a7` uses `openwarrant@a7`'s."""
+    return "openwarrant@" + arm.split("@", 1)[1] if with_mcp(arm) else arm
 
 SEED_ENV = {
     "GIT_AUTHOR_NAME": "study-seed",
