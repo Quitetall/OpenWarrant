@@ -6,6 +6,19 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- FORMAT-1.0 revision 4, proposed (OW-ADR-0034, `status: proposed`; the editor
+  accepts it): new items are masters `docs/work/<id>/<id>-<slug>.md` with `w-`/`d-`
+  hash ids, `spec` and `roadmap` are the only fixed ids, human numbers are display
+  ordinals, and work orders and documents stand on one four-tier ladder (§4.6).
+  `war check` refuses a document `type` that is not its derived tier
+  (`format.type-tier`), a `kind` that disagrees with the id
+  (`format.kind-mismatch`), a second Roadmap, and the master `spec` beside
+  `SPEC.md` (`format.document-duplicate`). Built-in profiles `design` and `guide`.
+  `war context` ranks a higher tier first within a distance. Corpus cases 069,
+  070 and 174-177.
+
 ### Fixed
 
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a

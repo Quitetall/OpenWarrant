@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.3`, revision 3). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. |
+| Status | **Draft** (`1.0.0-draft.3`, revision 4). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. Revision 4 (OW-ADR-0034, proposed) adds masters in `docs/work/`, hash ids and the ladder of 4.6; the editor's acceptance of that ADR is a separate act. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
@@ -114,6 +114,8 @@ scalar or a dotted key (`holder.kind: git`).
 | `alias` | work documents | the repository-local id (`OW-WAR-0146`, `t-0d61d`). Its presence makes the document a work document |
 | `uuid` | work documents | a UUIDv7 (section 5) |
 | `summary` | work documents | one line, at most 200 bytes, saying what the work is for. RECOMMENDED elsewhere |
+| `kind` | OPTIONAL | `work` or `document`: which ladder the item stands on (4.6). The id already shows it; a `kind` that disagrees with the id is refused (`format.kind-mismatch`) |
+| `type` | documents | `spec`, `adr`, `design`, `guide` or `interface`: the document type, checked against its tier (4.6). On a work document `type` is not this key: it is a key only where its profile declares one (the `ticket` profile does) |
 | `paths` | OPTIONAL | a list of repository globs the work touches (10.3) |
 | `requires` | OPTIONAL | extension names a reader must understand (7.3) |
 | `implements`, `depends_on`, `supersedes`, `part_of` | OPTIONAL | a target or a list of targets (3.6): relations of the document's own record, never fields |
@@ -273,10 +275,28 @@ refused (`format.fence-unclosed`).
 
 ### 4.1 The single-file Warrant
 
-A Warrant is one file: `docs/warrants/<alias>.md`, or
-`docs/warrants/<alias>/warrant.md`; a ticket `docs/tickets/<alias>.md` or
-`docs/tickets/<alias>/ticket.md`. Both forms of one alias is refused
-(`format.document-duplicate`).
+Every new item, work or document, is a **master**:
+`docs/work/<id>/<id>-<slug>.md`, always a directory named by the id, its
+state beside it (4.3). The slug is cosmetic and is in the file name only;
+`<id>.md` is the same master without one, and the singletons are
+`docs/work/spec/spec.md` and `docs/work/roadmap/roadmap.md`. A directory
+that holds two documents claiming its id is refused
+(`format.document-duplicate`). Masters are what people and agents edit, and
+what a context compiler reads.
+
+The older places stay readable where they are, and nothing in them moves:
+a Warrant `docs/warrants/<alias>.md` or `docs/warrants/<alias>/warrant.md`;
+a ticket `docs/tickets/<alias>.md` or `docs/tickets/<alias>/ticket.md`.
+Both forms of one alias is refused (`format.document-duplicate`).
+
+A master MAY hold its sections in more than one file. The document is then
+the master file followed, byte for byte, by each part
+`docs/work/<id>/<id>.<NN>.md` in ascending `<NN>` (two digits), with no
+byte added or dropped between them; that concatenation, not any one file,
+is what is parsed, digested and signed. A split is allowed only in a
+master, and only where joining the parts gives exactly the bytes the
+unsplit document had: splitting or joining moves no revision and no
+signature. A part is not a document and declares no frontmatter.
 
 ```markdown
 ---
@@ -336,8 +356,18 @@ declares (`format.manifest-restates`): nothing is said twice.
 ### 4.3 Evidence lives outside
 
 Journals, gate runs, receipts, verification bundles, signatures and
-generated files live beside the document (`docs/warrants/<alias>/`), are
-not authored, and are never needed to read the document's meaning. A
+generated files live beside the document, in its **state directory**: the
+master's own directory, `docs/work/<id>/` (for an older place,
+`docs/warrants/<alias>/`). They are not authored, and are never needed to
+read the document's meaning. Every act's records go there.
+
+Elsewhere under `docs/`, a repository MAY keep **views**: pages generated
+from the masters (one per document, the open work by phase, the closed
+work), written only on the repository's main line, never edited and never
+read as a source. A view MAY show an item's human number, a display
+ordinal the main line assigns once in an append-only index
+(`docs/generated/numbers.tsv`: the header `id`, `number`, `first_seen`,
+then one tab-separated row per id), falling back to the id. A number is never in a file name and never identity. A
 reader MUST produce the model of a work document from the document alone;
 what those files add is state.
 
@@ -353,12 +383,18 @@ global and each is `part_of` it, outside `content_digest`.
 ### 4.5 Specifications
 
 A repository's specification says what the system is and must do. It is
-`SPEC.md` at the repository root, with profile `spec`, and MAY be split
-into parts: documents with profile `spec` and `part_of: doc:SPEC.md` in
-their frontmatter, which SHOULD live at `spec/<area>.md`. A repository has
-at most one root specification: a file with profile `spec` that is not
-`SPEC.md` and names no `part_of` is refused (`format.document-duplicate`),
-whether or not `SPEC.md` exists.
+the **Spec**, the master `docs/work/spec/spec.md` (alias `spec`, profile
+`spec`), the top document of the ladder (4.6). The rules this section gives
+`SPEC.md`'s keys and sections (`version`, Purpose, Scope) apply to it; as
+in any master, its record ids are scoped to it (`spec/REQ-reset-1`), and
+its parts are files of the master (4.1). `SPEC.md` at the repository root
+is its older place, read as before, and MAY be split into parts: documents
+with profile `spec` and `part_of: doc:SPEC.md` in their frontmatter, which
+SHOULD live at `spec/<area>.md`. A repository has at most one root
+specification: a file with profile `spec` that names no `part_of` and is
+neither `SPEC.md` nor the master `spec` is refused
+(`format.document-duplicate`), whether or not either exists, and so is the
+master `spec` when `SPEC.md` is also there.
 
 ```markdown
 ---
@@ -427,6 +463,60 @@ statement: Reset state MUST live in the existing accounts database.
 A specification written before this format (`docs/sas/`) is a legacy
 encoding (section 14).
 
+### 4.6 The ladder
+
+Every item is of one of two **kinds**: a **work order** (`kind: work`),
+which is done when its work is, or a **document** (`kind: document`),
+which says what is so. The id shows the kind (section 5): `w-`, `roadmap`
+and every older alias are work; `d-` and `spec` are documents, as is a
+record document (4.4) and `SPEC.md`. A `kind` key that disagrees with the
+id is refused (`format.kind-mismatch`). A master is read as a work document
+(4.1) whichever its kind: its own record's type is `ticket` or `warrant`
+as 4.1 says, and its kind, tier and `type` are read from its id, its
+profile and its fields, never from that record type.
+
+Each kind has one ladder of four **tiers**. A tier is derived, never
+stored: an item changes tier by changing the fact that makes it one.
+
+| tier | document | work order | what makes it that tier |
+|---|---|---|---|
+| 1 | Spec | Roadmap | it is the singleton: `spec` (or `SPEC.md`, its older place) or `roadmap` |
+| 2 | ADR | Order | a required signature |
+| 3 | Design | Warrant | a trigger |
+| 4 | Guide | Ticket | nothing extra |
+
+- **A required signature**: the profile selects `acceptance`,
+  `authorization` or `resolution` (7.6), or a milestone's `min` is
+  `signed`.
+- **A trigger**: something other than the performer's word decides
+  completion: the profile selects `evidence` or `verification`, or the
+  document holds a gating `check` (12) or a milestone whose `min` is
+  `observed` or `independent`.
+- **Singletons.** A repository has one Spec and one Roadmap. Every work
+  order belongs to the Roadmap: a view lists it there, under the phase it
+  is `part_of` (a `phase` record of the Roadmap), or as unphased. No
+  relation is written for that membership and none is in a digest. A
+  second Roadmap, a work order of profile `roadmap` that is not `roadmap`,
+  is refused (`format.document-duplicate`), as a second Spec is (4.5).
+- **Type.** A document declares `type:` (3.3): `spec` is tier 1, `adr`
+  tier 2, `design` and `interface` tier 3, `guide` tier 4. A type that is
+  none of these, or whose tier is not the derived one, is refused
+  (`format.type-tier`); a document with no `type` has the tier it derives.
+  An **interface** is a Design-tier document that states what one
+  repository offers another; it is how two repositories coordinate, each
+  citing it by its id.
+- **A signature covers its own text.** An act on the Spec or the Roadmap
+  (Appendix C) covers that document's own units, never the items under
+  it: accepting the Spec accepts no work, and authorizing the Roadmap
+  authorizes no work order.
+- **Precedence.** Where two items disagree, the higher tier governs (tier 1
+  is highest), and a context compiler ranks higher tiers first (10.3).
+- **Answers.** Who may answer a question asked on an item follows the
+  ladder: on a Ticket or a Warrant, any actor but the one who asked; on an
+  Order, or on a question that asks for a person, a person
+  (`actor_kind = "human"`, C.1). An answer by anyone else is recorded and
+  answers nothing.
+
 ## 5. Identity
 
 - A **record id** is an uppercase letter, then uppercase letters or digits,
@@ -434,10 +524,23 @@ encoding (section 14).
   bytes: `REQ-pr1`, `OBL-001`, `S-intent`.
 - An **item id** is `i-` and 3 to 16 lowercase hex digits. A bare item id
   names an item of the same document.
-- In a work document, ids are local and the global id is `<alias>/<id>`
-  (`OW-WAR-0146/OBL-001`, `t-0d61d/i-de0e`). Records of other documents
+- In a work document, and in any master, ids are local and the global id
+  is `<alias>/<id>` (`OW-WAR-0146/OBL-001`, `t-0d61d/i-de0e`,
+  `spec/REQ-reset-1`). Records of other documents
   are global. Every id is unique in its scope (`format.id-duplicate`).
-- Other ids: an alias (`OW-WAR-0146`, `t-0d61d`); `war://<uuid>`;
+- An item's id is its **alias**. A new work order's is `w-<hex>` and a
+  new document's `d-<hex>`: `w-` or `d-` and the first 3 to 16 lowercase
+  hex digits of the SHA-256 of the text of a fresh UUIDv7, as few as keep
+  it unused, so two branches never mint the same one. The prefix shows the
+  kind (4.6), never the tier, so a change of tier changes no id. `spec`
+  and `roadmap` are the only fixed ids. Older aliases (`t-0d61d`,
+  `OW-WAR-0146`) stay valid and are never renamed.
+- The **slug** is in the master's file name only (4.1). An item is found
+  by its id, whatever its slug, and confirmed by its frontmatter `alias`;
+  renaming the slug moves no state, revision or digest.
+- A **human number** is a display ordinal (4.3), never identity: no
+  document, relation or file name carries one.
+- Other ids: an alias (`w-3c16a`, `OW-WAR-0146`, `t-0d61d`); `war://<uuid>`;
   `md:<file>#<slug>` (a `##` section of `CLAUDE.md` or `AGENTS.md`);
   `doc:<path>` (a record document or specification, 4.4 and 4.5, or a
   Markdown file no profile reads). The shape routes the id.
@@ -601,6 +704,8 @@ document (`schemas/format/1.0/profiles/`), which is normative.
 | `spec` | document | structure, links, acceptance | 4.5 |
 | `adr` | document | structure, links, acceptance | Context, Decision, Consequences |
 | `roadmap` | document | structure, links, claims | nothing; its phases are `phase` records |
+| `design` | document | structure, links, evidence | nothing: a Design-tier document (4.6), `type: design` or `interface` |
+| `guide` | document | structure, links | nothing: a Guide-tier document (4.6) |
 | `release`, `incident`, `prd`, `architecture`, `test-plan` | document | structure, links | nothing; their files list the sections they recommend |
 
 ## 8. The canonical JSON model
@@ -742,7 +847,9 @@ its **via** the first `(step, from)` that did, by step order and then by
 named `core`. A profile MAY declare another walk; the packet names the
 walk it used.
 
-**3. Order.** By distance, then type rank — `warrant`/`ticket`, `section`,
+**3. Order.** By distance, then the tier (4.6) of the item that holds the
+record, tier 1 first (a record outside any item, and one whose tier cannot
+be read, after tier 4), then type rank — `warrant`/`ticket`, `section`,
 `item`, `requirement`, `outcome`, `constraint`, `decision`, `interface`,
 `term`, `option`, `consequence`, `obligation`, `check`, `kpi`,
 `milestone`, `stage`, `instruction`, any other — then source path, then line.
@@ -1302,7 +1409,8 @@ Refusals: `format.encoding`, `format.frontmatter`, `format.key-unknown`,
 `format.relation-kind`, `format.relation-target`, `format.item`,
 `format.id-duplicate`, `format.fence-unclosed`, `format.section-missing`,
 `format.document-duplicate`, `format.manifest-restates`,
-`format.unrecognised`, `format.field-shape`, `profile.invalid`,
+`format.unrecognised`, `format.field-shape`, `format.kind-mismatch`,
+`format.type-tier`, `profile.invalid`,
 `context.target-unknown`, `context.over-budget`, `apply.stale`,
 `apply.identity`, `work.stale-revision`, `work.claimed-by-other`,
 `work.journal-rewritten`, `work.journal-malformed`, `work.journal-torn`,
@@ -1391,6 +1499,11 @@ Each is deliberate (OW-ADR-0032).
     person's edits to a package flow back (10.4, 10.5).
 19. The authority and federation profiles are written down (Appendices C
     and D).
+20. New items are masters in `docs/work/<id>/`, named by a hash id
+    (`w-`, `d-`) with the slug in the file name only; human numbers are
+    display ordinals in generated views (4.1, 4.3, 5).
+21. Work orders and documents stand on one four-tier ladder, with one Spec
+    and one Roadmap per repository (4.6).
 
 ## Appendix A. Grammar (normative)
 
@@ -1429,7 +1542,8 @@ kind          = word | dotted ;
 target        = ref [ "@sha256:" hex64 ] ;
 ref           = record-id | alias "/" ( record-id | item-id ) | alias
               | item-id | "war://" uuid | "md:" path "#" slug | "doc:" path ;
-alias         = record-id | "t-" hex { hex } ;
+alias         = record-id | "t-" hex { hex } | "w-" 3*16 hex | "d-" 3*16 hex
+              | "spec" | "roadmap" ;
 body          = { line EOL } ;
 
 item          = { SP } ( "-" | "*" ) SP box SP text SP "(" item-id
@@ -1535,6 +1649,21 @@ acceptance as an act waiting on a person and a tool reports the work and
 obligations that cite the unaccepted record. For the other acts it lapses
 for the whole subject. Legacy subjects keep the digests their acts were signed over
 (section 14).
+
+**The digest a response carries.** A response to `authorize` or `resolve`
+names the subject's **contract digest**: the digest of the compiled
+contract (section 14), whose manifest digest is over the document's exact
+bytes (for a split master, the joined bytes of 4.1). The subject digest is
+a function of the same bytes, and the contract digest of every byte, so
+equal contract digests give equal subject digests, and an edit that moves
+the subject digest moves the contract digest: a response that holds by its
+contract digest holds by its subject digest. A response MAY carry the
+subject digest beside it, and a reader requires each digest a response
+carries to equal the subject's now. A response that carries the contract
+digest alone, as every `authorize` and `resolve` response written before
+revision 4 does, verifies by it. A response to `accept`, `verify` or
+`sign-off` names the subject digest, so an edit to one record lapses only
+the acts that cover it.
 
 ### C.4 Presets, roles and official work
 

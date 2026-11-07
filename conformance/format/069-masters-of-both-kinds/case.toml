@@ -1,0 +1,4 @@
+id = "069-masters-of-both-kinds"
+kind = "accept"
+section = "4.6"
+says = """The id shows the kind ... A document declares `type:` ... `design` and `interface` tier 3, `guide` tier 4."""

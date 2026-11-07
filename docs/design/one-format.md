@@ -92,13 +92,10 @@ old spelling `war new` (which keeps its bytes) write the legacy directory.
 `war plan --apply` and `war init --program` still write legacy directories,
 because their inputs are atom operations and atom templates.
 
-## Normative text that waits for a signing sitting
+## Normative text
 
-- §5 ids: `w-<hex>`, `d-<hex>` and the fixed ids `spec` and `roadmap` as aliases;
-  the slug in a master's file name; display ordinals.
-- §4.1 and §4.3 paths: masters in `docs/work/<id>/`, and the state directory as
-  where every act's records go.
-- C.3 defines a subject digest over `[id, revision, content_digest]`. Responses
-  carry the contract digest instead, which binds every byte and is stronger, but
-  is a different value. Recording C.3's value beside it is a response-schema change.
-- §4.1 has no wording for a document's sections split across files.
+FORMAT-1.0 revision 4 (OW-ADR-0034, proposed until the editor accepts it) writes
+what this design needed: §5's `w-`, `d-` and fixed ids, slugs and display
+ordinals; §4.1 and §4.3's masters, state directories and views; C.3's contract
+digest beside the subject digest; §4.1's split masters; and §4.6's ladder. A
+split master is defined there and not built: no tool writes or joins parts.

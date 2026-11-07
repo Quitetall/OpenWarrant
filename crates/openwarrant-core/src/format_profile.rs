@@ -84,7 +84,7 @@ pub const BUILTIN_PRESETS: [&str; 5] = ["agent", "agent.min", "human", "review",
 /// The built-in profiles of 7.6, as `(name, file bytes)`: byte-identical
 /// copies of the normative files at `schemas/format/1.0/profiles/` (#295).
 /// A unit test holds each copy to its file whenever the file is present.
-const BUILTIN: [(&str, &str); 11] = [
+const BUILTIN: [(&str, &str); 13] = [
     ("adr", include_str!("format_profiles/adr.toml")),
     (
         "architecture",
@@ -92,6 +92,8 @@ const BUILTIN: [(&str, &str); 11] = [
     ),
     ("decision", include_str!("format_profiles/decision.toml")),
     ("delivery", include_str!("format_profiles/delivery.toml")),
+    ("design", include_str!("format_profiles/design.toml")),
+    ("guide", include_str!("format_profiles/guide.toml")),
     ("incident", include_str!("format_profiles/incident.toml")),
     ("prd", include_str!("format_profiles/prd.toml")),
     ("release", include_str!("format_profiles/release.toml")),

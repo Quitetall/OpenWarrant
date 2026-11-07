@@ -8,8 +8,8 @@
 [F] t-0d61d/CHK-reset · check · - · reset tests pass · docs/tickets/t-0d61d.md:20
 [S] REQ-reset-1 · requirement · - · a reset link works once · SPEC.md:16
 [S] CON-1 · constraint · - · no new datastore · SPEC.md:21
-[S] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 [S] doc:SPEC.md · spec · - · Account service · SPEC.md:1
+[S] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 
 ## Records
 > t-0d61d/i-4d11 · item · docs/tickets/t-0d61d.md:16 · sha256:739e9dd2426a
