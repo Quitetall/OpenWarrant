@@ -15645,7 +15645,7 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | D-008 | The second friction baseline, with intake | `docs/friction/baseline-2.json` | verified |
 | D-009 | Intake against a prompt and a Jira ticket | `docs/FRICTION.md` | verified |
 | D-010 | How an issue becomes a Warrant, and what closes it | `docs/agents/issue-tracker.md` | drift |
-| D-011 | The intake plants | `conformance/plants.d/54-intake.sh` | verified |
+| D-011 | The intake plants | `conformance/plants.d/54-intake.sh` | drift |
 | D-012 | war plan --issue / --issue-file flags and their wiring into the plan handler (AM-002) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-013 | Open intake questions as human answer acts in war next (AM-002) | `crates/openwarrant-cli/src/next.rs` | drift |
 | D-014 | An issue input on the war_plan_* MCP tools (AM-002) | `crates/openwarrant-cli/src/mcp/tools.rs` | drift |
