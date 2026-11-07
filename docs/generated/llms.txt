@@ -4,12 +4,12 @@
 
 ## AGENTS.md
 > -
-- md:AGENTS.md#read-the-context-the-task-needs · instruction · - · Read the context the task needs · AGENTS.md:11
-- md:AGENTS.md#the-work-loop · instruction · - · The work loop · AGENTS.md:47
-- md:AGENTS.md#truthful-records · instruction · - · Truthful records · AGENTS.md:62
-- md:AGENTS.md#work-and-assurance · instruction · - · Work and assurance · AGENTS.md:81
-- md:AGENTS.md#the-hosts-context-documents · instruction · - · The host's context documents · AGENTS.md:99
-- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:119
+- md:AGENTS.md#the-default-work-loop · instruction · - · The default work loop · AGENTS.md:11
+- md:AGENTS.md#read-the-context-needed-for-this-task · instruction · - · Read the context needed for this task · AGENTS.md:32
+- md:AGENTS.md#fit-the-hosts-context-documents · instruction · - · Fit the host's context documents · AGENTS.md:74
+- md:AGENTS.md#apply-the-right-work-and-assurance-model · instruction · - · Apply the right work and assurance model · AGENTS.md:95
+- md:AGENTS.md#preserve-truthful-records · instruction · - · Preserve truthful records · AGENTS.md:108
+- md:AGENTS.md#stops-and-handoff · instruction · - · Stops and handoff · AGENTS.md:120
 
 ## CHANGELOG.md
 > -
@@ -377,7 +377,7 @@
 
 ## docs/agents/legacy-warrant-workflow.md
 > -
-- doc:docs/agents/legacy-warrant-workflow.md · document · - · Warrant workflow: the full rules · docs/agents/legacy-warrant-workflow.md:1
+- doc:docs/agents/legacy-warrant-workflow.md · document · - · Working in this repository · docs/agents/legacy-warrant-workflow.md:1
 
 ## docs/agents/triage-labels.md
 > -
