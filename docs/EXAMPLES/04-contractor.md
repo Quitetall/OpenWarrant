@@ -31,10 +31,10 @@ that extends anything but a core profile, that does not say whether it is
 approved, or that requires a role outside its own namespace (`contractor.*`).
 A refused definition refuses the repository: every command names the file.
 
-## 2. `war new --profile contractor`
+## 2. `war plan new --profile contractor`
 
 ```bash
-war new --profile contractor "Fixture: a contractor Work Order (non-binding)"
+war plan new --profile contractor "Fixture: a contractor Work Order (non-binding)"
 ```
 
 writes the `feature` preset's five delivery atoms and one stub per contractor
@@ -68,7 +68,7 @@ UNKNOWN profile.reference             contractor.terms cites kf://work-orders/FI
   names an actor (`acceptance_authority: <actor>`). The check reads the
   existing register, `docs/authority/roles.toml`. It refuses an agent by
   kind, an actor without `resolver` by name, and the performer (§27.2). No
-  actor role was added: whoever accepts does it with `war resolve`, which
+  actor role was added: whoever accepts does it with `war sign resolve`, which
   refuses an agent whatever the atom says.
 - **References, not copies.** `contractor.terms` and `contractor.commercial`
   must each cite at least one record. A `kf://` reference reads UNKNOWN,

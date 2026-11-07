@@ -22,14 +22,14 @@ bounded scope, a gate, and the evidence it expects:
 | OBL-005 | §91.10, §91.11 and §91.12 are planted |
 
 ```bash
-war show OW-WAR-0046            # the compiled Warrant
+war view show OW-WAR-0046            # the compiled Warrant
 war check OW-WAR-0046           # the record is sound: exit 0
 ```
 
 ## The journal, in order
 
 ```bash
-war journal OW-WAR-0046
+war admin journal OW-WAR-0046
 ```
 
 | when | event | who |
@@ -64,8 +64,8 @@ inadmissible, not stale-but-fine.
 
 Five files under `verifications/`, one per obligation, each `disposition =
 "established"`, each from `agent://lamu:mimo-v2.5-pro` — a separate model
-in a separate context, handed the request `war verify OW-WAR-0046
---performer claude` emitted. Had the verifier been the performer, `war verify
+in a separate context, handed the request `war evidence verify OW-WAR-0046
+--performer claude` emitted. Had the verifier been the performer, `war evidence verify
 --response` would have refused and written nothing.
 
 ## The resolution
@@ -78,9 +78,9 @@ resolved_by_ref = "person://Brian Lam"
 artifact_manifest_digest = "sha256:08d9ed4a…"     # sha256(deliverables.toml)
 ```
 
-`war resolve --dry-run OW-WAR-0046` lists the thirteen requirements it met.
+`war sign resolve --dry-run OW-WAR-0046` lists the thirteen requirements it met.
 The resolution binds the deliverables record by digest: from this moment
-`resolve.rs` and `verify.rs` are pinned, `war pins --resolved-only` lists
+`resolve.rs` and `verify.rs` are pinned, `war admin pins --resolved-only` lists
 them, and the plugin's edit guard refuses to touch them. They move only
 through the correction act — `war correct OW-WAR-0046 D-001`, signed by a
 human — which is what OW-WAR-0064 added.

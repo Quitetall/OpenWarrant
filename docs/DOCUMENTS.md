@@ -5,7 +5,7 @@ plan and an agent's brief from the same records, kept in step for you.
 
 A **record** is one statement with an id: an outcome, a requirement, a
 constraint, a decision. A **document** is a view of records. You never edit
-a document; you edit the records, and `war compile` rewrites every document
+a document; you edit the records, and `war admin compile` rewrites every document
 that shows them. `docs/TYPES.md` is the reference. This page walks through
 it.
 
@@ -120,7 +120,7 @@ type = "architecture"
 type = "test-plan"
 ```
 
-Then run `war compile`. It writes `docs/records/csv-export/generated/prd.md`
+Then run `war admin compile`. It writes `docs/records/csv-export/generated/prd.md`
 and the other declared documents. Commit them with the records.
 
 - **Change a record, recompile.** Each document that shows the record
