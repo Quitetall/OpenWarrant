@@ -1,0 +1,79 @@
+name: Views
+
+# Owner decision, 2026-11-07: views are written on main only. A pull request
+# edits masters and never carries a view (fast CI refuses one: `views.py pr`);
+# after each push to main this job compiles them and commits the result to
+# main, so main's views are always the masters' compilation. The paths are
+# conformance/views.toml; the publish step is conformance/views-publish.sh.
+#
+# It pushes with an SSH deploy key (secrets.VIEWS_DEPLOY_KEY) that the owner
+# adds as the one bypass actor on main's ruleset, from the `views` environment,
+# which the owner limits to `main`: a pull request's workflow can never read
+# the key. Not GITHUB_TOKEN with an Actions bypass, which a same-repository
+# pull request's workflow could use to push to main. Setup: docs/STORAGE.md,
+# "Views on main".
+#
+# Without the secret it reports `views: not published (VIEWS_DEPLOY_KEY not
+# configured)` and succeeds. A push of views alone, or of the views bot's own
+# commit, is skipped, so a publish never triggers another.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One run at a time; a newer push cancels the run before it, which would only
+# have published views the newer one replaces.
+concurrency:
+  group: views
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  publish:
+    name: views / publish
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.head_commit.author.email != 'views@openwarrant.invalid')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: views
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # Full history: the corpus status reads gate receipts' reuse from git,
+          # and at depth 1 a compile would move the committed projection.
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Is there anything to publish?
+        id: scope
+        env:
+          HAS_KEY: ${{ secrets.VIEWS_DEPLOY_KEY != '' }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$HAS_KEY" != true ]; then
+            echo "views: not published (VIEWS_DEPLOY_KEY not configured)"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          elif [ "$GITHUB_EVENT_NAME" = push ] && [ -n "$BEFORE" ] \
+              && python3 conformance/views.py only-views --before "$BEFORE" --after "$GITHUB_SHA"; then
+            echo "views: this push changed views only; nothing to publish"
+            echo "go=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        if: steps.scope.outputs.go == 'true'
+        with:
+          shared-key: ci-dev
+          save-if: false
+      - name: Compile and publish
+        if: steps.scope.outputs.go == 'true'
+        env:
+          VIEWS_DEPLOY_KEY: ${{ secrets.VIEWS_DEPLOY_KEY }}
+        run: bash conformance/views-publish.sh

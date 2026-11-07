@@ -70,10 +70,15 @@ step() {
 
 echo "ci-local: $(git -C "$SRC" rev-parse --short HEAD) onto $BASE ($(git rev-parse --short "$BASE_SHA"))"
 step lint cargo xtask-fast --only build,format,clippy,licenses,skills,doc-tests
-step tests cargo xtask-fast --only tests
-step corpus cargo xtask-fast --only corpus,acceptance --base HEAD^1
-step schemas cargo xtask-fast --only schemas
+step corpus cargo xtask-fast --only corpus,views,acceptance --base HEAD^1
 step select python3 conformance/plant-select.py affected --base HEAD^1 --shard 1/1 --cap 1200 --out "$WORK/plants.txt"
+# Views are written on main only (conformance/views.toml), so the clone's may
+# lag the masters. As CI's tests and plants jobs do: compile them, and commit
+# them locally (the battery restores with `git checkout`), after every step
+# that reads HEAD^1.
+step views python3 conformance/views.py fresh --war target/debug/war --commit
+step tests cargo xtask-fast --only tests
+step schemas cargo xtask-fast --only schemas
 if [[ -s "$WORK/plants.txt" ]]; then
     echo "      $(wc -l <"$WORK/plants.txt") plant(s) selected"
     step plants env OW_PLANT_FILES="$WORK/plants.txt" bash conformance/plant.sh

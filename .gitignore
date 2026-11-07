@@ -10,10 +10,11 @@
 .openwarrant/score/
 .openwarrant/.gitignore
 
-# Generated views are NOT listed here on purpose. This repository sets
-# `[generated] commit = true, verify_drift = true` (§59.2), so compiled parents
-# are tracked and `war check --generated` fails when a committed view differs
-# from a fresh compilation. Ignoring them would delete the drift signal.
+# Generated views are NOT listed here on purpose. They are tracked on main,
+# where only the Views workflow writes them (conformance/views.toml), and an
+# ignore rule would hide a new one from that workflow's `git add`. On a branch
+# the check is fast CI's `views.pr`, which refuses a pull request that carries
+# one; `python3 conformance/views.py drop --base origin/main` takes them out.
 
 # Python bytecode: build output, not source.
 __pycache__/

@@ -194,6 +194,79 @@ wrong reason.
   extends each side's committed journal. Ticket checklists and intents merge
   through `war merge-ticket` (docs/TICKETS.md, "Branches that merge").
 
+## Views on main
+
+Owner decision, 2026-11-07: masters are edited in pull requests; views are
+written on main only. `conformance/views.toml` is the one list of view paths,
+and `conformance/views.py` is what every check reads it with.
+
+- **A pull request carries no views.** Fast CI's `views` step refuses one
+  that adds or edits a view, naming each path (`views.pr`; a deletion is
+  allowed, so a removed master's views can go with it), and one
+  that touches a resolved Warrant's projection (`views.record`).
+  `python3 conformance/views.py drop --base origin/main` takes them out.
+- **Views are still checked.** Fast CI's `corpus` step compiles them fresh
+  from the masters in a scratch worktree and runs `war check --generated`
+  there; the tests and plants jobs compile them in their own disposable
+  checkout. A compile that would change anything that is not a view is
+  refused (`views.unlisted`).
+- **A resolved Warrant's projection is part of its record.** It is under a
+  view glob, but once `resolution.toml` sits beside it, nothing regenerates,
+  edits or drops it, the Views workflow included.
+- **Main writes them.** After each push to main, `.github/workflows/views.yml`
+  compiles, appends new ids to the human-number index
+  (`docs/generated/numbers.tsv`: id, number, first-seen commit; append-only,
+  a number never changed or reused), stages exactly the changed views, commits
+  them as `openwarrant-views` with the message `views: compile main`, and
+  pushes a fast-forward. If main moved, it fetches, rebuilds, recompiles and
+  retries. A push of views alone, or the bot's own commit, is skipped, and a
+  newer push cancels an older run.
+- **Locally,** `war compile` writes views for reading as before. They show as
+  changes in `git status`; leave them out of the commit.
+
+### The owner's one-time setup
+
+Until these are done the workflow reports `views: not published
+(VIEWS_DEPLOY_KEY not configured)` and succeeds. Run them in a shell that
+is not an agent's. The repository is `Quitetall/OpenWarrant`.
+
+1. Generate the key pair, in a directory that is not the repository:
+   `ssh-keygen -t ed25519 -N "" -C openwarrant-views -f views_deploy_key`
+2. Add the public key as a deploy key with write access:
+   `gh repo deploy-key add views_deploy_key.pub --repo Quitetall/OpenWarrant --title "views (main)" --allow-write`
+3. Add deploy keys to the bypass list of the default-branch ruleset: Settings,
+   Rules, Rulesets, the ruleset on `main`, Bypass list, Add bypass, Deploy
+   keys, Always allow. The bypass covers every deploy key with write access,
+   so keep this the only one. The API form (not run here; the web form is the
+   one to trust):
+
+   ```bash
+   ID=$(gh api repos/Quitetall/OpenWarrant/rulesets --jq '.[] | select(.target == "branch") | .id')
+   gh api repos/Quitetall/OpenWarrant/rulesets/$ID \
+     | jq '{bypass_actors: (.bypass_actors + [{actor_id: null, actor_type: "DeployKey", bypass_mode: "always"}])}' \
+     | gh api -X PUT repos/Quitetall/OpenWarrant/rulesets/$ID --input -
+   ```
+4. Create the `views` environment, limited to `main`, so a pull request's
+   workflow can never read its secret:
+
+   ```bash
+   gh api -X PUT repos/Quitetall/OpenWarrant/environments/views \
+     --input - <<<'{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}'
+   gh api -X POST repos/Quitetall/OpenWarrant/environments/views/deployment-branch-policies -f name=main -f type=branch
+   ```
+5. Add the private key as the environment's secret, then delete the file:
+   `gh secret set VIEWS_DEPLOY_KEY --repo Quitetall/OpenWarrant --env views < views_deploy_key && shred -u views_deploy_key`
+
+Merge queue (owner approval, 2026-11-07): Settings, Rules, Rulesets, the
+ruleset on `main`, Require merge queue. Fast CI runs on `merge_group` with
+the same required name, `fast-gate`, so nothing else changes. A views
+commit moves main outside the queue, so the queue rebuilds its groups after
+each publish.
+
+Pages (`.github/workflows/pages.yml`, a resolved deliverable of OW-WAR-0060)
+is unchanged: it deploys the committed projection when a push changes it,
+and the views commit is that push.
+
 ## Retained artifacts
 
 A signed or resolved record is kept exactly as it was written. Specifically:
