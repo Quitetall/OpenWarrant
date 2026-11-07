@@ -10547,7 +10547,7 @@ The Identifier Registry does not exist. Until it does, an allocated enterprise I
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | Identity allocation and the unallocated enterprise id (§101.5) | `crates/openwarrant-core/src/identity.rs` | drift |
+| D-001 | Identity allocation and the unallocated enterprise id (§101.5) | `crates/openwarrant-core/src/identity.rs` | verified |
 
 ### OW-WAR-0030 — Implement portable preservation: one-file export and round trip
 
@@ -40730,7 +40730,7 @@ the working form is what keeps the contract corpus unchanged.
 | D-001 | The ticket profile: a working form of delivery | `profiles/ticket.toml` | verified |
 | D-002 | The registry's working form (form, core_roles, BadForm) | `crates/openwarrant-core/src/role.rs` | drift |
 | D-003 | A Warrant naming a working-form profile is refused | `crates/openwarrant-core/src/manifest.rs` | verified |
-| D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | drift |
+| D-004 | Ticket manifest, hash ids, checklist parser and writer | `crates/openwarrant-core/src/ticket.rs` | verified |
 | D-005 | The ticket module | `crates/openwarrant-core/src/lib.rs` | drift |
 | D-006 | The ticket commands | `crates/openwarrant-cli/src/ticket/mod.rs` | drift |
 | D-007 | Claims: hard-link locks, steal, release | `crates/openwarrant-cli/src/ticket/claim.rs` | drift |
