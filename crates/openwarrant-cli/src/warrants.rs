@@ -160,7 +160,7 @@ fn directory_row(repo: &Repository, dir: &Utf8Path) -> (Option<Row>, Vec<Diagnos
     let manifest = dir.join("manifest.toml");
     // A Format 1.0 document's state directory: its row is the document's
     // ([`document_rows`]), not a manifest's.
-    if !crate::vfs::is_file(&manifest) && crate::subject::of_state(dir).is_some() {
+    if crate::subject::is_document_state(dir) {
         return (None, faults);
     }
     let rel = repo.relative(&manifest);

@@ -247,7 +247,10 @@ mod tests {
     fn a_work_hash_id_is_an_alias_in_no_namespace() {
         let a = LocalAlias::parse_in("w-3c16c", "OW").expect("a hash id");
         assert!(a.is_hash_id() && a.namespace().is_empty() && a.ordinal().is_none());
-        assert!(LocalAlias::parse("t-3c16c").is_err(), "a ticket id is not a Warrant alias");
+        assert!(
+            LocalAlias::parse("t-3c16c").is_err(),
+            "a ticket id is not a Warrant alias"
+        );
         assert!(LocalAlias::parse("w-").is_err());
     }
 

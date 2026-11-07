@@ -718,9 +718,7 @@ impl Repository {
         let manifest_path = dir.join("manifest.toml");
         // One loader, two layouts: a Format 1.0 document lowers to the same
         // Basis (`crate::subject`, docs/design/one-format.md).
-        if !fs::is_file(&manifest_path)
-            && let Some(found) = crate::subject::of_state(dir)
-        {
+        if let Some(found) = crate::subject::of_state(dir) {
             return crate::subject::load(self, &found);
         }
         let manifest_bytes = fs::read(&manifest_path).map_err(|source| RepoError::Io {

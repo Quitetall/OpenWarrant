@@ -5142,8 +5142,13 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let format_version = format_version.filter(|v| v != "legacy");
             if format_version.as_deref() == Some("master") {
                 let delivery = match &profile {
-                    None => preset.as_deref().and_then(new::preset_profile).is_none_or(|p| p.to_string() != "decision"),
-                    Some(p) if matches!(p.to_string().as_str(), "delivery" | "decision") => p.to_string() == "delivery",
+                    None => preset
+                        .as_deref()
+                        .and_then(new::preset_profile)
+                        .is_none_or(|p| p.to_string() != "decision"),
+                    Some(p) if matches!(p.to_string().as_str(), "delivery" | "decision") => {
+                        p.to_string() == "delivery"
+                    }
                     Some(p) => {
                         let mut report = diagnostic::Report::default();
                         report.push(diagnostic::Diagnostic::error(
@@ -5161,7 +5166,10 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                 output::emit(
                     mode,
                     "new",
-                    &format!("created {rel} ({}, profile {profile})\nanswer each section, then run `war check`", openwarrant_core::format::VERSION),
+                    &format!(
+                        "created {rel} ({}, profile {profile})\nanswer each section, then run `war check`",
+                        openwarrant_core::format::VERSION
+                    ),
                     serde_json::json!({"alias": id, "path": rel, "profile": profile, "format": openwarrant_core::format::VERSION, "layout": "master"}),
                 );
                 return Ok(EXIT_OK);
@@ -5264,11 +5272,16 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         PlanCommand::Expand { id } => {
             let repository = ctx.open_repo()?;
             let done = subject::expand(&repository, &id)?;
-            let (from, to) = (repository.relative(&done.from), repository.relative(&done.to));
+            let (from, to) = (
+                repository.relative(&done.from),
+                repository.relative(&done.to),
+            );
             output::emit(
                 mode,
                 "expand",
-                &format!("moved {from} to {to}: same id, same bytes; every signature over it stands"),
+                &format!(
+                    "moved {from} to {to}: same id, same bytes; every signature over it stands"
+                ),
                 serde_json::json!({"id": done.alias, "from": from, "to": to}),
             );
             Ok(EXIT_OK)

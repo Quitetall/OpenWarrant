@@ -231,10 +231,11 @@ pub fn of_state(dir: &Utf8Path) -> Option<Found> {
 }
 
 /// Whether `dir` is a document's state directory rather than a legacy
-/// Warrant: a reader that models documents itself skips it.
+/// Warrant (a `manifest.toml` beside a document holds tool settings only,
+/// FORMAT-1.0 §4.2): a reader that models documents itself skips it.
 #[must_use]
 pub fn is_document_state(dir: &Utf8Path) -> bool {
-    !crate::vfs::is_file(dir.join("manifest.toml")) && of_state(dir).is_some()
+    of_state(dir).is_some()
 }
 
 /// Every document a formal act takes, by state directory, sorted.
@@ -318,7 +319,9 @@ pub fn create_master(
         let uuid = openwarrant_core::WarUuid::mint().to_string();
         let len = openwarrant_core::ticket::ticket_id_len(taken) + attempt / 4;
         let id = openwarrant_core::ticket::hash_id("w-", &uuid, len);
-        if roots(repo).iter().any(|r| crate::vfs::exists(r.join(&id)) || crate::vfs::exists(r.join(format!("{id}.md")))) {
+        if roots(repo).iter().any(|r| {
+            crate::vfs::exists(r.join(&id)) || crate::vfs::exists(r.join(format!("{id}.md")))
+        }) {
             continue;
         }
         let path = master_path(repo, &id, title);
@@ -328,13 +331,18 @@ pub fn create_master(
             source,
         })?;
         let text = crate::new::format_template(&id, &uuid, title, delivery);
-        match std::fs::OpenOptions::new().write(true).create_new(true).open(&path) {
+        match std::fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+        {
             Ok(mut file) => {
                 use std::io::Write as _;
-                file.write_all(text.as_bytes()).map_err(|source| RepoError::Io {
-                    context: format!("could not write {path}"),
-                    source,
-                })?;
+                file.write_all(text.as_bytes())
+                    .map_err(|source| RepoError::Io {
+                        context: format!("could not write {path}"),
+                        source,
+                    })?;
                 return Ok((id, path));
             }
             Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
@@ -556,7 +564,10 @@ pub fn load(repo: &Repository, found: &Found) -> Result<Loaded, RepoError> {
         report.push(Diagnostic::error(
             "subject.alias-mismatch",
             source,
-            format!("the file is named {} but declares alias {alias}", found.alias),
+            format!(
+                "the file is named {} but declares alias {alias}",
+                found.alias
+            ),
         ));
         return Ok(none(report));
     }
@@ -565,7 +576,7 @@ pub fn load(repo: &Repository, found: &Found) -> Result<Loaded, RepoError> {
         report.push(Diagnostic::unknown(
             "subject.stages-unlowered",
             source.clone(),
-            "stage records are not lowered to a dispatch basis: `war dispatch` reads stages \
+            "stage records are not lowered to a dispatch basis: `war admin dispatch` reads stages \
              from a legacy milestones atom, which a Format 1.0 document does not have",
         ));
     }
@@ -641,15 +652,14 @@ pub fn load(repo: &Repository, found: &Found) -> Result<Loaded, RepoError> {
         currency: None,
         atoms: entries,
     };
-    let validated = match manifest
-        .validate_in(Some(repo.config.project.namespace.as_str()), &repo.profiles)
-    {
-        Ok(v) => v,
-        Err(e) => {
-            report.push(Diagnostic::error("subject.invalid", source, e.to_string()));
-            return Ok(none(report));
-        }
-    };
+    let validated =
+        match manifest.validate_in(Some(repo.config.project.namespace.as_str()), &repo.profiles) {
+            Ok(v) => v,
+            Err(e) => {
+                report.push(Diagnostic::error("subject.invalid", source, e.to_string()));
+                return Ok(none(report));
+            }
+        };
     let scope_path = found.state.join("scope.toml");
     let scope = crate::vfs::read(&scope_path).ok().map(|b| ScopeSource {
         source: format!("{alias}/scope.toml"),
@@ -684,14 +694,21 @@ mod tests {
     #[test]
     fn a_directory_holds_one_document_by_its_alias_not_its_slug() {
         let tmp = tempfile::tempdir().expect("tmp");
-        let dir = Utf8Path::from_path(tmp.path()).expect("utf8").join("w-3c16");
+        let dir = Utf8Path::from_path(tmp.path())
+            .expect("utf8")
+            .join("w-3c16");
         std::fs::create_dir_all(&dir).expect("dir");
-        let doc = |alias: &str| format!("---\nformat: openwarrant/1.0\nprofile: delivery\nalias: {alias}\n---\n# T\n");
+        let doc = |alias: &str| {
+            format!("---\nformat: openwarrant/1.0\nprofile: delivery\nalias: {alias}\n---\n# T\n")
+        };
         assert_eq!(document_in(&dir, "w-3c16"), Held::None);
         std::fs::write(dir.join("w-3c16-some-slug.md"), doc("w-3c16")).expect("write");
         // A file whose name has the prefix but whose alias is another id is not it.
         std::fs::write(dir.join("w-3c16-other.md"), doc("w-9999")).expect("write");
-        assert_eq!(document_in(&dir, "w-3c16"), Held::One(dir.join("w-3c16-some-slug.md")));
+        assert_eq!(
+            document_in(&dir, "w-3c16"),
+            Held::One(dir.join("w-3c16-some-slug.md"))
+        );
         std::fs::write(dir.join("w-3c16-copy.md"), doc("w-3c16")).expect("write");
         assert!(matches!(document_in(&dir, "w-3c16"), Held::Many(v) if v.len() == 2));
     }

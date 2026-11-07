@@ -141,9 +141,9 @@ const fn inner_name(place: Place) -> &'static str {
 pub fn is_document_dir(dir: &Utf8Path) -> bool {
     crate::vfs::is_file(dir.join("warrant.md"))
         || crate::vfs::is_file(dir.join("ticket.md"))
-        || dir.file_name().is_some_and(|id| {
-            crate::subject::document_in(dir, id) != crate::subject::Held::None
-        })
+        || dir
+            .file_name()
+            .is_some_and(|id| crate::subject::document_in(dir, id) != crate::subject::Held::None)
 }
 
 fn sorted_entries(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
@@ -239,7 +239,12 @@ pub fn warrant_documents(repo: &Repository) -> FormatDocs {
         profiles: profiles(repo),
         ..FormatDocs::default()
     };
-    work_documents(repo, Place::Warrant, &crate::subject::work_root(repo), &mut out);
+    work_documents(
+        repo,
+        Place::Warrant,
+        &crate::subject::work_root(repo),
+        &mut out,
+    );
     work_documents(repo, Place::Warrant, &repo.warrants_dir(), &mut out);
     out
 }
