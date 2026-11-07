@@ -96,7 +96,15 @@ paths = [
     "conformance/plant-select.py", "conformance/plant-map.toml", "conformance/plant-weights.tsv",
     ".github/workflows/fast.yml", ".github/workflows/ci.yml",
 ]
-plants = ["187-plant-selection.sh"]
+plants = ["187-plant-selection.sh", "240-views.sh"]
+
+[[rule]]
+name = "views on main"
+paths = [
+    "conformance/views.py", "conformance/views.toml", "conformance/views-publish.sh",
+    ".github/workflows/views.yml", "conformance/ci-local.sh",
+]
+plants = ["240-views.sh"]
 
 # ---- command modules, each with the plants that drive it --------------------
 
