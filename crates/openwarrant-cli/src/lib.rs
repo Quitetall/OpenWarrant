@@ -3171,6 +3171,23 @@ fn pinned_context(
     }
 }
 
+/// `war view prime <target>` when `target` names another repository: the
+/// answer, or `None` for a target of this one.
+pub(crate) fn pinned_target(
+    repository: &repo::Repository,
+    target: &str,
+) -> Option<ticket::Outcome> {
+    match repos::classify(&repository.root, target) {
+        repos::Target::Local => None,
+        repos::Target::Undeclared(name) => Some(ticket::Outcome::unknown(
+            repos::UNKNOWN_RULE,
+            target,
+            format!("{name} is not declared in [repos]"),
+        )),
+        repos::Target::Named(name, rest) => Some(pinned_prime(repository, name, rest)),
+    }
+}
+
 /// `war view prime <name>:<rest>`: that repository's item at its pin, or
 /// UNKNOWN. What the pin does not hold may exist upstream, so it is not said
 /// to be missing, only not here.
@@ -6615,24 +6632,11 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 return Ok(ticket_answer(mode, "prime", &outcome));
             }
             // W6: `hpr:t-abc` is that repository's item, at its pin.
-            let classified = target.as_deref().map_or(repos::Target::Local, |t| {
-                repos::classify(&repository.root, t)
-            });
-            match classified {
-                repos::Target::Local => {}
-                repos::Target::Undeclared(name) => {
-                    let why = format!("{name} is not declared in [repos]");
-                    let outcome = ticket::Outcome::unknown(
-                        repos::UNKNOWN_RULE,
-                        target.as_deref().unwrap_or_default(),
-                        why,
-                    );
-                    return Ok(ticket_answer(mode, "prime", &outcome));
-                }
-                repos::Target::Named(name, rest) => {
-                    let outcome = pinned_prime(&repository, name, rest);
-                    return Ok(ticket_answer(mode, "prime", &outcome));
-                }
+            if let Some(outcome) = target
+                .as_deref()
+                .and_then(|t| pinned_target(&repository, t))
+            {
+                return Ok(ticket_answer(mode, "prime", &outcome));
             }
             let mut outcome = ticket::prime(&repository, &store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it

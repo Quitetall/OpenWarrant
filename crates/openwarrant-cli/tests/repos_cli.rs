@@ -803,3 +803,75 @@ fn a_notice_reaches_another_clone_through_the_remote() {
     std::fs::remove_file(&stamp).unwrap();
     assert!(heard(&run(&b, "bob", &["note", &two, "again"])).is_empty());
 }
+
+// ---- the other ways in ------------------------------------------------------
+
+#[test]
+fn a_worktree_with_no_submodule_checkout_reads_through_its_own_pin() {
+    let t = two();
+    let wt = t.wmd.with_extension("wt");
+    git(
+        &t.wmd,
+        &["worktree", "add", "-q", wt.to_str().unwrap(), "-b", "side"],
+    );
+    assert!(!wt.join("vendor/hpr/.git").exists());
+    let said = text(&run(&wt, "o", &["context", "hpr:CL-step"]));
+    assert!(said.contains("advances simulated time"), "{said}");
+}
+
+#[test]
+fn the_mcp_server_reads_through_the_pin_and_says_unknown() {
+    use std::io::{BufRead, BufReader, Write};
+    let t = two();
+    let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["mcp"])
+        .current_dir(&t.wmd)
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::null())
+        .spawn()
+        .unwrap();
+    let mut stdin = child.stdin.take().unwrap();
+    let mut out = BufReader::new(child.stdout.take().unwrap());
+    let mut call = |id: u64, method: &str, params: Value| -> String {
+        let v = serde_json::json!({"jsonrpc":"2.0","id":id,"method":method,"params":params});
+        stdin.write_all(format!("{v}\n").as_bytes()).unwrap();
+        stdin.flush().unwrap();
+        let mut line = String::new();
+        out.read_line(&mut line).unwrap();
+        line
+    };
+    call(
+        1,
+        "initialize",
+        serde_json::json!({"protocolVersion":"2025-06-18","capabilities":{},
+            "clientInfo":{"name":"test","version":"0"}}),
+    );
+    let tool = |name: &str, args: Value| serde_json::json!({"name": name, "arguments": args});
+    let read = call(
+        2,
+        "tools/call",
+        tool("war_context", serde_json::json!({"target": "hpr:CL-step"})),
+    );
+    assert!(read.contains("advances simulated time"), "{read}");
+    assert!(read.contains("hpr @ "), "{read}");
+    let missing = call(
+        3,
+        "tools/call",
+        tool("war_context", serde_json::json!({"target": "nope:CL-step"})),
+    );
+    assert!(missing.contains("repos.unknown"), "{missing}");
+    assert!(!missing.contains("advances simulated time"), "{missing}");
+    let prime = call(
+        4,
+        "tools/call",
+        tool(
+            "war_prime",
+            serde_json::json!({"ticket": format!("hpr:{}", t.feature)}),
+        ),
+    );
+    assert!(prime.contains("The physics feature"), "{prime}");
+    let _ = child.kill();
+    let _ = child.wait();
+}

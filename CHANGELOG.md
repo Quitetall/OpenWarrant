@@ -17,6 +17,17 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- Work across repositories (`docs/INTERFACES.md`). `[repos.<name>]` names a
+  submodule or sibling, and a pin is read from its gitlink, a `pin` field or
+  `Cargo.lock`. `war context hpr:CL-step` and `war view prime hpr:t-abc` read from
+  the other repository's objects at that commit; what can't be read is UNKNOWN.
+  `war create --depends-on` holds an item out of `ready`, and prime says *done
+  upstream, not pinned here* until the pin moves. `war done` warns on a Ticket and
+  refuses a Warrant or an Order. `war check` counts open clauses and flags late
+  ones, `--clauses` runs them, `--record` writes `docs/interfaces.lock`, and
+  `war status` shows drift in one line. `--change breaking|compatible --clause`
+  makes a change request, and `war plan impact` lists claims on both sides. Notices
+  follow the pin, and reach other clones through `refs/openwarrant/notices`.
 - `war plan types add interfaces` adds an `interface` document type: numbered
   clauses two sides build against, each saying how it's verified, with an open
   value declared `tbd` or `tbr`. `docs/INTERFACES.md` shows it.
