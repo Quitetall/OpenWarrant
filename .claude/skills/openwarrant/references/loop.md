@@ -7,7 +7,7 @@ A person signs at two points, and the tool accepts nothing else in their
 place.
 
 ```bash
-war next                                   # what is ready, and whose step it is
+war status --next                          # what is ready, and whose step it is
 war plan new "What this work accomplishes" # docs/warrants/<NS>-WAR-NNNN/
 # fill in the atoms (AGENTS.md, "Writing the atoms")
 war check <alias>                          # deterministic; no agent, no network
@@ -27,7 +27,7 @@ war sign resolve <alias>                   # drafts the close-out request
 
 `--json` on any command gives one `oh.war/report/v1` envelope: `diagnostics[]`
 (each with a `rule`), `verdict`, `exit_code`, and a command-specific `result`.
-`war next --json` gives every signing step to a person.
+`war status --next --json` gives every signing step to a person.
 
 A file a closed Warrant pins changes through the correction act: edit it,
 `war sign correct <alias> <D-id>` drafts the request, and a person signs it with

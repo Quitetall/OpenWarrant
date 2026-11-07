@@ -47,7 +47,7 @@ longest remaining length that waits on nothing open. Ready nodes start in
 this order:
 
 1. those with an effective due date, earliest first. A light Warrant may
-   carry `due = "YYYY-MM-DD"` (`war edit <id> --due 2026-11-01`; `--due
+   carry `due = "YYYY-MM-DD"` (`war plan edit <id> --due 2026-11-01`; `--due
    none` clears it); work a deadline waits on inherits it. A date never makes
    a node ready, so it never reorders what waits on what;
 2. then the longest remaining length (the critical path first);
@@ -122,7 +122,7 @@ note on its Warrant saying what happened, and a `go.ended` event:
 
 After `[go] max_attempts` (3) such endings in a row, or when the performer
 asks to block, amend or cancel, the node is **set aside for a person**
-(`go.blocked`): `war next` lists it, with the reason and the command that
+(`go.blocked`): `war status --next` lists it, with the reason and the command that
 puts it back, `war evidence go --retry <node>`.
 
 The run stops when nothing more is ready, when `--max-nodes` or `[go]

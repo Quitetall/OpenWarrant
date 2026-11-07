@@ -52,7 +52,7 @@ reference_roles = ["lab.protocol"]          # optional: atoms that link, never c
 [[requires]]
 role = "lab.protocol"       # must be in the profile's own namespace, `lab.*`
 ordinal = 71                # must not be a core role's ordinal (§16.1)
-file = "71-lab-protocol.md" # what `war new --profile lab` names the atom
+file = "71-lab-protocol.md" # what `war plan new --profile lab` names the atom
 stub = """# Protocol
 <!-- required -->
 <!-- The question the author answers. -->
@@ -70,7 +70,7 @@ time:
 - its acceptance or reference roles are not among the roles it requires;
 - it has a field this schema does not define.
 
-Then `war new --profile lab "..."` writes the extended profile's preset atoms
+Then `war plan new --profile lab "..."` writes the extended profile's preset atoms
 (`feature` for `delivery`, `decision` for `decision`), plus one stub per
 required role from the definition's `stub` text. No code names the profile.
 
@@ -101,7 +101,7 @@ A profile may NOT change:
   resolution act. An `acceptance_role` atom names the acceptance authority in
   its header (`acceptance_authority: <actor>`). `war check` requires that
   actor to be a human in `docs/authority/roles.toml`, holding `resolver`, who
-  is not the performer. `war resolve` refuses an agent whatever the atom says.
+  is not the performer. `war sign resolve` refuses an agent whatever the atom says.
 - **What counts as resolved.** Only the core decides that, and the profile
   has no way into it.
 - **What it can prove about its references.** A reference role must cite at
@@ -143,7 +143,7 @@ not do:
   profile (`WorkingFormProfile`), so nothing that reads the contract corpus
   ever reads a two-atom record.
 - The way into the contract is promotion into the core profile it extends
-  (`war plan new --from`), which then requires every core role, exactly as `war new`.
+  (`war plan new --from`), which then requires every core role, exactly as `war plan new`.
   The working form loosens nothing a signature, verification or resolution
   reads.
 - The registry refuses a working form that names no core role, a core role the
@@ -167,10 +167,10 @@ without an independent response".
 | `claims` | `structure` | claim and done on work items |
 | `acceptance` | `structure` | a revision in force once a human accepts it |
 | `evidence` | `structure` | gate citations, `war evidence record`, §40 records |
-| `verification` | `evidence` | obligations, the adequacy review, `war verify` |
-| `authorization` | `structure` | `war authorize`, `war sign`'s authorize act, the authorization's checks |
-| `resolution` | `verification`, `authorization` | §56.1, `war resolve`, deliverable pins, corrections |
-| `stages` | `structure` | the milestone graph, `war next`'s execute acts, §56.1 requirement 12 |
+| `verification` | `evidence` | obligations, the adequacy review, `war evidence verify` |
+| `authorization` | `structure` | `war sign authorize`, `war sign`'s authorize act, the authorization's checks |
+| `resolution` | `verification`, `authorization` | §56.1, `war sign resolve`, deliverable pins, corrections |
+| `stages` | `structure` | the milestone graph, `war status --next`'s execute acts, §56.1 requirement 12 |
 
 - `delivery` selects all nine; `decision` all but `stages`, so requirement 12
   reads "not applicable: no `stages` capability" for a decision; a working
@@ -179,7 +179,7 @@ without an independent response".
 - An extension defaults to its core's set (the working form's set for a
   working form) and may narrow it, never widen it.
 - A kind lacking a capability is refused the act by name
-  (`capability.absent`), `war next` offers it nothing for it, and `war check`
+  (`capability.absent`), `war status --next` offers it nothing for it, and `war check`
   names the rule families that do not apply (`capability.not-applicable`).
   A §56.1 requirement whose capability is absent reads "not applicable",
   never met, and a kind without `resolution` stays `draft`.
@@ -202,7 +202,7 @@ What was once chosen by the profile's name is data too:
 
 ## The pin: a signature covers the type
 
-`war new` writes `profile_digest = "sha256:…"`, the profile file's digest,
+`war plan new` writes `profile_digest = "sha256:…"`, the profile file's digest,
 into a new manifest when the program has that file. The manifest's bytes are
 inside the contract digest, so a signature covers the type. `war check`
 reports `profile.pinned` while the file is unchanged, and `profile.pin-drift`,

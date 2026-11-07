@@ -42,5 +42,19 @@ Existing flat command spellings remain compatible.
 
 Authority requirements are optional unless the Warrant or repository requires
 them. Preserve signed records and use the supported authority workflow when
-requested. `war plan promote` is a legacy directory adapter, not a required
-step to turn a ticket into a Warrant or to complete ordinary work.
+requested. A person signs with `war sign`; an agent does not.
+
+## Levels
+
+One item, three levels, derived from its fields and not stored. A **Ticket**
+(the default) is done when the agent says so. A **Warrant** has a trigger,
+such as `war create "..." --test "<command>"`, and `war done` runs it and
+closes the work only on a pass. An **Order** has a required human signature
+(`war create "..." --sign`) and is done when the trigger, if any, passed and a
+person signed. `war plan promote <id>` adds the signature in place, and
+`war plan promote <id> --test "<command>"` adds a test: same ID, no new
+document. `--path`, `--tool` and `--command` on `create` set permissions and do
+not change the level. A person at a terminal can add `--interactive` to any of
+the six commands; an agent passes arguments, and without a terminal the flag
+is refused by name. `war context <target>` takes a Warrant, a document, a
+section (`file.md#slug`), a few words or a code path, and fits the budget.
