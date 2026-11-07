@@ -3291,7 +3291,7 @@ fn owns_claim(store: &Store, claim: &claim::Claim) -> bool {
             None => claim
                 .coordination
                 .as_ref()
-                .is_none_or(|c| c.session == scopes::session()),
+                .is_none_or(|c| scopes::same_holder(store, c)),
         }
 }
 

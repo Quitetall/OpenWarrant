@@ -27,10 +27,31 @@ fi
 CI_R="$CI_T/rust"; mkdir -p "$CI_R"; printf '[package]\nname="x"\n' > "$CI_R/Cargo.toml"
 CI_OUT=$(ciw init --namespace CI --ci 2>&1); CI_S=$?
 CI_Y=$(python3 - "$CI_R/$CI_F" <<'PY' 2>&1
-import sys, yaml
-w = yaml.safe_load(open(sys.argv[1]))
-steps = w["jobs"]["check"]["steps"]
-print(" | ".join(s["run"].strip() for s in steps if "run" in s and "curl" not in s["run"]))
+# Read the `run` steps by hand: a runner need not have PyYAML. Where it does,
+# the file must parse as well.
+import re, sys
+text = open(sys.argv[1]).read()
+try:
+    import yaml
+except ImportError:
+    pass
+else:
+    yaml.safe_load(text)
+runs, lines, i = [], text.splitlines(), 0
+while i < len(lines):
+    m = re.match(r"( *)(?:- )?run: *(.*)$", lines[i])
+    i += 1
+    if not m:
+        continue
+    body = m.group(2)
+    if body == "|":
+        block = []
+        while i < len(lines) and (not lines[i].strip() or len(lines[i]) - len(lines[i].lstrip()) > len(m.group(1))):
+            block.append(lines[i].strip())
+            i += 1
+        body = "\n".join(block).strip()
+    runs.append(body)
+print(" | ".join(r for r in runs if "curl" not in r))
 PY
 )
 if [[ $CI_S -eq 0 && -f "$CI_R/openwarrant.toml" && "$CI_Y" == 'war check --changed --since "$BASE" | cargo test' ]]; then

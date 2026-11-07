@@ -8,6 +8,11 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- `war done` could disown its own claim. With no harness session variable set,
+  `war start` in one terminal and `war done` in another read as two holders,
+  and `war done` answered that nobody held the work. With no named session,
+  the worktree now decides. A named session still decides by its name.
+
 - A single-file ticket's own sections, such as `## Design notes`, reached no
   brief: `war start`, `war view prime` and the prompt hook showed only its
   preamble, so an agent never saw them. In the adoption study this failed the

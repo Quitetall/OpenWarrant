@@ -40,6 +40,21 @@ pub fn session() -> String {
     format!("local-process:{}", std::process::id())
 }
 
+/// Whether the process asking is the one that took this claim. A harness names
+/// its session, and that name decides. With no name, `session()` falls back to
+/// the operating system's session, which every new terminal changes, so `war
+/// start` in one and `war done` in the next would disown the holder's own
+/// claim: there the worktree decides, one actor to a worktree.
+pub fn same_holder(store: &Store, claim: &Coordination) -> bool {
+    holder_matches(claim, &session(), &workspace(store))
+}
+
+fn holder_matches(claim: &Coordination, session: &str, workspace: &str) -> bool {
+    let unnamed = |s: &str| s.starts_with("local-session:") || s.starts_with("local-process:");
+    claim.session == session
+        || (unnamed(&claim.session) && unnamed(session) && claim.workspace == workspace)
+}
+
 pub fn workspace(store: &Store) -> String {
     store
         .root
@@ -279,4 +294,37 @@ pub fn conflict(a: &Coordination, b: &Coordination) -> Option<String> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod holder_tests {
+    use super::{Coordination, holder_matches};
+
+    fn claim(session: &str, workspace: &str) -> Coordination {
+        Coordination {
+            workspace: workspace.into(),
+            session: session.into(),
+            base_revision: None,
+            paths: vec![],
+            display_name: String::new(),
+        }
+    }
+
+    #[test]
+    fn a_new_terminal_in_the_same_worktree_is_the_same_holder() {
+        let c = claim("local-session:10", "/w");
+        assert!(holder_matches(&c, "local-session:20", "/w"));
+        assert!(holder_matches(&c, "local-process:30", "/w"));
+    }
+
+    #[test]
+    fn another_worktree_or_a_named_session_is_not() {
+        let unnamed = claim("local-session:10", "/w");
+        assert!(!holder_matches(&unnamed, "local-session:20", "/other"));
+        assert!(!holder_matches(&unnamed, "CODEX_THREAD_ID:ab", "/w"));
+        let named = claim("CODEX_THREAD_ID:ab", "/w");
+        assert!(!holder_matches(&named, "local-session:20", "/w"));
+        assert!(!holder_matches(&named, "CODEX_THREAD_ID:cd", "/w"));
+        assert!(holder_matches(&named, "CODEX_THREAD_ID:ab", "/other"));
+    }
 }

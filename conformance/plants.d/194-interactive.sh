@@ -15,12 +15,15 @@ ia_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 ia_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 IA_WAR="$REPO_ROOT/${WAR#./}"
 IA_R="$IA_T/r"; mkdir -p "$IA_R"
-ia() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR OPENWARRANT_NO_PROJECTS=1 \
-    "$IA_WAR" --root "$IA_R" "$@"; }
+# No harness session either: `script` starts a new one per command, as a new
+# terminal does, and a session variable from the caller would hide what breaks.
+IA_ENV=(env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR -u OPENWARRANT_SESSION_ID
+    -u KATANA_SESSION_ID -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID
+    OPENWARRANT_NO_PROJECTS=1)
+ia() { "${IA_ENV[@]}" "$IA_WAR" --root "$IA_R" "$@"; }
 # A real terminal: `script` runs the command on a pty and passes these lines in.
 ia_tty() { local input="$1"; shift
-    printf '%b' "$input" | env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR OPENWARRANT_NO_PROJECTS=1 \
-        timeout 30 script -qec "$IA_WAR --root $IA_R $*" /dev/null 2>&1; }
+    printf '%b' "$input" | "${IA_ENV[@]}" timeout 30 script -qec "$IA_WAR --root $IA_R $*" /dev/null 2>&1; }
 ia init --namespace IA >/dev/null 2>&1 </dev/null
 
 if ! script -qec true /dev/null >/dev/null 2>&1; then
