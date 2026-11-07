@@ -353,6 +353,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         | "sign.not-draftable"
         | "sign.needs-decision"
         | "sign.response-exists"
+        | "sign.signs-alone"
         | "sign.would-record" => Remedy::new(
             Kind::Informational,
             &["war", "sign", "--list"],
