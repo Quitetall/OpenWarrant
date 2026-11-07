@@ -595,7 +595,7 @@ fn answer_questions(repo: &Repository, b: &Board, report: &mut Report) -> Result
             }
             other => other.to_owned(),
         };
-        match crate::questions::answer(repo, &q.warrant, &q.id, &text, &actor) {
+        match crate::questions::answer(repo, &q.warrant, &q.id, &text, Some(actor.as_str())) {
             Ok(r) => {
                 for d in r.diagnostics {
                     report.push(d);

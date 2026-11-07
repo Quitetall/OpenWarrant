@@ -642,6 +642,10 @@ fn judged(
     // OW-WAR-0141: a question waiting before its Warrant exists is a human's
     // act too (`answer`), read from `docs/intake/` by questions.rs.
     next.actions.extend(crate::questions::intake_actions(repo));
+    // OW-ADR-0034: a question asked of whoever runs this, with its answer command.
+    if let Ok(store) = crate::ticket::Store::open(repo, None) {
+        next.actions.extend(crate::hotline::next_actions(&store));
+    }
     // An Order an agent finished: a person's, whatever the ticket store's
     // read says below, which reports a store it could not read.
     let sign_offs = crate::console::sign_offs(corpus).unwrap_or_default();

@@ -207,8 +207,19 @@ pub struct NoteParams {
     /// A Warrant or item.
     #[serde(alias = "ticket", alias = "id")]
     pub target: String,
-    /// Markdown.
+    /// Markdown; with `answer`, the answer.
+    #[serde(default)]
     pub text: String,
+    /// Ask this question instead.
+    #[serde(default)]
+    pub ask: Option<String>,
+    /// Answer this question id with `text`.
+    #[serde(default)]
+    pub answer: Option<String>,
+    #[serde(default)]
+    pub blocking: bool,
+    #[serde(default)]
+    pub needs_human: bool,
     /// Refused `work.stale-revision` unless still at this revision.
     #[serde(default)]
     pub if_rev: Option<String>,
@@ -1185,8 +1196,8 @@ impl WarServer {
 
     // -- writes an agent may make --
 
-    // Asking is an agent's act; answering is not, and `war_answer` is in
-    // REFUSED_TOOLS for the same reason `war_sign` is (OW-WAR-0069).
+    // Asking and answering are `war_note`'s (OW-ADR-0034): who may answer
+    // follows the ladder there. No `war_answer` tool is served.
     #[tool(
         name = "war_ask",
         description = "Ask a person a question that blocks a stage; a person answers.",
@@ -1198,10 +1209,13 @@ impl WarServer {
             crate::questions::ask(
                 &self.repo,
                 &p.alias,
-                &p.stage,
-                &p.question,
-                &p.recommend,
-                p.blocking,
+                &crate::questions::Asking {
+                    stage: &p.stage,
+                    question: &p.question,
+                    recommended: &p.recommend,
+                    blocking: p.blocking,
+                    ..crate::questions::Asking::default()
+                },
             ),
         )
     }
@@ -1548,12 +1562,24 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a Warrant or item.",
+        description = "Append a dated note to a Warrant or item, or ask or answer a question.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
         self.ticket("note", p.actor.as_deref(), |s| {
-            crate::ticket::note(s, &p.target, &p.text, p.if_rev.as_deref())
+            let act = match (&p.ask, &p.answer) {
+                (Some(q), _) => crate::hotline::NoteAct::Ask(crate::questions::Asking {
+                    question: q,
+                    blocking: p.blocking,
+                    needs_human: p.needs_human,
+                    ..crate::questions::Asking::default()
+                }),
+                (None, Some(id)) => crate::hotline::NoteAct::Answer { id, text: &p.text },
+                (None, None) => {
+                    return crate::ticket::note(s, &p.target, &p.text, p.if_rev.as_deref());
+                }
+            };
+            crate::hotline::note(&self.repo, &p.target, act, p.actor.as_deref())
         })
     }
 
