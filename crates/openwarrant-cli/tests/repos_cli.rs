@@ -678,3 +678,128 @@ fn impact_lists_claims_on_both_sides_and_says_what_it_could_not_read() {
         "{v}"
     );
 }
+
+// ---- notices across the boundary -------------------------------------------
+
+fn heard(out: &Output) -> Vec<String> {
+    String::from_utf8_lossy(&out.stderr)
+        .lines()
+        .filter(|l| l.starts_with("notice: "))
+        .map(str::to_owned)
+        .collect()
+}
+
+#[test]
+fn a_changed_clause_reaches_the_side_that_depends_on_it_once() {
+    let t = two();
+    // Agreed, so it can start; the other agent depends on another clause.
+    let agreed = INTERFACE.replace("status: tbd", "status: agreed");
+    std::fs::write(t.hpr.join(DOC), &agreed).unwrap();
+    t.push_and_fetch();
+    t.bump();
+    let step = waiting(&t, "hpr:CL-step", &["--test", "true"]);
+    let other = waiting(&t, "hpr:CL-handle", &[]);
+    assert_eq!(json(&t.wmd, "alice", &["start", &step])["exit_code"], 0);
+    assert_eq!(json(&t.wmd, "bob", &["start", &other])["exit_code"], 0);
+
+    // HPR changes CL-step. Published, not yet fetched: nobody can know.
+    std::fs::write(
+        t.hpr.join(DOC),
+        agreed.replace("advances simulated time", "steps time"),
+    )
+    .unwrap();
+    git(&t.hpr, &["add", "-A"]);
+    git(&t.hpr, &["commit", "-qm", "change a clause"]);
+    git(&t.hpr, &["push", "-q", "origin", "main"]);
+    assert!(heard(&run(&t.wmd, "alice", &["note", &step, "working"])).is_empty());
+
+    git(&t.sub(), &["fetch", "-q", "origin"]);
+    // Bob's write finds it. It is not his.
+    assert!(heard(&run(&t.wmd, "bob", &["note", &other, "working"])).is_empty());
+    let first = heard(&run(&t.wmd, "alice", &["note", &step, "again"]));
+    assert_eq!(first.len(), 1, "{first:?}");
+    assert!(
+        first[0].contains("hpr:CL-step changed upstream"),
+        "{first:?}"
+    );
+    assert!(heard(&run(&t.wmd, "alice", &["note", &step, "more"])).is_empty());
+
+    // Unseen, a Warrant stays open; seen and unpinned, it is behind.
+    let out = run(&t.wmd, "alice", &["done", &step]);
+    assert!(text(&out).contains("done.unseen"), "{}", text(&out));
+    assert_eq!(json(&t.wmd, "alice", &["start", &step])["exit_code"], 0);
+    let out = run(&t.wmd, "alice", &["done", &step]);
+    assert!(text(&out).contains("done.behind"), "{}", text(&out));
+
+    // The pin moves: the same change is not heard twice, and it closes.
+    t.bump();
+    assert!(heard(&run(&t.wmd, "alice", &["note", &step, "bumped"])).is_empty());
+    let out = run(&t.wmd, "alice", &["done", &step]);
+    assert!(out.status.success(), "{}", text(&out));
+    // Bob's clause never changed.
+    assert!(heard(&run(&t.wmd, "bob", &["note", &other, "still fine"])).is_empty());
+}
+
+#[test]
+fn a_notice_reaches_another_clone_through_the_remote() {
+    let dir = tempfile::tempdir().unwrap();
+    let origin = dir.path().join("o.git");
+    std::fs::create_dir_all(&origin).unwrap();
+    git(&origin, &["init", "-q", "--bare", "-b", "main"]);
+    git(dir.path(), &["clone", "-q", origin.to_str().unwrap(), "a"]);
+    let a = dir.path().join("a");
+    git(&a, &["checkout", "-q", "-b", "main"]);
+    assert_eq!(
+        json(&a, "o", &["init", "--namespace", "CL"])["exit_code"],
+        0
+    );
+    let cfg = a.join("openwarrant.toml");
+    let mut config = std::fs::read_to_string(&cfg).unwrap();
+    config.push_str("\n[claims]\nremote = \"origin\"\n");
+    std::fs::write(&cfg, config).unwrap();
+    std::fs::create_dir_all(a.join("docs")).unwrap();
+    std::fs::write(a.join("docs/plan.md"), "# Plan\n\nfirst\n").unwrap();
+    let body = "Follow docs/plan.md.";
+    let one = json(&a, "o", &["create", "A first", "--body", body])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let two = json(&a, "o", &["create", "B second", "--body", body])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    git(&a, &["add", "-A"]);
+    git(&a, &["commit", "-qm", "start"]);
+    git(&a, &["push", "-q", "origin", "main"]);
+    git(dir.path(), &["clone", "-q", origin.to_str().unwrap(), "b"]);
+    let b = dir.path().join("b");
+
+    // An agent in each clone watches the plan, on a branch of its own.
+    git(&a, &["checkout", "-q", "-b", "work-a"]);
+    git(&b, &["checkout", "-q", "-b", "work-b"]);
+    assert_eq!(json(&a, "alice", &["start", &one])["exit_code"], 0);
+    assert_eq!(json(&b, "bob", &["start", &two])["exit_code"], 0);
+
+    // Main moves, seen only from A.
+    git(&a, &["checkout", "-q", "main"]);
+    std::fs::write(a.join("docs/plan.md"), "# Plan\n\nsecond\n").unwrap();
+    git(&a, &["add", "-A"]);
+    git(&a, &["commit", "-qm", "amend"]);
+    git(&a, &["push", "-q", "origin", "main"]);
+    let _ = run(&a, "other", &["note", &one, "looked"]);
+
+    // B has fetched nothing, and hears.
+    let refs = git(&b, &["ls-remote", "origin", "refs/openwarrant/notices/*"]);
+    assert!(!refs.is_empty(), "nothing published");
+    // Writes read the remote at most once a minute: a minute goes by.
+    let stamp = b.join(".git/openwarrant/notices/.remote-read");
+    std::fs::remove_file(&stamp).unwrap();
+    let said = heard(&run(&b, "bob", &["note", &two, "working"]));
+    assert_eq!(said.len(), 1, "{said:?}");
+    assert!(
+        said[0].contains("docs/plan.md") && said[0].contains("another clone"),
+        "{said:?}"
+    );
+    std::fs::remove_file(&stamp).unwrap();
+    assert!(heard(&run(&b, "bob", &["note", &two, "again"])).is_empty());
+}

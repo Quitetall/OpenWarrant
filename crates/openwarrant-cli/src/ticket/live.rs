@@ -39,6 +39,20 @@
 //! [`standing`] tells `war done` where a claim stands, and
 //! [`crate::ticket::enforce`] decides what that means at the item's level.
 //!
+//! # Across a boundary
+//!
+//! A clause of a named repository that a ticket depends on or cites is watched
+//! by its own text (`hpr:CL-step`, reach `pin`), so a change to the clause
+//! beside it is no news. It is compared at the pin and at what was fetched from
+//! the other side, without a process until a claim watches one: a change is
+//! heard once it is fetched or the pin moves, and once, because the notice is
+//! named by the digest. Until the pin holds it, a Warrant stays behind.
+//!
+//! With `[claims] remote`, a change a detector finds is also published as
+//! `refs/openwarrant/notices/<key>`, the pattern of the claims in
+//! [`super::remote`], for the other clones, which read it at most once a
+//! minute and when an answer waits on it.
+//!
 //! Nothing here signs or touches a signed record, and nothing here is
 //! authority: a claim, and so a notice, is coordination. It is off in a hosted
 //! or recording run and under `OPENWARRANT_NO_NOTICES`. A notice problem never
@@ -51,7 +65,7 @@ use std::sync::OnceLock;
 use camino::{Utf8Path, Utf8PathBuf};
 use serde::{Deserialize, Serialize};
 
-use super::{Store, claim, now_secs, rfc3339, scopes};
+use super::{Store, claim, now_secs, remote, rfc3339, scopes};
 use crate::context::task::{SourceEntry, TaskPacket};
 use crate::go::packet::Allowed;
 use crate::impact::Reach;
@@ -69,10 +83,14 @@ const DELIVERED: &str = "delivered";
 /// The default branch's commit last compared, so a tip that did not move
 /// starts no process.
 const TIP_FILE: &str = ".tip";
-/// A file that is not there, where a digest would be.
-const ABSENT: &str = "absent";
+/// When the other clones' notices were last read.
+const READ_FILE: &str = ".remote-read";
+/// How often a write reads them.
+const READ_EVERY_SECS: u64 = 60;
 /// What a clause watched through a pin reached its claim by.
 pub const PIN: &str = "pin";
+/// A file that is not there, where a digest would be.
+const ABSENT: &str = "absent";
 /// How much of a diff `war start` prints for one file.
 const DIFF_LINES: usize = 30;
 /// Most units a notice names.
@@ -90,6 +108,10 @@ pub struct Watched {
     pub file: String,
     /// Every digest that is no news to this claim.
     pub known: Vec<String>,
+    /// For a clause watched through a pin: the other repository's commit that
+    /// holds `file`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub commit: Option<String>,
 }
 
 /// What `war start` gave a claim, kept beside it.
@@ -156,6 +178,10 @@ pub struct Notice {
     pub at: String,
     /// What changed and what to do, in one line.
     pub line: String,
+    /// For a clause of another repository: its file there, `checkout` being
+    /// that repository's git directory.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
 }
 
 /// Who is asking: set once, before a command runs, and touching no file, so
@@ -443,6 +469,194 @@ struct Scan {
     posted: usize,
     /// Files of the claim asked about that could not be compared.
     unread: Vec<String>,
+    /// What was posted, for the other clones.
+    fresh: Vec<Notice>,
+    /// With a claims remote: the claims compared.
+    live: Vec<Live>,
+}
+
+/// A claim being compared: its manifest's file, its manifest, and the claim.
+type Live = (Utf8PathBuf, Kept, claim::Claim);
+
+/// Post `notice` unless it is here already.
+fn post(dir: &Utf8Path, notice: Notice, out: &mut Scan) -> std::io::Result<()> {
+    std::fs::create_dir_all(dir)?;
+    let body = serde_json::to_vec(&notice).map_err(std::io::Error::other)?;
+    write_whole(&dir.join(format!("{}.json", notice.id)), &body)?;
+    out.posted += 1;
+    out.fresh.push(notice);
+    Ok(())
+}
+
+fn posted_already(dir: &Utf8Path, id: &str) -> bool {
+    let name = format!("{id}.json");
+    dir.join(&name).exists() || dir.join(DELIVERED).join(&name).exists()
+}
+
+/// Compare the clauses `live` watches through a pin with what the pin and the
+/// fetched upstream hold: heard when it reaches either, and once.
+fn scan_pinned(
+    dir: &Utf8Path,
+    live: &[Live],
+    asked: Option<&str>,
+    now: u64,
+    out: &mut Scan,
+) -> std::io::Result<()> {
+    for (_, k, c) in live {
+        let is_asked = asked == Some(k.claim.as_str());
+        let Some(coord) = c
+            .coordination
+            .as_ref()
+            .filter(|_| is_asked || !c.lease_expired(now))
+        else {
+            continue;
+        };
+        let root = Utf8Path::new(&coord.workspace);
+        for w in k.watched.iter().filter(|w| w.reach == PIN) {
+            let Some((name, id)) = w.source.split_once(':') else {
+                continue;
+            };
+            let located = match crate::repos::locate(root, name) {
+                Ok(l) => l,
+                Err(_) => {
+                    if is_asked {
+                        out.unread.push(w.source.clone());
+                    }
+                    continue;
+                }
+            };
+            let tip = crate::repos::upstream_tip(&located.git_dir)
+                .filter(|t| !crate::repos::holds(&located.git_dir, &located.pin.commit, t));
+            let pin = located.pin.commit.clone();
+            let views = [
+                (Some(pin), "at the pin"),
+                (tip, "upstream, not pinned here"),
+            ];
+            for (commit, place) in views {
+                let Some(commit) = commit else { continue };
+                let found = crate::repos::read_at(&located, &commit, None, |r| {
+                    crate::interfaces::clause(r, id)
+                });
+                let Ok(found) = found else {
+                    if is_asked {
+                        out.unread.push(w.source.clone());
+                    }
+                    continue;
+                };
+                let digest = found
+                    .as_ref()
+                    .map_or_else(|| ABSENT.to_owned(), |c| c.digest.clone());
+                let path = found.map(|c| c.source);
+                if w.known.contains(&digest) {
+                    continue;
+                }
+                let notice_key = notice_id(&k.claim, &w.source, &digest);
+                if posted_already(dir, &notice_key) {
+                    continue;
+                }
+                post(
+                    dir,
+                    Notice {
+                        schema: NOTICE_SCHEMA.to_owned(),
+                        line: format!(
+                            "notice: {} changed {place}; run `war start {}`.",
+                            w.source, k.ticket
+                        ),
+                        id: notice_key,
+                        claim: k.claim.clone(),
+                        ticket: k.ticket.clone(),
+                        actor: c.actor.clone(),
+                        workspace: coord.workspace.clone(),
+                        source: w.source.clone(),
+                        units: Vec::new(),
+                        reach: w.reach.clone(),
+                        place: place.to_owned(),
+                        digest,
+                        from: w.commit.clone(),
+                        to: Some(commit),
+                        checkout: located.git_dir.to_string(),
+                        at: rfc3339(now),
+                        path,
+                    },
+                    out,
+                )?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// What another clone found, for the claims of this one it concerns.
+fn import(dir: &Utf8Path, live: &[Live], found: &[Notice], now: u64, out: &mut Scan) {
+    for n in found {
+        for (_, k, c) in live {
+            let Some(coord) = c.coordination.as_ref() else {
+                continue;
+            };
+            let watches = k
+                .watched
+                .iter()
+                .any(|w| w.source == n.source && !w.known.contains(&n.digest));
+            let id = notice_id(&k.claim, &n.source, &n.digest);
+            if !watches || posted_already(dir, &id) {
+                continue;
+            }
+            let before = out.fresh.len();
+            let _ = post(
+                dir,
+                Notice {
+                    id,
+                    claim: k.claim.clone(),
+                    ticket: k.ticket.clone(),
+                    actor: c.actor.clone(),
+                    workspace: coord.workspace.clone(),
+                    line: format!(
+                        "notice: {} changed {} in another clone; run `war start {}`.",
+                        n.source, n.place, k.ticket
+                    ),
+                    from: None,
+                    to: None,
+                    at: rfc3339(now),
+                    ..n.clone()
+                },
+                out,
+            );
+            // Another clone said so: not this clone's to publish again.
+            out.fresh.truncate(before);
+        }
+    }
+}
+
+/// With `[claims] remote`: what the other clones found, and what this one did.
+/// Best effort, as everything here is: a remote that does not answer leaves
+/// each clone to its own `git fetch`.
+fn exchange(store: &Store, dir: &Utf8Path, live: &[Live], now: u64, out: &mut Scan) {
+    let (Some(remote_name), Some(layout)) = (store.remote.as_deref(), &store.layout) else {
+        return;
+    };
+    let root = &layout.toplevel;
+    for n in &out.fresh {
+        let key = notice_id("", &n.source, &n.digest);
+        if let Ok(body) = serde_json::to_string(n) {
+            let _ = remote::publish_notice(root, remote_name, &key, &body);
+        }
+    }
+    let stamp = dir.join(READ_FILE);
+    let last = std::fs::read_to_string(&stamp)
+        .ok()
+        .and_then(|t| t.trim().parse::<u64>().ok());
+    if last.is_some_and(|l| now.saturating_sub(l) < READ_EVERY_SECS) {
+        return;
+    }
+    let _ = std::fs::create_dir_all(dir);
+    let _ = write_whole(&stamp, now.to_string().as_bytes());
+    if let Ok(bodies) = remote::read_notices(root, remote_name) {
+        let found: Vec<Notice> = bodies
+            .iter()
+            .filter_map(|b| serde_json::from_str(b).ok())
+            .collect();
+        import(dir, live, &found, now, out);
+    }
 }
 
 /// Compare every live claim's watched files with the default branch, and post
@@ -454,6 +668,17 @@ pub fn detect(store: &Store) -> std::io::Result<usize> {
 /// [`detect`]. `asked` is a claim whose answer someone is waiting on: it is
 /// compared even past its lease, and what could not be compared is said.
 fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
+    let mut out = compare(store, asked)?;
+    if !out.live.is_empty()
+        && let Some(layout) = &store.layout
+    {
+        let live = std::mem::take(&mut out.live);
+        exchange(store, &dir_of(layout), &live, now_secs(), &mut out);
+    }
+    Ok(out)
+}
+
+fn compare(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
     let mut out = Scan::default();
     if !enabled() {
         return Ok(out);
@@ -479,6 +704,11 @@ fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
             }
         }
     }
+    let now = now_secs();
+    scan_pinned(&dir, &live, asked, now, &mut out)?;
+    if store.remote.is_some() {
+        out.live.clone_from(&live);
+    }
     // No default branch: nothing has happened on it, so nothing is news.
     let Some((branch, tip)) = default_branch(&layout.common_dir, &layout.toplevel) else {
         return Ok(out);
@@ -497,7 +727,6 @@ fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
         root: layout.toplevel.clone(),
         read: BTreeMap::new(),
     };
-    let now = now_secs();
     let mut bases: BTreeMap<String, Option<String>> = BTreeMap::new();
     for (path, mut k, c) in live {
         let is_asked = asked == Some(k.claim.as_str());
@@ -514,7 +743,7 @@ fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
             continue;
         }
         let mut learned = false;
-        for w in &mut k.watched {
+        for w in k.watched.iter_mut().filter(|w| w.reach != PIN) {
             let Some(now_digest) = view.digest(&w.source) else {
                 if is_asked {
                     out.unread.push(w.source.clone());
@@ -525,8 +754,7 @@ fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
                 continue;
             }
             let id = notice_id(&k.claim, &w.source, &now_digest);
-            let pending = dir.join(format!("{id}.json"));
-            if pending.exists() || dir.join(DELIVERED).join(format!("{id}.json")).exists() {
+            if posted_already(&dir, &id) {
                 continue;
             }
             let from = coord.base_revision.as_ref().and_then(|b| {
@@ -594,11 +822,9 @@ fn scan(store: &Store, asked: Option<&str>) -> std::io::Result<Scan> {
                 to: committed.then(|| tip.clone()),
                 checkout: view.checkout.as_ref().unwrap_or(&view.root).to_string(),
                 at: rfc3339(now),
+                path: None,
             };
-            std::fs::create_dir_all(&dir)?;
-            let body = serde_json::to_vec(&notice).map_err(std::io::Error::other)?;
-            write_whole(&pending, &body)?;
-            out.posted += 1;
+            post(&dir, notice, &mut out)?;
         }
         if learned {
             let body = serde_json::to_vec(&k).map_err(std::io::Error::other)?;
@@ -780,8 +1006,9 @@ fn bounded_diff(n: &Notice) -> String {
     let Some(from) = &n.from else {
         return String::new();
     };
+    let at = if n.path.is_some() { "--git-dir" } else { "-C" };
     let mut args = vec![
-        "-C",
+        at,
         n.checkout.as_str(),
         "diff",
         "--no-color",
@@ -791,7 +1018,7 @@ fn bounded_diff(n: &Notice) -> String {
     if let Some(to) = &n.to {
         args.push(to);
     }
-    args.extend(["--", n.source.as_str()]);
+    args.extend(["--", n.path.as_deref().unwrap_or(&n.source)]);
     let Ok(out) = std::process::Command::new("git")
         .args(args)
         .stderr(std::process::Stdio::null())
@@ -809,7 +1036,7 @@ fn bounded_diff(n: &Notice) -> String {
             body.len() - shown,
             n.checkout,
             n.to.as_deref().unwrap_or(""),
-            n.source
+            n.path.as_deref().unwrap_or(&n.source)
         ));
     }
     s
@@ -852,14 +1079,20 @@ fn watching(root: &Utf8Path, source: &str, reach: &str, because: &str) -> Option
         because: because.to_owned(),
         known: vec![file.clone()],
         file,
+        commit: None,
     })
 }
 
 /// The files of a packet and of what else reaches its claim, the first way
 /// each was reached kept. Notes projected from a journal are not watched:
 /// they name the journal, which every act moves.
-fn watch_list(root: &Utf8Path, packet: &TaskPacket, reach: &[Reach]) -> Vec<Watched> {
-    let mut out: Vec<Watched> = Vec::new();
+fn watch_list(
+    root: &Utf8Path,
+    packet: &TaskPacket,
+    reach: &[Reach],
+    pinned: &[Watched],
+) -> Vec<Watched> {
+    let mut out: Vec<Watched> = pinned.to_vec();
     let manifest = packet
         .source_manifest
         .iter()
@@ -902,6 +1135,7 @@ pub fn started(
     packet: &TaskPacket,
     text: &BTreeMap<String, String>,
     reach: &[Reach],
+    pinned: &[Watched],
     declared: Option<Allowed>,
 ) -> std::io::Result<Vec<Change>> {
     if !enabled() {
@@ -926,7 +1160,7 @@ pub fn started(
             actor: c.actor.clone(),
             selection_digest: packet.selection_digest.clone(),
             source_manifest: packet.source_manifest.clone(),
-            watched: watch_list(root, packet, reach),
+            watched: watch_list(root, packet, reach, pinned),
             units: unit_texts(packet, text),
             seen: Vec::new(),
             taken: Vec::new(),
@@ -951,6 +1185,9 @@ pub fn started(
                 w.known.push(n.digest.clone());
             }
             w.file = n.digest.clone();
+            if w.reach == PIN {
+                w.commit.clone_from(&n.to);
+            }
         }
         // Their text is the text that changed: nothing to narrow by.
         for u in &n.units {
@@ -985,7 +1222,7 @@ pub fn started(
         })
         .collect();
     // What it was not watching at its last start, and text it holds again.
-    for w in watch_list(root, packet, reach) {
+    for w in watch_list(root, packet, reach, pinned) {
         if !kept.watched.iter().any(|k| k.source == w.source) {
             kept.watched.push(w);
         }
@@ -1025,6 +1262,7 @@ fn detect_for_self(store: &Store) -> std::io::Result<usize> {
 fn forget_tip(store: &Store) {
     if let Some(layout) = &store.layout {
         let _ = std::fs::remove_file(dir_of(layout).join(TIP_FILE));
+        let _ = std::fs::remove_file(dir_of(layout).join(READ_FILE));
     }
 }
 
@@ -1072,6 +1310,13 @@ fn claim_notices(dir: &Utf8Path, claim: &str) -> Result<Vec<Notice>, String> {
 /// Whether `root` holds a change: the same bytes, or the commit it came in,
 /// with whatever was done on top of it.
 fn holds(root: &Utf8Path, taken: &Taken) -> bool {
+    // A clause of another repository: held when the pin holds its text.
+    if let crate::repos::Target::Named(name, id) = crate::repos::classify(root, &taken.source) {
+        return crate::repos::through_pin(root, name, None, |r| {
+            crate::interfaces::clause(r, id).map(|c| c.digest)
+        })
+        .is_ok_and(|(_, digest)| digest.as_deref() == Some(taken.digest.as_str()));
+    }
     own_digest(root, &taken.source).as_deref() == Some(taken.digest.as_str())
         || taken.to.as_ref().is_some_and(|to| {
             std::process::Command::new("git")
@@ -1343,6 +1588,7 @@ mod tests {
             checkout: String::new(),
             at: at.to_owned(),
             line: line.to_owned(),
+            path: None,
         }
     }
 

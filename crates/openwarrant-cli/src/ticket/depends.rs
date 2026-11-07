@@ -24,7 +24,7 @@ use std::collections::BTreeMap;
 
 use serde::Serialize;
 
-use super::{Store, Ticket, checks};
+use super::{Store, Ticket, checks, live};
 use crate::interfaces;
 use crate::repo::Repository;
 use crate::repos;
@@ -198,6 +198,48 @@ fn each(store: &Store, wanted: &[String]) -> Vec<Dep> {
             repos::Target::Named(name, id) => foreign(&store.root, target, name, id),
         })
         .collect()
+}
+
+/// The clauses of named repositories `t` declares or cites (`hpr:CL-step`),
+/// as `war start` watches them: by the text the pin holds. A clause that cannot
+/// be read now is not watched: `war done` says so through [`of`].
+#[must_use]
+pub fn watches(store: &Store, t: &Ticket) -> Vec<live::Watched> {
+    let Ok(all) = repos::declared(&store.root) else {
+        return Vec::new();
+    };
+    if all.is_empty() {
+        return Vec::new();
+    }
+    let mut wanted = targets(t);
+    for word in t
+        .checklist_text
+        .split(|c: char| !(c.is_ascii_alphanumeric() || matches!(c, ':' | '-' | '_')))
+    {
+        if word.contains(":CL-") && !wanted.iter().any(|w| w == word) {
+            wanted.push(word.to_owned());
+        }
+    }
+    let mut out = Vec::new();
+    for target in wanted {
+        let repos::Target::Named(name, id) = repos::classify(&store.root, &target) else {
+            continue;
+        };
+        let Ok((located, Some(clause))) =
+            repos::through_pin(&store.root, name, None, |r| interfaces::clause(r, id))
+        else {
+            continue;
+        };
+        out.push(live::Watched {
+            source: target.clone(),
+            reach: live::PIN.to_owned(),
+            because: target.clone(),
+            known: vec![clause.digest.clone()],
+            file: clause.digest,
+            commit: Some(located.pin.commit),
+        });
+    }
+    out
 }
 
 /// Every dependency of `t`, met or not.

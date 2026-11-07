@@ -211,3 +211,40 @@ else
     rp_fail "a breaking change waits on people" "$RP_REFUSED_RC $RP_NO_CLASS_RC $RP_IMPACT | $RP_REFUSED | $RP_NO_CLASS"
 fi
 
+sed -i 's/advances simulated time/advances time by one step/' "$RP_TMP/hpr/docs/records/interfaces/physics.md"
+rp_git -C "$RP_TMP/hpr" add -A && rp_git -C "$RP_TMP/hpr" commit -qm "change a clause" \
+    && rp_git -C "$RP_TMP/hpr" push -q origin main
+RP_UNFETCHED=$(wmd alice note "$RP_STEP" working 2>&1)
+rp_git -C "$RP_TMP/wmd/vendor/hpr" fetch -q origin
+RP_BOB=$(wmd bob note "$RP_MASS" working 2>&1)
+RP_ONCE=$(wmd alice note "$RP_STEP" again 2>&1)
+RP_TWICE=$(wmd alice note "$RP_STEP" more 2>&1)
+if ! grep -q '^notice: ' <<<"$RP_UNFETCHED" && ! grep -q '^notice: ' <<<"$RP_BOB" \
+    && [[ $(grep -c '^notice: hpr:CL-step changed upstream' <<<"$RP_ONCE") -eq 1 ]] \
+    && ! grep -q '^notice: ' <<<"$RP_TWICE"; then
+    rp_ok "a changed clause reaches one side" "once fetched, once; who uses another clause hears nothing"
+else
+    rp_fail "a changed clause reaches one side" "$RP_UNFETCHED | $RP_BOB | $RP_ONCE | $RP_TWICE"
+fi
+
+RP_UNSEEN=$(wmd alice done "$RP_STEP" 2>&1); RP_UNSEEN_RC=$?
+wmd alice start "$RP_STEP" >/dev/null 2>&1
+RP_BEHIND=$(wmd alice done "$RP_STEP" 2>&1); RP_BEHIND_RC=$?
+rp_git -C "$RP_TMP/wmd/vendor/hpr" checkout -q origin/main
+rp_git -C "$RP_TMP/wmd" add vendor/hpr && rp_git -C "$RP_TMP/wmd" commit -qm "move the pin again"
+RP_QUIET=$(wmd bob note "$RP_MASS" quiet 2>&1)
+RP_DRIFT=$(wmd owner status 2>&1 | grep '^Interfaces:')
+RP_CLOSED=$(wmd alice done "$RP_STEP" 2>&1); RP_CLOSED_RC=$?
+if [[ $RP_UNSEEN_RC -ne 0 && $RP_BEHIND_RC -ne 0 && $RP_CLOSED_RC -eq 0 ]] \
+    && grep -q 'done.unseen' <<<"$RP_UNSEEN" && grep -q 'done.behind' <<<"$RP_BEHIND" \
+    && ! grep -q '^notice: ' <<<"$RP_QUIET"; then
+    rp_ok "a Warrant holds across the boundary" "unseen, then behind; the pin bump closes it"
+else
+    rp_fail "a Warrant holds across the boundary" "$RP_UNSEEN | $RP_BEHIND | $RP_CLOSED"
+fi
+
+if grep -q 'Interfaces: 1 conform' <<<"$RP_LINE" && grep -q 'Interfaces: drift: hpr:' <<<"$RP_DRIFT"; then
+    rp_ok "drift is one line" "conforming, then not, once the pin holds a new revision"
+else
+    rp_fail "drift is one line" "$RP_LINE | $RP_DRIFT"
+fi

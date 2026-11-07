@@ -200,6 +200,24 @@ downstream = true
 
 A side with no checkout on this machine reads UNKNOWN, not "no claims".
 
+## Notices across the boundary
+
+A claim watches each clause its ticket depends on or cites as `hpr:CL-step`, by
+that clause's own text. When the clause changes, the agent hears on its next
+`war` call, once the change is fetched or the pin moves:
+
+```
+notice: hpr:CL-step changed upstream, not pinned here; run `war start t-abc`.
+```
+
+It hears once, even when the pin later moves to the same text. Someone depending
+on the clause beside it hears nothing. `war done` then holds as it does in one
+repository: a Warrant refuses until the change is seen, and again until the pin
+holds it. A Ticket warns.
+
+With `[claims] remote`, a notice is also published to
+`refs/openwarrant/notices/<key>`, so another clone hears before it fetches.
+
 ## An example: WMD and HPR
 
 HPR is the lower layer, a submodule of WMD at `vendor/hpr`, and owns
