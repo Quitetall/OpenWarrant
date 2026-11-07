@@ -6,6 +6,7 @@ use std::fs;
 
 use camino::{Utf8Path, Utf8PathBuf};
 
+pub mod ci;
 pub mod guided;
 pub mod schema_seed;
 use openwarrant_core::{Namespace, RepositoryConfig};
@@ -34,6 +35,8 @@ pub enum InitError {
         named: String,
         why: String,
     },
+    /// `--ci` could not write its workflow; said in full.
+    Ci(String),
 }
 
 impl fmt::Display for InitError {
@@ -54,6 +57,7 @@ impl fmt::Display for InitError {
                 "--baseline {named:?} is refused: {why}. The adoption baseline is a commit \
                  in this repository's history; nothing was written"
             ),
+            Self::Ci(why) => write!(f, "{why}"),
         }
     }
 }

@@ -704,6 +704,15 @@ enum DailyCommand {
         /// tool. Works on a repository already set up.
         #[arg(long, conflicts_with = "guided")]
         schemas: bool,
+        /// Also write one GitHub workflow that runs `war check --changed` and
+        /// your tests on each pull request. Opt-in, and yours to edit or
+        /// delete. Works on a repository already set up.
+        #[arg(long, conflicts_with = "guided")]
+        ci: bool,
+        /// With --ci: the test command, instead of the one found in the
+        /// repository. Repeatable.
+        #[arg(long = "test", value_name = "COMMAND", requires = "ci")]
+        ci_tests: Vec<String>,
     },
     /// Create a Warrant (a ticket) and print its id: a title is enough.
     ///
@@ -3083,12 +3092,18 @@ fn official_section(
 
 /// What `war init` was asked for beyond the repository itself, written now,
 /// and a line each to say so.
-fn init_extras(seed: Option<init::schema_seed::Seed>) -> Result<Vec<String>, init::InitError> {
+fn init_extras(
+    seed: Option<init::schema_seed::Seed>,
+    ci: Option<(&camino::Utf8Path, &[String])>,
+) -> Result<Vec<String>, init::InitError> {
     let mut lines = Vec::new();
     if let Some(seed) = seed {
         let n = seed.len();
         seed.install()?;
         lines.push(format!("schemas/: {n} files, the pack this binary holds"));
+    }
+    if let Some((root, tests)) = ci {
+        lines.extend(init::ci::install(root, tests)?);
     }
     Ok(lines)
 }
@@ -3929,14 +3944,17 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             team,
             regulated,
             schemas,
+            ci,
+            ci_tests,
         } => {
             // W1.4: checked before anything is written, so a copy that
             // differs refuses the whole command.
             let dir = init::init_root(ctx.root.clone())?;
             let seed = schemas.then(|| init::prepare_schemas(&dir)).transpose()?;
             // Asked of a repository already set up, only the extra is written.
-            if seed.is_some() && dir.join(init::CONFIG_FILE).exists() {
-                let lines = init_extras(seed)?;
+            let ci = ci.then_some((dir.as_path(), ci_tests.as_slice()));
+            if (seed.is_some() || ci.is_some()) && dir.join(init::CONFIG_FILE).exists() {
+                let lines = init_extras(seed, ci)?;
                 if ctx.json {
                     let report = diagnostic::Report {
                         notes: lines,
@@ -4068,7 +4086,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                 }
             }
-            for line in init_extras(seed)? {
+            for line in init_extras(seed, ci)? {
                 if ctx.json {
                     setup_messages.push(line);
                 } else {

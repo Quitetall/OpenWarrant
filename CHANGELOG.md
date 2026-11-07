@@ -28,6 +28,9 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `war init --ci` writes one opt-in workflow running `war check --changed` and
+  the repository's tests on each pull request. `--test` names the tests;
+  otherwise they are found from what the repository holds.
 - `war create --sign` makes an Order, one document like the other levels.
 - `war check`, `war status`, `war view show` take a single-file Warrant's alias,
   and `war view next` lists open single-file and read-in-place work under
