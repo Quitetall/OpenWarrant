@@ -1,0 +1,8 @@
+opening-tree
+--plies
+--min-count
+skipped_setup
+min_count
+1/2-1/2
+--plies must be between 1 and 12
+game <i>:

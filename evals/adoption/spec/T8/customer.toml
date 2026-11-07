@@ -1,0 +1,10 @@
+# The scripted customer for T8. The answer itself is `[item.question]` in backlog.toml, verbatim.
+# A question gets it when it has one word of each group, ignoring case and backticks.
+all_of = [
+  ["budget"],
+  ["worked out", "work out", "calculat", "comput", "figure", "derive", "carry", "carri", "rollover", "roll over",
+   "previous", "prior", "unspent", "left over", "leftover", "remain", "surplus", "overspen", "accumulat", "cumulat",
+   "reset", "independent", "how is", "how are", "how should", "how do", "mean"],
+]
+# run.py spec-check refuses a brief that gives these away.
+must_not_say = ["carry", "carries", "carried", "previous month", "next month", "overspen", "roll over", "rollover", "unspent"]

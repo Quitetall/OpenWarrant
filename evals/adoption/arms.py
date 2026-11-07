@@ -153,18 +153,26 @@ def _speckit_tasks(backlog: dict) -> dict[str, list[str]]:
     return out
 
 
-def seed_speckit(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+def speckit_pointer(env: dict) -> str:
+    return SPECKIT_POINTER_OPENCODE if env.get("STUDY_SPECKIT_INTEGRATION", "claude") == "opencode" else SPECKIT_POINTER
+
+
+def setup_speckit(repo: Path, backlog: dict, env: dict, pointer: str) -> None:
+    """`specify init`, the instruction file, and the constitution: Spec Kit with no feature in it."""
     integration = env.get("STUDY_SPECKIT_INTEGRATION", "claude")
     _run([env["STUDY_SPECIFY"], "init", "--here", "--force", "--non-interactive",
           "--integration", integration, "--script", "sh", "--ignore-agent-tools"], repo, env)
-    pointer = SPECKIT_POINTER_OPENCODE if integration == "opencode" else SPECKIT_POINTER
-    instructions(repo, env).write_text(facts_header(backlog) + "\n" + pointer)
+    instructions(repo, env).write_text(facts_header(backlog) + ("\n" + pointer if pointer else ""))
     # What `/speckit-constitution` leaves in a set-up project, holding only the facts every arm gets.
     (repo / ".specify" / "memory" / "constitution.md").write_text(
         f"# {backlog['repo']} Constitution\n\n## Core Principles\n\n### I. The project as it is\n\n"
         + backlog["project"]["facts"].strip()
         + "\n\n## Governance\n\nThis constitution records the project's existing facts; it adds no rule"
         " beyond them.\n\n**Version**: 1.0.0 | **Ratified**: 2026-10-22 | **Last Amended**: 2026-10-22\n")
+
+
+def seed_speckit(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+    setup_speckit(repo, backlog, env, speckit_pointer(env))
     feature = repo / "specs" / "001-backlog"
     feature.mkdir(parents=True, exist_ok=True)
     stories = {item["id"]: n + 1 for n, item in enumerate(backlog["item"])}
@@ -233,7 +241,8 @@ def tracker_speckit(repo: Path, backlog: dict, env: dict) -> dict:
 # ---------------------------------------------------------------- beads
 
 
-def seed_beads(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+def setup_beads(repo: Path, backlog: dict, env: dict) -> None:
+    """`bd init` and the instruction file: Beads with no issues in it."""
     bd = env["STUDY_BD"]
     end = "<!-- END BEADS INTEGRATION -->"
     target = instructions(repo, env)
@@ -254,6 +263,11 @@ def seed_beads(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
         head, _ = text.split(end, 1)
         head = head.replace("# Project Instructions for AI Agents", facts_header(backlog).rstrip(), 1)
         target.write_text(head + end + "\n")
+
+
+def seed_beads(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+    bd = env["STUDY_BD"]
+    setup_beads(repo, backlog, env)
     ids = {}
     for item in backlog["item"]:
         argv = [bd, "create", f"{item['id']}: {item['title']}",
@@ -294,7 +308,8 @@ def _war(argv, repo, env):
     return report["result"]
 
 
-def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+def setup_openwarrant(repo: Path, backlog: dict, env: dict) -> None:
+    """`war init` and the instruction file: OpenWarrant with no tickets in it."""
     war = env["STUDY_WAR"]
     # QUICKSTART's order: the project's instruction file exists, and `war init` appends its managed block.
     target = instructions(repo, env)
@@ -306,6 +321,10 @@ def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> No
         # The opt-in session hook (`[tickets] session_start`), when the run enables it.
         with open(repo / "openwarrant.toml", "a") as f:
             f.write("\n[tickets]\nsession_start = true\n")
+
+
+def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
+    setup_openwarrant(repo, backlog, env)
     tickets = {}
     for item in backlog["item"]:
         body = item["description"].strip()
@@ -448,6 +467,27 @@ def seed(arm: str, repo: Path, backlog: dict, done: set[str], tools: dict) -> No
     SEEDERS[arm](repo, backlog, done, env)
     _run(["git", "add", "-A"], repo, env)
     _run(["git", "commit", "-q", "--no-verify", "-m", f"seed: {arm} backlog"], repo, env, check=False)
+
+
+def scaffold(arm: str, repo: Path, backlog: dict, tools: dict) -> None:
+    """A repository set up for `arm` with no backlog in it: what a spec author starts from, and what a
+    stored spec is laid over for a worker (spec_study.apply_spec). Plans and Spec Kit carry no pointer
+    yet: it names where the spec is, and that is not known until there is one."""
+    env = {**os.environ, **SEED_ENV, **tools}
+    env.pop("SSH_AUTH_SOCK", None)
+    env.pop("SSH_AGENT_PID", None)
+    if arm == "speckit":
+        setup_speckit(repo, backlog, env, "")
+    elif arm == "beads":
+        setup_beads(repo, backlog, env)
+    elif arm == "openwarrant":
+        setup_openwarrant(repo, backlog, env)
+    elif arm in ("plain", "plans"):
+        instructions(repo, env).write_text(facts_header(backlog))
+    else:
+        raise SystemExit(f"the spec study has no arm {arm!r}")
+    _run(["git", "add", "-A"], repo, env)
+    _run(["git", "commit", "-q", "--no-verify", "-m", f"seed: {arm} set up"], repo, env, check=False)
 
 
 def tracker(arm: str, repo: Path, backlog: dict, tools: dict) -> dict:

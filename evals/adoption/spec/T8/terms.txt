@@ -1,0 +1,5 @@
+--monthly
+YYYY-MM-DD
+--from must not be after --until
+tally: error:
+FIRST..LAST

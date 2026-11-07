@@ -1,0 +1,8 @@
+# The scripted customer for K8. The answer itself is `[item.question]` in backlog.toml, verbatim.
+# A question gets it when it has one word of each group, ignoring case and backticks.
+all_of = [
+  [" tie", "tied", "same count", "equal count", "same number", "identical count", "equal frequency", "same frequency"],
+  ["sibling", "order", "sort", "list", "rank", "first", "move", "break"],
+]
+# run.py spec-check refuses a brief that gives these away.
+must_not_say = ["first appearance", "earliest game", "lowest game", "first seen", "file order"]

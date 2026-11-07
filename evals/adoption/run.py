@@ -13,6 +13,18 @@
                                          run the cells (resumable: a finished cell is skipped)
     run.py report <run-id>               results.json and REPORT.md from a run
 
+The spec study (PROTOCOL-spec.md), which has an author write the spec a worker then runs:
+
+    run.py spec-plan [--dry-run] [--out FILE]
+                                         the pilot's 120 cells, 40 specs and estimated cost; no model
+    run.py spec <plan> --run-id ID --budget-usd X [--author opus|deepseek] [--jobs N]
+                                         write the specs and store them by digest (costs tokens; each
+                                         brief must be frozen). --fixture good|bad runs a script instead
+    run.py execute <plan> --run-id ID --agent opencode --model M --specs-run ID
+                                         the worker cells, on the specs of run ID
+    run.py spec-check                    each brief against its sufficiency table and hidden tests
+    run.py spec-selfcheck                the study's checks with no model (scratch roots only)
+
 Every agent session, and everything that touches a repository after an agent
 has (snapshot commits, merges, tracker reads, grading), runs inside a
 bubblewrap sandbox that sees only that cell's directory, the toolchain and the
@@ -41,6 +53,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import arms  # noqa: E402
 import jira_arm  # noqa: E402
+import spec_study  # noqa: E402
 
 STUDY = Path(os.environ.get("ADOPTION_STUDY_ROOT", "/mnt/4tb/tmp/openwarrant-adoption"))
 KEEP = Path(os.environ.get("ADOPTION_KEEP_ROOT", "/mnt/4tb/artifacts/OpenWarrant/keep/adoption"))
@@ -107,6 +120,7 @@ PROMPTS = {
     "parallel": ("Continue this repository's planned work: take the next item that is ready, "
                  "finish it, and stop when that one item is done. Other agents are working on "
                  "this repository at the same time, each in its own git worktree."),
+    "spec": "Do backlog item {id}.",   # PROTOCOL-spec.md: every arm, and no title an author didn't write
 }
 SCENARIOS = ("directed", "relay", "parallel")
 
@@ -291,6 +305,63 @@ def seed_repo(repo: str, arm: str, dest: Path, done: list[str], extra: dict | No
     return backlog
 
 
+def seed_scaffold(repo: str, arm: str, dest: Path, done: list[str], extra: dict | None = None) -> dict:
+    """The seed and earlier items' solutions, the tool set up, and no backlog anywhere in the tree."""
+    backlog = load_backlog(repo)
+    materialize(repo, dest)
+    apply_reference(repo, dest, done)
+    arms.scaffold(arm, dest, backlog, {**tools(), **(extra or {})})
+    return backlog
+
+
+def spec_store() -> Path:
+    return KEEP / "spec-store"
+
+
+def seed_spec(sb: "Sandbox", repo: str, arm: str, dest: Path, done: list[str], digest: str,
+              extra: dict | None = None) -> dict:
+    """A stored spec in place of backlog.toml. The store is checked against the digest first, and the
+    spec is laid over the scaffold in the sandbox, since an author wrote it."""
+    spec_study.verify_stored(spec_store(), digest)
+    backlog = seed_scaffold(repo, arm, dest, done, extra)
+    out = sb.inside(["_spec_apply", arm], f"{sb.WORK}/{dest.name}",
+                    binds=[("--ro-bind", spec_store() / digest, "/opt/spec")])
+    if "error" in out:
+        raise SystemExit(f"stopped: spec {digest[:12]} could not be seeded: {out['error']}")
+    return backlog
+
+
+def cargo_lock(repo: str) -> str | None:
+    """Cargo.lock at the repository's pin, or None for a repository that is not built with cargo."""
+    with open(repo_def(repo) / "source.toml", "rb") as f:
+        src = tomllib.load(f)
+    if src["kind"] != "git":
+        return None
+    p = subprocess.run(["git", "-C", src["path"], "show", f"{src['commit']}:Cargo.lock"],
+                       capture_output=True, text=True, timeout=60)
+    return p.stdout if p.returncode == 0 else None
+
+
+def registry_problem(repo: str, cargo_home: Path | None = None) -> str | None:
+    """Is the offline cargo registry there? Run `rem-c4` found it emptied during a run (cause not
+    found), and every cell then failed on `no matching package`, which reads like the agent's fault.
+    Checked per crate from the lockfile, in the index and the download cache both."""
+    lock = cargo_lock(repo)
+    if lock is None:
+        return None
+    home = cargo_home or STUDY / "cargo-home"
+    crates = [f"{c['name']}-{c['version']}.crate" for c in tomllib.loads(lock).get("package", [])
+              if str(c.get("source", "")).startswith("registry+")]
+    cached = {f.name for d in (home / "registry/cache").glob("*") for f in d.iterdir()} \
+        if (home / "registry/cache").is_dir() else set()
+    missing = [c for c in crates if c not in cached]
+    indexed = any((home / "registry/index").glob("*/.cache/*")) if (home / "registry/index").is_dir() else False
+    if missing or not indexed:
+        return (f"{repo}: the cargo registry at {home} is missing {len(missing)} of {len(crates)} crates"
+                f"{'' if indexed else ' and has no index'} (run.py prepare restores it)")
+    return None
+
+
 # ------------------------------------------------------------------ the sandbox
 
 # How an agent session authenticates. "token": CLAUDE_CODE_OAUTH_TOKEN (from `claude
@@ -333,13 +404,18 @@ class Sandbox:
     WORK = "/work"
     AHOME = "/home/agent"
 
-    def __init__(self, cell: Path, repo: str, fixture: bool = False, arm: str = "", agent: str = "claude"):
+    def __init__(self, cell: Path, repo: str, fixture: bool = False, arm: str = "", agent: str = "claude",
+                 layout: str = "", binds: list | None = None):
         self.cell, self.repo, self.fixture, self.arm, self.agent = cell, repo, fixture, arm, agent
+        # `layout`: whose files the repository was seeded with, when that isn't `agent`'s own: the
+        # spec study's workers are opencode's, and a fixture stands in for them.
+        # `binds`: (flag, source, destination), for a session's own extra mounts.
+        self.layout, self.binds = layout, binds or []
 
     def _code_binds(self) -> list[str]:
         """The harness's own files and this repository's backlog.toml, never hidden/ or reference/."""
         a = []
-        for f in ("run.py", "arms.py", "fixture_agent.py", "jira_arm.py"):
+        for f in ("run.py", "arms.py", "fixture_agent.py", "jira_arm.py", "spec_study.py"):
             a += ["--ro-bind", str(HERE / f), f"/opt/study/code/{f}"]
         a += ["--ro-bind", str(repo_def(self.repo) / "backlog.toml"),
               f"/opt/study/code/repos/{self.repo}/backlog.toml"]
@@ -347,7 +423,7 @@ class Sandbox:
 
     def argv(self, inner: list[str], cwd: str, net: bool, hidden: Path | None = None,
              config: Path | None = None, extra_env: dict | None = None,
-             harness: bool = False, key_fd: int | None = None) -> list[str]:
+             harness: bool = False, key_fd: int | None = None, binds: list | None = None) -> list[str]:
         t = tools()
         a = ["bwrap", "--die-with-parent", "--new-session", "--unshare-all"]
         if net:
@@ -379,6 +455,8 @@ class Sandbox:
             a += ["--ro-bind", str(repo_def(self.repo)), "/opt/study/repo-def"]
         if hidden is not None:
             a += ["--ro-bind", str(hidden), "/opt/hidden"]
+        for flag, src, dst in (binds or []) + ([] if harness else self.binds):
+            a += [flag, str(src), dst]
         if config is not None and self.agent == "opencode":
             a += ["--bind", str(config), f"{self.AHOME}/.config/opencode"]
         elif config is not None:
@@ -403,7 +481,7 @@ class Sandbox:
         if self.agent == "opencode":
             env.update({"OPENCODE_DISABLE_AUTOUPDATE": "1", "OPENCODE_DISABLE_MODELS_FETCH": "1"})
         if harness:
-            env.update(AGENT_SEED.get(self.agent, {}))  # `_answers` writes the agent's instruction file
+            env.update(AGENT_SEED.get(self.layout or self.agent, {}))  # `_answers` writes the agent's instruction file
         mode = auth_mode()
         if net and config is not None and self.agent == "claude" and mode in AUTH_ENV:
             env[AUTH_ENV[mode]] = os.environ[AUTH_ENV[mode]]
@@ -418,14 +496,14 @@ class Sandbox:
         return a
 
     def run(self, inner, cwd, net=False, timeout=600, hidden=None, config=None,
-            extra_env=None, stdout=None, stderr=None, harness=False) -> subprocess.CompletedProcess:
+            extra_env=None, stdout=None, stderr=None, harness=False, binds=None) -> subprocess.CompletedProcess:
         key_fd = None
         if self.agent == "opencode" and net and config is not None and not harness:
             # The provider key, on a pipe bwrap copies into a file only the sandbox sees.
             key_fd, w = os.pipe()
             os.write(w, os.environ[OPENCODE_KEY_ENV].encode())
             os.close(w)
-        argv = self.argv(inner, cwd, net, hidden, config, extra_env, harness, key_fd)
+        argv = self.argv(inner, cwd, net, hidden, config, extra_env, harness, key_fd, binds)
         try:
             p = subprocess.Popen(argv, stdout=stdout or subprocess.PIPE, stderr=stderr or subprocess.PIPE,
                                  text=True, start_new_session=True, pass_fds=(key_fd,) if key_fd is not None else ())
@@ -440,10 +518,11 @@ class Sandbox:
             return subprocess.CompletedProcess(argv, -9, out, (err or "") + "\n[harness: timed out]")
         return subprocess.CompletedProcess(argv, p.returncode, out, err)
 
-    def inside(self, sub: list[str], cwd: str, timeout=900, hidden=None, target: str = "target") -> dict:
+    def inside(self, sub: list[str], cwd: str, timeout=900, hidden=None, target: str = "target",
+               binds=None) -> dict:
         """run.py's own in-sandbox subcommands (`_grade`, `_tracker`, `_git`); JSON out, no network."""
         p = self.run(["python3", "/opt/study/code/run.py", *sub], cwd, timeout=timeout, hidden=hidden,
-                     harness=True, extra_env={"CARGO_TARGET_DIR": f"{self.WORK}/{target}"})
+                     harness=True, extra_env={"CARGO_TARGET_DIR": f"{self.WORK}/{target}"}, binds=binds)
         try:
             return json.loads(p.stdout.strip().splitlines()[-1])
         except (ValueError, IndexError):
@@ -525,6 +604,31 @@ def _inside_tracker(repo: str, arm: str) -> dict:
     return arms.tracker(arm, Path.cwd(), load_backlog(repo), env_tools)
 
 
+def _spec_env() -> dict:
+    return {**os.environ, **arms.SEED_ENV, "STUDY_WAR": "/opt/study/bin/war", "STUDY_BD": "/opt/study/bin/bd"}
+
+
+def _inside_spec_capture(tool: str, out: str, base: str | None) -> dict:
+    res = spec_study.capture_spec(tool, Path.cwd(), Path(out), _spec_env())
+    if base:
+        res["changed_outside_spec"] = spec_study.changed_outside_spec(tool, Path.cwd(), base)
+    return res
+
+
+def _inside_spec_apply(arm: str) -> dict:
+    env = _spec_env()
+    res = spec_study.apply_spec(arm, Path.cwd(), Path("/opt/spec/files"), env)
+    g = ["git", "-c", "core.hooksPath=/dev/null", "-c", "core.fsmonitor=false"]
+    subprocess.run([*g, "add", "-A"], capture_output=True, timeout=300, env=env)
+    subprocess.run([*g, "commit", "-q", "--no-verify", "-m", f"seed: {arm} spec"], capture_output=True,
+                   timeout=300, env=env)
+    return res
+
+
+def _inside_spec_tracker(arm: str, item: str) -> dict:
+    return {item: spec_study.spec_done(arm, Path.cwd(), _spec_env())}
+
+
 # ------------------------------------------------------------------ one agent session
 
 
@@ -540,22 +644,27 @@ ARM_MCP = {
 OPENCODE_ARM_MCP = {} if os.environ.get("ADOPTION_OC_OW_MCP") != "1" else ARM_MCP
 
 
-def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "") -> list[str]:
+def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "",
+               budget: float = SESSION_BUDGET_USD, no_web: bool = False) -> list[str]:
     if agent == "claude":
         argv = ["/opt/study/bin/claude", "-p", prompt, "--model", model,
                 "--output-format", "stream-json", "--verbose",
                 "--permission-mode", "bypassPermissions",
                 "--strict-mcp-config", "--mcp-config", json.dumps({"mcpServers": ARM_MCP.get(arm, {})}),
                 "--setting-sources", "project,local", "--no-session-persistence",
-                "--max-turns", str(max_turns), "--max-budget-usd", str(SESSION_BUDGET_USD)]
+                "--max-turns", str(max_turns), "--max-budget-usd", str(budget)]
         if arm == "openwarrant":
             argv += ["--plugin-dir", "/opt/study/ow-plugin"]
+        if no_web:
+            argv += ["--disallowedTools", "WebFetch,WebSearch"]
         return argv
     if agent == "opencode":
         # The turn cap is the build agent's `steps` in the session's config (opencode_config).
         return ["/opt/study/bin/opencode", "run", "--standalone", "--format", "json", "-m", model, prompt]
-    if agent in ("fixture-reference", "fixture-noop", "fixture-claim"):
+    if agent in ("fixture-reference", "fixture-noop", "fixture-claim", "fixture-spec"):
         return ["python3", "/opt/study/code/fixture_agent.py", agent.split("-", 1)[1]]
+    if agent in ("fixture-author-good", "fixture-author-bad", "fixture-author-empty", "fixture-author-probe"):
+        return ["/usr/bin/python3", "/opt/study/fixture_author.py", agent.rsplit("-", 1)[1]]
     raise SystemExit(f"unknown agent {agent!r}")
 
 
@@ -741,7 +850,7 @@ def parse_opencode(path: Path, max_turns: int) -> dict:
     return out
 
 
-def opencode_config(arm: str, max_turns: int) -> dict:
+def opencode_config(arm: str, max_turns: int, no_web: bool = False) -> dict:
     """A session's opencode config: the provider, every tool allowed (the sandbox is the boundary,
     as with Claude Code's bypassPermissions), the turn cap, and the arm's MCP server."""
     cfg = {
@@ -751,6 +860,8 @@ def opencode_config(arm: str, max_turns: int) -> dict:
         "agent": {"build": {"steps": max_turns}},
         "provider": OPENCODE_PROVIDERS,
     }
+    if no_web:
+        cfg["permission"].update({"webfetch": "deny", "websearch": "deny"})
     servers = {name: {"type": "local", "command": [d["command"], *d["args"]], "enabled": True}
                for name, d in OPENCODE_ARM_MCP.get(arm, {}).items()}
     if servers:
@@ -759,17 +870,18 @@ def opencode_config(arm: str, max_turns: int) -> dict:
 
 
 def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, model: str,
-                max_turns: int, extra_env: dict | None = None, arm: str = "") -> dict:
+                max_turns: int, extra_env: dict | None = None, arm: str = "",
+                budget: float = SESSION_BUDGET_USD, no_web: bool = False) -> dict:
     sdir.mkdir(parents=True, exist_ok=True)
     config = sdir / ("opencode-config" if agent == "opencode" else "claude-config")
     config.mkdir(exist_ok=True)
     if agent == "opencode":
-        (config / "opencode.json").write_text(json.dumps(opencode_config(arm, max_turns), indent=1))
+        (config / "opencode.json").write_text(json.dumps(opencode_config(arm, max_turns, no_web), indent=1))
     (sdir / "prompt.txt").write_text(prompt + "\n")
     t0 = time.time()
     with open(sdir / "stream.jsonl", "w") as out, open(sdir / "stderr.txt", "w") as err:
         env = {**(extra_env or {}), **(jira_env(sb.cell) if arm == "jira" else {})}
-        p = sb.run(agent_argv(agent, prompt, model, max_turns, arm), cwd,
+        p = sb.run(agent_argv(agent, prompt, model, max_turns, arm, budget, no_web), cwd,
                    net=(agent in ("claude", "opencode") or arm == "jira"),
                    timeout=SESSION_TIMEOUT, config=config, extra_env=env, stdout=out, stderr=err)
     metrics = (parse_opencode(sdir / "stream.jsonl", max_turns) if agent == "opencode"
@@ -810,11 +922,13 @@ def jira_env(cell: Path) -> dict:
     return {**{k: os.environ[k] for k in jira_arm.ENV}, "STUDY_JIRA_LABEL": jira_label(cell)}
 
 
-def observe(sb: Sandbox, sdir: Path, cwd: str, repo: str, arm: str, target: str = "target") -> dict:
+def observe(sb: Sandbox, sdir: Path, cwd: str, repo: str, arm: str, target: str = "target",
+            spec_item: str | None = None) -> dict:
     """After a session: grade (no network, hidden tests mounted read-only) and read the tracker."""
     sdir.mkdir(parents=True, exist_ok=True)
     grade = sb.inside(["_grade", repo], cwd, timeout=3600, hidden=repo_def(repo) / "hidden", target=target)
-    tracker = read_tracker(sb, cwd, repo, arm, target)
+    tracker = (sb.inside(["_spec_tracker", arm, spec_item], cwd, timeout=300, target=target) if spec_item
+               else read_tracker(sb, cwd, repo, arm, target))
     (sdir / "grade.json").write_text(json.dumps(grade, indent=1))
     (sdir / "tracker.json").write_text(json.dumps(tracker, indent=1))
     passing = {k: v["pass"] for k, v in grade.get("items", {}).items()}
@@ -827,6 +941,8 @@ def observe(sb: Sandbox, sdir: Path, cwd: str, repo: str, arm: str, target: str 
 
 
 def cell_dir(run_id: str, c: dict) -> Path:
+    if c["scenario"] == "spec":
+        return RUNS / run_id / "spec" / c["repo"] / c["arm"] / c["author"] / c["item"] / f"s{c['spec_n']}r{c['rep']}"
     return RUNS / run_id / c["scenario"] / c["repo"] / c["arm"] / c.get("item", "-") / f"r{c['rep']}"
 
 
@@ -836,18 +952,25 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
         return json.loads((cell / "result.json").read_text())
     if cell.exists():
         shutil.rmtree(cell)
+    problem = registry_problem(c["repo"])
+    if problem:
+        raise SystemExit(f"stopped before a cell: {problem}")
     cell.mkdir(parents=True)
     backlog = load_backlog(c["repo"])
-    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent)
+    layout = "opencode" if c["scenario"] == "spec" else ""
+    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent, layout=layout)
     fixture_env = {"STUDY_ARM": c["arm"], "STUDY_REPO": c["repo"]}
     result: dict = {"cell": c, "agent": agent, "model": model, "sessions": []}
     t0 = time.time()
-    extra = {**(jira_env(cell) if c["arm"] == "jira" else {}), **AGENT_SEED.get(agent, {})} or None
+    extra = {**(jira_env(cell) if c["arm"] == "jira" else {}), **AGENT_SEED.get(layout or agent, {})} or None
     try:
         _run_cell_body(c, cell, sb, backlog, agent, model, fixture_env, result, extra)
     finally:
         if c["arm"] == "jira":
             result["jira_issues_deleted"] = jira_arm.cleanup(jira_label(cell), jira_env(cell))
+    problem = registry_problem(c["repo"])
+    if problem:  # emptied while this cell ran: its grade says nothing about the agent
+        raise SystemExit(f"stopped during a cell, nothing scored: {problem}")
     result["wall_secs"] = round(time.time() - t0, 1)
     result["cost_usd"] = round(sum((s.get("metrics") or {}).get("cost_usd") or 0 for s in result["sessions"]), 4)
     (cell / "result.json").write_text(json.dumps(result, indent=1))
@@ -858,7 +981,31 @@ def run_cell(run_id: str, c: dict, agent: str, model: str) -> dict:
 def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str, model: str,
                    fixture_env: dict, result: dict, extra: dict | None) -> None:
 
-    if c["scenario"] == "directed":
+    if c["scenario"] == "spec":
+        idx = backlog["order"].index(c["item"])
+        earlier = backlog["order"][:idx]
+        item = next(i for i in backlog["item"] if i["id"] == c["item"])
+        result.update({"author": c["author"], "worker": c["worker"], "spec_slot": c["spec"],
+                       "spec_digest": c.get("spec_digest"), "turn_cap": spec_study.WORKER_TURNS})
+        if c["author"] == "backlog":    # the control: the study's own text, as in the adoption study
+            seed_repo(c["repo"], c["arm"], cell / "repo", earlier, extra)
+            result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
+        else:
+            seed_spec(sb, c["repo"], c["arm"], cell / "repo", earlier, c["spec_digest"], extra)
+        m = run_session(sb, cell / "s01", f"{sb.WORK}/repo", PROMPTS["spec"].format(id=item["id"]), agent, model,
+                        spec_study.WORKER_TURNS, {**fixture_env, "STUDY_TARGET": item["id"],
+                                                  "STUDY_AUTHOR": c["author"]}, arm=c["arm"])
+        sb.inside(["_git", "snapshot", "s01"], f"{sb.WORK}/repo")
+        obs = observe(sb, cell / "s01", f"{sb.WORK}/repo", c["repo"], c["arm"],
+                      spec_item=None if c["author"] == "backlog" else item["id"])
+        result["sessions"].append({"metrics": m, **obs})
+        result.update({
+            "success": bool(obs["pass"].get(item["id"])),
+            "regressions": sorted(k for k in earlier if not obs["pass"].get(k)),
+            "tracker_says_done": obs["tracker"].get(item["id"]),
+        })
+
+    elif c["scenario"] == "directed":
         idx = backlog["order"].index(c["item"])
         seed_repo(c["repo"], c["arm"], cell / "repo", backlog["order"][:idx], extra)
         item = next(i for i in backlog["item"] if i["id"] == c["item"])
@@ -963,13 +1110,14 @@ def keep_cell(run_id: str, c: dict, cell: Path) -> None:
     dest.mkdir(parents=True, exist_ok=True)
     for f in cell.rglob("*"):
         if f.is_file() and f.name in ("stream.jsonl", "stderr.txt", "metrics.json", "grade.json",
-                                       "tracker.json", "prompt.txt", "result.json"):
+                                       "tracker.json", "prompt.txt", "result.json", "spec.json",
+                                       "questions.jsonl", "probe.json"):
             rel = f.relative_to(cell)
             (dest / rel.parent).mkdir(parents=True, exist_ok=True)
             shutil.copy2(f, dest / rel)
     if (cell / "repo.bundle").exists():
         shutil.copy2(cell / "repo.bundle", dest / "repo.bundle")
-    for sub in ("repo", "target", "repo.bundle") + tuple(f"w{k}" for k in range(1, 11)) \
+    for sub in ("repo", "target", "repo.bundle", "spec-out", "spec-base") + tuple(f"w{k}" for k in range(1, 11)) \
             + tuple(f"target-{k}" for k in range(1, 11)):
         p = cell / sub
         if p.is_dir():
@@ -1013,6 +1161,8 @@ def sessions_in(c: dict, backlog: dict) -> int:
 
 def cmd_execute(args) -> None:
     cells = json.loads(Path(args.plan).read_text())["cells"]
+    if any(c["scenario"] == "spec" for c in cells):
+        cells = resolve_specs(cells, args.specs_run, args.skip_unwritten)
     problems = check_tools(args.agent)
     if args.agent == "opencode":
         if not os.environ.get(OPENCODE_KEY_ENV):
@@ -1025,6 +1175,7 @@ def cmd_execute(args) -> None:
         problems.append("jira cells need " + ", ".join(jira_arm.missing()) + " in the environment")
     if args.agent == "claude" and check_auth():
         problems.append(check_auth())
+    problems += [p for p in (registry_problem(r) for r in sorted({c["repo"] for c in cells})) if p]
     if problems:
         raise SystemExit("not ready:\n  " + "\n  ".join(problems))
     run_root = RUNS / args.run_id
@@ -1034,7 +1185,7 @@ def cmd_execute(args) -> None:
         "war_build": os.environ.get("ADOPTION_WAR"), "plugin_ref": os.environ.get("ADOPTION_OW_PLUGIN_REF"),
         "ow_session_start": os.environ.get("ADOPTION_OW_SESSION_START") == "1",
         "opencode_ow_mcp": args.agent == "opencode" and os.environ.get("ADOPTION_OC_OW_MCP") == "1",
-        "auth": auth_mode(), "budget_usd": args.budget_usd,
+        "auth": auth_mode(), "budget_usd": args.budget_usd, "specs_run": args.specs_run,
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1))
     spent = 0.0
     lock = threading.Lock()
@@ -1105,6 +1256,196 @@ def paired_differences(results: list[dict]) -> list[dict]:
             out.append({"measure": name, "arm": arm, "cells": len(common),
                         "mean": round(sum(diffs) / len(diffs), 3), "ci95": bootstrap_ci(diffs)})
     return out
+
+
+def resolve_specs(cells: list[dict], specs_run: str | None, skip_unwritten: bool) -> list[dict]:
+    """Each worker cell's spec digest, from the run that wrote it. No cell starts on a spec not stored."""
+    out, missing = [], []
+    for c in cells:
+        if c["author"] != "backlog":
+            if not specs_run:
+                raise SystemExit("spec cells need --specs-run <the run that wrote the specs>")
+            f = KEEP / specs_run / "authors" / c["spec"] / "spec.json"
+            if not f.exists():
+                missing.append(c["spec"])
+                continue
+            c = {**c, "spec_run": specs_run, "spec_digest": json.loads(f.read_text())["digest"]}
+            spec_study.verify_stored(spec_store(), c["spec_digest"])
+        out.append(c)
+    if missing and not skip_unwritten:
+        raise SystemExit(f"{len(set(missing))} specs are not stored in {specs_run}, for example {missing[0]} "
+                         "(--skip-unwritten runs the cells that have one)")
+    return out
+
+
+def network_commands(stream: Path) -> list[str]:
+    """Shell commands in a transcript that reach for the network. A sandbox with a model's API can't
+    forbid them, so an author's are recorded: the web tools are off, and this is what's left."""
+    pat = re.compile(r'"command":\s*"([^"]*\b(?:curl|wget|git clone|git fetch|pip install|npm install)\b[^"]{0,120})')
+    return sorted(set(pat.findall(stream.read_text(errors="replace"))))[:20] if stream.exists() else []
+
+
+def run_author(run_id: str, slot: dict, agent: str, model: str, layout: str) -> dict:
+    """One author: the brief, the seed repository and its tool, then what it wrote, stored by digest.
+    It sees the sandbox every agent sees, with no backlog.toml in it or in the tree it starts from."""
+    cell = RUNS / run_id / "authors" / slot["slot"]
+    if (cell / "spec.json").exists():
+        return json.loads((cell / "spec.json").read_text())
+    if cell.exists():
+        shutil.rmtree(cell)
+    cell.mkdir(parents=True)
+    repo, tool, iid = slot["repo"], slot["tool"], slot["item"]
+    fixture = agent.startswith("fixture")
+    problem = registry_problem(repo)
+    if problem:
+        raise SystemExit(f"stopped before an author: {problem}")
+    extra = AGENT_SEED.get(layout, {})
+    backlog = seed_scaffold(repo, tool, cell / "repo", backlog_earlier(repo, iid), extra)
+    item = next(i for i in backlog["item"] if i["id"] == iid)
+    (cell / "seed-head").write_text(subprocess.run(["git", "-C", str(cell / "repo"), "rev-parse", "HEAD"],
+                                                   capture_output=True, text=True, timeout=30).stdout.strip())
+    brief = spec_study.brief_text(iid)
+    (cell / "brief.md").write_text(brief)
+    instr = extra.get("STUDY_INSTRUCTIONS", "CLAUDE.md")
+    prompt = spec_study.author_prompt(tool, iid, brief, instr, layout)
+    sock = STUDY / "sock" / os.urandom(4).hex() / "c.sock"
+    customer = spec_study.Customer(sock, item, spec_study.customer_rule(iid), cell / "questions.jsonl")
+    binds = [("--bind", sock, spec_study.CUSTOMER_PATH),
+             ("--ro-bind", HERE / "ask_customer.py", "/opt/study/bin/ask-customer")]
+    env = {"OPENWARRANT_ACTOR": "planner", "BEADS_ACTOR": "planner"}  # the same in every author's records
+    if fixture:
+        binds.append(("--ro-bind", HERE / "fixture_author.py", "/opt/study/fixture_author.py"))
+        env.update({"STUDY_TOOL": tool, "STUDY_ITEM": iid, **extra,
+                    "STUDY_FIXTURE_QUESTION": item["question"]["asked"],
+                    "STUDY_PROBE_SECRET": item["question"]["answer"].strip()})
+    sb = Sandbox(cell, repo, arm=tool, agent=agent, layout=layout, binds=binds)
+    base = sb.inside(["_spec_capture", tool, "/work/spec-base"], "/work/repo", timeout=300)
+    if "error" in base:
+        customer.close()
+        raise SystemExit(f"stopped: could not read the scaffold of {slot['slot']}: {base['error']}")
+    try:
+        m = run_session(sb, cell / "s01", "/work/repo", prompt, agent, model, spec_study.AUTHOR_TURNS, env,
+                        arm=tool, budget=spec_study.AUTHOR_BUDGET_USD, no_web=True)
+    finally:
+        customer.close()
+    cap = sb.inside(["_spec_capture", tool, "/work/spec-out", (cell / "seed-head").read_text()], "/work/repo",
+                    timeout=300)
+    if "error" in cap:
+        raise SystemExit(f"stopped: could not capture {slot['slot']}: {cap['error']}")
+    sb.inside(["_git", "snapshot", "author"], "/work/repo")
+    (cell / "spec-out").mkdir(exist_ok=True)
+    digest, refused = spec_study.store_spec(spec_store(), cell / "spec-out", tool)
+    stats = spec_study.spec_stats(iid, cell / "spec-out", cell / "spec-base")
+    spec = {**slot, "digest": digest, "agent": agent, "model": model, "layout": layout,
+            "brief_sha256": spec_study.brief_digest(iid), "turn_cap": spec_study.AUTHOR_TURNS,
+            "cost_usd": m.get("cost_usd") or 0, "metrics": m, "questions": customer.asked,
+            "questions_asked": len(customer.asked), "questions_answered": sum(q["matched"] for q in customer.asked),
+            "capture_skipped": cap.get("skipped", []) + refused,
+            "changed_outside_spec": cap.get("changed_outside_spec", []),
+            "network_commands": network_commands(cell / "s01" / "stream.jsonl"), **stats}
+    (cell / "spec.json").write_text(json.dumps(spec, indent=1))
+    keep_cell(run_id, {"repo": repo}, cell)
+    return spec
+
+
+def backlog_earlier(repo: str, iid: str) -> list[str]:
+    order = load_backlog(repo)["order"]
+    return order[:order.index(iid)]
+
+
+def spec_spend_problems(args, slots: list[dict]) -> list[str]:
+    """Everything that must hold before a real author runs. Checked in full before any session."""
+    problems = [p for p in (spec_study.brief_problem(i) for i in sorted({s["item"] for s in slots})) if p]
+    if any(s["author"] == "opus" for s in slots):
+        if auth_mode() != "api":
+            problems.append(f"Opus authors run on the API: ADOPTION_AUTH=api, not {auth_mode()}")
+        elif check_auth():
+            problems.append(check_auth())
+        if not 0 < args.budget_usd <= spec_study.PILOT_CAP_USD:
+            problems.append(f"--budget-usd {args.budget_usd}: the pilot's cap is USD {spec_study.PILOT_CAP_USD}, "
+                            "and a real run must state its budget")
+    if any(s["author"] == "deepseek" for s in slots) and not os.environ.get(OPENCODE_KEY_ENV):
+        problems.append(f"deepseek authors need {OPENCODE_KEY_ENV} in the environment (run under `secrets run --`)")
+    for agent in sorted({spec_study.AUTHORS[s["author"]]["agent"] for s in slots}):
+        problems += check_tools(agent)
+    problems += [p for p in (registry_problem(r) for r in sorted({s["repo"] for s in slots})) if p]
+    return problems
+
+
+def cmd_spec(args) -> None:
+    slots = json.loads(Path(args.plan).read_text())["specs"]
+    if args.author:
+        slots = [s for s in slots if s["author"] == args.author]
+    if args.only:
+        slots = [s for s in slots if s["slot"] in args.only]
+    if not args.fixture:
+        problems = spec_spend_problems(args, slots)
+        if problems:
+            raise SystemExit("not ready:\n  " + "\n  ".join(problems))
+    (RUNS / args.run_id).mkdir(parents=True, exist_ok=True)
+    spent, reserved = 0.0, 0.0
+    lock = threading.Lock()
+
+    def go(slot):
+        nonlocal spent, reserved
+        author = spec_study.AUTHORS[slot["author"]]
+        hold = spec_study.AUTHOR_BUDGET_USD if slot["author"] == "opus" and not args.fixture else 0.0
+        with lock:  # the cap is hard: a session starts only if its own cap still fits under it
+            if hold and spent + reserved + hold > args.budget_usd:
+                print(f"budget: {slot['slot']} not started ({spent:.2f} spent, {reserved:.2f} held)", flush=True)
+                return None
+            reserved += hold
+        agent = f"fixture-author-{args.fixture}" if args.fixture else author["agent"]
+        s = None
+        try:
+            s = run_author(args.run_id, slot, agent, author["model"], author["layout"])
+        finally:
+            with lock:
+                reserved -= hold
+                if s:
+                    spent += s.get("cost_usd") or 0 if slot["author"] == "opus" else 0
+        print(f"[{spent:7.2f} USD] {slot['slot']:32} {s['digest'][:12]} {s['spec_bytes']:7} bytes, "
+              f"{s['questions_asked']} asked, {s['questions_answered']} answered", flush=True)
+        return s
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as ex:
+        done = [s for s in ex.map(go, slots) if s]
+    print(f"{len(done)} of {len(slots)} specs written; spent {spent:.2f} USD on the API")
+
+
+def cmd_spec_plan(args) -> None:
+    slots, cells = spec_study.spec_slots(), spec_study.worker_cells()
+    doc = {"study": "spec", "stage": "pilot", "specs": slots, "cells": cells, "max_sessions": len(slots) + len(cells)}
+    if args.out:
+        Path(args.out).write_text(json.dumps(doc, indent=1))
+    if args.dry_run:
+        for n, c in enumerate(cells, 1):
+            print(f"{n:3}  {c['repo']:8} {c['item']:3} {c['arm']:11} author={c['author']:8} "
+                  f"spec={c['spec_n']} worker={c['worker']} rep={c['rep']}")
+        print()
+    est = spec_study.estimate(slots, cells)
+    by_author = {a: sum(1 for c in cells if c["author"] == a) for a in ("opus", "deepseek", "backlog")}
+    print(f"{len(cells)} worker cells {by_author}; {len(slots)} specs to write "
+          f"({est['opus_specs']} opus, {est['deepseek_specs']} deepseek); turn cap {est['worker_turn_cap']}")
+    print(f"cash: USD {est['cash_usd'][0]} to {est['cash_usd'][1]} on Opus authoring (the protocol's guess per spec), "
+          f"workers and DeepSeek authors free on the endpoint; hard cap USD {est['cap_usd']:.2f}, "
+          f"USD {est['author_session_cap_usd']:.2f} per author session")
+    print(f"at list price: USD {est['list_price_deepseek_session_usd']} per DeepSeek session at 60 turns, "
+          f"so {est['list_price_workers_usd']} for workers and {est['list_price_deepseek_author_usd']} for DeepSeek "
+          f"authors; total USD {est['list_price_total_usd'][0]} to {est['list_price_total_usd'][1]}")
+    print("no model was called")
+
+
+def cmd_spec_check(args) -> None:
+    bad = 0
+    for repo, item in spec_study.PILOT_ITEMS:
+        res = spec_study.check_sufficiency(item, repo_def(repo) / "hidden" / item)
+        print(f"{item}: {res['rows']} rows for {res['assertions']} assertions: {res['counts']}; "
+              f"{len(res['clauses'])} clauses")
+        for e in res["problems"]:
+            print("  PROBLEM", e)
+        bad += len(res["problems"])
+    raise SystemExit(1 if bad else 0)
 
 
 def cmd_report(args) -> None:
@@ -1286,6 +1627,8 @@ def main() -> None:
     v = sub.add_parser("validate"); v.add_argument("repo")
     s = sub.add_parser("seed"); s.add_argument("repo"); s.add_argument("arm", choices=arms.ARMS)
     s.add_argument("dest"); s.add_argument("--done", nargs="*", default=[])
+    s.add_argument("--spec", help="a stored spec's digest, in place of backlog.toml")
+    s.add_argument("--layout", default="opencode", choices=("claude", "opencode"), help="with --spec: whose files")
     pa = sub.add_parser("parity"); pa.add_argument("repo"); pa.add_argument("--keep", action="store_true")
     pl = sub.add_parser("plan"); pl.add_argument("--pilot", action="store_true")
     pl.add_argument("--smoke", action="store_true", help="one directed tally T6 session, plain arm")
@@ -1295,12 +1638,24 @@ def main() -> None:
     ex = sub.add_parser("execute"); ex.add_argument("plan"); ex.add_argument("--run-id", required=True)
     ex.add_argument("--agent", required=True); ex.add_argument("--model", default=DEFAULT_MODEL)
     ex.add_argument("--jobs", type=int, default=2); ex.add_argument("--budget-usd", type=float, default=0)
+    ex.add_argument("--specs-run", help="the run whose specs a spec plan's worker cells use")
+    ex.add_argument("--skip-unwritten", action="store_true", help="leave out cells whose spec was never written")
+    sp = sub.add_parser("spec"); sp.add_argument("plan"); sp.add_argument("--run-id", required=True)
+    sp.add_argument("--author", choices=spec_study.MODEL_AUTHORS); sp.add_argument("--only", nargs="*")
+    sp.add_argument("--jobs", type=int, default=1); sp.add_argument("--budget-usd", type=float, default=0)
+    sp.add_argument("--fixture", choices=("good", "bad", "empty", "probe"), help="a scripted author: no model, no brief freeze")
+    pp = sub.add_parser("spec-plan"); pp.add_argument("--dry-run", action="store_true"); pp.add_argument("--out")
+    sub.add_parser("spec-check")
+    sub.add_parser("spec-selfcheck")
     rp = sub.add_parser("report"); rp.add_argument("run_id")
     # inside the sandbox only
     g = sub.add_parser("_grade"); g.add_argument("repo")
     t = sub.add_parser("_tracker"); t.add_argument("repo"); t.add_argument("arm")
     an = sub.add_parser("_answers"); an.add_argument("repo"); an.add_argument("arm")
     gi = sub.add_parser("_git"); gi.add_argument("action"); gi.add_argument("arg", nargs="?")
+    sc = sub.add_parser("_spec_capture"); sc.add_argument("tool"); sc.add_argument("out"); sc.add_argument("base", nargs="?")
+    sa = sub.add_parser("_spec_apply"); sa.add_argument("arm")
+    st = sub.add_parser("_spec_tracker"); st.add_argument("arm"); st.add_argument("item")
     args = ap.parse_args()
 
     if args.cmd == "prepare":
@@ -1308,7 +1663,13 @@ def main() -> None:
     elif args.cmd == "validate":
         cmd_validate(args)
     elif args.cmd == "seed":
-        seed_repo(args.repo, args.arm, Path(args.dest), args.done)
+        if args.spec:
+            dest = Path(args.dest).resolve()
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            sb = Sandbox(dest.parent, args.repo, arm=args.arm, agent="fixture", layout=args.layout)
+            seed_spec(sb, args.repo, args.arm, dest, args.done, args.spec, AGENT_SEED.get(args.layout, {}))
+        else:
+            seed_repo(args.repo, args.arm, Path(args.dest), args.done)
         print(args.dest)
     elif args.cmd == "parity":
         cmd_parity(args)
@@ -1326,6 +1687,15 @@ def main() -> None:
         print(f"{len(cells)} cells {by}; at most {n} agent sessions")
     elif args.cmd == "execute":
         cmd_execute(args)
+    elif args.cmd == "spec":
+        cmd_spec(args)
+    elif args.cmd == "spec-plan":
+        cmd_spec_plan(args)
+    elif args.cmd == "spec-check":
+        cmd_spec_check(args)
+    elif args.cmd == "spec-selfcheck":
+        import spec_selfcheck
+        spec_selfcheck.main()
     elif args.cmd == "report":
         cmd_report(args)
     elif args.cmd == "_grade":
@@ -1336,6 +1706,12 @@ def main() -> None:
         print(json.dumps(_inside_tracker(args.repo, args.arm)))
     elif args.cmd == "_git":
         print(json.dumps(_inside_git(args.action, args.arg)))
+    elif args.cmd == "_spec_capture":
+        print(json.dumps(_inside_spec_capture(args.tool, args.out, args.base)))
+    elif args.cmd == "_spec_apply":
+        print(json.dumps(_inside_spec_apply(args.arm)))
+    elif args.cmd == "_spec_tracker":
+        print(json.dumps(_inside_spec_tracker(args.arm, args.item)))
 
 
 if __name__ == "__main__":

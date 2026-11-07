@@ -5,6 +5,8 @@
                                  done the way the arm's tool records it
     fixture_agent.py noop        change nothing
     fixture_agent.py claim       record the next item done without doing it (a false completion)
+    fixture_agent.py spec        read the spec a fixture author wrote, do what its FIXTURE-PATCH line
+                                 says (reference, or the natural default), and record the spec done
 
 It runs inside the same sandbox as a real agent session, with the repository
 definition mounted at /opt/study/repo-def (a real agent never sees it). Its
@@ -79,8 +81,54 @@ def mark_done(arm: str, backlog: dict, iid: str) -> None:
                                                               "OPENWARRANT_ACTOR": "fixture"}, "fixture")
 
 
+def spec_marker(arm: str) -> str | None:
+    """The FIXTURE-PATCH line, wherever this tool keeps a spec: a stand-in for a worker reading it."""
+    found = subprocess.run(["git", "grep", "-h", "FIXTURE-PATCH:"], capture_output=True, text=True).stdout
+    if arm == "beads":
+        found += subprocess.run(["bd", "list", "--json", "--all"], capture_output=True, text=True).stdout
+    for word in found.split("FIXTURE-PATCH:")[1:]:
+        return word.split()[0].strip('",')
+    return None
+
+
+def spec_mark_done(arm: str) -> None:
+    """Finish every record the tool holds, as a worker that believes the work is done would."""
+    if arm == "plans":
+        p = Path("PLAN.md")
+        p.write_text(p.read_text().replace("- [ ]", "- [x]"))
+    elif arm == "speckit":
+        for p in Path("specs").glob("*/tasks.md"):
+            p.write_text(p.read_text().replace("- [ ]", "- [X]"))
+    elif arm == "beads":
+        rows = json.loads(subprocess.run(["bd", "list", "--json", "--all"], capture_output=True, text=True).stdout or "[]")
+        for issue in rows:
+            subprocess.run(["bd", "close", issue["id"], "--reason", "fixture"], check=True, capture_output=True)
+    elif arm == "openwarrant":
+        rows = json.loads(subprocess.run(["war", "view", "tickets", "--json"], capture_output=True,
+                                         text=True).stdout)["result"]["tickets"]
+        for t in rows:
+            arms.openwarrant_done(t["id"], Path.cwd(), {**os.environ, "STUDY_WAR": "war",
+                                                        "OPENWARRANT_ACTOR": "fixture"}, "fixture")
+
+
+def spec_worker(arm: str, iid: str) -> None:
+    marker = spec_marker(arm)
+    if marker is None:
+        result_line("spec: no FIXTURE-PATCH line, changed nothing")
+        return
+    name = f"{iid}.patch" if marker == "reference" else f"{iid}.default.patch"
+    subprocess.run(["git", "apply", "--whitespace=nowarn", str(DEF / "reference" / name)], check=True)
+    spec_mark_done(arm)
+    result_line(f"spec: applied {name}")
+
+
 def main() -> None:
     mode = sys.argv[1]
+    if mode == "spec" and os.environ.get("STUDY_AUTHOR") != "backlog":
+        spec_worker(os.environ["STUDY_ARM"], os.environ["STUDY_TARGET"])
+        return
+    if mode == "spec":  # the control has no spec to read: the study's own text, as `reference` reads it
+        mode = "reference"
     if mode == "noop":
         result_line("noop: changed nothing")
         return
