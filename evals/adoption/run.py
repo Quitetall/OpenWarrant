@@ -59,6 +59,14 @@ PINS = {
     "ow_plugin": "v1.0.0-alpha.5",   # the OpenWarrant Claude Code plugin, from this tag
     "opencode": "2.2.1",
 }
+# Where `prepare` gets Beads and Spec Kit. Beads publishes checksums.txt: the pin below is its
+# line for this asset, and the download is checked against both. Spec Kit's v1.2.2 release has no
+# assets and no checksum, so it is pinned to the commit its annotated tag points at.
+BEADS_URL = "https://github.com/gastownhall/beads/releases/download/v1.3.1"
+BEADS_ASSET = "beads_1.3.1_linux_amd64.tar.gz"
+BEADS_SHA256 = "3219443a9734b89b93fb16ee8d65844759fa1b3cd3cf139c606b7353cfb0715c"
+SPECKIT_GIT = "https://github.com/github/spec-kit.git"
+SPECKIT_COMMIT = "74be0a63e93c7087c5b06556b7561810d8f78a45"  # tag v1.2.2
 OW_REPO = Path(os.environ.get("ADOPTION_OW_REPO", "/mnt/4tb/OpenWarrant"))
 PLUGIN_FILES = (".claude-plugin", ".claude/skills", ".claude/hooks", ".mcp.json")
 DEFAULT_MODEL = "claude-sonnet-5-5"
@@ -147,7 +155,80 @@ def check_tools(agent: str = "claude") -> list[str]:
     spec = STUDY / "tools/uv-tools/specify-cli"
     if not only_ow and not spec.exists():
         problems.append("specify: not installed (run.py prepare)")
+    elif not only_ow and not speckit_at_pin():
+        problems.append(f"specify: {spec} is not Spec Kit {PINS['specify']} at {SPECKIT_COMMIT[:12]}")
     return problems
+
+
+def speckit_at_pin() -> bool:
+    receipt = STUDY / "tools/uv-tools/specify-cli/uv-receipt.toml"
+    return receipt.exists() and SPECKIT_COMMIT in receipt.read_text()
+
+
+def _sha256(path: Path) -> str:
+    import hashlib
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1 << 20), b""):
+            h.update(block)
+    return h.hexdigest()
+
+
+def install_beads() -> None:
+    """Beads at its pin, from the release tarball. Everything downloaded stays in its own new
+    directory until its digest matches; only the `bd` binary leaves it."""
+    import tarfile
+    import tempfile
+    bd = Path(tools()["STUDY_BD"])
+    if bd.exists():
+        out = subprocess.run([str(bd), "version"], capture_output=True, text=True, timeout=60).stdout
+        if PINS["bd"] in out:
+            print(f"beads {PINS['bd']}: already installed")
+            return
+    (STUDY / "tools").mkdir(parents=True, exist_ok=True)
+    dl = Path(tempfile.mkdtemp(prefix="dl-beads-", dir=STUDY / "tools"))
+    try:
+        for name in (BEADS_ASSET, "checksums.txt"):
+            subprocess.run(["curl", "-fsSL", "--max-time", "300", "-o", str(dl / name), f"{BEADS_URL}/{name}"],
+                           check=True, timeout=330)
+        got = _sha256(dl / BEADS_ASSET)
+        published = next((l.split()[0] for l in (dl / "checksums.txt").read_text().splitlines()
+                          if l.strip().endswith(BEADS_ASSET)), None)
+        if got != BEADS_SHA256 or got != published:
+            raise SystemExit(f"beads: {BEADS_ASSET} is {got}, pinned {BEADS_SHA256}, published {published}: refused")
+        with tarfile.open(dl / BEADS_ASSET) as t:
+            member = next(m for m in t.getmembers() if m.isfile() and Path(m.name).name == "bd")
+            t.extract(member, dl / "x", filter="data")
+        new = dl / "x" / member.name
+        new.chmod(0o755)
+        bd.parent.mkdir(parents=True, exist_ok=True)
+        os.replace(new, bd)
+    finally:
+        shutil.rmtree(dl, ignore_errors=True)
+    print(f"beads {PINS['bd']}: installed, sha256 of the tarball matches checksums.txt")
+
+
+def install_speckit() -> None:
+    """Spec Kit at its pin, as a uv tool under tools/, with uv's own cache in a new directory."""
+    import tempfile
+    if speckit_at_pin() and Path(tools()["STUDY_SPECIFY"]).is_symlink():
+        print(f"spec kit {PINS['specify']}: already installed")
+        return
+    t = STUDY / "tools"
+    (t / "uv-tools").mkdir(parents=True, exist_ok=True)
+    (t / "bin").mkdir(parents=True, exist_ok=True)
+    cache = Path(tempfile.mkdtemp(prefix="dl-speckit-", dir=t))
+    env = {**os.environ, "UV_TOOL_DIR": str(t / "uv-tools"), "UV_TOOL_BIN_DIR": str(t / "bin"),
+           "UV_CACHE_DIR": str(cache)}
+    try:
+        p = subprocess.run(["uv", "tool", "install", "--force", "specify-cli", "--from",
+                            f"git+{SPECKIT_GIT}@{SPECKIT_COMMIT}"], env=env, capture_output=True,
+                           text=True, timeout=600)
+    finally:
+        shutil.rmtree(cache, ignore_errors=True)
+    if p.returncode != 0:
+        raise SystemExit(f"spec kit: uv tool install failed: {p.stderr[-800:]}")
+    print(f"spec kit {PINS['specify']}: installed from {SPECKIT_COMMIT[:12]}")
 
 
 # ------------------------------------------------------------------ backlog and source
@@ -1103,6 +1184,8 @@ def cmd_prepare(args) -> None:
                              capture_output=True, check=True, timeout=120).stdout
     subprocess.run(["tar", "-x", "-C", str(plugin)], input=archive, check=True, timeout=120)
     print(f"openwarrant plugin {ref}: {sum(1 for _ in plugin.rglob('*') if _.is_file())} files")
+    install_beads()
+    install_speckit()
     py = STUDY / "py"
     if not (py / "bin/python3").exists():
         subprocess.run(["python3", "-m", "venv", str(py)], check=True, timeout=300)
