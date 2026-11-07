@@ -78,6 +78,25 @@ pub(super) fn refuse_tests(tests: &[String]) -> Option<Outcome> {
     None
 }
 
+/// `war create --sign`: `created`, raised to an Order in place. A refusal of
+/// either step is the answer.
+pub fn signed(store: &Store, created: Outcome) -> Result<Outcome, RepoError> {
+    let Some(id) = created.result["id"].as_str().map(str::to_owned) else {
+        return Ok(created);
+    };
+    if created.is_refused() {
+        return Ok(created);
+    }
+    let raised = promote(store, &id, &[])?;
+    if raised.is_refused() {
+        return Ok(raised);
+    }
+    let mut outcome = created;
+    outcome.human = format!("{}\n{}", outcome.human, raised.human);
+    outcome.result["level"] = raised.result["level"].clone();
+    Ok(outcome)
+}
+
 /// The item a promotion adds: what a person signs off at the end.
 pub const SIGN_OFF_ITEM: &str = "Signed off by a person";
 

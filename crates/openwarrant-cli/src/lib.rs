@@ -3901,16 +3901,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             } else {
                 ticket::create(&store, &args)?
             };
-            if sign
-                && !outcome.is_refused()
-                && let Some(id) = outcome.result["id"].as_str().map(str::to_owned)
-            {
-                let raised = ticket::parts::promote(&store, &id, &[])?;
-                if raised.is_refused() {
-                    return Ok(ticket_answer(mode, "create", &raised));
-                }
-                outcome.human = format!("{}\n{}", outcome.human, raised.human);
-                outcome.result["level"] = raised.result["level"].clone();
+            if sign {
+                outcome = ticket::parts::signed(&store, outcome)?;
             }
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "create", &outcome))
