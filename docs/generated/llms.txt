@@ -1636,6 +1636,10 @@
 > M10: one store, one noun, bring your work with you
 - t-473a3 · ticket · done · M10: one store, one noun, bring your work with you · docs/tickets/t-473a3/manifest.toml:1
 
+## docs/tickets/t-4791d3.md
+> Separate the author's effect from the tool's, with a weak worker
+- t-4791d3 · ticket · open · Spec study: who writes the spec · docs/tickets/t-4791d3.md:1
+
 ## docs/tickets/t-4948f/manifest.toml
 > Correct stale additive agent-guidance installation instructions (OW68/S08)
 - t-4948f · ticket · done · Correct stale additive agent-guidance installation instructions (OW68/S08) · docs/tickets/t-4948f/manifest.toml:1
@@ -1807,6 +1811,10 @@
 ## docs/tickets/t-833e/manifest.toml
 > OW-WAR-0112: evidence for OBL-001/002/003/006 the blind verifier did not see
 - t-833e · ticket · done · OW-WAR-0112: evidence for OBL-001/002/003/006 the blind verifier did not see · docs/tickets/t-833e/manifest.toml:1
+
+## docs/tickets/t-836dad.md
+> Interface documents, named repositories and pin-aware state, so two repositories can work one feature at once
+- t-836dad · ticket · open · W6: work across repositories · docs/tickets/t-836dad.md:1
 
 ## docs/tickets/t-83d6c/manifest.toml
 > Make runner controls use their allocated scratch variables
