@@ -133,13 +133,13 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
         );
         let _ = writeln!(
             page,
-            "{} · type {ty} · master [{}](../../{})\n",
+            "{} · type {ty} · master [{}](../{})\n",
             tier.map_or_else(
                 || "tier UNKNOWN".to_owned(),
                 |t| format!("{} (tier {t})", format_doc::tier_name("document", t))
             ),
             d.source,
-            d.source
+            d.source.strip_prefix("docs/").unwrap_or(&d.source)
         );
         page.push_str(&body_of(d));
         if !page.ends_with('\n') {
@@ -175,15 +175,22 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
         .filter_map(|d| Some((d.doc.alias.as_deref()?, format_doc::tier(d, profiles))))
         .collect();
 
-    // Every work order, wherever it is kept: what `war` lists, and each
-    // work master it does not list yet (a master of profile `ticket`), open
-    // until every item of it is ticked. A document is no work order, and
-    // the Roadmap is not one of its own items.
+    // Every work order, wherever it is kept: what `war` lists, except that
+    // a work master of profile `ticket`, which the ticket store does not
+    // read yet, is open until every item of it is ticked. A document is no
+    // work order, and the Roadmap is not one of its own items.
+    let ticket_master = |id: &str| {
+        masters
+            .iter()
+            .any(|d| d.doc.alias.as_deref() == Some(id) && d.doc.profile == "ticket")
+    };
     let work = crate::work::Work::read(repo);
     let mut items: Vec<crate::work::Item> = work
         .items()
         .iter()
-        .filter(|i| i.id != "roadmap" && format::kind_of(Some(&i.id)) == "work")
+        .filter(|i| {
+            i.id != "roadmap" && format::kind_of(Some(&i.id)) == "work" && !ticket_master(&i.id)
+        })
         .cloned()
         .collect();
     for d in &masters {
