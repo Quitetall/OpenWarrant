@@ -14505,7 +14505,7 @@ the second is what the recorded run exposes.
 | id | title | target | digest |
 |---|---|---|---|
 | D-001 | The glossary every Dispatch carries | `CONTEXT.md` | drift |
-| D-002 | war frontier: the stages that can start now | `crates/openwarrant-cli/src/frontier.rs` | verified |
+| D-002 | war frontier: the stages that can start now | `crates/openwarrant-cli/src/frontier.rs` | drift |
 | D-003 | The selector carries the glossary | `crates/openwarrant-cli/src/context_select.rs` | verified |
 | D-004 | /war-grill | `.claude/skills/war-grill/SKILL.md` | verified |
 | D-005 | /war-spec | `.claude/skills/war-spec/SKILL.md` | verified |
@@ -27872,7 +27872,7 @@ responder must not read as "waiting normally".
 
 | id | title | target | digest |
 |---|---|---|---|
-| D-001 | war frontier: a blocking question blocks its stage; no responder is UNKNOWN | `crates/openwarrant-cli/src/frontier.rs` | verified |
+| D-001 | war frontier: a blocking question blocks its stage; no responder is UNKNOWN | `crates/openwarrant-cli/src/frontier.rs` | drift |
 | D-002 | war perform: question, spend and attempt admission; perform.ended | `crates/openwarrant-cli/src/perform.rs` | verified |
 | D-003 | [perform] allow_unmetered, hard_spend_cap, max_repairs, max_recoveries | `crates/openwarrant-core/src/config.rs` | not_content_addressed |
 | D-004 | This repository's allow_unmetered = true | `openwarrant.toml` | drift |

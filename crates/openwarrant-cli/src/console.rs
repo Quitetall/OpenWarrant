@@ -129,7 +129,7 @@ pub fn review_rows_with(
     corpus: &crate::corpus::Corpus,
 ) -> Result<(Vec<Act>, Vec<Question>), RepoError> {
     let repo = corpus.repo();
-    let acts: Vec<Act> = corpus
+    let mut acts: Vec<Act> = corpus
         .pending()?
         .iter()
         .enumerate()
@@ -145,6 +145,15 @@ pub fn review_rows_with(
             }
         })
         .collect();
+    for s in sign_offs(corpus)? {
+        acts.push(Act {
+            n: acts.len() + 1,
+            act: crate::ticket::acts::ACT.to_owned(),
+            command: format!("war sign {} --ssh-sign", s.target),
+            line: s.line(),
+            target: s.target,
+        });
+    }
     let questions: Vec<Question> = crate::questions::complete_list(repo, true).map(|l| {
         l.questions
             .into_iter()
@@ -159,6 +168,15 @@ pub fn review_rows_with(
             .collect()
     })?;
     Ok((acts, questions))
+}
+
+/// The Orders waiting on a person, over the corpus's tickets.
+pub fn sign_offs(
+    corpus: &crate::corpus::Corpus,
+) -> Result<Vec<crate::ticket::acts::SignOff>, RepoError> {
+    let store = crate::ticket::Store::open(corpus.repo(), None)?;
+    let (tickets, _) = corpus.tickets()?;
+    crate::ticket::acts::awaiting(corpus.repo(), &store, tickets)
 }
 
 /// Read the whole board from the records. No writes, no prompts.

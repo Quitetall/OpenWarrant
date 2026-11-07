@@ -15,12 +15,12 @@ and keep their report envelope's command name.
 
 Bare `war` opens the human TUI. Agents use explicit commands with `--json`.
 
-All six take `--interactive`, which asks for what is not given and then does
+All six take `--interactive` (`-I`), which asks for what is not given and then does
 what the plain command does: `create` asks for a title, steps, a test and a
 sign-off; `start` and `done` pick from what is ready or held; `status` and `check`
 pick what to read. On `init` it is `--guided`. A caller with no terminal, or under
 `--json`, is refused by name (`interactive.no-terminal`) before any question.
-There is no short form: `-i` is `--item` on `create`.
+`-i` stays `--item` on `create`.
 Advanced operations are grouped by purpose:
 
 | Group | Common commands |

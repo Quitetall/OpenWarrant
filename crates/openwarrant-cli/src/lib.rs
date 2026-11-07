@@ -673,7 +673,7 @@ enum DailyCommand {
         /// Ask the setup questions at a terminal: who signs, the SAS, the
         /// first Warrant. Refused without a terminal; plain `war init` asks
         /// nothing.
-        #[arg(long, visible_alias = "interactive", conflicts_with_all = ["non_interactive", "namespace"])]
+        #[arg(short = 'I', long, visible_alias = "interactive", conflicts_with_all = ["non_interactive", "namespace"])]
         guided: bool,
         /// Never ask. Plain `war init` already asks nothing; the flag is kept
         /// so scripts that pass it keep working.
@@ -727,7 +727,7 @@ enum DailyCommand {
         #[arg(required_unless_present_any = ["issue", "issue_file", "interactive"])]
         title: Option<String>,
         /// Ask for what is not given. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
         /// Keep the old manifest-and-atoms encoding for a legacy integration.
         #[arg(long, hide = true)]
@@ -834,7 +834,7 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
         /// Pick from what is ready. Needs a terminal.
-        #[arg(long, conflicts_with = "worktree")]
+        #[arg(short = 'I', long, conflicts_with = "worktree")]
         interactive: bool,
         /// Only take it, with no brief: `war admin claim`.
         #[arg(long, conflicts_with = "worktree", group = "takes_paths")]
@@ -875,7 +875,7 @@ enum DailyCommand {
         #[arg(long)]
         check: bool,
         /// Pick what you hold and say what was done. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
         /// Give the claim back without finishing it: `war admin release`.
         #[arg(long, requires = "target", conflicts_with_all = ["note", "check", "reopen"])]
@@ -939,7 +939,7 @@ enum DailyCommand {
         #[arg(long, conflicts_with = "alias")]
         pending: bool,
         /// Pick an item to show. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
         /// What is ready, and whose step it is: `war view next`.
         #[arg(long, conflicts_with_all = ["alias", "timeline", "pending", "ready"])]
@@ -1016,7 +1016,7 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
         /// Pick what to check. Needs a terminal.
-        #[arg(long)]
+        #[arg(short = 'I', long)]
         interactive: bool,
     },
 }
@@ -3901,16 +3901,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             } else {
                 ticket::create(&store, &args)?
             };
-            if sign
-                && !outcome.is_refused()
-                && let Some(id) = outcome.result["id"].as_str().map(str::to_owned)
-            {
-                let raised = ticket::parts::promote(&store, &id, &[])?;
-                if raised.is_refused() {
-                    return Ok(ticket_answer(mode, "create", &raised));
-                }
-                outcome.human = format!("{}\n{}", outcome.human, raised.human);
-                outcome.result["level"] = raised.result["level"].clone();
+            if sign {
+                outcome = ticket::parts::signed(&store, outcome)?;
             }
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "create", &outcome))
@@ -4131,6 +4123,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if !adapted.is_empty() {
                             value["read_in_place"] = interop::adapters::status(&adapted).1;
                         }
+                        // After the projection and never in it: a document
+                        // changes without a compile, as a ticket's ticks do.
+                        let documents = work::Work::read(&repository).documents();
+                        if !documents.is_empty() {
+                            value["single_file"] = output::value(&documents);
+                        }
                         // OW-WAR-0148 M14: each Warrant's officialness, under
                         // a preset only; never in the committed projection.
                         let policy = preset::Policy::read_or_default(&repository.root);
@@ -4184,6 +4182,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if !adapted.is_empty() {
                             print!("{}", interop::adapters::status(&adapted).0);
                         }
+                        print!(
+                            "{}",
+                            work::render_documents(&work::Work::read(&repository).documents())
+                        );
                         // OW-WAR-0148 M13: how the tickets' ticks were
                         // earned, after the projection and never in it (the
                         // committed projection does not move when a ticket
@@ -5662,7 +5664,14 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
-            let (report, f) = frontier::run(&repository, alias.as_deref())?;
+            let (report, mut f) = frontier::run(&repository, alias.as_deref())?;
+            if alias.is_none() {
+                f.documents = work::Work::read(&repository)
+                    .documents()
+                    .into_iter()
+                    .filter(|i| !i.is_done())
+                    .collect();
+            }
             match mode {
                 output::Mode::Human => {
                     print!("{}", frontier::render(&f));
@@ -5829,6 +5838,7 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
             meaning,
             ssh_sign,
             dry_run,
+            show,
             ..
         } if ticket::is_ticket_ref(&target) => {
             let repository = ctx.open_repo()?;
@@ -5837,7 +5847,7 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
                 actor,
                 meaning,
                 ssh_sign,
-                dry_run,
+                dry_run: dry_run || show,
             };
             Ok(ticket_answer(
                 mode,
@@ -5872,25 +5882,32 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
                 // they may sign now, assigned ones first — and `--json` carries
                 // the same list.
                 let waiting = sign::list_for(&repository, actor.as_deref())?;
+                let sign_offs: Vec<ticket::acts::SignOff> = ticket::acts::awaiting_in(&repository)?
+                    .into_iter()
+                    .filter(|s| actor.as_ref().is_none_or(|a| s.eligible.contains(a)))
+                    .collect();
                 let by = actor
                     .as_deref()
                     .map(|a| format!(" by {a}"))
                     .unwrap_or_default();
-                let text = if waiting.is_empty() {
+                let count = waiting.len() + sign_offs.len();
+                let text = if count == 0 {
                     format!("nothing awaits a signature{by}")
                 } else {
-                    let mut t = format!("{} awaiting a signature{by}:", waiting.len());
+                    let mut t = format!("{count} awaiting a signature{by}:");
                     for p in &waiting {
                         t.push_str(&format!("\n  {}", sign::line(p)));
                     }
+                    for s in &sign_offs {
+                        t.push_str(&format!("\n  {}", s.line()));
+                    }
                     t
                 };
-                output::emit(
-                    mode,
-                    "sign",
-                    &text,
-                    sign::list_json(&waiting, actor.as_deref()),
-                );
+                let mut listed = sign::list_json(&waiting, actor.as_deref());
+                if let Some(acts) = listed["acts"].as_array_mut() {
+                    acts.extend(sign_offs.iter().map(ticket::acts::SignOff::json));
+                }
+                output::emit(mode, "sign", &text, listed);
                 return Ok(EXIT_OK);
             }
             let parse_err = |what: &str, v: &str, known: &str| {

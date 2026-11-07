@@ -443,9 +443,12 @@ fn create_makes_every_level_as_one_document() {
                 .exists()
         );
     }
-    // An agent's `war done` does not finish an Order.
-    let done = war_raw(root, &["done", &order, "--note", "no"]);
-    assert_ne!(done.status.code(), Some(0), "an Order finished unsigned");
+    // An agent's `war done` hands an Order over and does not finish it.
+    let done = war(root, &["done", &order, "--note", "no"]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["ticket_state"], "awaiting_signature");
+    let shown = war(root, &["view", "show", &order]);
+    assert_eq!(shown["result"]["ticket"]["state"], "open", "{shown}");
 }
 
 #[test]
