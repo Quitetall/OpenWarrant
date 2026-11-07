@@ -558,6 +558,83 @@ fn run_with_output(
     Ok(recorded)
 }
 
+/// `war init --claims-remote <REMOTE>`: `[claims] remote` in
+/// `openwarrant.toml`, so claims and notices go through that git remote
+/// (docs/TICKETS.md, "Two machines"). Sets the key in an existing `[claims]`
+/// table, else appends the table; the rest of the file keeps its bytes.
+/// Returns the line to print.
+pub fn set_claims_remote(root: &Utf8Path, remote: &str) -> Result<String, InitError> {
+    let config_path = root.join(CONFIG_FILE);
+    let fail = |why: String| InitError::Io {
+        context: format!("could not set [claims] remote in {config_path}"),
+        source: std::io::Error::other(why),
+    };
+    let remote = remote.trim();
+    if remote.is_empty() || remote.contains(['"', '\\', '\n']) {
+        return Err(fail(format!("`{remote}` is not a git remote name")));
+    }
+    let text = fs::read_to_string(&config_path).map_err(|e| fail(e.to_string()))?;
+    let key = format!("remote = \"{remote}\"");
+    let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
+    let header = lines.iter().position(|l| l.trim() == "[claims]");
+    match header {
+        Some(h) => {
+            let end = lines[h + 1..]
+                .iter()
+                .position(|l| l.trim_start().starts_with('['))
+                .map_or(lines.len(), |n| h + 1 + n);
+            let at = lines[h + 1..end]
+                .iter()
+                .position(|l| l.split_once('=').is_some_and(|(k, _)| k.trim() == "remote"));
+            match at {
+                Some(n) => lines[h + 1 + n] = key,
+                None => lines.insert(h + 1, key),
+            }
+        }
+        None => {
+            if lines.last().is_some_and(|l| !l.trim().is_empty()) {
+                lines.push(String::new());
+            }
+            lines.push("[claims]".to_owned());
+            lines.push(key);
+        }
+    }
+    let mut out = lines.join("\n");
+    out.push('\n');
+    let read: toml::Value = toml::from_str(&out).map_err(|e| {
+        fail(format!(
+            "the rewritten file would not read ({e}); nothing was written"
+        ))
+    })?;
+    if read
+        .get("claims")
+        .and_then(|c| c.get("remote"))
+        .and_then(toml::Value::as_str)
+        != Some(remote)
+    {
+        return Err(fail(
+            "the rewritten file does not read [claims] remote back; nothing was written".to_owned(),
+        ));
+    }
+    if out != text {
+        fs::write(&config_path, &out).map_err(|e| fail(e.to_string()))?;
+    }
+    let known = std::process::Command::new("git")
+        .args(["-C", root.as_str(), "remote", "get-url", remote])
+        .output()
+        .is_ok_and(|o| o.status.success());
+    let mut line = format!(
+        "[claims] remote = \"{remote}\": claims and notices go through that git remote; commit \
+         openwarrant.toml so every clone shares it (docs/TICKETS.md, \"Two machines\")"
+    );
+    if !known {
+        line.push_str(&format!(
+            ". This clone has no git remote `{remote}` yet: `git remote add {remote} <url>`"
+        ));
+    }
+    Ok(line)
+}
+
 /// `war init --vibe | --team | --regulated` (OW-WAR-0148 M14): after the
 /// plain init, `[preset]` and `[roles]` appended to `openwarrant.toml` with
 /// the preset's defaults; `--team` and `--regulated` also write the signing
