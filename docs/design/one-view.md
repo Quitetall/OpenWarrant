@@ -57,9 +57,28 @@ it binds the contract as it compiles now. Swapping them could read higher than
 ticket store on one line, since `war start` takes none of it and the overview must not
 grow with the corpus.
 
+## New work is one document
+
+`war create` writes one document at every level: `--test` makes it a Warrant,
+`--sign` an Order. `war plan promote` adds the same field to work that exists,
+in place, with the same id. `promoted_to` stays readable on the records that hold
+it and is written only by `war plan new --from`.
+
+`war plan new` still writes a directory Warrant, and `war plan --apply` and
+`war init --program` still reach it, because authorize, verify and resolve read
+only that encoding. Flipping its default would hand a user a Warrant none of those
+acts can reach, and would break every script that edits the atoms after it.
+`--format 1.0` writes a document in `docs/warrants/`. Retiring the directory writer
+needs the Appendix C acts over a single-file subject (`warrant_dirs` and
+`load_warrant` underneath `sign`, `compile`, `status::build`), which is its own
+piece of work.
+
+`check <alias>`, `status <alias>`, `view show <alias>`, `view next` and `view
+context` now find a single-file Warrant. `next` lists it, and work read in place,
+under `elsewhere`, which is absent when there is none.
+
 ## What remains of W1.1
 
-- New Warrants as single documents, and `war plan promote` as adding a field.
-- Moving `check`, `next`, `context` and the TUI (`ticket::board`) onto `Work`.
-- Single-file Warrants in `status::build`, `war view show` and the frontier.
+- The TUI (`ticket::board`), another agent's.
+- Single-file Warrants in `status::build` and the frontier.
 - FORMAT wording for the levels, which waits for a signing sitting.

@@ -11,10 +11,10 @@ war create "Describe the outcome" --item "First step" --item "Second step"
 Ordinary coding needs none of this: tickets are there when you want the work
 tracked.
 
-Fresh setup retains the binary's checked schema pack under `schemas/`, so archive
-readers can check the format identity without a separate copy step. Matching
-existing schema files stay unchanged. Conflicting files or links refuse setup
-before it writes the configuration; their contents stay intact.
+The schemas are in the binary, so setup writes `openwarrant.toml` and the
+instruction block and no `schemas/`. An archive retains the binary's pack.
+`war init --schemas` writes a copy for another tool; files that match stay
+unchanged, and ones that differ refuse it, with their contents intact.
 
 `war --help` fits on one screen: the daily verbs, then the five groups
 (`war <group> --help` lists each). docs/COMMANDS.md maps every command, old

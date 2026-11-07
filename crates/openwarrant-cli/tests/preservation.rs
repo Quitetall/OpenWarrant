@@ -476,6 +476,7 @@ fn schema_pack_bytes_and_producer_identity_are_retained_and_cross_checked() {
         "ARCH",
         "--program",
         "Schema preservation",
+        "--schemas",
     ]));
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
     let pack_bytes = std::fs::read(root.join("schemas/pack.json")).unwrap();
@@ -1905,7 +1906,7 @@ fn init_refuses_conflicting_schema_sources_before_writing_configuration() {
             symlink(&path, f.0.join("schemas/oh.war/war/v1.json")).unwrap();
         }
         refusal(
-            f.run(&["init", "--namespace", "ARCH"]),
+            f.run(&["init", "--namespace", "ARCH", "--schemas"]),
             "schema pack setup refused",
         );
         assert_eq!(std::fs::read(&path).unwrap(), expected, "{kind}");
@@ -1933,6 +1934,7 @@ fn init_preserves_matching_readonly_schema_sources_and_fills_missing_members() {
         "ARCH",
         "--program",
         "Existing schema sources",
+        "--schemas",
     ]));
     let after = std::fs::metadata(&path).unwrap();
     assert_eq!(after.modified().unwrap(), before.modified().unwrap());

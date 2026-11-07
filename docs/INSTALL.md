@@ -370,6 +370,23 @@ those files once written (OW-ADR-0021). Every `war sign` refusal names the
 missing piece, carries a remedy, and ends "This blocks only the sign-off, not
 your work."
 
+## A fast gate on pull requests
+
+`war init --ci` writes one workflow, `.github/workflows/openwarrant.yml`, on a
+new repository or one already set up. It is opt-in: plain `war init` writes no
+workflow, and deleting the file turns the gate off.
+
+The workflow installs the `war` that wrote it and runs two steps on each pull
+request: `war check --changed --since "$BASE"`, which checks the records the
+pull request touched and nothing else, and your tests, whole. Tests are found
+from `Cargo.toml`, `package.json` with a `test` script, `go.mod`,
+`pyproject.toml` or `pytest.ini`, then a `Makefile` with a `test` target; `--test
+"<command>"` names them instead, and with neither the workflow says where to add
+one. A workflow that exists and differs is left alone.
+
+Nothing narrows your tests. Which tests a change can reach is a claim about your
+code, and only you can make it. Edit the file if you have a way.
+
 ## The PR gate as a required status check
 
 `war check --pr <number>` passes a pull request only when it cites a Warrant

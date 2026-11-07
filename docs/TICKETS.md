@@ -17,7 +17,7 @@ A ticket is the compatibility name for an ordinary Warrant. New Warrants use
 one Markdown source and keep their ID as checklists, checks and requirements
 are added. Existing manifest-and-atoms records remain supported. Optional
 human sign-off supplies assurance; it does not define whether work exists.
-`war plan promote` is retained for legacy directory-workflow interoperability.
+`war plan promote` adds a field in place; `war plan new --from` is the legacy directory workflow.
 
 ## The loop in three commands
 
@@ -59,7 +59,8 @@ More, when you need them:
 | `war create --issue 12` | make the ticket from GitHub issue #12 (below) |
 | `war create "..." --implements REQ-pr1` | one item per record, its text the record's first sentence (docs/TYPES.md) |
 | `war create "..." --test "<cmd>"` | a test from the start, repeatable: the same `## CHK-…` section `war plan add --test` writes. `war done` runs it and finishes the work only on a pass. Not with `--legacy` or `--records` |
-| `war plan promote <ticket>` | legacy directory-workflow adapter; ordinary work keeps the same Warrant ID |
+| `war plan promote <ticket>` | add a signature (or with `--test`, a test) in place: same id, no new document |
+| `war plan new --from <ticket>` | legacy directory-workflow adapter |
 | `war admin import beads <file.jsonl>` | bring Beads issues in as tickets; also `war admin import openspec <dir>`, `war admin import speckit <dir>` (docs/TYPES.md, "Bringing work in") |
 | `war admin export beads` | every ticket as Beads issue JSONL, on stdout |
 | `war plan add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
@@ -577,7 +578,13 @@ a blocker that names nothing (`ticket.blocker-unknown`) or a cycle
 (`ticket.blocker-cycle`) — and never reports a ticket for lacking a signature,
 evidence or a verification.
 
-`war plan promote <ticket>` is the way into the contract: it runs `war plan new` for a
+`war plan promote <ticket>` raises an item's level by adding a field, in place:
+a sign-off item with `min: signed`, so it is an Order, or with `--test` a test,
+so it is a Warrant. The id does not change and no document is written.
+`war create --sign` and `--test` do the same when the work is made.
+
+`war plan new --from <ticket>` is the way into the directory contract, which is
+the one encoding with authorize and resolve: it runs `war plan new` for a
 delivery Warrant, carries the ticket's description and checklist into the new
 intent, and records `promoted_to` on the ticket. From there the Warrant needs
 every atom a delivery Warrant needs, and authorizing and resolving it are a

@@ -8,6 +8,11 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- `war done` could disown its own claim. With no harness session variable set,
+  `war start` in one terminal and `war done` in another read as two holders,
+  and `war done` answered that nobody held the work. With no named session,
+  the worktree now decides. A named session still decides by its name.
+
 - A single-file ticket's own sections, such as `## Design notes`, reached no
   brief: `war start`, `war view prime` and the prompt hook showed only its
   preamble, so an agent never saw them. In the adoption study this failed the
@@ -15,8 +20,35 @@ Notable changes to OpenWarrant. Format loosely follows
   reaches the brief. An approval of a ticket with such a section goes stale
   once, because its statement now covers that text.
 
+### Changed
+
+- `war plan promote` adds a field in place and writes no document: a sign-off
+  item, so the work is an Order, or with `--test` a test, so it is a Warrant.
+  The id stays. Drafting a directory Warrant from a ticket, which is what it
+  did before, is `war plan new --from <ticket>`.
+
+- `war init` no longer writes `schemas/`: the schemas are in the binary, and an
+  archive of a repository with no copy retains the binary's pack.
+  `war init --schemas` writes a copy, on a new repository or one already set up.
+
 ### Added
 
+- `--interactive` on `init`, `create`, `start`, `done`, `status` and `check`. A
+  caller with no terminal, or under `--json`, is refused by name and never
+  prompted.
+- `war status --next`, `--ready` and `--view`, `war start --claim`, and `war done
+  --release` and `--reopen` are the commands they fold, envelope included. The
+  old spellings keep working. A retiring top-level spelling says so on stderr at
+  a terminal, or anywhere with `OPENWARRANT_DEPRECATIONS=warn`; a pipe sees
+  nothing. `docs/COMMANDS.md` has a parity table, and a test holds it to the
+  command tree.
+- `war init --ci` writes one opt-in workflow running `war check --changed` and
+  the repository's tests on each pull request. `--test` names the tests;
+  otherwise they are found from what the repository holds.
+- `war create --sign` makes an Order, one document like the other levels.
+- `war check`, `war status`, `war view show` take a single-file Warrant's alias,
+  and `war view next` lists open single-file and read-in-place work under
+  `elsewhere`.
 - Work across repositories (`docs/INTERFACES.md`). `[repos.<name>]` names a
   submodule or sibling, and a pin is read from its gitlink, a `pin` field or
   `Cargo.lock`. `war context hpr:CL-step` and `war view prime hpr:t-abc` read from

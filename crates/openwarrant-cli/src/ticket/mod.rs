@@ -3291,13 +3291,13 @@ fn owns_claim(store: &Store, claim: &claim::Claim) -> bool {
             None => claim
                 .coordination
                 .as_ref()
-                .is_none_or(|c| c.session == scopes::session()),
+                .is_none_or(|c| scopes::same_holder(store, c)),
         }
 }
 
 /// The Warrants `store.actor` holds a live claim on (whole or on an item),
 /// by id, in id order.
-fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
+pub fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
     let now = now_secs();
     let mut ids: Vec<String> = store
         .claims()?
@@ -5567,11 +5567,12 @@ fn note_event(
 
 // ---- promote ---------------------------------------------------------------
 
-/// `war plan promote <ticket>`: draft a delivery Warrant from a ticket, for when
-/// someone wants sign-off. The Warrant starts where `war plan new` starts it, with
-/// the ticket's description and checklist carried into its intent; from there
-/// the authority layer applies as it always has. The ticket stays workable.
-pub fn promote(repo: &Repository, store: &Store, query: &str) -> Result<Outcome, RepoError> {
+/// `war plan new --from <ticket>`: draft a directory Warrant from a ticket, for
+/// a contract that needs the authorize-and-resolve lifecycle, which only that
+/// encoding has. The Warrant starts where `war plan new` starts it, with the
+/// ticket's description and checklist carried into its intent. The ticket stays
+/// workable. Promotion itself writes no new document: [`parts::promote`].
+pub fn draft_from(repo: &Repository, store: &Store, query: &str) -> Result<Outcome, RepoError> {
     let (tickets, _) = store.load_all()?;
     let index = match resolve(&tickets, query) {
         Ok(Target::Ticket(n) | Target::Item(n, _)) => n,

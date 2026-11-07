@@ -390,3 +390,129 @@ fn the_json_list_carries_each_rows_level() {
     assert_eq!(listed["result"]["tickets"][0]["level"], "warrant");
     assert_eq!(listed["result"]["warrants"][0]["level"], "order");
 }
+
+#[test]
+fn promotion_adds_a_field_in_place_and_writes_no_new_document() {
+    let tmp = repo();
+    let root = tmp.path();
+    let id = create(root, "Plain work", &["--item", "one"]);
+    assert_eq!(level(root, &id), Level::Ticket);
+    let warrants = || {
+        std::fs::read_dir(root.join("docs/warrants"))
+            .unwrap()
+            .count()
+    };
+    let before = warrants();
+
+    let raised = war(root, &["plan", "promote", &id, "--test", "true"]);
+    assert_eq!(raised["result"]["warrant"], id.as_str());
+    assert_eq!(raised["result"]["level"], "warrant");
+    assert_eq!(level(root, &id), Level::Warrant);
+
+    let raised = war(root, &["plan", "promote", &id]);
+    assert_eq!(raised["result"]["level"], "order");
+    assert_eq!(level(root, &id), Level::Order);
+    assert_eq!(warrants(), before, "a promotion wrote a new document");
+
+    // The refusal: it is an Order already, and nothing moves.
+    let bytes = std::fs::read(root.join(format!("docs/tickets/{id}.md"))).unwrap();
+    let again = war_raw(root, &["plan", "promote", &id]);
+    assert_eq!(again.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&again.stderr).contains("ticket.already-promoted"));
+    assert_eq!(
+        std::fs::read(root.join(format!("docs/tickets/{id}.md"))).unwrap(),
+        bytes
+    );
+}
+
+#[test]
+fn create_makes_every_level_as_one_document() {
+    let tmp = repo();
+    let root = tmp.path();
+    let order = create(root, "Needs a person", &["--sign"]);
+    let both = create(root, "Both", &["--test", "true", "--sign"]);
+    let warrant = create(root, "Tested", &["--test", "true"]);
+    assert_eq!(level(root, &order), Level::Order);
+    assert_eq!(level(root, &both), Level::Order);
+    assert_eq!(level(root, &warrant), Level::Warrant);
+    for id in [&order, &both, &warrant] {
+        assert!(root.join(format!("docs/tickets/{id}.md")).is_file());
+        assert!(
+            !root
+                .join(format!("docs/tickets/{id}/manifest.toml"))
+                .exists()
+        );
+    }
+    // An agent's `war done` does not finish an Order.
+    let done = war_raw(root, &["done", &order, "--note", "no"]);
+    assert_ne!(done.status.code(), Some(0), "an Order finished unsigned");
+}
+
+#[test]
+fn a_directory_warrant_can_still_be_drafted_from_a_ticket() {
+    let tmp = repo();
+    let root = tmp.path();
+    let id = create(root, "Contract", &["--item", "one"]);
+    let made = war(root, &["plan", "new", "--from", &id]);
+    let alias = made["result"]["warrant"].as_str().unwrap().to_owned();
+    assert!(
+        root.join(format!("docs/warrants/{alias}/manifest.toml"))
+            .is_file()
+    );
+    let again = war_raw(root, &["plan", "promote", &id]);
+    assert_eq!(
+        again.status.code(),
+        Some(2),
+        "promoted into a Warrant already"
+    );
+}
+
+#[test]
+fn check_status_next_and_context_all_find_a_single_file_warrant() {
+    let tmp = repo();
+    let root = tmp.path();
+    assert!(
+        war_raw(root, &["plan", "new", "--format", "1.0", "One document"])
+            .status
+            .success()
+    );
+    let alias = war(root, &["view", "warrants"])["result"]["warrants"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["encoding"] == "single_file")
+        .expect("listed")["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+
+    let checked = war_raw(root, &["check", &alias]);
+    assert!(checked.status.success(), "{checked:?}");
+
+    let status = war(root, &["status", &alias]);
+    assert_eq!(status["result"]["encoding"], "single_file");
+    assert_eq!(status["result"]["level"], "order");
+    assert!(human(root, &["view", "show", &alias]).contains("## Intent"));
+
+    let next = war(root, &["view", "next"]);
+    assert_eq!(next["result"]["elsewhere"][0]["id"], alias.as_str());
+    assert!(human(root, &["view", "next"]).contains(&alias));
+
+    let context = war(root, &["view", "context", &alias]);
+    assert_eq!(context["exit_code"], 0, "{context}");
+
+    // The refusal: a document that does not read is said, by its rule.
+    let path = root.join(format!("docs/warrants/{alias}.md"));
+    let text = std::fs::read_to_string(&path).unwrap();
+    std::fs::write(&path, text.replace("## Intent", "## Not the intent")).unwrap();
+    let refused = war_raw(root, &["check", &alias]);
+    assert_ne!(refused.status.code(), Some(0));
+    assert!(String::from_utf8_lossy(&refused.stdout).contains("format.section-missing"));
+}
+
+#[test]
+fn nothing_else_open_keeps_the_next_envelope_as_it_was() {
+    let tmp = repo();
+    let next = war(tmp.path(), &["view", "next"]);
+    assert!(next["result"].get("elsewhere").is_none());
+}

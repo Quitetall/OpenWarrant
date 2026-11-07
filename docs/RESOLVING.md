@@ -332,7 +332,7 @@ with the work, so each of those used to stale every receipt of a gate with no
 | `war claim`, `release`, `steal` | the lock files directly inside the claims directory (it also ignores itself in git) |
 | `war done`, `war add`, a claim naming a new line | `<tickets>/<t-id>/atoms/15-checklist.md` (the ticket profile's checklist file) |
 | `war note`, `war create` | `<tickets>/<t-id>/atoms/10-intent.md` |
-| `war create`, `war promote` | `<tickets>/<t-id>/manifest.toml` |
+| `war create`, `war plan new --from` | `<tickets>/<t-id>/manifest.toml` |
 | `war add --test/--kpi/--milestone` (OW-WAR-0148 M13) | `<tickets>/<t-id>/atoms/30-checks.md`, the optional parts |
 
 `<tickets>` is `[tickets] dir` and `<t-id>` a ticket id (`t-` and 3 to 16 of
@@ -347,7 +347,7 @@ a ticked box is the state of the work written down, and a note is context
 for the next person. Neither is the source a gate runs over. A ticket is the
 working form — never compiled, authorized, verified or resolved — and no
 Warrant, deliverable or Gate Definition in the corpus reads one as its
-source; `war promote` copies a ticket's text into a new Warrant's intent,
+source; `war plan new --from` copies a ticket's text into a new Warrant's intent,
 and that Warrant's atoms are bound like any other. Excluding the journal
 alone would not fix anything: `war done` and `war note` write the checklist
 and the intent on every use. Telling a tick apart from a reword by comparing

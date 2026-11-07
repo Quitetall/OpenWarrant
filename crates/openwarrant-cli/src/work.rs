@@ -145,6 +145,24 @@ pub fn document_level(
     })
 }
 
+/// The repository-relative document of the single-file Warrant `id`, whether
+/// or not it reads well enough to be listed: a check of one that does not is
+/// what says why. `None` for a directory Warrant and for any other id.
+#[must_use]
+pub fn document_of(repo: &Repository, id: &str) -> Option<String> {
+    if id.is_empty() || id.contains(['/', '\\']) || repo.warrant_dir(id).is_ok() {
+        return None;
+    }
+    let dir = repo.warrants_dir();
+    [
+        dir.join(format!("{id}.md")),
+        dir.join(id).join("warrant.md"),
+    ]
+    .into_iter()
+    .find(|p| crate::vfs::is_file(p))
+    .map(|p| repo.relative(&p))
+}
+
 /// Where and how an item is stored. A reader needs this only to say so.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
@@ -305,6 +323,28 @@ impl Work {
             Err(e) => work.tickets_unread = Some(e.to_string()),
         }
         work
+    }
+
+    /// Single-file Warrants and work read in place alone: what no reader of
+    /// the ticket store or the directory corpus already has. `next` reads
+    /// this, and pays for neither.
+    #[must_use]
+    pub fn elsewhere(repo: &Repository) -> Self {
+        let mut work = Self::default();
+        let (mut rows, mut faults) = crate::warrants::document_rows(repo);
+        let adapted = crate::interop::adapters::load(repo);
+        rows.extend(adapted.rows());
+        faults.extend(adapted.diagnostics());
+        work.items = rows.iter().map(row_item).collect();
+        work.rows = rows;
+        work.other_faults = faults;
+        work
+    }
+
+    /// The item with id `id` among [`Self::items`].
+    #[must_use]
+    pub fn find(&self, id: &str) -> Option<&Item> {
+        self.items.iter().find(|i| i.id == id)
     }
 
     fn read_others(&mut self, repo: &Repository) {

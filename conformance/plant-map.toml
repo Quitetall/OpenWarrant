@@ -399,7 +399,10 @@ plants = [
 [[rule]]
 name = "init and adoption"
 paths = ["crates/openwarrant-cli/src/init/**", "docs/ADOPTING.md", "scripts/release-1.0-wizard.sh"]
-plants = ["59-adoption.sh", "75-init-program.sh", "92-wizard.sh", "99-init.sh"]
+plants = [
+    "59-adoption.sh", "75-init-program.sh", "92-wizard.sh", "99-init.sh", "192-init-schemas.sh",
+    "193-init-ci.sh",
+]
 
 [[rule]]
 name = "records, states and projections"
@@ -459,8 +462,12 @@ plants = ["84-study-recorder.sh", "87-eval.sh"]
 
 [[rule]]
 name = "the command surface"
-paths = ["crates/openwarrant-cli/src/main.rs", "docs/COMMANDS.md", "docs/cli/**"]
-plants = ["130-small-surface.sh", "131-old-spellings.sh"]
+paths = [
+    "crates/openwarrant-cli/src/main.rs", "crates/openwarrant-cli/src/surface.rs",
+    "crates/openwarrant-cli/src/interactive.rs",
+    "docs/COMMANDS.md", "docs/cli/**",
+]
+plants = ["130-small-surface.sh", "131-old-spellings.sh", "194-interactive.sh", "195-surface-folds.sh"]
 
 [[rule]]
 name = "design notes"
