@@ -766,9 +766,10 @@ fn mcp_ticket_tools_read_like_the_cli_and_refuse_a_misnamed_parameter() {
         text.starts_with(&format!("# {id} — T8: Monthly budget")),
         "{text}"
     );
-    assert_eq!(
-        started["result"]["structuredContent"]["schema"],
-        "oh.war/report/v1"
+    // The text alone by default; the envelope only when asked.
+    assert!(
+        started["result"].get("structuredContent").is_none(),
+        "{started}"
     );
     let done = call(
         &mut mcp,
@@ -952,8 +953,18 @@ struct Mcp {
 
 impl Mcp {
     fn start(root: &Path) -> Self {
+        Self::start_with(root, &[])
+    }
+
+    /// The whole tool table (`war mcp --all`).
+    fn start_all(root: &Path) -> Self {
+        Self::start_with(root, &["--all"])
+    }
+
+    fn start_with(root: &Path, args: &[&str]) -> Self {
         let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
             .arg("mcp")
+            .args(args)
             .current_dir(root)
             .env("OPENWARRANT_NO_PROJECTS", "1")
             .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
@@ -992,7 +1003,9 @@ impl Mcp {
         serde_json::from_str(&line).unwrap()
     }
 
-    fn tool(&mut self, name: &str, args: serde_json::Value) -> serde_json::Value {
+    /// One call, answered with its envelope (`json: true`).
+    fn tool(&mut self, name: &str, mut args: serde_json::Value) -> serde_json::Value {
+        args["json"] = serde_json::json!(true);
         let v = self.call(
             "tools/call",
             serde_json::json!({"name": name, "arguments": args}),
@@ -1011,7 +1024,7 @@ impl Drop for Mcp {
 #[test]
 fn an_agent_works_a_ticket_over_mcp() {
     let root = scratch("mcp");
-    let mut mcp = Mcp::start(&root);
+    let mut mcp = Mcp::start_all(&root);
     let names: Vec<String> = mcp.call("tools/list", serde_json::json!({}))["result"]["tools"]
         .as_array()
         .unwrap()

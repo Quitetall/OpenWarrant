@@ -5,10 +5,10 @@
 //! `plan --apply`). No tool signs, ingests, proposes a SAS revision, or runs
 //! the configured drafter; the tests in `mod.rs` grep this file for that.
 //!
-//! Every tool returns the same `oh.war/report/v1` envelope the CLI prints
-//! under `--json`, as structured content, so an agent that learned the CLI
-//! learns nothing new here. A ticket tool's text content is what the CLI
-//! prints in a terminal, so a model reads its answer once.
+//! Every tool builds the `oh.war/report/v1` envelope the CLI prints under
+//! `--json`, as structured content, and the text the CLI prints in a
+//! terminal where that differs from the envelope. `mod.rs` hands the caller
+//! the text, or the envelope when asked (`json: true`, `[mcp] structured`).
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -21,83 +21,87 @@ use super::WarServer;
 use crate::diagnostic::{Diagnostic, Report};
 use crate::repo::RepoError;
 
-// ---- parameter shapes -----------------------------------------------------
+/// The tools served by default: the daily commands an agent runs, and the
+/// context and note it needs. `war admin mcp --all` (or `[mcp] tools =
+/// "all"`) serves the whole table.
+pub const DEFAULT_TOOLS: &[&str] = &[
+    "war_check",
+    "war_context",
+    "war_create",
+    "war_done",
+    "war_note",
+    "war_start",
+    "war_status",
+];
 
-/// Who a ticket tool acts as. A name for coordination between agents; it
-/// authorizes nothing (OW-WAR-0147).
+// ---- parameter shapes -----------------------------------------------------
+//
+// A doc comment here is the field's description in `tools/list`, which every
+// agent pays for on every session: say only what the name does not. `actor`
+// is who is acting (the configured performer by default); it authorizes
+// nothing (OW-WAR-0147).
+
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct CreateParams {
-    /// What this work accomplishes, in one sentence.
     pub title: String,
-    /// One line (at most 200 bytes) saying what the work is for: the summary
-    /// an agent reads in `war_context` and the index before the rest.
+    /// One line, at most 200 bytes.
     #[serde(default)]
     pub summary: Option<String>,
-    /// Checklist items, one line each. May be empty: `war_add` adds later.
     #[serde(default)]
     pub items: Vec<String>,
-    /// Context, decisions, links: Markdown for the Warrant's description.
+    /// Markdown description.
     #[serde(default)]
     pub body: Option<String>,
     /// 0 (most urgent) to 4; default 2.
     #[serde(default)]
     pub priority: Option<u8>,
-    /// One of the working form's `[fields] types` (OW-WAR-0148 M5).
+    /// One of `[fields] types`.
     #[serde(default, rename = "type")]
     pub kind: Option<String>,
-    /// Labels; refused outside a closed label set.
     #[serde(default)]
     pub labels: Vec<String>,
-    /// The Warrant (an epic) this one is part of.
+    /// Parent Warrant (an epic).
     #[serde(default)]
     pub part_of: Option<String>,
-    /// Paths or globs this work may write.
+    /// Paths or globs it may write.
     #[serde(default)]
     pub paths: Vec<String>,
-    /// Tools this work may use.
     #[serde(default)]
     pub tools: Vec<String>,
-    /// Commands this work may run.
     #[serde(default)]
     pub commands: Vec<String>,
-    /// What this work waits on: an item or clause here, or in a named
-    /// repository (`hpr:t-abc`, `hpr:CL-step`).
+    /// Items or Warrants it waits on; `repo:t-abc` in another repository.
     #[serde(default)]
     pub depends_on: Vec<String>,
-    /// Tests: shell commands whose exit code decides pass or fail. `war_done`
-    /// runs them and finishes the work only when they pass.
+    /// Shell commands; `war_done` finishes only when they pass.
     #[serde(default)]
     pub tests: Vec<String>,
-    /// Require a person's signature at the end, so the work is an Order.
-    /// Any agent may ask for this; only a person can give it (`war sign`).
+    /// A person signs it off at the end (an Order).
     #[serde(default)]
     pub sign: bool,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
 
-/// `war warrants` filters (OW-WAR-0148 M5); none given lists every Warrant.
+/// `war view warrants` filters; none lists every Warrant.
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct TicketsParams {
-    /// Only Warrants of this type: a light one's type (bug), or a profile (delivery, openspec).
+    /// A light type (bug) or a profile (delivery).
     #[serde(default, rename = "type")]
     pub kind: Option<String>,
-    /// Only Warrants carrying every one of these labels.
     #[serde(default)]
     pub labels: Vec<String>,
-    /// open, in_progress, done, or a declared state (in_review).
+    /// open, in_progress, done, or a declared state.
     #[serde(default)]
     pub state: Option<String>,
-    /// A phrase anywhere in the Warrant's text (case-insensitive).
+    /// A phrase, case-insensitive.
     #[serde(default)]
     pub text: Option<String>,
-    /// Words, each beginning a word of the Warrant's text, any order.
+    /// Word prefixes, any order.
     #[serde(default)]
     pub search: Option<String>,
-    /// Only the Warrants part of this one (an epic).
     #[serde(default)]
     pub epic: Option<String>,
 }
@@ -105,7 +109,6 @@ pub struct TicketsParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct ActorParams {
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -113,17 +116,15 @@ pub struct ActorParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct ClaimParams {
-    /// An item (`i-...`, `t-.../i-...`) or a whole light Warrant (`t-...`); a unique prefix works,
-    /// and so do words from one Warrant's title or labels (`T8`).
+    /// An item, a Warrant, or words of its title.
     #[serde(alias = "ticket", alias = "id")]
     pub target: String,
-    /// Write scopes for cooperative collision admission; never permissions.
+    /// Write scopes for collision admission; not permissions.
     #[serde(default)]
     pub paths: Vec<String>,
-    /// Take a claim older than the TTL (`[tickets] claim_ttl_minutes`). Journalled.
+    /// Take a claim older than its TTL.
     #[serde(default)]
     pub steal: bool,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -131,11 +132,18 @@ pub struct ClaimParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct StartParams {
-    /// A Warrant or item to take, by id or by words from its title or labels (`T8`); omit for
-    /// the next ready Warrant (or the one you already hold).
+    /// Id or title words; omit for the next ready one.
     #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
+    /// Claim `target` only, without the brief (`war start --claim`).
+    #[serde(default)]
+    pub claim: bool,
+    /// With `claim`: write scopes for collision admission.
+    #[serde(default)]
+    pub paths: Vec<String>,
+    /// With `claim`: take a claim older than its TTL.
+    #[serde(default)]
+    pub steal: bool,
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -143,10 +151,9 @@ pub struct StartParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct HeartbeatParams {
-    /// One claimed item or ticket; omit to renew every claim the actor holds.
+    /// One claim; omit for all you hold.
     #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -154,23 +161,25 @@ pub struct HeartbeatParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DoneParams {
-    /// The Warrant (closes every open item at once) or one item, by id or by words from its
-    /// title; omit for the one Warrant you hold.
+    /// A Warrant (all its items) or one item; omit for the one you hold.
     #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
-    /// What was done, for the next reader: one note on the Warrant, or on the item's line.
     #[serde(default)]
     pub note: Option<String>,
-    /// Write only if the target is still at this revision (from `war_show`'s
-    /// `revision`, or an item's); a stale one is refused
-    /// `work.stale-revision`, naming the current one.
+    /// Refused `work.stale-revision` unless still at this revision.
     #[serde(default)]
     pub if_rev: Option<String>,
-    /// Run the item's tests and KPIs first and tick at `observed` only when
-    /// they pass (`war done --check`); on a done item, raise its tick.
+    /// Run its tests and KPIs first.
     #[serde(default)]
     pub check: bool,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
+    /// Give the claim back unfinished.
+    #[serde(default)]
+    pub release: bool,
+    /// Untick a done item; needs `reason`.
+    #[serde(default)]
+    pub reopen: bool,
+    #[serde(default)]
+    pub reason: Option<String>,
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -181,17 +190,13 @@ pub struct AddParams {
     /// The Warrant (`t-...`).
     #[serde(alias = "target", alias = "id")]
     pub ticket: String,
-    /// The item, one line.
     pub text: String,
-    /// What the item waits on: items of this Warrant, Warrants, or `t-x/i-y`.
+    /// Items or Warrants it waits on.
     #[serde(default)]
     pub after: Vec<String>,
-    /// Write only if the target is still at this revision (from `war_show`'s
-    /// `revision`, or an item's); a stale one is refused
-    /// `work.stale-revision`, naming the current one.
+    /// Refused `work.stale-revision` unless still at this revision.
     #[serde(default)]
     pub if_rev: Option<String>,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -199,17 +204,14 @@ pub struct AddParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct NoteParams {
-    /// The Warrant (or one of its items).
+    /// A Warrant or item.
     #[serde(alias = "ticket", alias = "id")]
     pub target: String,
-    /// The note, Markdown.
+    /// Markdown.
     pub text: String,
-    /// Write only if the target is still at this revision (from `war_show`'s
-    /// `revision`, or an item's); a stale one is refused
-    /// `work.stale-revision`, naming the current one.
+    /// Refused `work.stale-revision` unless still at this revision.
     #[serde(default)]
     pub if_rev: Option<String>,
-    /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -217,7 +219,7 @@ pub struct NoteParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct PrimeParams {
-    /// One Warrant in full, by id or by words from its title; omit for every open one.
+    /// One Warrant in full; omit for every open one.
     #[serde(default, alias = "target", alias = "id")]
     pub ticket: Option<String>,
 }
@@ -229,20 +231,18 @@ pub struct NoParams {}
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct ContextParams {
-    /// A Warrant or ticket alias, `war://<uuid>`, an item (`t-x/i-y`), any
-    /// record id from docs/generated/llms.txt, a repository path, a document
-    /// unit (`COMBAT.md#friendly-fire`), or words to search for.
+    /// An id, item, path, `FILE.md#unit`, or search words.
     pub target: String,
-    /// Budget in bytes of the Markdown (default 16000).
+    /// Bytes; default 16000.
     #[serde(default)]
     pub budget: Option<usize>,
-    /// Budget in tokens, 4 bytes each; ignored when `budget` is given.
+    /// Tokens (4 bytes each) when `budget` is absent.
     #[serde(default)]
     pub tokens: Option<usize>,
-    /// Relation steps to follow (default 3).
+    /// Relation steps; default 3.
     #[serde(default)]
     pub depth: Option<usize>,
-    /// Refuse instead of listing any record by its summary only.
+    /// Refuse rather than list a record by summary only.
     #[serde(default)]
     pub strict: bool,
 }
@@ -250,39 +250,48 @@ pub struct ContextParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AliasParams {
-    /// Local alias, e.g. `OW-WAR-0042`.
     pub alias: String,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct CheckParams {
-    /// Local alias; omit to check the whole corpus.
-    #[serde(default)]
-    pub alias: Option<String>,
-    /// Also drift-check the generated projections (`war check --generated`).
+    /// One Warrant; omit for the corpus.
+    #[serde(default, alias = "alias")]
+    pub target: Option<String>,
+    /// Also drift-check generated files.
     #[serde(default)]
     pub generated: bool,
-    /// Every finding, passes included. Without it a large result keeps every
-    /// error, three warnings per rule and no passes, with `folded` counts.
+    /// Every finding, passes included.
     #[serde(default)]
     pub verbose: bool,
 }
 
+/// `war status`, with its folds: `--next`, `--ready`, `<id> --view`.
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct StatusParams {
-    /// Local alias for one Warrant's status view; omit for the corpus.
+    /// One Warrant; omit for the corpus.
+    #[serde(default, alias = "alias", alias = "id")]
+    pub target: Option<String>,
+    /// Whose step is next, agent or person.
     #[serde(default)]
-    pub alias: Option<String>,
+    pub next: bool,
+    /// What can start now.
+    #[serde(default)]
+    pub ready: bool,
+    /// With `target`: a view (`full_warrant`, `status`, ...).
+    #[serde(default)]
+    pub view: Option<String>,
+    #[serde(default)]
+    pub actor: Option<String>,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct ShowParams {
-    /// A Warrant's id: an alias, a light one (`t-...`), or one read in place (`openspec:...`, `speckit:...`).
+    /// An alias, `t-...`, or `openspec:...`/`speckit:...`.
     pub alias: String,
-    /// View name: `full_warrant` (default), `status`, or another `war view show --view`.
     #[serde(default = "default_view")]
     pub view: String,
 }
@@ -294,9 +303,8 @@ fn default_view() -> String {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DiffParams {
-    /// Local alias.
     pub alias: String,
-    /// Git ref to diff the compiled IR from; omit for the committed IR.
+    /// A git ref; default the committed IR.
     #[serde(default)]
     pub from: Option<String>,
 }
@@ -304,7 +312,7 @@ pub struct DiffParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct GateRunParams {
-    /// Gate key to run, e.g. `software.repo.war-check@1.0.0`; omit to run every registered gate.
+    /// Omit for every gate.
     #[serde(default)]
     pub gate: Option<String>,
 }
@@ -312,7 +320,7 @@ pub struct GateRunParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct PinsParams {
-    /// Only files pinned by RESOLVED Warrants (a change to one is drafted with `war correct`).
+    /// Only files resolved Warrants pin.
     #[serde(default)]
     pub resolved_only: bool,
 }
@@ -320,14 +328,12 @@ pub struct PinsParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DispatchParams {
-    /// Local alias.
     pub alias: String,
-    /// Stage id, e.g. `STAGE-001`.
     pub stage: String,
     /// `initial` or `repair`.
     #[serde(default = "default_attempt")]
     pub attempt_kind: String,
-    /// Evidence of a prior failure, for a repair attempt.
+    /// For a repair.
     #[serde(default)]
     pub prior_failure: Vec<String>,
 }
@@ -339,10 +345,8 @@ fn default_attempt() -> String {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct VerifyRequestParams {
-    /// Local alias.
     pub alias: String,
-    /// Who performed the work (the verifier must be someone else). Defaults
-    /// to the repository's configured performer.
+    /// Default: the configured performer.
     #[serde(default)]
     pub performer: Option<String>,
 }
@@ -350,24 +354,19 @@ pub struct VerifyRequestParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct VersionParams {
-    /// SAS version, e.g. `0.1.0-draft.3`.
     pub version: String,
 }
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct PlanRequestParams {
-    /// The vague request, verbatim — one sentence is enough. Empty when an
-    /// issue is given instead.
+    /// The request; empty with an issue.
     #[serde(default)]
     pub sentence: String,
-    /// An issue file (`gh issue view <n> --json number,title,body,url`
-    /// output), relative to the repository root (OW-WAR-0141). Its title and
-    /// body are the request.
+    /// `gh issue view --json` output, repository-relative.
     #[serde(default)]
     pub issue_file: Option<String>,
-    /// An issue number, fetched through `[intake] fetch_argv`. Refused,
-    /// starting nothing, when no `[intake]` table is configured.
+    /// Fetched through `[intake] fetch_argv`.
     #[serde(default)]
     pub issue: Option<String>,
     /// `delivery` or `decision`.
@@ -376,7 +375,7 @@ pub struct PlanRequestParams {
     /// `basic`, `standard` or `high`.
     #[serde(default = "default_assurance")]
     pub assurance: String,
-    /// Interview answers by question id.
+    /// By question id.
     #[serde(default)]
     pub answers: BTreeMap<String, String>,
 }
@@ -391,18 +390,15 @@ fn default_assurance() -> String {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct PlanProposalParams {
-    /// The `oh.war/draft-proposal/v2` document, as JSON text.
+    /// An `oh.war/draft-proposal/v2` document as JSON text.
     pub proposal_json: String,
-    /// The sentence the proposal answers (recorded under plan/). Empty when
-    /// an issue is given instead.
+    /// The request; empty with an issue.
     #[serde(default)]
     pub sentence: String,
-    /// The issue file the proposal answers, relative to the repository root
-    /// (OW-WAR-0141). An applied Warrant records it in `plan/intake.json`.
+    /// `gh issue view --json` output, repository-relative.
     #[serde(default)]
     pub issue_file: Option<String>,
-    /// The issue number the proposal answers, fetched through
-    /// `[intake] fetch_argv`.
+    /// Fetched through `[intake] fetch_argv`.
     #[serde(default)]
     pub issue: Option<String>,
     /// `delivery` or `decision`.
@@ -411,12 +407,10 @@ pub struct PlanProposalParams {
     /// `basic`, `standard` or `high`.
     #[serde(default = "default_assurance")]
     pub assurance: String,
-    /// Interview answers by question id.
+    /// By question id.
     #[serde(default)]
     pub answers: BTreeMap<String, String>,
-    /// §74.4 step 6: a human has reviewed this proposal. Required true to
-    /// apply, unless the proposal answers an issue and `[intake]
-    /// policy_approval` is set, when the review is recorded as `policy`.
+    /// A person reviewed it; needed to apply.
     #[serde(default)]
     pub reviewed: bool,
 }
@@ -460,16 +454,11 @@ fn drafted_from(
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AskParams {
-    /// Local alias.
     pub alias: String,
-    /// The stage the answer unblocks.
     pub stage: String,
-    /// The question, in full.
     pub question: String,
-    /// Your recommended answer, so a human can reply in one word.
     #[serde(default)]
     pub recommend: String,
-    /// The stage cannot proceed without the answer.
     #[serde(default)]
     pub blocking: bool,
 }
@@ -477,10 +466,9 @@ pub struct AskParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct QuestionsParams {
-    /// One Warrant; omit for every Warrant.
     #[serde(default)]
     pub alias: Option<String>,
-    /// Only what awaits an answer.
+    /// Only unanswered.
     #[serde(default)]
     pub open: bool,
 }
@@ -488,9 +476,7 @@ pub struct QuestionsParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct AnswersParams {
-    /// Local alias.
     pub alias: String,
-    /// One stage; omit for every stage.
     #[serde(default)]
     pub stage: Option<String>,
 }
@@ -498,7 +484,6 @@ pub struct AnswersParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct NewParams {
-    /// Title of the new Warrant.
     pub title: String,
     /// `delivery` or `decision`.
     #[serde(default = "default_profile")]
@@ -508,17 +493,14 @@ pub struct NewParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct EvidenceParams {
-    /// Local alias.
     pub alias: String,
-    /// One gate key to run; omit for every gate the assurance atom cites.
+    /// Omit for every cited gate.
     #[serde(default)]
     pub gate: Option<String>,
-    /// The Bonsai evidence document the Bonsai gate's receipt binds,
-    /// `file:<path>#sha256:<digest>`; required for that gate only.
+    /// `file:<path>#sha256:<digest>`, for the Bonsai gate.
     #[serde(default)]
     pub evidence_ref: Option<String>,
-    /// Agent attaching evidence (agent:// identifier). Claimed attribution,
-    /// not authenticated identity, independent verification or a policy change.
+    /// Claimed attribution only.
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -526,12 +508,10 @@ pub struct EvidenceParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DeliverParams {
-    /// Local alias.
     pub alias: String,
-    /// Deliverable ids (`D-001`); omit for every deliverable declared.
+    /// `D-001`, ...; omit for all.
     #[serde(default)]
     pub ids: Vec<String>,
-    /// Report what would be recorded and write nothing.
     #[serde(default)]
     pub dry_run: bool,
 }
@@ -539,7 +519,7 @@ pub struct DeliverParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct CompileParams {
-    /// Local alias; omit to compile the whole corpus and its projections.
+    /// Omit for the corpus.
     #[serde(default)]
     pub alias: Option<String>,
 }
@@ -547,7 +527,7 @@ pub struct CompileParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct SignShowParams {
-    /// A pending act as `war sign --list` names it: an alias, a SAS version, or `<alias>/<D-id>`.
+    /// As `war sign --list` names it.
     pub target: String,
 }
 
@@ -556,7 +536,7 @@ pub struct SignShowParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct StandingShowParams {
-    /// A class id, `standing://<id>@<rev>` or `standing:<id>@<rev>`; omit for every class.
+    /// Omit for every class.
     #[serde(default)]
     pub id: Option<String>,
 }
@@ -564,12 +544,10 @@ pub struct StandingShowParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct StandingApplyParams {
-    /// Local alias of the Warrant to check against its class.
     pub alias: String,
-    /// The class, `standing://<id>@<rev>`; defaults to the manifest's `[standing] ref`.
+    /// `standing://<id>@<rev>`; default `[standing] ref`.
     #[serde(default)]
     pub class: Option<String>,
-    /// Run every refusal and write nothing.
     #[serde(default)]
     pub dry_run: bool,
 }
@@ -753,72 +731,102 @@ impl WarServer {
 
     #[tool(
         name = "war_check",
-        description = "Run every Phase 1 check over one Warrant or the corpus (`war check`). Read-only.",
+        description = "Check the records of one Warrant or the corpus. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_check(&self, Parameters(p): Parameters<CheckParams>) -> ToolResult {
         let r = crate::check::run_with(
             &crate::corpus::held(&self.repo),
-            p.alias.as_deref(),
+            p.target.as_deref(),
             p.generated,
         );
-        match (r, p.verbose) {
-            (Ok(report), true) => envelope_whole("check", &report, None),
-            (r, _) => report_of("check", r),
+        match r {
+            // The text is what `war check` prints: the brief, or every
+            // finding under `verbose`.
+            Ok(report) if p.verbose => {
+                let text: Vec<String> =
+                    report.diagnostics.iter().map(ToString::to_string).collect();
+                Ok(with_text(
+                    envelope_whole("check", &report, None)?,
+                    text.join("\n"),
+                ))
+            }
+            Ok(report) => {
+                let text = crate::output::brief_with(&report, false);
+                Ok(with_text(envelope("check", &report, None)?, text))
+            }
+            Err(e) => refused("check", &e),
         }
     }
 
     #[tool(
         name = "war_status",
-        description = "Corpus status (`oh.war/corpus-status/v1`: ladders, Objectives, next actionable) or one Warrant's status view. Read-only.",
+        description = "Where the work stands, or one Warrant (`target`, `view`); `next`: whose step; `ready`: what can start. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_status(&self, Parameters(p): Parameters<StatusParams>) -> ToolResult {
-        match p.alias {
-            Some(alias) => value_of(
-                "status",
-                crate::show::run(&self.repo, &alias, "status")
-                    .map(|rendered| serde_json::json!({"alias": alias, "rendered": rendered})),
-                "status view rendered",
-            ),
-            None => value_of(
+        if p.next {
+            return self.next_answer();
+        }
+        if p.ready {
+            return self.ticket("ready", p.actor.as_deref(), crate::ticket::ready);
+        }
+        let Some(target) = p.target else {
+            // The text is `war status`'s brief; the envelope keeps the
+            // corpus projection it always carried.
+            let brief = crate::status_brief::Brief::read(&self.repo);
+            let mut text = brief.render();
+            for why in &brief.unknown {
+                text.push_str(&format!("UNKNOWN (status.unreadable): {why}\n"));
+            }
+            let r = value_of(
                 "status",
                 crate::corpus::held(&self.repo).status().cloned(),
                 "corpus status built",
-            ),
+            )?;
+            return Ok(with_text(r, text));
+        };
+        if let Some(view) = p.view {
+            return self.show_view(&target, &view);
+        }
+        match crate::warrants::kind_of(&target) {
+            crate::warrants::IdKind::Light => {
+                self.ticket("status", None, |s| crate::ticket::show(s, &target))
+            }
+            crate::warrants::IdKind::ReadInPlace => {
+                let repo = self.repo.clone();
+                self.ticket("status", None, move |_| {
+                    Ok(crate::interop::adapters::show(&repo, &target))
+                })
+            }
+            crate::warrants::IdKind::Directory => {
+                match crate::show::run(&self.repo, &target, "status") {
+                    Ok(rendered) => {
+                        let r = value_of(
+                            "status",
+                            Ok(serde_json::json!({"alias": target, "rendered": rendered})),
+                            "status view rendered",
+                        )?;
+                        Ok(with_text(r, rendered))
+                    }
+                    Err(e) => refused("status", &e),
+                }
+            }
         }
     }
 
     #[tool(
         name = "war_show",
-        description = "Show a Warrant by its id as the document a person reads: an alias as one of its views (`war view show <alias> --view <view>`), a light Warrant (`war view show t-...`), or one read in place (`openspec:...`, `speckit:...`). Read-only.",
+        description = "One Warrant as a person reads it (`war status <id> --view`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_show(&self, Parameters(p): Parameters<ShowParams>) -> ToolResult {
-        match crate::warrants::kind_of(&p.alias) {
-            crate::warrants::IdKind::Light => {
-                return self.ticket("show", None, |s| crate::ticket::show(s, &p.alias));
-            }
-            crate::warrants::IdKind::ReadInPlace => {
-                let alias = p.alias.clone();
-                let repo = self.repo.clone();
-                return self.ticket("show", None, move |_| {
-                    Ok(crate::interop::adapters::show(&repo, &alias))
-                });
-            }
-            crate::warrants::IdKind::Directory => {}
-        }
-        value_of(
-            "show",
-            crate::show::run(&self.repo, &p.alias, &p.view)
-                .map(|rendered| serde_json::json!({"alias": p.alias, "view": p.view, "rendered": rendered})),
-            "view rendered",
-        )
+        self.show_view(&p.alias, &p.view)
     }
 
     #[tool(
         name = "war_journal",
-        description = "The Warrant's journal, rendered (`war admin journal <alias>`). Read-only.",
+        description = "A Warrant's journal. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_journal(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -832,7 +840,7 @@ impl WarServer {
 
     #[tool(
         name = "war_diff",
-        description = "Semantic diff of a Warrant's compiled IR against the committed IR or a git ref (`war admin diff`). Read-only.",
+        description = "Semantic diff of a Warrant's compiled IR against the committed one or a git ref. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_diff(&self, Parameters(p): Parameters<DiffParams>) -> ToolResult {
@@ -845,7 +853,7 @@ impl WarServer {
 
     #[tool(
         name = "war_gate_list",
-        description = "List the registered gates and their askability without running any (`war evidence gate`). Read-only.",
+        description = "The registered gates, not run. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_gate_list(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
@@ -857,7 +865,7 @@ impl WarServer {
 
     #[tool(
         name = "war_sas_status",
-        description = "The accepted SAS revision and what pins to it (`war sign sas status`). Read-only.",
+        description = "The accepted SAS revision and what pins to it. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_sas_status(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
@@ -866,7 +874,7 @@ impl WarServer {
 
     #[tool(
         name = "war_resolve_dry_run",
-        description = "The thirteen resolution requirements assessed for a Warrant without resolving anything (`war sign resolve --dry-run`). Read-only.",
+        description = "The thirteen resolution requirements, assessed; resolves nothing. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_resolve_dry_run(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -875,7 +883,7 @@ impl WarServer {
 
     #[tool(
         name = "war_sign_list",
-        description = "The acts waiting for a human signature (`war sign --list`). Read-only; signing itself happens at a terminal.",
+        description = "Acts waiting for a person's signature. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_sign_list(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
@@ -897,7 +905,7 @@ impl WarServer {
 
     #[tool(
         name = "war_sign_show",
-        description = "Show what one pending act would sign, as the human will see it (`war sign <target> --show`). Read-only.",
+        description = "What one pending act would sign, as the person sees it. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_sign_show(&self, Parameters(p): Parameters<SignShowParams>) -> ToolResult {
@@ -909,7 +917,7 @@ impl WarServer {
 
     #[tool(
         name = "war_pins",
-        description = "Files pinned by Warrants, with state and digest (`war admin pins`). With resolved_only, the files closed Warrants pin; a change to one is drafted with `war sign correct`. Read-only.",
+        description = "Files Warrants pin, with state and digest. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_pins(&self, Parameters(p): Parameters<PinsParams>) -> ToolResult {
@@ -922,7 +930,7 @@ impl WarServer {
 
     #[tool(
         name = "war_standing_show",
-        description = "Standing authorizations (OW-ADR-0029): each class's state, signer, expiry, count used, and what each glob matches today (`war sign standing show`). Read-only.",
+        description = "Standing authorizations: state, signer, expiry, use, matches. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_standing_show(&self, Parameters(p): Parameters<StandingShowParams>) -> ToolResult {
@@ -936,22 +944,18 @@ impl WarServer {
 
     #[tool(
         name = "war_next",
-        description = "What is ready and whose step each item is, agent or human, with the command for it (`war view next`). A signing step is always a human's. Read-only.",
+        description = "What is ready and whose step each is (`war status --next`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_next(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
-        value_of(
-            "next",
-            crate::next::run_with(&crate::corpus::held(&self.repo)),
-            "next action derived",
-        )
+        self.next_answer()
     }
 
     // read_only_hint stays true: the journal line a compile appends is the
     // Warrant's own history of being compiled, not a change to its records.
     #[tool(
         name = "war_dispatch",
-        description = "Compile the Stage Dispatch packet (`oh.war/stage-dispatch/v1`) for a stage — the agent's context for that stage, with its token estimate and budget (`war admin dispatch`). Records a `dispatch.compiled` journal event; writes nothing else.",
+        description = "Compile a stage's Dispatch packet; journals `dispatch.compiled`, writes nothing else.",
         annotations(read_only_hint = true)
     )]
     fn war_dispatch(&self, Parameters(p): Parameters<DispatchParams>) -> ToolResult {
@@ -1016,7 +1020,7 @@ impl WarServer {
 
     #[tool(
         name = "war_authorize_request",
-        description = "Emit the authorization request a human will sign (`war sign authorize <alias>`). Writes nothing; authorization is a human act.",
+        description = "Draft the authorization request a person signs. Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_authorize_request(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -1029,7 +1033,7 @@ impl WarServer {
 
     #[tool(
         name = "war_resolve_request",
-        description = "Emit the resolution request with the thirteen resolution requirements assessed (`war sign resolve <alias>`). Writes nothing; resolution is a human act.",
+        description = "Draft the resolution request a person signs. Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_resolve_request(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -1042,7 +1046,7 @@ impl WarServer {
 
     #[tool(
         name = "war_verify_request",
-        description = "Emit the verification request for an INDEPENDENT verifier (`war evidence verify <alias>`). Writes nothing; the verdicts come back through `war evidence verify --response`, a human act.",
+        description = "Draft the request for an independent verifier. Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_verify_request(&self, Parameters(p): Parameters<VerifyRequestParams>) -> ToolResult {
@@ -1059,7 +1063,7 @@ impl WarServer {
 
     #[tool(
         name = "war_sas_accept_request",
-        description = "Emit the SAS acceptance request a human will sign (`war sign sas accept <version>`). Writes nothing.",
+        description = "Draft the SAS acceptance request a person signs. Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_sas_accept_request(&self, Parameters(p): Parameters<VersionParams>) -> ToolResult {
@@ -1072,7 +1076,7 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_request",
-        description = "Emit the Draft Request (`oh.war/draft-request/v1`) for a vague sentence, or for an issue (`issue_file`, or `issue` through `[intake] fetch_argv`): the corpus, ADRs and answers a drafter needs (`war plan \"<sentence>\"`, `war plan --issue-file <f>`). Writes nothing.",
+        description = "Draft Request for a sentence or an issue. Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_plan_request(&self, Parameters(p): Parameters<PlanRequestParams>) -> ToolResult {
@@ -1103,7 +1107,7 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_validate",
-        description = "Run a Draft Proposal through the review checks `--apply` runs, without applying it (`war plan --proposal`). Writes nothing.",
+        description = "Run a Draft Proposal through `--apply`'s checks. Writes nothing.",
         annotations(read_only_hint = true)
     )]
     fn war_plan_validate(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
@@ -1150,7 +1154,7 @@ impl WarServer {
 
     #[tool(
         name = "war_questions",
-        description = "Every question asked of the human across the corpus, blocking and open first, each with the command that answers it (`war plan questions`). Read-only.",
+        description = "Questions asked of a person, blocking and open first. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_questions(&self, Parameters(p): Parameters<QuestionsParams>) -> ToolResult {
@@ -1168,7 +1172,7 @@ impl WarServer {
 
     #[tool(
         name = "war_answers",
-        description = "A Warrant stage's answers from a human, to read BEFORE performing it (`war plan answers`); stages only. A light Warrant's answers are its notes, which `war_start` and `war_prime` already show. Read-only.",
+        description = "A stage's answers from a person. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_answers(&self, Parameters(p): Parameters<AnswersParams>) -> ToolResult {
@@ -1185,7 +1189,7 @@ impl WarServer {
     // REFUSED_TOOLS for the same reason `war_sign` is (OW-WAR-0069).
     #[tool(
         name = "war_ask",
-        description = "Ask the human a question that blocks a stage (`war plan ask`): writes questions/Q-nnn.toml and a journal event. Answering is a human act and is not available here.",
+        description = "Ask a person a question that blocks a stage; a person answers.",
         annotations(read_only_hint = false)
     )]
     fn war_ask(&self, Parameters(p): Parameters<AskParams>) -> ToolResult {
@@ -1204,7 +1208,7 @@ impl WarServer {
 
     #[tool(
         name = "war_new",
-        description = "Create a new Warrant directory with stub atoms (`war plan new`). Writes under docs/warrants/<alias>/ only.",
+        description = "Create a directory Warrant with stub atoms (`war plan new`).",
         annotations(read_only_hint = false)
     )]
     fn war_new(&self, Parameters(p): Parameters<NewParams>) -> ToolResult {
@@ -1240,7 +1244,7 @@ impl WarServer {
 
     #[tool(
         name = "war_prime",
-        description = "What is open (`war view prime`): one line per open Warrant (progress, who holds it, what it waits on) and done work by id; give a Warrant to read it in full. `war_start` takes the next one. Markdown in result.markdown. Read-only.",
+        description = "What is open, one line each; or one Warrant in full. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
@@ -1258,7 +1262,7 @@ impl WarServer {
 
     #[tool(
         name = "war_context",
-        description = "Load the records a task needs (`war context <target>`): a Warrant, ticket, item, record id or file path, with the records its relations reach, each cited by id, type, path:line and revision, inside a byte budget. Records that did not fit are listed by summary with tier `summary`; ask for one by its id. The same arguments over the same files give the same bytes. Markdown in result.markdown. Read-only.",
+        description = "The records a task needs, cited by id, within a byte budget. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
@@ -1371,7 +1375,7 @@ impl WarServer {
 
     #[tool(
         name = "war_ready",
-        description = "What can start now (`war view ready`): open, unclaimed, unblocked items of light Warrants, most urgent and oldest first. Read-only.",
+        description = "What can start now (`war status --ready`). Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_ready(&self, Parameters(p): Parameters<ActorParams>) -> ToolResult {
@@ -1380,7 +1384,7 @@ impl WarServer {
 
     #[tool(
         name = "war_tickets",
-        description = "Every Warrant with its type, state and progress (`war view warrants`, also `war view tickets`): light ones in result.tickets, directory and read-in-place ones in result.warrants; optionally filtered by type, labels, state, a phrase, search words or epic: exactly the Warrants every filter admits. Read-only.",
+        description = "Every Warrant with type, state and progress, filtered. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_tickets(&self, Parameters(p): Parameters<TicketsParams>) -> ToolResult {
@@ -1400,7 +1404,7 @@ impl WarServer {
 
     #[tool(
         name = "war_create",
-        description = "Create a Warrant (`war create`, a ticket): a title, optional checklist items, description and tests. Workable at once; nothing is signed. `war_done` runs its tests. `sign` asks for a person's signature at the end, which no tool here gives. Returns its id (t-...).",
+        description = "Create a Warrant (a ticket); returns its id. `sign` asks for a person's sign-off at the end.",
         annotations(read_only_hint = false)
     )]
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
@@ -1436,7 +1440,7 @@ impl WarServer {
 
     #[tool(
         name = "war_claim",
-        description = "Claim an item or a whole light Warrant (`war admin claim`) so no other agent works it: atomic, journalled, refused by name when someone else holds it. `steal` takes a claim past its TTL.",
+        description = "Claim an item or Warrant (`war start --claim`).",
         annotations(read_only_hint = false)
     )]
     fn war_claim(&self, Parameters(p): Parameters<ClaimParams>) -> ToolResult {
@@ -1447,18 +1451,31 @@ impl WarServer {
 
     #[tool(
         name = "war_start",
-        description = "Take the next ready Warrant, or the one `target` names by id or by words of its title (`T8`), and get only what its work needs (`war start`): claims it whole and returns its description, open items, every note, what it depends on, and the call that closes it. Holding one already, it returns that one again.",
+        description = "Take the next ready Warrant, or `target`, and return its brief; `claim` only claims.",
         annotations(read_only_hint = false)
     )]
     fn war_start(&self, Parameters(p): Parameters<StartParams>) -> ToolResult {
+        if p.claim {
+            // `war start <id> --claim`: the claim half alone.
+            return self.ticket("claim", p.actor.as_deref(), |s| match p.target.as_deref() {
+                Some(t) => crate::ticket::claim_scoped(s, t, p.steal, &p.paths),
+                None => Ok(crate::ticket::Outcome::refused(
+                    "start.claim-needs-target",
+                    String::new(),
+                    "`claim` needs a `target`",
+                )),
+            });
+        }
         self.ticket("start", p.actor.as_deref(), |s| {
-            crate::ticket::start_cmd(s, p.target.as_deref())
+            let mut outcome = crate::ticket::start_cmd(s, p.target.as_deref())?;
+            crate::session_usage::after_start(&self.repo.root, s, &mut outcome);
+            Ok(outcome)
         })
     }
 
     #[tool(
         name = "war_heartbeat",
-        description = "Renew the lease on your claims (`war admin heartbeat`), or on the one named, so no other agent reclaims them while you work. Every call of the Warrant loop's tools renews them too; a claim whose lease runs out is taken by a plain claim.",
+        description = "Renew the lease on your claims.",
         annotations(read_only_hint = false)
     )]
     fn war_heartbeat(&self, Parameters(p): Parameters<HeartbeatParams>) -> ToolResult {
@@ -1469,10 +1486,35 @@ impl WarServer {
 
     #[tool(
         name = "war_done",
-        description = "Close the Warrant you hold (`war done`): every open item ticked in one write, or none, with an optional note, journalled, the claim released. Give an item to tick only that one.",
+        description = "Close the Warrant you hold, or one item; `release` gives it back, `reopen` unticks.",
         annotations(read_only_hint = false)
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
+        // `war done <id> --release` and `--reopen --reason`: the other
+        // halves of done, each under its own command name.
+        if p.release || p.reopen {
+            let command = if p.release { "release" } else { "reopen" };
+            return self.ticket(command, p.actor.as_deref(), |s| {
+                let Some(target) = p.target.as_deref() else {
+                    return Ok(crate::ticket::Outcome::refused(
+                        "done.needs-target",
+                        String::new(),
+                        format!("`{command}` needs a `target`"),
+                    ));
+                };
+                if p.release {
+                    return crate::ticket::release(s, target, p.if_rev.as_deref());
+                }
+                match p.reason.as_deref() {
+                    Some(reason) => crate::ticket::reopen(s, target, reason, p.if_rev.as_deref()),
+                    None => Ok(crate::ticket::Outcome::refused(
+                        "done.reopen-needs-reason",
+                        String::new(),
+                        "`reopen` needs a `reason`",
+                    )),
+                }
+            });
+        }
         self.ticket("done", p.actor.as_deref(), |s| {
             let target = match p.target.clone() {
                 Some(t) => t,
@@ -1481,13 +1523,21 @@ impl WarServer {
                     Err(refusal) => return Ok(refusal),
                 },
             };
-            crate::ticket::done_with(s, &target, p.note.as_deref(), p.if_rev.as_deref(), p.check)
+            let mut outcome = crate::ticket::done_with(
+                s,
+                &target,
+                p.note.as_deref(),
+                p.if_rev.as_deref(),
+                p.check,
+            )?;
+            crate::session_usage::after_done(&self.repo.root, s, &mut outcome, None);
+            Ok(outcome)
         })
     }
 
     #[tool(
         name = "war_add",
-        description = "Append an item to a Warrant's checklist (`war plan add`), optionally waiting on other items or Warrants (`after`).",
+        description = "Append an item to a Warrant's checklist.",
         annotations(read_only_hint = false)
     )]
     fn war_add(&self, Parameters(p): Parameters<AddParams>) -> ToolResult {
@@ -1498,7 +1548,7 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a Warrant (`war plan note`): the durable context the next agent or person reads in `war view prime`.",
+        description = "Append a dated note to a Warrant or item.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
@@ -1509,7 +1559,7 @@ impl WarServer {
 
     #[tool(
         name = "war_evidence_record",
-        description = "Run the gates the Warrant's assurance atom cites and mint gate receipts into gate-runs/ (`war evidence record`).",
+        description = "Run the gates a Warrant cites and record their receipts.",
         annotations(read_only_hint = false)
     )]
     fn war_evidence_record(&self, Parameters(p): Parameters<EvidenceParams>) -> ToolResult {
@@ -1527,7 +1577,7 @@ impl WarServer {
 
     #[tool(
         name = "war_deliver",
-        description = "Declare a Warrant's deliverables delivered (`war admin deliver`): record provenance on each — the sha256 of the file now, how it was made, the build of war that recorded it — and set content_addressed. Refuses a resolved Warrant, a missing file, and a path a later authorized Warrant governs (OW-ADR-0021); any refusal writes nothing. Run it before `war_evidence_record`: deliverables.toml is bound into every tree-bound receipt.",
+        description = "Record a Warrant's deliverables at their bytes on disk; run before `war_evidence_record`.",
         annotations(read_only_hint = false)
     )]
     fn war_deliver(&self, Parameters(p): Parameters<DeliverParams>) -> ToolResult {
@@ -1547,7 +1597,7 @@ impl WarServer {
 
     #[tool(
         name = "war_standing_apply",
-        description = "The coverage check of a standing authorization (`war sign standing apply`): a Warrant inside a class a human signed is authorized in that human's name; one outside is refused by the term it breaks and nothing is written. Accepting, revoking or signing a class is not a tool.",
+        description = "Check a Warrant against a standing authorization a person signed.",
         annotations(read_only_hint = false)
     )]
     fn war_standing_apply(&self, Parameters(p): Parameters<StandingApplyParams>) -> ToolResult {
@@ -1559,7 +1609,7 @@ impl WarServer {
 
     #[tool(
         name = "war_compile",
-        description = "Compile Warrants to their generated projections (`war admin compile`).",
+        description = "Compile Warrants to their generated projections.",
         annotations(read_only_hint = false)
     )]
     fn war_compile(&self, Parameters(p): Parameters<CompileParams>) -> ToolResult {
@@ -1572,7 +1622,7 @@ impl WarServer {
 
     #[tool(
         name = "war_gate_run",
-        description = "Execute registered gates and report their verdicts without recording (`war evidence gate --run`). Recording is `war evidence record`.",
+        description = "Run registered gates without recording.",
         annotations(read_only_hint = false)
     )]
     fn war_gate_run(&self, Parameters(p): Parameters<GateRunParams>) -> ToolResult {
@@ -1584,7 +1634,7 @@ impl WarServer {
 
     #[tool(
         name = "war_journal_backfill",
-        description = "Backfill a Warrant's journal from its records (`war admin journal <alias> --backfill`).",
+        description = "Backfill a Warrant's journal from its records.",
         annotations(read_only_hint = false)
     )]
     fn war_journal_backfill(&self, Parameters(p): Parameters<AliasParams>) -> ToolResult {
@@ -1596,7 +1646,7 @@ impl WarServer {
 
     #[tool(
         name = "war_plan_apply",
-        description = "Apply a REVIEWED Draft Proposal v2: creates the Warrant through `war plan new` and the proposal's operations, recording request, proposal and pipeline under plan/ (`war plan --proposal <file> --reviewed --apply`). Refused unless `reviewed` is true, or the proposal answers an issue (`issue_file`/`issue`) under `[intake] policy_approval`; an issue-linked Warrant records plan/intake.json. Authorizes nothing.",
+        description = "Apply a reviewed Draft Proposal v2; authorizes nothing.",
         annotations(read_only_hint = false)
     )]
     fn war_plan_apply(&self, Parameters(p): Parameters<PlanProposalParams>) -> ToolResult {
@@ -1679,7 +1729,56 @@ impl WarServer {
     }
 }
 
+/// `r` with `text` as the text the model reads; the envelope stays its
+/// structured content, for a caller that asks for it.
+fn with_text(mut r: CallToolResult, text: String) -> CallToolResult {
+    r.content = vec![ContentBlock::text(text)];
+    r
+}
+
 impl WarServer {
+    /// `war status --next`: the text is what the CLI prints.
+    fn next_answer(&self) -> ToolResult {
+        match crate::next::run_with(&crate::corpus::held(&self.repo)) {
+            Ok(n) => {
+                let text = crate::next::render(&n).trim_end().to_owned();
+                Ok(with_text(
+                    value_of("next", Ok(n), "next action derived")?,
+                    text,
+                ))
+            }
+            Err(e) => refused("next", &e),
+        }
+    }
+
+    /// `war status <id> --view <view>`, the one `war view show` was.
+    fn show_view(&self, alias: &str, view: &str) -> ToolResult {
+        match crate::warrants::kind_of(alias) {
+            crate::warrants::IdKind::Light => {
+                return self.ticket("show", None, |s| crate::ticket::show(s, alias));
+            }
+            crate::warrants::IdKind::ReadInPlace => {
+                let alias = alias.to_owned();
+                let repo = self.repo.clone();
+                return self.ticket("show", None, move |_| {
+                    Ok(crate::interop::adapters::show(&repo, &alias))
+                });
+            }
+            crate::warrants::IdKind::Directory => {}
+        }
+        match crate::show::run(&self.repo, alias, view) {
+            Ok(rendered) => {
+                let r = value_of(
+                    "show",
+                    Ok(serde_json::json!({"alias": alias, "view": view, "rendered": rendered})),
+                    "view rendered",
+                )?;
+                Ok(with_text(r, rendered))
+            }
+            Err(e) => refused("show", &e),
+        }
+    }
+
     /// Run one ticket command against this repository's ticket store and
     /// answer with its envelope as structured content; a refusal is a tool
     /// outcome, as elsewhere. The text the model reads is what the CLI prints

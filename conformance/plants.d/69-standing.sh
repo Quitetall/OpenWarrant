@@ -716,7 +716,7 @@ else
     st_fail "the human's dry run would record" "$(st_errors "$SB_OUT")"
 fi
 # No MCP tool accepts, revokes or ingests a class.
-SB_MCP=$(sb mcp --describe 2>&1)
+SB_MCP=$(sb mcp --all --describe 2>&1)
 SB_TOOLS=$(sed -n '1,/never registered/p' <<<"$SB_MCP")
 SB_REFUSED=$(sed -n '/never registered/,$p' <<<"$SB_MCP")
 if grep -qE '^  war_standing_apply ' <<<"$SB_MCP" && grep -qE '^  war_standing_show ' <<<"$SB_MCP" \

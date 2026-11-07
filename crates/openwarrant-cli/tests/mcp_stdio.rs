@@ -22,9 +22,19 @@ impl Session {
         Self::start_at(&repo_root())
     }
 
+    /// The whole tool table (`war mcp --all`).
+    fn start_all() -> Self {
+        Self::start_with(&repo_root(), &["--all"])
+    }
+
     fn start_at(root: &std::path::Path) -> Self {
+        Self::start_with(root, &[])
+    }
+
+    fn start_with(root: &std::path::Path, args: &[&str]) -> Self {
         let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
             .arg("mcp")
+            .args(args)
             .current_dir(root)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
@@ -87,7 +97,7 @@ impl Session {
 
 #[test]
 fn tools_list_has_no_signing_or_ingesting_tool() {
-    let mut s = Session::start();
+    let mut s = Session::start_all();
     let list = s.call(2, "tools/list", serde_json::json!({}));
     let names: Vec<&str> = list["result"]["tools"]
         .as_array()
@@ -126,9 +136,9 @@ fn calling_a_signing_tool_is_a_protocol_error_not_a_message() {
 }
 
 #[test]
-fn every_tool_answers_with_a_report_envelope() {
-    let mut s = Session::start();
-    let r = s.tool(2, "war_next", serde_json::json!({}));
+fn every_tool_answers_with_a_report_envelope_when_asked() {
+    let mut s = Session::start_all();
+    let r = s.tool(2, "war_next", serde_json::json!({"json": true}));
     let sc = &r["result"]["structuredContent"];
     assert_eq!(sc["schema"], "oh.war/report/v1", "{r}");
     assert_eq!(sc["command"], "next");
@@ -141,12 +151,45 @@ fn every_tool_answers_with_a_report_envelope() {
     let parsed: serde_json::Value = serde_json::from_str(text).expect("text is JSON");
     assert_eq!(&parsed, sc);
     // A refusal is an is_error result carrying the envelope, not a crash.
-    let r = s.tool(3, "war_check", serde_json::json!({"alias":"OW-WAR-9999"}));
+    let r = s.tool(
+        3,
+        "war_check",
+        serde_json::json!({"alias":"OW-WAR-9999", "json": true}),
+    );
     assert_eq!(r["result"]["isError"], true, "{r}");
     assert_eq!(
         r["result"]["structuredContent"]["schema"],
         "oh.war/report/v1"
     );
+    // `json` is a boolean, or the call is refused by the protocol.
+    let r = s.tool(4, "war_next", serde_json::json!({"json": "yes"}));
+    assert!(r.get("error").is_some(), "{r}");
+    assert_eq!(s.finish(), 0);
+}
+
+/// By default a reply is the CLI's text and no envelope; a refusal names its
+/// rule and the exit, so an agent can act on the text alone.
+#[test]
+fn a_default_reply_is_terse_text_naming_the_rule() {
+    let mut s = Session::start();
+    let r = s.tool(2, "war_status", serde_json::json!({"next": true}));
+    assert!(r["result"].get("structuredContent").is_none(), "{r}");
+    let text = r["result"]["content"][0]["text"].as_str().expect("text");
+    assert!(
+        serde_json::from_str::<serde_json::Value>(text).is_err(),
+        "{text}"
+    );
+    let r = s.tool(3, "war_check", serde_json::json!({"target":"OW-WAR-9999"}));
+    assert_eq!(r["result"]["isError"], true, "{r}");
+    let text = r["result"]["content"][0]["text"].as_str().expect("text");
+    assert!(text.contains("refused (cli.error)"), "{text}");
+    assert!(
+        text.ends_with(", not_ready") && text.contains("\nexit "),
+        "{text}"
+    );
+    // A tool outside the default table is not served.
+    let r = s.tool(4, "war_next", serde_json::json!({}));
+    assert!(r.get("error").is_some(), "{r}");
     assert_eq!(s.finish(), 0);
 }
 
@@ -158,11 +201,11 @@ fn a_request_half_writes_nothing() {
         .output()
         .expect("git")
         .stdout;
-    let mut s = Session::start();
+    let mut s = Session::start_all();
     let r = s.tool(
         2,
         "war_authorize_request",
-        serde_json::json!({"alias":"OW-WAR-0063"}),
+        serde_json::json!({"alias":"OW-WAR-0063", "json": true}),
     );
     assert_eq!(
         r["result"]["structuredContent"]["command"], "authorize.request",
@@ -244,7 +287,7 @@ fn war_create_writes_the_tests_it_is_given() {
     let made = s.tool(
         2,
         "war_create",
-        serde_json::json!({"title":"With a test","tests":["true"]}),
+        serde_json::json!({"title":"With a test","tests":["true"],"json":true}),
     );
     let report = &made["result"]["structuredContent"];
     assert_eq!(report["exit_code"], 0, "{made}");
@@ -254,7 +297,7 @@ fn war_create_writes_the_tests_it_is_given() {
     let empty = s.tool(
         3,
         "war_create",
-        serde_json::json!({"title":"With no command","tests":[" "]}),
+        serde_json::json!({"title":"With no command","tests":[" "],"json":true}),
     );
     assert_ne!(
         empty["result"]["structuredContent"]["exit_code"], 0,
@@ -283,8 +326,8 @@ fn questions_tool_preserves_partial_store_diagnostics() {
         &repo_root().join("conformance/fixtures/inbox/repository"),
         &root,
     );
-    let mut s = Session::start_at(&root);
-    let args = serde_json::json!({"alias":"IX-WAR-0002","open":true});
+    let mut s = Session::start_with(&root, &["--all"]);
+    let args = serde_json::json!({"alias":"IX-WAR-0002","open":true,"json":true});
     let good = s.tool(2, "war_questions", args.clone());
     assert_eq!(good["result"]["structuredContent"]["exit_code"], 0);
     std::fs::write(
@@ -298,7 +341,11 @@ fn questions_tool_preserves_partial_store_diagnostics() {
     assert_eq!(bad["result"]["isError"], true);
     assert_eq!(envelope["result"]["blocking_open"], 1);
     assert!(envelope.to_string().contains("question.malformed"));
-    let answers = s.tool(4, "war_answers", serde_json::json!({"alias":"IX-WAR-0002"}));
+    let answers = s.tool(
+        4,
+        "war_answers",
+        serde_json::json!({"alias":"IX-WAR-0002","json":true}),
+    );
     assert_eq!(answers["result"]["structuredContent"]["exit_code"], 2);
     assert_eq!(s.finish(), 0);
     std::fs::remove_dir_all(root).unwrap();

@@ -20,7 +20,8 @@ use std::sync::Arc;
 use rmcp::ServerHandler;
 use rmcp::handler::server::tool::ToolRouter;
 use rmcp::model::{
-    ErrorData as McpError, ListResourcesResult, PaginatedRequestParams, ReadResourceRequestParams,
+    CallToolRequestParams, CallToolResponse, CallToolResult, ErrorData as McpError,
+    ListResourcesResult, ListToolsResult, PaginatedRequestParams, ReadResourceRequestParams,
     ReadResourceResponse, ServerCapabilities, ServerConfig,
 };
 use rmcp::service::{RequestContext, RoleServer};
@@ -31,22 +32,13 @@ use crate::repo::{RepoError, Repository};
 /// agent most needs to hear (M9): ordinary work needs none of this. The
 /// non-authority facts follow, as what the server does and does not do.
 pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. Ordinary work needs none of \
-this: edit, build and test as you would in any repository; no Warrant, ticket or signature is \
-needed to write code. These tools help when you want to track or plan work. Tickets: \
-`war_start` takes the next ready Warrant, or the one its `target` names by id or by words of \
-its title, and returns only what its work needs (call it in the same turn as your first look at \
-the code); `war_done` closes it (in the same turn as your last test run); `war_prime` lists what \
-is open, one line each. `war_create`, `war_add` and `war_note` \
-keep a ticket current. No ticket step needs a signature. Warrants are optional work plans; a Warrant whose type has a \
-sign-off step is approved by a person. This server cannot authorize, resolve, verify, accept a \
-SAS, correct a delivered file, or sign anything, and no tool records a signed response: those \
-are human acts done at a terminal with `war sign`. Tools ending in `_request` draft the \
-document a person signs and write nothing. `war_next` lists what is ready and whose step each \
-item is. `war_pins` lists the files closed Warrants pin by digest; a change to one is drafted \
-with `war sign correct`. Every tool returns an `oh.war/report/v1` envelope as structured content \
-(a ticket tool's text is what the CLI prints): \
-`diagnostics[]` name a rule per finding, `verdict` is ready|not_ready, `exit_code` is what the \
-CLI would have exited with.";
+this: edit, build and test as in any repository. To track work: `war_start` takes the next \
+ready Warrant (or `target`) and returns its brief; `war_done` closes it with your last test \
+run; `war_status` says where work stands. No ticket step needs a signature. This server \
+cannot authorize, resolve, verify, accept a SAS, correct a delivered file, or sign anything: \
+those are human acts done at a terminal with `war sign`. A reply is the CLI's text: a finding \
+reads `refused (rule): ...`, and a nonzero exit ends `exit N, not_ready`. `json: true` returns \
+the `oh.war/report/v1` envelope instead.";
 
 /// Tool names the server must never register. Asserted by a test below
 /// against the live router, and by a source grep against `tools.rs`.
@@ -83,19 +75,83 @@ pub const REFUSED_TOOLS: &[&str] = &[
     "war_standing_ingest",
 ];
 
+/// How the server answers: which tools it serves and in what form.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct Options {
+    /// Serve every tool, not only [`tools::DEFAULT_TOOLS`].
+    pub all: bool,
+    /// Answer every call with the envelope, as `json: true` asks for one.
+    pub structured: bool,
+}
+
+impl Options {
+    /// `[mcp]` in `openwarrant.toml` (`tools = "default" | "all"`,
+    /// `structured = true`), with `--all` on top. A table that does not read
+    /// is refused by name, `mcp.config`, before anything is served.
+    pub fn read(root: &camino::Utf8Path, all: bool) -> Result<Self, RepoError> {
+        #[derive(serde::Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Table {
+            #[serde(default)]
+            tools: Option<String>,
+            #[serde(default)]
+            structured: bool,
+        }
+        #[derive(serde::Deserialize)]
+        struct File {
+            #[serde(default)]
+            mcp: Option<Table>,
+        }
+        let path = root.join(crate::init::CONFIG_FILE);
+        let text = crate::vfs::read_to_string(&path).map_err(|source| RepoError::Io {
+            context: format!("could not read {path}"),
+            source,
+        })?;
+        let file: File = toml::from_str(&text)
+            .map_err(|e| RepoError::Message(format!("mcp.config: {path}: the [mcp] table: {e}")))?;
+        let table = file.mcp.unwrap_or(Table {
+            tools: None,
+            structured: false,
+        });
+        let all_tools = match table.tools.as_deref() {
+            None | Some("default") => false,
+            Some("all") => true,
+            Some(other) => {
+                return Err(RepoError::Message(format!(
+                    "mcp.config: {path}: [mcp] tools is \"default\" or \"all\", not {other:?}"
+                )));
+            }
+        };
+        Ok(Self {
+            all: all || all_tools,
+            structured: table.structured,
+        })
+    }
+}
+
 /// The server: one repository, one tool table.
 #[derive(Clone)]
 pub struct WarServer {
     repo: Arc<Repository>,
     tool_router: ToolRouter<Self>,
+    opts: Options,
 }
 
 impl WarServer {
     #[must_use]
-    pub fn new(repo: Repository) -> Self {
+    pub fn new(repo: Repository, opts: Options) -> Self {
+        let mut tool_router = Self::tool_router();
+        if !opts.all {
+            for t in tool_router.list_all() {
+                if !tools::DEFAULT_TOOLS.contains(&t.name.as_ref()) {
+                    tool_router.remove_route(&t.name);
+                }
+            }
+        }
         Self {
             repo: Arc::new(repo),
-            tool_router: Self::tool_router(),
+            tool_router,
+            opts,
         }
     }
 
@@ -111,6 +167,178 @@ impl WarServer {
         names.sort();
         names
     }
+
+    /// The tools as `tools/list` serves them: each input schema flattened
+    /// ([`flat`]) and given the `json` switch every call accepts.
+    #[must_use]
+    pub fn listed(&self) -> Vec<rmcp::model::Tool> {
+        self.tool_router
+            .list_all()
+            .into_iter()
+            .map(|mut t| {
+                let mut schema = serde_json::Value::Object((*t.input_schema).clone());
+                flat(&mut schema);
+                if let Some(props) = schema
+                    .as_object_mut()
+                    .map(|o| {
+                        o.entry("properties")
+                            .or_insert_with(|| serde_json::json!({}))
+                    })
+                    .and_then(serde_json::Value::as_object_mut)
+                {
+                    props.insert("json".to_owned(), serde_json::json!({"type": "boolean"}));
+                }
+                if let serde_json::Value::Object(o) = schema {
+                    t.input_schema = Arc::new(o);
+                }
+                t
+            })
+            .collect()
+    }
+}
+
+/// A JSON Schema as an agent needs it: types, descriptions, required fields
+/// and real defaults. What schemars adds for a validator (`$schema`, `title`,
+/// integer formats and bounds, `additionalProperties: false`, the `null` in
+/// an optional field's type, a default of nothing) is dropped. The server
+/// still refuses an unknown field: `deny_unknown_fields` is on every shape.
+fn flat(v: &mut serde_json::Value) {
+    match v {
+        serde_json::Value::Object(o) => {
+            for k in ["$schema", "title", "format", "minimum", "maximum"] {
+                o.remove(k);
+            }
+            if o.get("additionalProperties") == Some(&serde_json::Value::Bool(false)) {
+                o.remove("additionalProperties");
+            }
+            if o.get("default").is_some_and(|d| {
+                d.is_null()
+                    || *d == serde_json::Value::Bool(false)
+                    || d.as_array().is_some_and(Vec::is_empty)
+                    || d.as_object().is_some_and(serde_json::Map::is_empty)
+            }) {
+                o.remove("default");
+            }
+            if let Some(serde_json::Value::Array(types)) = o.get("type") {
+                let kept: Vec<serde_json::Value> =
+                    types.iter().filter(|t| *t != "null").cloned().collect();
+                if let [one] = kept.as_slice() {
+                    o.insert("type".to_owned(), one.clone());
+                }
+            }
+            if o.get("required")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(Vec::is_empty)
+            {
+                o.remove("required");
+            }
+            // Recurse into subschemas only: a key of `properties` is a field
+            // name (`title`, `format`), not a schema keyword.
+            for (k, child) in o.iter_mut() {
+                match (k.as_str(), child) {
+                    ("properties" | "$defs" | "definitions", serde_json::Value::Object(m)) => {
+                        m.values_mut().for_each(flat);
+                    }
+                    ("items" | "additionalProperties", c @ serde_json::Value::Object(_)) => flat(c),
+                    ("anyOf" | "oneOf" | "allOf", serde_json::Value::Array(a)) => {
+                        a.iter_mut().for_each(flat);
+                    }
+                    _ => {}
+                }
+            }
+        }
+        serde_json::Value::Array(a) => a.iter_mut().for_each(flat),
+        _ => {}
+    }
+}
+
+/// What a caller reads when it did not ask for the envelope: the CLI's text
+/// where the tool built one, else the envelope's findings and answer as
+/// lines. A finding keeps its rule id (`refused (rule): ...`); a nonzero exit
+/// ends the text as `exit N, verdict`.
+#[must_use]
+pub fn terse(mut r: CallToolResult) -> CallToolResult {
+    let Some(env) = r.structured_content.take() else {
+        return r;
+    };
+    let own = r
+        .content
+        .first()
+        .and_then(|c| c.as_text())
+        .map(|t| t.text.clone());
+    // A tool that built no text of its own carries the envelope as its text.
+    let as_built = env.to_string();
+    let mut text = match own {
+        Some(t) if t != as_built => t.trim_end().to_owned(),
+        _ => lines_of(&env),
+    };
+    if let Some(code) = env["exit_code"].as_u64().filter(|c| *c != 0) {
+        let verdict = env["verdict"].as_str().unwrap_or("not_ready");
+        if !text.is_empty() {
+            text.push('\n');
+        }
+        text.push_str(&format!("exit {code}, {verdict}"));
+    }
+    r.content = vec![rmcp::model::ContentBlock::text(text)];
+    r
+}
+
+/// What a caller reads when it asked for the envelope: the envelope as
+/// structured content, and the same envelope as its text block, for a client
+/// that reads no structured content.
+#[must_use]
+pub fn enveloped(mut r: CallToolResult) -> CallToolResult {
+    if let Some(env) = &r.structured_content {
+        r.content = vec![rmcp::model::ContentBlock::text(env.to_string())];
+    }
+    r
+}
+
+/// An envelope as lines: each finding but a pass, its notes, then the answer (its
+/// Markdown or rendering when it has one, else compact JSON).
+fn lines_of(env: &serde_json::Value) -> String {
+    let mut out: Vec<String> = Vec::new();
+    for d in env["diagnostics"].as_array().into_iter().flatten() {
+        let tag = match d["severity"].as_str() {
+            Some("error") => "refused",
+            Some("warn") => "warning",
+            Some("unknown") => "UNKNOWN",
+            _ => continue,
+        };
+        let rule = d["rule"].as_str().unwrap_or("");
+        let file = d["file"].as_str().filter(|f| !f.is_empty());
+        let msg = d["message"].as_str().unwrap_or("");
+        out.push(match file {
+            Some(f) => format!("{tag} ({rule}) {f}: {msg}"),
+            None => format!("{tag} ({rule}): {msg}"),
+        });
+    }
+    if let Some(folded) = env["folded"]["warn"].as_object() {
+        let n: u64 = folded.values().filter_map(serde_json::Value::as_u64).sum();
+        out.push(format!(
+            "{n} more warning(s) folded; `verbose: true` lists them"
+        ));
+    }
+    // A note is what the CLI prints beside its answer (which pin was read, a
+    // notice of a change under you).
+    out.extend(
+        env["notes"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(serde_json::Value::as_str)
+            .map(str::to_owned),
+    );
+    let result = &env["result"];
+    if let Some(md) = result["markdown"]
+        .as_str()
+        .or_else(|| result["rendered"].as_str())
+    {
+        out.push(md.trim_end().to_owned());
+    } else if !result.is_null() {
+        out.push(result.to_string());
+    }
+    out.join("\n")
 }
 
 #[rmcp::tool_handler(router = self.tool_router)]
@@ -125,6 +353,51 @@ impl ServerHandler for WarServer {
         .with_instructions(INSTRUCTIONS);
         info.server_info = rmcp::model::Implementation::new("war", env!("CARGO_PKG_VERSION"));
         info
+    }
+
+    /// The router's call, with `json` taken out of the arguments first: it
+    /// picks the reply's form and is no tool's parameter.
+    async fn call_tool(
+        &self,
+        mut request: CallToolRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> Result<CallToolResponse, McpError> {
+        let asked = request.arguments.as_mut().and_then(|a| a.remove("json"));
+        let json = match asked {
+            None | Some(serde_json::Value::Null) => false,
+            Some(serde_json::Value::Bool(b)) => b,
+            Some(_) => return Err(McpError::invalid_params("`json` is a boolean", None)),
+        };
+        let tcc = rmcp::handler::server::tool::ToolCallContext::new(self, request, context);
+        Ok(match self.tool_router.call(tcc).await? {
+            CallToolResponse::Complete(r) if json || self.opts.structured => {
+                CallToolResponse::Complete(enveloped(r))
+            }
+            CallToolResponse::Complete(r) => CallToolResponse::Complete(terse(r)),
+            other => other,
+        })
+    }
+
+    async fn list_tools(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        context: RequestContext<RoleServer>,
+    ) -> Result<ListToolsResult, McpError> {
+        let supports_cache_hints = context
+            .protocol_version()
+            .is_some_and(|version| version >= rmcp::model::ProtocolVersion::V_2026_07_28);
+        Ok(ListToolsResult {
+            result_type: Some(rmcp::model::ResultType::COMPLETE),
+            tools: self.listed(),
+            meta: None,
+            next_cursor: None,
+            ttl_ms: supports_cache_hints.then_some(0),
+            cache_scope: supports_cache_hints.then_some(rmcp::model::CacheScope::Public),
+        })
+    }
+
+    fn get_tool(&self, name: &str) -> Option<rmcp::model::Tool> {
+        self.listed().into_iter().find(|t| t.name == name)
     }
 
     fn list_resources(
@@ -148,9 +421,9 @@ impl ServerHandler for WarServer {
 
 /// Serve on stdio until the client closes the pipe. The runtime is built here
 /// and dropped here; `Repository::discover` ran before it existed.
-pub fn run(repo: Repository) -> Result<(), RepoError> {
+pub fn run(repo: Repository, opts: Options) -> Result<(), RepoError> {
     crate::ticket::live::serve(&repo.root);
-    let server = WarServer::new(repo);
+    let server = WarServer::new(repo, opts);
     // stdin/stdout go through tokio's blocking pool, not the reactor, so no
     // driver is needed; `enable_all` enables whatever the enabled features
     // provide and nothing more.
@@ -172,8 +445,8 @@ pub fn run(repo: Repository) -> Result<(), RepoError> {
 
 /// Print the tool table and the refusal list without serving — what an
 /// operator reads to know what an agent can and cannot do here.
-pub fn describe(repo: Repository) -> String {
-    let server = WarServer::new(repo);
+pub fn describe(repo: Repository, opts: Options) -> String {
+    let server = WarServer::new(repo, opts);
     let mut out = format!("tools ({}):\n", server.tool_names().len());
     let mut tools = server.tool_router.list_all();
     tools.sort_by(|a, b| a.name.cmp(&b.name));
@@ -184,6 +457,10 @@ pub fn describe(repo: Repository) -> String {
             t.description.as_deref().unwrap_or("")
         ));
     }
+    if !opts.all {
+        out.push_str("more tools: `war admin mcp --all` (or `[mcp] tools = \"all\"`) serves the whole table\n");
+    }
+    out.push_str("replies: the CLI's text; `json: true` (or `[mcp] structured = true`) returns the oh.war/report/v1 envelope\n");
     out.push_str("never registered (human acts, or out of scope for an agent):\n");
     for r in REFUSED_TOOLS {
         out.push_str(&format!("  {r}\n"));
@@ -205,7 +482,11 @@ mod tests {
 
     #[test]
     fn no_refused_tool_is_registered_and_no_signing_or_ingesting_name_exists() {
-        let names = WarServer::new(repo()).tool_names();
+        let all = Options {
+            all: true,
+            structured: false,
+        };
+        let names = WarServer::new(repo(), all).tool_names();
         assert!(names.len() >= 20, "{names:?}");
         for r in REFUSED_TOOLS {
             assert!(!names.iter().any(|n| n == r), "{r} is registered");
@@ -270,5 +551,113 @@ mod tests {
             lead.starts_with("Ordinary work needs none of this"),
             "{lead}"
         );
+    }
+
+    /// The default table is exactly the daily set; `--all` keeps the rest,
+    /// and neither holds a human act.
+    #[test]
+    fn the_default_table_is_the_daily_set_and_all_is_the_whole_table() {
+        let default = WarServer::new(repo(), Options::default()).tool_names();
+        assert_eq!(default, tools::DEFAULT_TOOLS);
+        let all = WarServer::new(
+            repo(),
+            Options {
+                all: true,
+                structured: false,
+            },
+        )
+        .tool_names();
+        for t in tools::DEFAULT_TOOLS {
+            assert!(all.iter().any(|n| n == t), "{t}");
+        }
+        assert!(all.len() > default.len() + 30, "{all:?}");
+    }
+
+    /// Token cost is a product measure: the default `tools/list` stays under
+    /// 6,400 bytes (about 1,600 tokens). Raise it only on purpose.
+    #[test]
+    fn the_default_tools_list_stays_inside_its_budget() {
+        let server = WarServer::new(repo(), Options::default());
+        let listed = serde_json::to_string(&serde_json::json!({"tools": server.listed()})).unwrap();
+        assert!(
+            listed.len() <= 6_400,
+            "default tools/list is {} bytes",
+            listed.len()
+        );
+        // Flattened: nothing for a validator only, and every tool takes `json`.
+        for needle in [
+            "\"$schema\"",
+            "\"null\"",
+            "\"format\"",
+            "additionalProperties\":false",
+        ] {
+            assert!(!listed.contains(needle), "{needle} in {listed}");
+        }
+        for t in server.listed() {
+            // A field named like a keyword is still a field.
+            assert!(t.input_schema.get("title").is_none(), "{}", t.name);
+            let schema = serde_json::Value::Object((*t.input_schema).clone());
+            for r in schema["required"].as_array().into_iter().flatten() {
+                let r = r.as_str().unwrap_or_default();
+                assert!(schema["properties"][r].is_object(), "{}: {r}", t.name);
+            }
+            assert!(schema["properties"]["json"].is_object(), "{}", t.name);
+            let d = t.description.as_deref().unwrap_or("");
+            assert!(
+                !d.is_empty() && !d.contains('\n') && d.len() <= 120,
+                "{}: {d}",
+                t.name
+            );
+        }
+    }
+
+    /// A reply is text that keeps the rule and the exit; the envelope comes
+    /// only when asked. A refused envelope reads `refused (rule): ...`.
+    #[test]
+    fn terse_keeps_the_rule_and_the_exit() {
+        let env = serde_json::json!({
+            "schema": "oh.war/report/v1",
+            "diagnostics": [
+                {"severity": "pass", "rule": "x.pass", "file": null, "message": "fine"},
+                {"severity": "error", "rule": "work.claimed", "file": null, "message": "held by b"}
+            ],
+            "verdict": "not_ready", "exit_code": 1, "result": null
+        });
+        let text = terse(CallToolResult::structured_error(env.clone()));
+        assert!(text.structured_content.is_none());
+        let said = text.content[0].as_text().unwrap().text.clone();
+        assert_eq!(said, "refused (work.claimed): held by b\nexit 1, not_ready");
+        // A tool's own text is kept, and the exit still ends it.
+        let mut own = CallToolResult::structured_error(env);
+        own.content = vec![rmcp::model::ContentBlock::text("what the CLI says\n")];
+        let said = terse(own).content[0].as_text().unwrap().text.clone();
+        assert_eq!(said, "what the CLI says\nexit 1, not_ready");
+    }
+
+    #[test]
+    fn an_mcp_table_is_read_and_a_bad_one_refused_by_name() {
+        let dir = camino::Utf8PathBuf::from_path_buf(std::env::temp_dir())
+            .unwrap()
+            .join(format!("war-mcp-opts-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let file = dir.join(crate::init::CONFIG_FILE);
+        std::fs::write(&file, "[mcp]\ntools = \"all\"\nstructured = true\n").unwrap();
+        assert_eq!(
+            Options::read(&dir, false).unwrap(),
+            Options {
+                all: true,
+                structured: true
+            }
+        );
+        std::fs::write(&file, "[project]\nname = \"x\"\n").unwrap();
+        assert_eq!(Options::read(&dir, false).unwrap(), Options::default());
+        assert!(Options::read(&dir, true).unwrap().all);
+        std::fs::write(&file, "[mcp]\ntools = \"some\"\n").unwrap();
+        let e = Options::read(&dir, false).unwrap_err().to_string();
+        assert!(e.contains("mcp.config"), "{e}");
+        std::fs::write(&file, "[mcp]\nstructure = true\n").unwrap();
+        let e = Options::read(&dir, false).unwrap_err().to_string();
+        assert!(e.contains("mcp.config"), "{e}");
+        std::fs::remove_dir_all(dir).unwrap();
     }
 }

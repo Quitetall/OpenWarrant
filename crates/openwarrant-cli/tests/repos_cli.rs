@@ -834,7 +834,7 @@ fn the_mcp_server_reads_through_the_pin_and_says_unknown() {
     use std::io::{BufRead, BufReader, Write};
     let t = two();
     let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
-        .args(["mcp"])
+        .args(["mcp", "--all"])
         .current_dir(&t.wmd)
         .env("OPENWARRANT_NO_PROJECTS", "1")
         .stdin(std::process::Stdio::piped())

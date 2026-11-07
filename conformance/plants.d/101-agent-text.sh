@@ -20,7 +20,7 @@ at_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 # What ships: the rendered template, the skills, and what `war mcp` says.
 "$WAR" agents-md --stdout > "$AT_TMP/agents.md" 2>/dev/null
 mapfile -t AT_SKILLS < <(LC_ALL=C find .claude/skills -name '*.md' | sort)
-python3 conformance/fixtures/mcp/drive.py "$WAR" conformance/fixtures/mcp/list-tools.jsonl \
+python3 conformance/fixtures/mcp/drive.py "$WAR" conformance/fixtures/mcp/list-tools.jsonl --all \
     > "$AT_TMP/mcp.jsonl" 2>/dev/null
 python3 - "$AT_TMP/mcp.jsonl" "$AT_TMP/mcp-instructions.md" "$AT_TMP/mcp-tools.md" <<'PY'
 import json, sys
