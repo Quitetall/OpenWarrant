@@ -253,7 +253,7 @@ CC_TX=$(mktemp -p "$CC_TMP")
     printf '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"war_note","arguments":{"target":"%s","text":"stale","if_rev":"%s","actor":"mcp"}}}\n' "$CC_K" "$CC_R0"
     printf '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_note","arguments":{"target":"%s","text":"fresh","if_rev":"%s","actor":"mcp"}}}\n' "$CC_K" "$CC_KR"
 } > "$CC_TX"
-CC_MCP=$(cd "$CC_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$CC_WAR" "$CC_TX" 2>/dev/null)
+CC_MCP=$(cd "$CC_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$CC_WAR" "$CC_TX" --json 2>/dev/null)
 if grep -q '"id":2.*work.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"exit_code":0' <<<"$CC_MCP" \
     && grep -q '"note":"fresh"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl" \
     && ! grep -q '"note":"stale"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl"; then

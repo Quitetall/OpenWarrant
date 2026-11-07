@@ -222,7 +222,7 @@ fn an_agent_on_mcp_reads_the_line_once() {
     amend(&p, "# Plan\n\nSECOND\n");
     run(&p.bob.1, "bob", &["note", &p.bob.0, "going"]);
     let mut child = Command::new(env!("CARGO_BIN_EXE_war"))
-        .args(["mcp"])
+        .args(["mcp", "--all"])
         .current_dir(&p.alice.1)
         .env("OPENWARRANT_ACTOR", "alice")
         .env("OPENWARRANT_NO_PROJECTS", "1")

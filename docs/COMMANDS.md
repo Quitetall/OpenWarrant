@@ -65,8 +65,8 @@ cleanup. Unknown ownership or process activity keeps the workspace.
   one against the real clap tree and refuses a hidden spelling. Text in a
   file a resolved Warrant pins (`war admin pins --resolved-only`) cannot be
   edited and keeps the earlier spelling, which still works.
-- **MCP tool names do not change** (`war_create`, `war_next`, …); only their
-  descriptions name the new spellings.
+- **MCP tool names do not change** (`war_create`, `war_next`, …). The
+  default table is the daily set; `--all` serves every tool (below).
 
 ## Parity: all of the function remains
 
@@ -186,7 +186,7 @@ so it stays there. Its top-level spelling is what retires.
 | Feed a harness's own task list into the tick ladder (OW-WAR-0148 M13). Proposes ticks; writes only with `--apply`; never blocks | `war admin bridge` | `war bridge` | often | group; `war bridge` retiring |
 | Host the WAR domain for Liminal, `oh.war/liminal-v1` (OW-WAR-0148 M8; SAS §82.2; docs/LIMINAL_HOST.md): one request on stdin, one response on stdout. Pure — no repository, no file, no network, no process. Exit 0 compiled, 1 refused, 2 compiled with something not established. `--export` writes the request that reproduces this repository's model instead | `war admin host` | `war host` | often | kept: the Liminal protocol |
 | Run an offline SDK operation from an explicit JSON request. Always emits JSON | `war admin sdk` | `war sdk` | often | kept: harness configuration |
-| Serve the Model Context Protocol over stdio (OW-ADR-0014): every read, request half and agent-permitted write as a tool; no signing, no ingest. `--describe` prints the tool table instead of serving | `war admin mcp` | `war mcp` | daily | kept: harness configuration |
+| Serve the Model Context Protocol over stdio (OW-ADR-0014): the daily commands as tools, answering in the CLI's text; `--all` serves every read, request half and agent-permitted write; no signing, no ingest. `--describe` prints the tool table instead of serving | `war admin mcp` | `war mcp` | daily | kept: harness configuration |
 | §67 Knowledge Fabric seam. `health` reads; `act` WRITES and needs --confirm-write | `war admin kf` | `war kf` | often | group; `war kf` retiring |
 | §94 telemetry baseline, §95 untracked-work candidates, §100 metrics | `war admin telemetry` | `war telemetry` | often | group; `war telemetry` retiring |
 | Bind a Warrant's machine scope to Bonsai evidence | `war admin bonsai` | `war bonsai` | often | group; `war bonsai` retiring |
@@ -199,6 +199,31 @@ so it stays there. Its top-level spelling is what retires.
 | The file ledger: why each file changed (docs/LEDGER.md) | `war admin ledger` | none | often | group |
 | The compliance score, its weights, and its in-toto statement (docs/SCORE.md) | `war admin score` | none | often | group |
 <!-- parity:end -->
+
+## MCP: the daily set, in the CLI's text
+
+`war admin mcp` serves seven tools by default, the daily commands an agent
+runs plus the two it needs between them. The CLI's folds are arguments:
+
+| Tool | CLI | Folded in, as arguments |
+| --- | --- | --- |
+| `war_create` | `war create` | |
+| `war_start` | `war start` | `claim`, `paths`, `steal` (`war_claim`) |
+| `war_done` | `war done` | `release`, `reopen` with `reason` |
+| `war_status` | `war status` | `next` (`war_next`), `ready` (`war_ready`), `target` with `view` (`war_show`) |
+| `war_check` | `war check` | |
+| `war_context` | `war view context` | |
+| `war_note` | `war plan note` | |
+
+`war admin mcp --all`, or `[mcp] tools = "all"` in `openwarrant.toml`,
+serves the whole table (42 tools), so nothing an MCP client had is gone.
+A reply is the text the CLI prints: a finding reads `refused (rule): ...`
+and a nonzero exit ends `exit N, verdict`. `json: true` on any call, or
+`[mcp] structured = true`, returns the `oh.war/report/v1` envelope instead.
+Either way no signing, ingesting or other human act is a tool; `war admin
+mcp --describe` prints the table and that refusal list. Plant 230 and the
+`mcp::tests` budget test hold the default `tools/list` under 6,400 bytes;
+`tools/measure-tokens.sh` measures it.
 
 ## Historical command inventory
 

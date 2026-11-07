@@ -6,6 +6,23 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- `war admin mcp` serves seven tools by default (`war_create`, `war_start`,
+  `war_done`, `war_status`, `war_check`, `war_context`, `war_note`), with the
+  CLI's folds as arguments: `war_status` takes `next`, `ready` and `view`,
+  `war_start` takes `claim`, `war_done` takes `release` and `reopen`. The
+  default `tools/list` is 4,904 bytes, down from 32,530. `--all` (or `[mcp]
+  tools = "all"`) serves all 42 tools. Input schemas are flat and each
+  description is one line.
+- An MCP reply is the CLI's terse text: a finding reads `refused (rule):
+  ...`, and a nonzero exit ends `exit N, verdict`. `json: true` (or `[mcp]
+  structured = true`) returns the `oh.war/report/v1` envelope.
+- The AGENTS.md that `war init` writes is 3,157 bytes, down from 9,775. It
+  links `docs/agents/legacy-warrant-workflow.md`, which now holds the full
+  rules. The managed pointer block is shorter, and so is this repository's
+  AGENTS.md.
+
 ### Added
 
 - The formal path reads a single-file Warrant: authorize, evidence record,
@@ -41,6 +58,9 @@ Notable changes to OpenWarrant. Format loosely follows
   `UNKNOWN` (`work.claims-remote-unknown`), never free. No remote, no network.
 - `war init --claims-remote <REMOTE>` sets `[claims] remote`, on a new or an
   existing repository. docs/TICKETS.md has a "Two machines" how-to.
+- `tools/measure-tokens.sh` measures what war's own words cost an agent.
+  Tests and plant 230 fail if the default `tools/list` grows past 6,400 bytes
+  or the init AGENTS.md grows past 4,000.
 
 ### Fixed
 

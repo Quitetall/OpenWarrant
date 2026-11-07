@@ -129,8 +129,11 @@ plants = ["220-session-usage.sh", "191-tui-honest.sh", "189-done-enforce.sh"]
 
 [[rule]]
 name = "mcp"
-paths = ["crates/openwarrant-cli/src/mcp/**"]
-plants = ["72-mcp.sh", "66-json.sh", "73-plugin.sh", "73-capabilities.sh"]
+paths = ["crates/openwarrant-cli/src/mcp/**", "conformance/fixtures/mcp/**", "tools/measure-tokens.sh"]
+plants = [
+    "72-mcp.sh", "66-json.sh", "73-plugin.sh", "73-capabilities.sh", "230-mcp-lean.sh",
+    "45-tickets.sh", "54-intake.sh", "100-concurrency.sh", "101-agent-text.sh", "196-order-signer.sh",
+]
 
 [[rule]]
 name = "go"

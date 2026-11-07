@@ -7,10 +7,12 @@
 MCPFX=conformance/fixtures/mcp
 
 # Feed a transcript; pass when the expected text is (or is not) in the reply.
+# Arguments after the fixture go to drive.py (`--all`: the whole tool table).
 plant_mcp() {
     local name="$1" want="$2" mode="$3" fixture="$4"
+    shift 4
     local out
-    out=$(python3 "$MCPFX/drive.py" "$WAR" "$fixture" 2>/dev/null)
+    out=$(python3 "$MCPFX/drive.py" "$WAR" "$fixture" "$@" 2>/dev/null)
     local status=$?
     local ok=1
     # A here-string, not a pipe: under lib.sh's `pipefail`, `grep -q` closing
@@ -32,20 +34,20 @@ plant_mcp() {
 }
 
 # tools/list carries no signing act under any spelling (only the read-only list/show).
-plant_mcp "tools/list has no signing tool" '"name":"war_sign"' absent "$MCPFX/list-tools.jsonl"
-plant_mcp "tools/list has no ingest tool" '_ingest"' absent "$MCPFX/list-tools.jsonl"
-plant_mcp "tools/list does list war_next" '"name":"war_next"' present "$MCPFX/list-tools.jsonl"
+plant_mcp "tools/list has no signing tool" '"name":"war_sign"' absent "$MCPFX/list-tools.jsonl" --all
+plant_mcp "tools/list has no ingest tool" '_ingest"' absent "$MCPFX/list-tools.jsonl" --all
+plant_mcp "tools/list --all lists war_next" '"name":"war_next"' present "$MCPFX/list-tools.jsonl" --all
 # Nor a tool that spawns a performer: an agent asking the server to start
 # another agent is one process starting unbounded processes in the human's tree,
 # and `war perform` is a command a human runs (OW-WAR-0069 Q-006).
-plant_mcp "tools/list cannot start a performer" '"name":"war_perform"' absent "$MCPFX/list-tools.jsonl"
+plant_mcp "tools/list cannot start a performer" '"name":"war_perform"' absent "$MCPFX/list-tools.jsonl" --all
 
 # Calling a signing or ingesting tool is refused by the protocol, not by a message.
 plant_mcp "calling war_sign is refused" 'tool not found' present "$MCPFX/call-sign.jsonl"
 
 # The request halves write nothing: the tree is byte-identical afterwards.
 BEFORE=$(git status --porcelain)
-plant_mcp "request halves answer" 'authorize.request' present "$MCPFX/request-halves.jsonl"
+plant_mcp "request halves answer" 'authorize.request' present "$MCPFX/request-halves.jsonl" --all --json
 AFTER=$(git status --porcelain)
 if [[ "$BEFORE" == "$AFTER" ]]; then
     printf 'ok    %-34s tree unchanged after five request-half calls\n' "request halves write nothing"
@@ -55,7 +57,7 @@ else
     FAILED=$((FAILED + 1))
 fi
 # …and an unreviewed apply is refused in the same transcript.
-plant_mcp "unreviewed plan_apply is refused" 'step 6' present "$MCPFX/request-halves.jsonl"
+plant_mcp "unreviewed plan_apply is refused" 'step 6' present "$MCPFX/request-halves.jsonl" --all
 
 # Outside a repository the server never starts: an ordinary CLI refusal, exit 1.
 if (cd /tmp && "$OLDPWD/$WAR" mcp < /dev/null >/dev/null 2>&1); then

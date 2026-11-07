@@ -926,9 +926,10 @@ const ADOPT_ASSURANCE: &str = include_str!("../../templates/adopt/60-assurance.m
 
 /// The agent instructions this repository ships, parameterised by namespace.
 ///
-/// This legacy template is also the repository's linked workflow reference.
-/// Root `AGENTS.md` adds project-specific routing and successor design guidance;
-/// the additive pointer is the managed block (`war admin agents-md --block`, M16).
+/// Short on purpose: an agent reads every byte of it, every session. It holds
+/// what the tool cannot say itself; the full rules are
+/// `docs/agents/legacy-warrant-workflow.md`, which it links. The additive
+/// pointer is the managed block (`war admin agents-md --block`, M16).
 pub const AGENTS_MD_TEMPLATE: &str = include_str!("../../templates/AGENTS.md.tmpl");
 
 /// The template filled in: the namespace, and the managed openwarrant block
@@ -1250,14 +1251,29 @@ mod agents_md_tests {
         assert_eq!(again, out);
     }
 
-    /// Keep the shipped legacy workflow equal to the linked reference, while
-    /// allowing the root instructions to retain project-specific context.
+    /// The template is short, and the rules it leaves out live in the
+    /// reference it links; root AGENTS.md routes legacy work there too.
     #[test]
-    fn the_legacy_workflow_reference_is_the_rendered_template() {
+    fn the_template_stays_short_and_links_the_full_rules() {
+        let out = render_agents_md("OW");
+        // Token cost is a product measure: about 1,000 tokens at most.
+        assert!(
+            out.len() <= 4_000,
+            "AGENTS.md template is {} bytes",
+            out.len()
+        );
         let repo = camino::Utf8PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
         let reference = "docs/agents/legacy-warrant-workflow.md";
+        assert!(out.contains(reference), "the template links the full rules");
         let committed = std::fs::read_to_string(repo.join(reference)).expect(reference);
-        assert_eq!(committed, render_agents_md("OW"));
+        for kept in [
+            "### Writing the atoms",
+            "war sign resolve --dry-run <alias>",
+            "Your own work is checked by someone else",
+            "`--apply` refuses a proposal nobody reviewed",
+        ] {
+            assert!(committed.contains(kept), "{reference} lost {kept}");
+        }
         let instructions = std::fs::read_to_string(repo.join("AGENTS.md")).expect("AGENTS.md");
         assert!(
             instructions.contains(reference),
