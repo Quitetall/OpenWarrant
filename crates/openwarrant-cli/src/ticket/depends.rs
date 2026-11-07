@@ -200,9 +200,27 @@ fn each(store: &Store, wanted: &[String]) -> Vec<Dep> {
         .collect()
 }
 
-/// The clauses of named repositories `t` declares or cites (`hpr:CL-step`),
-/// as `war start` watches them: by the text the pin holds. A clause that cannot
-/// be read now is not watched: `war done` says so through [`of`].
+/// What a claim compares of `id` in a repository at one commit: the digest of
+/// a clause's own text, or of an item's title and state; and the path that
+/// holds it. `None`: it has no such clause or item.
+#[must_use]
+pub fn watched_text(repo: &Repository, id: &str) -> Option<(String, String)> {
+    if let Some(c) = interfaces::clause(repo, id) {
+        return Some((c.digest, c.source));
+    }
+    let work = Work::read(repo);
+    let item = work.items().iter().find(|i| i.id == id)?;
+    let text = format!("{}\n{}\n{}\n", item.id, item.title, item.state);
+    Some((
+        openwarrant_core::format::sha256(text.as_bytes()),
+        item.place.clone(),
+    ))
+}
+
+/// The clauses and items of named repositories `t` declares or cites
+/// (`hpr:CL-step`, `hpr:t-abc`), as `war start` watches them: by what the pin
+/// holds. One that cannot be read now is not watched: `war done` says so
+/// through [`of`].
 #[must_use]
 pub fn watches(store: &Store, t: &Ticket) -> Vec<live::Watched> {
     let Ok(all) = repos::declared(&store.root) else {
@@ -212,11 +230,14 @@ pub fn watches(store: &Store, t: &Ticket) -> Vec<live::Watched> {
         return Vec::new();
     }
     let mut wanted = targets(t);
+    // Any id the interface declares: a word is looked up, never shaped.
     for word in t
         .checklist_text
-        .split(|c: char| !(c.is_ascii_alphanumeric() || matches!(c, ':' | '-' | '_')))
+        .split(|c: char| !(c.is_ascii_alphanumeric() || matches!(c, ':' | '-' | '_' | '.')))
+        .map(|w| w.trim_end_matches('.'))
     {
-        if word.contains(":CL-") && !wanted.iter().any(|w| w == word) {
+        let named = matches!(repos::classify(&store.root, word), repos::Target::Named(..));
+        if named && !wanted.iter().any(|w| w == word) {
             wanted.push(word.to_owned());
         }
     }
@@ -225,8 +246,8 @@ pub fn watches(store: &Store, t: &Ticket) -> Vec<live::Watched> {
         let repos::Target::Named(name, id) = repos::classify(&store.root, &target) else {
             continue;
         };
-        let Ok((located, Some(clause))) =
-            repos::through_pin(&store.root, name, None, |r| interfaces::clause(r, id))
+        let Ok((located, Some((digest, _)))) =
+            repos::through_pin(&store.root, name, None, |r| watched_text(r, id))
         else {
             continue;
         };
@@ -234,8 +255,8 @@ pub fn watches(store: &Store, t: &Ticket) -> Vec<live::Watched> {
             source: target.clone(),
             reach: live::PIN.to_owned(),
             because: target.clone(),
-            known: vec![clause.digest.clone()],
-            file: clause.digest,
+            known: vec![digest.clone()],
+            file: digest,
             commit: Some(located.pin.commit),
         });
     }

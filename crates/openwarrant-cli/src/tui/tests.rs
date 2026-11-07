@@ -685,8 +685,22 @@ fn a_note_says_who_reads_it_and_when() {
     };
     assert_eq!(argv, argv::note("t-1a2b3", "use the fast queue"));
     argv::parses(&argv).expect("it parses");
-    assert!(after.contains("Nobody holds this"), "{after}");
+    // Its item i-1 is held: the ticket is the holder's, not nobody's.
+    assert!(after.contains("the holder's checkout"), "{after}");
     assert_eq!(prompt, None, "no agent told unless asked");
+}
+
+/// Refusal of the claim above: work nobody holds is written here, and says so.
+#[test]
+fn a_note_on_work_nobody_holds_says_so() {
+    let mut m = fixture();
+    act::open_note(&mut m, "t-5e5e5".to_owned());
+    typed(&mut m, "later");
+    let Some(Effect::Say { after, at, .. }) = enter(&mut m) else {
+        panic!("a note");
+    };
+    assert!(after.contains("Nobody holds this"), "{after}");
+    assert_eq!(at, None, "written in this checkout");
 }
 
 /// With an agent in the holder's workspace, Herdr can deliver it now, and
@@ -710,7 +724,20 @@ fn a_note_goes_through_herdr_only_when_asked() {
         prompt,
         Some(("w1:p1".to_owned(), "A note on t-1a2b3/i-1: stop".to_owned()))
     );
-    assert!(after.contains("next `war` command"), "{after}");
+    assert!(after.contains("next `war view show`"), "{after}");
+}
+
+/// The bug a real terminal found: a note written in this checkout never
+/// reaches a holder working in a worktree on its own branch.
+#[test]
+fn a_note_on_held_work_is_written_where_the_holder_works() {
+    let mut m = fixture();
+    act::open_note(&mut m, "t-1a2b3/i-1".to_owned());
+    typed(&mut m, "stop");
+    let Some(Effect::Say { at, .. }) = enter(&mut m) else {
+        panic!("a note");
+    };
+    assert_eq!(at.as_deref().map(|p| p.as_str()), Some("/work/wt-a"));
 }
 
 #[test]

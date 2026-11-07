@@ -958,7 +958,7 @@ SAS revision **1.3.0** (accepted), sha256:`97c69198140b6312e0f4da4b19a5cd16a87ea
 
 ## Decisions
 
-10 accepted decision(s), expanded; 27 proposed, one line each.
+10 accepted decision(s), expanded; 28 proposed, one line each.
 
 ### OW-ADR-0001 — ADR OW-0001: Adopt `serde_jcs` as the RFC 8785 canonical JSON implementation
 
@@ -2179,6 +2179,7 @@ and Format sections, not SAS `§` numbers.
 - [OW-ADR-0029](../../docs/adr/atoms/OW-ADR-0029-standing-authorization.md) — ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 - [OW-ADR-0030](../../docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md) — ADR OW-0030: Bind a verdict to the subject that was reviewed
 - [OW-ADR-0031](../../docs/adr/atoms/OW-ADR-0031-typed-records.md) — ADR OW-0031: Documents are typed records; a document's type selects its capabilities
+- [OW-ADR-0033](../../docs/adr/atoms/OW-ADR-0033-mission-control-and-herdr.md) — ADR OW-0033: Mission Control, with Herdr as an optional adapter
 - [OW-ADR-alpha6-unified-work-8956e](../../docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md) — One Warrant model and a small daily loop
 - [OW-ADR-native-acceptance-7d21adfa](../../docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md) — Version native acceptance separately from legacy resolution
 - [OW-ADR-native-inputs-98b57f41](../../docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md) — Retain native verifier inputs as inert archive data

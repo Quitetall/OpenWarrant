@@ -41,9 +41,10 @@
 //!
 //! # Across a boundary
 //!
-//! A clause of a named repository that a ticket depends on or cites is watched
-//! by its own text (`hpr:CL-step`, reach `pin`), so a change to the clause
-//! beside it is no news. It is compared at the pin and at what was fetched from
+//! A clause or item of a named repository that a ticket depends on or cites is
+//! watched by its own text (`hpr:CL-step`), or its title and state (`hpr:t-abc`),
+//! with reach `pin`, so a change to the one beside it is no news. It is compared
+//! at the pin and at what was fetched from
 //! the other side, without a process until a claim watches one: a change is
 //! heard once it is fetched or the pin moves, and once, because the notice is
 //! named by the digest. Until the pin holds it, a Warrant stays behind.
@@ -567,7 +568,7 @@ fn scan_pinned(
             for (commit, place) in views {
                 let Some(commit) = commit else { continue };
                 let found = crate::repos::read_at(&located, &commit, None, |r| {
-                    crate::interfaces::clause(r, id)
+                    super::depends::watched_text(r, id)
                 });
                 let Ok(found) = found else {
                     if is_asked {
@@ -575,10 +576,10 @@ fn scan_pinned(
                     }
                     continue;
                 };
-                let digest = found
-                    .as_ref()
-                    .map_or_else(|| ABSENT.to_owned(), |c| c.digest.clone());
-                let path = found.map(|c| c.source);
+                let (digest, path) = match found {
+                    Some((digest, path)) => (digest, Some(path)),
+                    None => (ABSENT.to_owned(), None),
+                };
                 if w.known.contains(&digest) {
                     continue;
                 }
@@ -1355,10 +1356,10 @@ fn claim_notices(dir: &Utf8Path, claim: &str) -> Result<Vec<Notice>, String> {
 /// Whether `root` holds a change: the same bytes, or the commit it came in,
 /// with whatever was done on top of it.
 fn holds(root: &Utf8Path, taken: &Taken) -> bool {
-    // A clause of another repository: held when the pin holds its text.
+    // Of another repository: held when the pin holds its text.
     if let crate::repos::Target::Named(name, id) = crate::repos::classify(root, &taken.source) {
         return crate::repos::through_pin(root, name, None, |r| {
-            crate::interfaces::clause(r, id).map(|c| c.digest)
+            super::depends::watched_text(r, id).map(|(digest, _)| digest)
         })
         .is_ok_and(|(_, digest)| digest.as_deref() == Some(taken.digest.as_str()));
     }

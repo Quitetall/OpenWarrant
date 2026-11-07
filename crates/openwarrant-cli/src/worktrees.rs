@@ -226,6 +226,7 @@ fn ignored_disposable(path: &Utf8Path, file: &str) -> bool {
     // A session's own files, and the output of checks run there, whose
     // digests are in the journal.
     if file == ".openwarrant/session.json"
+        || file == ".openwarrant/start.log"
         || file == ".openwarrant/go-packet.json"
         || file.starts_with(".openwarrant/state/checks/")
     {

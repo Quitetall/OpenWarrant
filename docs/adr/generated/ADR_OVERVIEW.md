@@ -41,6 +41,7 @@ Source: ADR atoms under the configured adrs path.
 | [OW-ADR-0030](docs/adr/atoms/OW-ADR-0030-reviewed-subject-binding.md) | ADR OW-0030: Bind a verdict to the subject that was reviewed | `proposed` | no | — |
 | [OW-ADR-0031](docs/adr/atoms/OW-ADR-0031-typed-records.md) | ADR OW-0031: Documents are typed records; a document's type selects its capabilities | `proposed` | no | `war://01a0feb6-ab80-73a5-abcb-7ade9cfaaeaa` |
 | [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md) | ADR OW-0032: OpenWarrant Format 1.0 is the standard; the SAS becomes rationale | `accepted` | yes | — |
+| [OW-ADR-0033](docs/adr/atoms/OW-ADR-0033-mission-control-and-herdr.md) | ADR OW-0033: Mission Control, with Herdr as an optional adapter | `proposed` | no | `war://01a1aea7-a3fc-76f2-862d-7f8f8ffed200` |
 | [OW-ADR-alpha6-unified-work-8956e](docs/adr/atoms/OW-ADR-alpha6-unified-work-8956e.md) | One Warrant model and a small daily loop | `proposed` | no | `war://01a19328-8d43-737e-81ca-27e5f18cc1f7` |
 | [OW-ADR-native-acceptance-7d21adfa](docs/adr/atoms/OW-ADR-native-acceptance-7d21adfa.md) | Version native acceptance separately from legacy resolution | `proposed` | no | `war://01a0f502-4941-70a1-a446-e1eb77dff191` |
 | [OW-ADR-native-inputs-98b57f41](docs/adr/atoms/OW-ADR-native-inputs-98b57f41.md) | Retain native verifier inputs as inert archive data | `proposed` | no | `war://01a0b4be-13af-7540-90a8-28d5c6d7ac59`<br>`war://01a0f502-4941-70a1-a446-e1eb77dff191` |
@@ -71,6 +72,7 @@ Source: ADR atoms under the configured adrs path.
 - **OW-ADR-0029** ADR OW-0029: Standing authorization — one signature authorizes a bounded class of routine work
 - **OW-ADR-0030** ADR OW-0030: Bind a verdict to the subject that was reviewed
 - **OW-ADR-0031** ADR OW-0031: Documents are typed records; a document's type selects its capabilities
+- **OW-ADR-0033** ADR OW-0033: Mission Control, with Herdr as an optional adapter
 - **OW-ADR-alpha6-unified-work-8956e** One Warrant model and a small daily loop
 - **OW-ADR-native-acceptance-7d21adfa** Version native acceptance separately from legacy resolution
 - **OW-ADR-native-inputs-98b57f41** Retain native verifier inputs as inert archive data
@@ -4036,6 +4038,61 @@ as before.
 
 The SAS stays accepted at 1.3.0 as rationale. New Warrants cite record ids
 and Format sections, not SAS `§` numbers.
+
+---
+
+<!-- source: docs/adr/atoms/OW-ADR-0033-mission-control-and-herdr.md · uuid: 01a1b529-0933-7c5b-a8a6-81388980e134 -->
+
+# ADR OW-0033: Mission Control, with Herdr as an optional adapter
+
+## Status
+
+Proposed, for the owner's signing queue. A performer wrote it, under t-3c16c W5. It
+describes what is on main and decides nothing that is not.
+
+## Context
+
+OW-ADR-0020 chose ratatui for a terminal dashboard. Since then the dashboard has
+become where a person watches agents and starts them, which raises two questions that
+ADR did not ask: what the app may do by itself, and what it needs from the terminal
+multiplexer many of those agents run in.
+
+Herdr runs agents in panes and has a socket API: it can say which agents are alive,
+read their terminals, open a tab, start an agent and prompt it. Most of what a person
+wants from Mission Control could be built on that, and then Mission Control would not
+work without it. It is a separate program with its own release cadence, and a harness
+or a person may not be running it.
+
+## Decision
+
+Mission Control is a rendering of the records. It holds no key, keeps no state of its
+own beyond the cursor, and every action is a real `war` command that the test suite
+parses with the real CLI. A signature stays a child that inherits the terminal.
+
+Herdr is an adapter, and it is optional. Everything in the app works without it, and
+what it adds is confined to `herdr.rs` and `tui/herdr_adapter.rs`:
+
+- the Live panel shows an agent's terminal, instead of `git status`, `git diff --stat`
+  and the journal;
+- Dispatch offers a Herdr tab beside the detached and terminal launchers, for a harness
+  Herdr knows;
+- a note can be delivered as a prompt now, instead of at the agent's next read.
+
+Herdr is never a source of record. Its calls run off the main thread, a slow socket
+never holds a key, and what it cannot answer reads UNKNOWN, not as a shorter fleet. Its
+`tokens` are live and die with the pane, so they are not usage (`docs/design/tui-usage.md`).
+
+## Consequences
+
+- Work a person starts from Mission Control is a claim and a worktree whichever launcher
+  ran it, so `war` reports it the same way with Herdr or without.
+- A harness that needs a terminal gets one from the terminal launcher or from Herdr. A
+  detached start of it stops at once, and the log and the standing claim say so.
+- The records Mission Control reads are this checkout's. A question asked in a worktree
+  shows only once merged, so the app does not yet show everything a running agent has
+  written.
+- Herdr's API moving can break the adapter and nothing else. Conformance holds this with
+  a stub daemon, and a real terminal run of the app needs neither Herdr nor an agent.
 
 ---
 

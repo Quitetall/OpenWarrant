@@ -67,7 +67,8 @@ war context CL-handle
 ```
 
 Clause ids are global within a repository, so give each interface its own prefix
-when you have several.
+when you have several. `CL-` is only a convention: a clause is what the document
+declares as one, whatever it's called.
 
 Run a clause's `check` in both repositories' CI. The lower layer ships first, and
 the other side moves its pin in a ticket of its own, with that test as its trigger.
@@ -84,8 +85,11 @@ url = "https://example.com/hpr.git"
 ```
 
 A sibling checkout adds `pin = "<commit>"`; a Cargo git dependency has its commit
-in `Cargo.lock`, found by `url`. The commit is what this repository has committed,
-never a working tree, so one commit reads one way. `war status` shows it.
+in `Cargo.lock`, found by `url`, which must be the url in `Cargo.toml`. It still
+needs a `path`, because the objects are read from a checkout on this machine, not
+from Cargo's cache. If two revisions of one repository are locked, the first is
+read. The commit is what this repository has committed, never a working tree, so
+one commit reads one way. `war status` shows it.
 
 WMD then reads HPR through the pin, from HPR's git objects at that commit:
 
@@ -202,16 +206,17 @@ A side with no checkout on this machine reads UNKNOWN, not "no claims".
 
 ## Notices across the boundary
 
-A claim watches each clause its ticket depends on or cites as `hpr:CL-step`, by
-that clause's own text. When the clause changes, the agent hears on its next
-`war` call, once the change is fetched or the pin moves:
+A claim watches each clause and item its ticket depends on or cites as
+`hpr:CL-step` or `hpr:t-abc`: a clause by its own text, an item by its title and
+state. When one changes, the agent hears on its next `war` call, once the change
+is fetched or the pin moves:
 
 ```
 notice: hpr:CL-step changed upstream, not pinned here; run `war start t-abc`.
 ```
 
 It hears once, even when the pin later moves to the same text. Someone depending
-on the clause beside it hears nothing. `war done` then holds as it does in one
+on the one beside it hears nothing. `war done` then holds as it does in one
 repository: a Warrant refuses until the change is seen, and again until the pin
 holds it. A Ticket warns.
 
@@ -234,6 +239,44 @@ HPR is the lower layer, a submodule of WMD at `vendor/hpr`, and owns
 4. **A later break.** HPR opens `--change breaking`. `war plan impact` names WMD's
    running claim, both owners sign, and that claim hears the clause changed once it
    reaches it.
+
+## Setting up a pair
+
+Each side runs this in its own repository, and this is all of it. The lower layer
+owns the interface:
+
+```sh
+# in hpr
+war init
+war plan types add interfaces
+$EDITOR docs/records/interfaces/physics.md   # the document at the top of this page
+git add -A && git commit -m "the physics interface" && git push
+```
+
+The side that depends on it names the repository, and `war` reads through the pin:
+
+```sh
+# in wmd, with hpr a submodule
+git submodule add <hpr url> vendor/hpr
+war init
+cat >> openwarrant.toml <<'TOML'
+
+[repos.hpr]
+path = "vendor/hpr"
+url = "<hpr url>"
+TOML
+git add -A && git commit -m "name hpr"
+
+war status                        # Repos: hpr @ 5f951cf85a11 (submodule)
+war context hpr:CL-step           # one clause, from the pin
+war check --clauses --record      # run them here, and record what this side conforms to
+git add docs/interfaces.lock && git commit -m "conform to the physics interface"
+```
+
+With a Cargo git dependency instead of a submodule, leave the submodule out and give
+`path` as the sibling checkout, `../hpr`, and `url` as in `Cargo.toml`. For a breaking
+change, the owning side lists the other owner in `docs/authority/roles.toml`, with an
+`ssh_principal`, and their key in `docs/authority/allowed_signers`.
 
 ## Limits
 

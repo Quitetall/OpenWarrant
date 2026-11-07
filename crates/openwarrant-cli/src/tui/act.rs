@@ -10,7 +10,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
 use super::model::{
-    Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow, Row,
+    ClaimRow, Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow,
+    Row,
 };
 use super::{argv, watch};
 
@@ -256,16 +257,19 @@ pub fn open_answer(m: &mut Model) {
     });
 }
 
+/// Who holds `target`: a claim on it, on the ticket it belongs to, or on an
+/// item of the ticket it names.
+fn holder<'a>(m: &'a Model, target: &str) -> Option<&'a ClaimRow> {
+    let ticket = |t: &'a str| t.split('/').next().unwrap_or(t);
+    let wanted = target.split('/').next().unwrap_or(target);
+    m.snap.claims.iter().find(|c| ticket(&c.target) == wanted)
+}
+
 /// `a` on work: a note on `target`, told to an agent in the holder's
 /// workspace if Herdr has one there.
 pub fn open_note(m: &mut Model, target: String) {
-    let workspace = m
-        .snap
-        .claims
-        .iter()
-        .find(|c| c.target == target || target.starts_with(&format!("{}/", c.target)))
-        .and_then(|c| c.workspace.clone());
-    let pane = workspace.and_then(|w| {
+    let workspace = holder(m, &target).and_then(|c| c.workspace.clone());
+    let pane = workspace.as_ref().and_then(|w| {
         m.live
             .agents
             .iter()
@@ -275,6 +279,7 @@ pub fn open_note(m: &mut Model, target: String) {
     m.form = Some(Form::Note {
         target,
         text: String::new(),
+        workspace: workspace.map(Into::into),
         pane,
         now: false,
     });
@@ -320,6 +325,7 @@ fn dispatch_effect(
         _ => Effect::Say {
             title: format!("claim {node}"),
             argv: argv::claim_here(node, &executor.name, &paths),
+            at: None,
             after: "Claimed in this checkout. Nothing was started: the holder works here."
                 .to_owned(),
             prompt: None,
@@ -328,15 +334,16 @@ fn dispatch_effect(
 }
 
 fn after_answer() -> String {
-    "Recorded. A question answers no running agent by itself: the agent reads this on its next \
-     `war start` or `war view show`."
+    "Recorded in this checkout. A question answers no running agent by itself: one here reads \
+     this on its next `war start` or `war view show`, and one in a worktree once this is \
+     committed and reaches its branch."
         .to_owned()
 }
 
 fn after_note(held: bool) -> String {
     if held {
-        "Recorded. The holder gets one line on its next `war` command if it is watching this \
-         record, and the text when it runs `war view show`."
+        "Recorded in the holder's checkout. Nothing interrupts it: it reads this at its next `war \
+         view show`, `war view prime <id>` or `war start`."
             .to_owned()
     } else {
         "Recorded. Nobody holds this now: whoever starts it reads the note in its brief.".to_owned()
@@ -480,6 +487,7 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
                     Some(Effect::Say {
                         title: format!("answer {warrant}/{id}"),
                         argv: argv::answer(warrant, id, text.trim(), who.trim()),
+                        at: None,
                         after: after_answer(),
                         prompt: None,
                     })
@@ -493,6 +501,7 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
         Form::Note {
             target,
             text,
+            workspace,
             pane,
             now,
         } => match k.code {
@@ -505,13 +514,11 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
                 None
             }
             KeyCode::Enter => {
-                let held =
-                    m.snap.claims.iter().any(|c| {
-                        c.target == *target || target.starts_with(&format!("{}/", c.target))
-                    });
+                let held = holder(m, target).is_some();
                 Some(Effect::Say {
                     title: format!("note on {target}"),
                     argv: argv::note(target, text.trim()),
+                    at: workspace.clone(),
                     after: after_note(held),
                     prompt: pane
                         .clone()
@@ -703,7 +710,10 @@ fn form_lines(m: &Model, form: &Form) -> (String, Vec<Line<'static>>, String) {
                 field("Answer", text, !on_who),
                 field("As (a human role in roles.toml)", who, *on_who),
                 Line::from(""),
-                Line::from("An agent reads this on its next `war start` or `war view show`."),
+                Line::from(
+                    "An agent here reads this on its next `war start` or `war view show`; one in \
+                     a worktree, once it is merged across.",
+                ),
             ],
             "Enter next, an empty answer takes the recommendation · Esc cancels".to_owned(),
         ),
@@ -712,12 +722,15 @@ fn form_lines(m: &Model, form: &Form) -> (String, Vec<Line<'static>>, String) {
             text,
             pane,
             now,
+            ..
         } => {
             let mut lines = vec![field("Note", text, true), Line::from("")];
             let mut hint = "Enter records it · Esc cancels".to_owned();
             lines.push(Line::from(match (pane, now) {
                 (Some(p), true) => format!("Herdr delivers it to {p} as a prompt now."),
-                _ => "The holder reads it on its next `war` command, not before.".to_owned(),
+                _ => "The holder reads it at its next `war view show`, `war view prime <id>` or `war \
+                      start`, not before."
+                    .to_owned(),
             }));
             if pane.is_some() {
                 hint.push_str(" · Tab: deliver through Herdr now");

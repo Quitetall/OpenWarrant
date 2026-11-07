@@ -380,6 +380,9 @@ pub enum Form {
     Note {
         target: String,
         text: String,
+        /// Where the holder works: the note is written there, or a holder in
+        /// a worktree would never read it.
+        workspace: Option<Utf8PathBuf>,
         /// A Herdr agent in the holder's workspace, which can be told now.
         pane: Option<String>,
         now: bool,
@@ -415,10 +418,12 @@ pub enum Effect {
         argv: Vec<String>,
     },
     /// A child off the main thread, its output and `after` in a popup, and
-    /// `prompt`, a pane and text, sent there when it succeeded.
+    /// `prompt`, a pane and text, sent there when it succeeded. It runs in `at`
+    /// when that names a checkout, else in this one.
     Say {
         title: String,
         argv: Vec<String>,
+        at: Option<Utf8PathBuf>,
         after: String,
         prompt: Option<(String, String)>,
     },

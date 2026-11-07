@@ -59,6 +59,7 @@ pub const ALLOWED_FILE: &str = "atoms/35-allowed.md";
 pub const SESSION_FILES: &[&str] = &[
     ".claude/settings.local.json",
     ".openwarrant/session.json",
+    ".openwarrant/start.log",
     ".openwarrant/go-packet.json",
     ".openwarrant/state",
 ];
