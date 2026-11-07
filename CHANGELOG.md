@@ -21,6 +21,18 @@ Notable changes to OpenWarrant. Format loosely follows
 - `war plan expand <id>` moves `docs/warrants/<id>.md` into its directory
   beside its state, byte for byte: the same id and contract, so its signatures
   stand.
+- `war done` journals the work session's usage as one `work.usage` event, read from
+  the harness's own local record: Claude Code's transcript
+  (`CLAUDE_CODE_SESSION_ID`) or Codex's rollout (`CODEX_THREAD_ID`). Only usage
+  numbers are read, from what was appended since `war start` marked the session; a
+  session with no readable record is journalled `"unknown"` with its reason, never 0.
+  `war done --usage <file|->` reports it instead; `[usage] record = false` turns it
+  off. Provider data, unverified: it gates nothing.
+- `war status --usage` (and `--json`, `oh.war/usage/v1`): recorded tokens by ticket,
+  actor, model and day. Mission Control shows each claim's tokens and recent work in
+  Watch, and a Usage view in Records. Dollars only from `[usage.prices]` with
+  `prices_as_of`, as `~$ est., prices of <date>`, and `STALE` past 90 days; cache
+  tokens are priced only with their own rate.
 - With `[claims] remote`, every view sees claims held on other machines:
   `war status`, `war view ready`, `next`, `prime`, `tickets` and Mission
   Control show the holder, workspace and lease, marked `elsewhere` (`REMOTE` in

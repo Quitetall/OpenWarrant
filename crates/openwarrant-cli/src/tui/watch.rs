@@ -223,7 +223,8 @@ fn detail(m: &mut Model) {
             (
                 format!("claim on {}", c.target),
                 format!(
-                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\nheld: {}\n{}\n\
+                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\n\
+                     tokens recorded: {}\nheld: {}\n{}\n\
                      A lock is renewed by the holder's `war` commands. It says when one last ran, \
                      not that an agent is alive.",
                     c.actor.as_deref().unwrap_or("UNKNOWN (the lock could not be read)"),
@@ -236,6 +237,7 @@ fn detail(m: &mut Model) {
                     } else {
                         c.scope.join(", ")
                     },
+                    tokens(m.snap.usage.of(&c.target)),
                     c.remote.as_ref().map_or_else(
                         || "in this clone".to_owned(),
                         |r| format!("on another machine, read from the remote `{r}`")
@@ -313,7 +315,7 @@ fn tokens(t: Count) -> String {
 
 /// The total, and what it leaves out, so a number never reads as complete
 /// when it is not. Dollars only as the table's dated estimate.
-fn usage_line(u: &super::usage::Usage) -> String {
+pub(super) fn usage_line(u: &super::usage::Usage) -> String {
     let mut out = tokens(u.total);
     if u.unknown_runs > 0 {
         out.push_str(&format!(" ({} run(s) UNKNOWN)", u.unknown_runs));
@@ -323,14 +325,23 @@ fn usage_line(u: &super::usage::Usage) -> String {
     }
     if let Some(d) = &u.dollars {
         out.push_str(&format!(
-            " ~${:.2} estimate, prices of {}",
-            d.estimate, d.as_of
+            " ~${} est., {}",
+            super::usage::money(d.estimate),
+            prices_label(d)
         ));
         if d.unpriced_tokens > 0 {
             out.push_str(&format!(", {} tok unpriced", d.unpriced_tokens));
         }
     }
     out
+}
+
+/// `prices of 2026-11-01`, and `STALE` when the table is old.
+pub(super) fn prices_label(d: &super::usage::Dollars) -> String {
+    match d.stale_days {
+        Some(days) => format!("prices of {} (STALE, {days} days old)", d.as_of),
+        None => format!("prices of {}", d.as_of),
+    }
 }
 
 fn lease(c: &ClaimRow, now: u64) -> String {
@@ -548,6 +559,10 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
             Span::raw(format!("{} ", c.target)),
             Span::styled(span(m.now_unix.saturating_sub(c.since_unix)), dim()),
         ];
+        // Recorded tokens, when there are any; the detail says UNKNOWN.
+        if let Count::Known(n) = m.snap.usage.of(&c.target) {
+            first.push(Span::styled(format!(" · {n} tok"), dim()));
+        }
         if let Some(remote) = &c.remote {
             first.push(Span::styled(
                 format!(" REMOTE ({remote})"),
@@ -587,7 +602,39 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
             dim(),
         ))));
     }
+    for (target, n, at) in recent_usage(m, 3) {
+        items.push(ListItem::new(Line::from(Span::styled(
+            format!("recent {target} · {n} tok recorded {at}"),
+            dim(),
+        ))));
+    }
     items
+}
+
+/// The most recently recorded session usage of work no live claim holds:
+/// its target, tokens and day, newest first.
+fn recent_usage(m: &Model, most: usize) -> Vec<(String, u64, String)> {
+    let mut latest: std::collections::BTreeMap<&str, (u64, &str)> =
+        std::collections::BTreeMap::new();
+    for c in &m.snap.usage.counted {
+        if c.run.at.is_empty() || m.snap.claims.iter().any(|x| x.target == c.run.item) {
+            continue;
+        }
+        let e = latest.entry(c.run.item.as_str()).or_insert((0, ""));
+        e.0 = e.0.saturating_add(c.run.tokens.unwrap_or(0));
+        if c.run.at.as_str() > e.1 {
+            e.1 = c.run.at.as_str();
+        }
+    }
+    let mut rows: Vec<(String, u64, String)> = latest
+        .into_iter()
+        .map(|(t, (n, at))| (t.to_owned(), n, at.to_owned()))
+        .collect();
+    rows.sort_by(|a, b| b.2.cmp(&a.2));
+    rows.truncate(most);
+    rows.into_iter()
+        .map(|(t, n, at)| (t, n, at.get(..10).unwrap_or("UNKNOWN").to_owned()))
+        .collect()
 }
 
 fn live_title(m: &Model) -> String {

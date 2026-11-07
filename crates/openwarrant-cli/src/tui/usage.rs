@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
-//! What the records say was spent: `war evidence go` node tokens and runtime
-//! capture receipts, and nothing else (`docs/design/tui-usage.md`). Reads
-//! only. Anything not recorded stays UNKNOWN, and zero is never shown for
-//! "nothing recorded".
+//! What the records say was spent: `war evidence go` node tokens, runtime
+//! capture receipts and `work.usage` session events, and nothing else
+//! (`docs/design/tui-usage.md`). Reads only. Anything not recorded stays
+//! UNKNOWN, and zero is never shown for "nothing recorded".
 
 use std::collections::{BTreeMap, BTreeSet};
 
@@ -16,7 +16,14 @@ use crate::repo::Repository;
 pub struct Price {
     pub input_per_mtok: f64,
     pub output_per_mtok: f64,
+    /// Unset, a run with cache reads is not priced.
+    pub cache_read_per_mtok: Option<f64>,
+    /// Unset, a run with cache writes is not priced.
+    pub cache_write_per_mtok: Option<f64>,
 }
+
+/// A price table older than this many days is shown as stale.
+pub const STALE_DAYS: i64 = 90;
 
 /// `[usage]` in `openwarrant.toml`: a dated table, or none.
 #[derive(Debug, Clone, Default, PartialEq)]
@@ -49,11 +56,14 @@ pub fn prices(text: &str) -> Result<Option<Prices>, String> {
                 .filter(|r| r.is_finite() && *r >= 0.0)
                 .ok_or_else(|| format!("[usage.prices.\"{model}\"] needs a number {key}"))
         };
+        let optional = |key: &str| price.get(key).map(|_| rate(key)).transpose();
         models.insert(
             model.clone(),
             Price {
                 input_per_mtok: rate("input_per_mtok")?,
                 output_per_mtok: rate("output_per_mtok")?,
+                cache_read_per_mtok: optional("cache_read_per_mtok")?,
+                cache_write_per_mtok: optional("cache_write_per_mtok")?,
             },
         );
     }
@@ -77,6 +87,42 @@ pub struct Run {
     pub model: Option<String>,
     /// The provider marked these counts as its own estimate.
     pub estimated: bool,
+    pub cache_read: Option<u64>,
+    pub cache_write: Option<u64>,
+    /// Who recorded it, as the journal names them; empty for a capture.
+    pub actor: String,
+    /// When it was recorded (RFC 3339), when known; its first ten
+    /// characters are the day.
+    pub at: String,
+    /// Which record: `go`, `capture`, or a `work.usage` source.
+    pub source: String,
+}
+
+impl Run {
+    /// The day it was recorded, or `UNKNOWN`.
+    #[must_use]
+    pub fn day(&self) -> &str {
+        self.at.get(..10).unwrap_or("UNKNOWN")
+    }
+}
+
+/// A run in the total, with its dollar estimate when one could be made.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Counted {
+    pub run: Run,
+    pub dollars: Option<f64>,
+}
+
+/// One row of a breakdown.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Group {
+    pub key: String,
+    pub tokens: u64,
+    pub runs: usize,
+    /// The estimate over the runs that could be priced.
+    pub dollars: Option<f64>,
+    /// Tokens of runs that could not be priced.
+    pub unpriced: u64,
 }
 
 /// The sum of the records.
@@ -90,6 +136,8 @@ pub struct Usage {
     /// Recorded tokens by node or Warrant.
     pub by_item: BTreeMap<String, u64>,
     pub dollars: Option<Dollars>,
+    /// The runs in the total, each with its estimate.
+    pub counted: Vec<Counted>,
 }
 
 /// An estimate from a configured price table, and what it left out.
@@ -99,9 +147,55 @@ pub struct Dollars {
     pub as_of: String,
     /// Recorded tokens with no model or no price, so in no dollar figure.
     pub unpriced_tokens: u64,
+    /// Days since `as_of`, when that is more than [`STALE_DAYS`].
+    pub stale_days: Option<i64>,
+}
+
+/// Days from `as_of` to `today` (`YYYY-MM-DD` both), when over [`STALE_DAYS`].
+#[must_use]
+pub fn stale(as_of: &str, today: &str) -> Option<i64> {
+    let d = |s: &str| chrono::NaiveDate::parse_from_str(s, "%Y-%m-%d").ok();
+    let days = (d(today)? - d(as_of)?).num_days();
+    (days > STALE_DAYS).then_some(days)
+}
+
+/// A run's estimate under `p`: only with both counts, and with a cache rate
+/// for every cache count it has. Anything less is no estimate at all.
+fn price_of(r: &Run, p: &Price) -> Option<f64> {
+    let (i, o) = (r.input?, r.output?);
+    let cache = |n: Option<u64>, rate: Option<f64>| match n.unwrap_or(0) {
+        0 => Some(0.0),
+        n => rate.map(|rate| n as f64 * rate),
+    };
+    let extra =
+        cache(r.cache_read, p.cache_read_per_mtok)? + cache(r.cache_write, p.cache_write_per_mtok)?;
+    Some(((i as f64).mul_add(p.input_per_mtok, o as f64 * p.output_per_mtok) + extra) / 1_000_000.0)
 }
 
 impl Usage {
+    /// The runs in the total, grouped by `key`, largest first.
+    #[must_use]
+    pub fn group(&self, key: impl Fn(&Run) -> String) -> Vec<Group> {
+        let mut groups: BTreeMap<String, Group> = BTreeMap::new();
+        for c in &self.counted {
+            let k = key(&c.run);
+            let g = groups.entry(k.clone()).or_insert_with(|| Group {
+                key: k,
+                ..Group::default()
+            });
+            let n = c.run.tokens.unwrap_or(0);
+            g.tokens = g.tokens.saturating_add(n);
+            g.runs += 1;
+            match c.dollars {
+                Some(d) => g.dollars = Some(g.dollars.unwrap_or(0.0) + d),
+                None => g.unpriced = g.unpriced.saturating_add(n),
+            }
+        }
+        let mut out: Vec<Group> = groups.into_values().collect();
+        out.sort_by(|a, b| b.tokens.cmp(&a.tokens).then_with(|| a.key.cmp(&b.key)));
+        out
+    }
+
     /// The recorded tokens of `id` and everything under it.
     #[must_use]
     pub fn of(&self, id: &str) -> Count {
@@ -144,15 +238,20 @@ pub fn sum(runs: &[Run], prices: Option<&Prices>) -> Usage {
         any = true;
         total = total.saturating_add(n);
         *usage.by_item.entry(r.item.clone()).or_insert(0) += n;
-        let price = prices.and_then(|p| p.models.get(r.model.as_deref()?));
-        match (price, r.input, r.output) {
-            (Some(p), Some(i), Some(o)) => {
+        let estimate = prices
+            .and_then(|p| p.models.get(r.model.as_deref()?))
+            .and_then(|p| price_of(r, p));
+        match estimate {
+            Some(d) => {
                 priced_any = true;
-                dollars += (i as f64).mul_add(p.input_per_mtok, o as f64 * p.output_per_mtok)
-                    / 1_000_000.0;
+                dollars += d;
             }
-            _ => unpriced = unpriced.saturating_add(n),
+            None => unpriced = unpriced.saturating_add(n),
         }
+        usage.counted.push(Counted {
+            run: r.clone(),
+            dollars: estimate,
+        });
     }
     if any {
         usage.total = Count::Known(total);
@@ -162,6 +261,7 @@ pub fn sum(runs: &[Run], prices: Option<&Prices>) -> Usage {
             estimate: dollars,
             as_of: p.as_of.clone(),
             unpriced_tokens: unpriced,
+            stale_days: None,
         });
     }
     usage
@@ -179,8 +279,55 @@ pub fn run_of_node(payload: &str) -> Option<Run> {
             .map(str::to_owned),
         // A harness that reported nothing wrote `"unknown"`.
         tokens: p.get("tokens").and_then(serde_json::Value::as_u64),
+        source: "go".to_owned(),
         ..Run::default()
     })
+}
+
+/// The runs a `work.usage` payload records: one per model it names, or one
+/// with no number when it says `"unknown"`. Anything else is none.
+#[must_use]
+pub fn runs_of_session(payload: &str, actor: &str, occurred_at: &str) -> Vec<Run> {
+    let Ok(p) = serde_json::from_str::<serde_json::Value>(payload) else {
+        return Vec::new();
+    };
+    let Some(item) = p.get("target").and_then(|v| v.as_str()) else {
+        return Vec::new();
+    };
+    let base = Run {
+        item: item.to_owned(),
+        actor: actor.to_owned(),
+        at: occurred_at.to_owned(),
+        source: p
+            .get("source")
+            .and_then(|v| v.as_str())
+            .unwrap_or("session")
+            .to_owned(),
+        ..Run::default()
+    };
+    let models = p.get("models").and_then(|m| m.as_array());
+    match (p.get("tokens").and_then(serde_json::Value::as_u64), models) {
+        (Some(_), Some(models)) if !models.is_empty() => models
+            .iter()
+            .map(|m| {
+                let n = |k: &str| m.get(k).and_then(serde_json::Value::as_u64);
+                Run {
+                    tokens: n("tokens"),
+                    input: n("input"),
+                    output: n("output"),
+                    cache_read: n("cache_read"),
+                    cache_write: n("cache_write"),
+                    model: m.get("model").and_then(|v| v.as_str()).map(str::to_owned),
+                    ..base.clone()
+                }
+            })
+            .collect(),
+        (Some(n), _) => vec![Run {
+            tokens: Some(n),
+            ..base
+        }],
+        (None, _) => vec![base],
+    }
 }
 
 /// The run a capture's raw provider receipt records.
@@ -203,6 +350,8 @@ pub fn run_of_receipt(alias: &str, dispatch: Option<String>, raw: &serde_json::V
             .get("usage_estimated")
             .and_then(serde_json::Value::as_bool)
             .unwrap_or(false),
+        source: "capture".to_owned(),
+        ..Run::default()
     }
 }
 
@@ -239,6 +388,7 @@ fn captures(dir: &Utf8Path, alias: &str, runs: &mut Vec<Run>, faults: &mut Vec<S
             || Run {
                 item: alias.to_owned(),
                 dispatch: dispatch.clone(),
+                source: "capture".to_owned(),
                 ..Run::default()
             },
             |raw| run_of_receipt(alias, dispatch.clone(), &raw),
@@ -261,17 +411,143 @@ pub fn read(repo: &Repository, tickets: &[crate::ticket::Ticket]) -> (Usage, Vec
     let mut runs = Vec::new();
     for dir in &dirs {
         if let Ok(journal) = crate::journal_cmd::load(dir) {
-            runs.extend(
-                journal
-                    .events
-                    .iter()
-                    .filter(|e| e.event_type == crate::go::event::ENDED)
-                    .filter_map(|e| run_of_node(&e.payload)),
-            );
+            for e in &journal.events {
+                if e.event_type == crate::go::event::ENDED {
+                    runs.extend(run_of_node(&e.payload));
+                } else if crate::journal_cmd::work_type(&e.event_type)
+                    == crate::session_usage::EVENT
+                {
+                    runs.extend(runs_of_session(&e.payload, &e.actor_ref, &e.occurred_at));
+                }
+            }
         }
         captures(dir, dir.file_name().unwrap_or("?"), &mut runs, &mut faults);
     }
-    (sum(&runs, table.as_ref()), faults)
+    let mut usage = sum(&runs, table.as_ref());
+    if let Some(d) = usage.dollars.as_mut() {
+        let today = crate::gate_cmd::receipt::rfc3339_from_secs(crate::ticket::now_secs());
+        d.stale_days = stale(&d.as_of, &today[..10]);
+    }
+    (usage, faults)
+}
+
+/// Dollars to the cent, or to a hundredth of one below a cent, so a small
+/// estimate does not read as nothing.
+#[must_use]
+pub fn money(d: f64) -> String {
+    if d > 0.0 && d < 0.01 {
+        format!("{d:.4}")
+    } else {
+        format!("{d:.2}")
+    }
+}
+
+/// One breakdown row: `t-1a2b  12345 tok  ~$0.12 est.` Dollars only from
+/// the dated table, and the tokens it could not price said beside them.
+fn group_line(kind: &str, g: &Group, priced: bool) -> String {
+    let mut out = format!("{kind} {}  {} tok", g.key, g.tokens);
+    if priced {
+        match g.dollars {
+            Some(d) => out.push_str(&format!("  ~${} est.", money(d))),
+            None => out.push_str("  no price"),
+        }
+        if g.dollars.is_some() && g.unpriced > 0 {
+            out.push_str(&format!(" ({} tok unpriced)", g.unpriced));
+        }
+    }
+    out
+}
+
+/// The breakdowns, each largest first except days, newest first.
+fn breakdown(u: &Usage) -> [(&'static str, Vec<Group>); 4] {
+    let or_unknown = |s: Option<&str>| s.filter(|s| !s.is_empty()).unwrap_or("UNKNOWN").to_owned();
+    let mut days = u.group(|r| r.day().to_owned());
+    days.sort_by(|a, b| b.key.cmp(&a.key));
+    [
+        (
+            "ticket",
+            u.group(|r| r.item.split('/').next().unwrap_or(&r.item).to_owned()),
+        ),
+        ("actor", u.group(|r| or_unknown(Some(&r.actor)))),
+        ("model", u.group(|r| or_unknown(r.model.as_deref()))),
+        ("day", days),
+    ]
+}
+
+/// The Records Usage view: the total, then by ticket, actor, model and day.
+#[must_use]
+pub fn rows(u: &Usage) -> Vec<super::model::Row> {
+    let row = |text: String| super::model::Row {
+        text,
+        command: "war status --usage".to_owned(),
+        ..super::model::Row::default()
+    };
+    let mut out = vec![row(format!("TOTAL {}", super::watch::usage_line(u)))];
+    if u.counted.is_empty() {
+        out.push(row(
+            "no usage recorded: UNKNOWN, not zero (`war done` records a session's)".to_owned(),
+        ));
+        return out;
+    }
+    let priced = u.dollars.is_some();
+    for (kind, groups) in breakdown(u) {
+        out.extend(groups.iter().map(|g| row(group_line(kind, g, priced))));
+    }
+    out
+}
+
+fn group_json(groups: &[Group]) -> serde_json::Value {
+    serde_json::Value::Array(
+        groups
+            .iter()
+            .map(|g| {
+                serde_json::json!({
+                    "key": g.key, "tokens": g.tokens, "runs": g.runs,
+                    "dollars_estimate": g.dollars, "unpriced_tokens": g.unpriced,
+                })
+            })
+            .collect(),
+    )
+}
+
+/// `war status --usage`: a few lines, and `oh.war/usage/v1`.
+#[must_use]
+pub fn report(repo: &Repository, tickets: &[crate::ticket::Ticket]) -> (String, serde_json::Value) {
+    let (u, faults) = read(repo, tickets);
+    let total = match u.total {
+        Count::Known(n) => serde_json::json!(n),
+        Count::Unknown => serde_json::json!("unknown"),
+    };
+    let [tickets_g, actors, models, days] = breakdown(&u).map(|(_, g)| g);
+    let value = serde_json::json!({
+        "schema": "oh.war/usage/v1",
+        "tokens": total,
+        "unknown_runs": u.unknown_runs,
+        "provider_estimated_tokens": u.estimated,
+        "dollars": u.dollars.as_ref().map(|d| serde_json::json!({
+            "estimate": d.estimate, "prices_as_of": d.as_of,
+            "stale_days": d.stale_days, "unpriced_tokens": d.unpriced_tokens,
+        })),
+        "by_ticket": group_json(&tickets_g),
+        "by_actor": group_json(&actors),
+        "by_model": group_json(&models),
+        "by_day": group_json(&days),
+        "faults": faults,
+        "note": "provider-reported counts; unverified, and they grant no assurance",
+    });
+    let mut human = vec![format!("tokens recorded: {}", super::watch::usage_line(&u))];
+    let priced = u.dollars.is_some();
+    let top = |kind: &str, groups: &[Group], human: &mut Vec<String>| {
+        for g in groups.iter().take(5) {
+            human.push(format!("  {}", group_line(kind, g, priced)));
+        }
+    };
+    top("ticket", &tickets_g, &mut human);
+    top("model", &models, &mut human);
+    for f in &faults {
+        human.push(format!("  UNKNOWN {f}"));
+    }
+    (human.join("\n"), value)
 }
 
 #[cfg(test)]
@@ -295,7 +571,7 @@ mod tests {
             input: Some(i),
             output: Some(o),
             model: Some(model.to_owned()),
-            estimated: false,
+            ..Run::default()
         }
     }
 
@@ -401,6 +677,57 @@ mod tests {
             Some(&p),
         );
         assert_eq!(usage.dollars.expect("priced").unpriced_tokens, 9);
+    }
+
+    #[test]
+    fn a_session_event_is_one_run_per_model_and_unknown_is_not_zero() {
+        let p = r#"{"target":"t-1/i-2","source":"claude-code","tokens":30,
+            "models":[{"model":"m","input":1,"output":2,"cache_read":7,"tokens":10},
+                      {"model":"n","input":5,"output":15,"tokens":20}]}"#;
+        let runs = runs_of_session(p, "alice", "2026-11-07T10:00:00Z");
+        assert_eq!(runs.len(), 2);
+        assert_eq!(
+            (runs[0].actor.as_str(), runs[0].day()),
+            ("alice", "2026-11-07")
+        );
+        let usage = sum(&runs, None);
+        assert_eq!(usage.total, Count::Known(30));
+        assert_eq!(usage.of("t-1"), Count::Known(30));
+        let by_model = usage.group(|r| r.model.clone().unwrap_or_default());
+        assert_eq!((by_model[0].key.as_str(), by_model[0].tokens), ("n", 20));
+        let unknown = runs_of_session(
+            r#"{"target":"t-1","tokens":"unknown","reason":"no transcript"}"#,
+            "a",
+            "2026-11-07T10:00:00Z",
+        );
+        let usage = sum(&unknown, None);
+        assert_eq!(usage.total, Count::Unknown);
+        assert_eq!(usage.unknown_runs, 1);
+    }
+
+    /// Refusal: cache tokens with no cache rate are not priced at a guess.
+    #[test]
+    fn cache_tokens_need_their_own_rate() {
+        let mut run = receipt("t-1", "m", 1_000_000, 0);
+        run.cache_read = Some(1_000_000);
+        run.tokens = Some(2_000_000);
+        let usage = sum(std::slice::from_ref(&run), Some(&table()));
+        assert_eq!(usage.dollars, None);
+        let rated = prices(
+            "[usage]\nprices_as_of = \"2026-11-01\"\n\
+             [usage.prices.m]\ninput_per_mtok = 2\noutput_per_mtok = 10\ncache_read_per_mtok = 0.5\n",
+        )
+        .expect("a table")
+        .expect("present");
+        let d = sum(&[run], Some(&rated)).dollars.expect("priced");
+        assert!((d.estimate - 2.5).abs() < 1e-9);
+    }
+
+    #[test]
+    fn an_old_price_table_is_stale() {
+        assert_eq!(stale("2026-01-01", "2026-11-07"), Some(310));
+        assert_eq!(stale("2026-11-01", "2026-11-07"), None);
+        assert_eq!(stale("bad", "2026-11-07"), None);
     }
 
     /// Refusal: an undated table shows no dollars at all.
