@@ -785,7 +785,12 @@ fn executor_rows(policy: &crate::go::policy::Policy) -> Vec<ExecutorRow> {
     let program = policy.start_argv.first();
     let word = match policy.harness {
         Harness::Claude => "claude".to_owned(),
-        Harness::Generic => program.map_or_else(|| "harness".to_owned(), Clone::clone),
+        // The program's own name: it becomes the claim's actor, and a path
+        // is no actor.
+        Harness::Generic => program.map_or_else(
+            || "harness".to_owned(),
+            |p| Utf8Path::new(p).file_name().unwrap_or(p).to_owned(),
+        ),
     };
     let mut rows = vec![ExecutorRow {
         unavailable: program

@@ -483,11 +483,15 @@ fn perform(
         Effect::Say {
             title,
             argv,
+            at,
             after,
             prompt,
         } => {
             m.message = format!("running war {}…", argv.join(" "));
-            reader.say(m.root.clone(), title, argv, after, prompt);
+            let root = at
+                .filter(|dir| dir.is_dir())
+                .unwrap_or_else(|| m.root.clone());
+            reader.say(root, title, argv, after, prompt);
         }
         Effect::Dispatch(plan) => {
             if plan.launcher == model::Launcher::Terminal {
@@ -748,6 +752,11 @@ fn run_child_output(root: &Utf8Path, args: &[&str]) -> Result<String, String> {
 fn run_child_detached(root: &Utf8Path, args: &[&str], log: &Utf8Path) -> Result<u32, String> {
     use std::process::Stdio;
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    // `[go] allowed_acts = "declared"` writes no session files, so nothing
+    // has made its directory.
+    if let Some(dir) = log.parent() {
+        std::fs::create_dir_all(dir).map_err(|e| format!("{dir}: {e}"))?;
+    }
     let file = std::fs::File::create(log).map_err(|e| format!("{log}: {e}"))?;
     let err = file.try_clone().map_err(|e| format!("{log}: {e}"))?;
     std::process::Command::new(exe)

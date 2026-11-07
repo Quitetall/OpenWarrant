@@ -710,7 +710,20 @@ fn a_note_goes_through_herdr_only_when_asked() {
         prompt,
         Some(("w1:p1".to_owned(), "A note on t-1a2b3/i-1: stop".to_owned()))
     );
-    assert!(after.contains("next `war` command"), "{after}");
+    assert!(after.contains("next `war view show`"), "{after}");
+}
+
+/// The bug a real terminal found: a note written in this checkout never
+/// reaches a holder working in a worktree on its own branch.
+#[test]
+fn a_note_on_held_work_is_written_where_the_holder_works() {
+    let mut m = fixture();
+    act::open_note(&mut m, "t-1a2b3/i-1".to_owned());
+    typed(&mut m, "stop");
+    let Some(Effect::Say { at, .. }) = enter(&mut m) else {
+        panic!("a note");
+    };
+    assert_eq!(at.as_deref().map(|p| p.as_str()), Some("/work/wt-a"));
 }
 
 #[test]
