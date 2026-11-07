@@ -408,6 +408,9 @@ pub struct Store {
     pub lease_secs: u64,
     /// M11: `[claims] remote`, the git remote claims are published to.
     pub remote: Option<String>,
+    /// `[claims] remote_ttl`: how many seconds what was read from the remote
+    /// serves before it is read again.
+    pub remote_ttl_secs: u64,
     pub compact_days: u64,
     /// `[tickets] session_start`: whether `war view prime --session` says
     /// anything (default on; `false` silences it).
@@ -525,6 +528,7 @@ impl Store {
                     .claim_lease_minutes
                     .or(policy.claim_lease_minutes),
             ),
+            remote_ttl_secs: claims_policy.remote_ttl.unwrap_or(remote::DEFAULT_TTL_SECS),
             remote: claims_policy.remote.filter(|r| !r.trim().is_empty()),
             compact_days: policy.compact_after_days.unwrap_or(DEFAULT_COMPACT_DAYS),
             session_start: policy.session_start.unwrap_or(true),
@@ -901,6 +905,73 @@ impl Store {
             }
         }
         Ok(out)
+    }
+
+    /// What a view shows as held: [`Self::claims`], and with `[claims]
+    /// remote` every claim the remote holds that no lock here does, each
+    /// marked as held elsewhere ([`claim::Claim::elsewhere`]). A remote that
+    /// could not be read adds nothing here; [`Self::remote_claims`] says so.
+    pub fn claims_seen(&self) -> Result<Claims, RepoError> {
+        let mut out = self.claims()?;
+        if let Some(Ok(remote)) = self.remote_claims() {
+            for (name, c) in remote {
+                out.entry(name).or_insert(c);
+            }
+        }
+        Ok(out)
+    }
+
+    /// With `[claims] remote`: the claims it holds, read at most once per
+    /// `remote_ttl` for the whole clone. `None` with no remote, and then
+    /// nothing is asked of the network. `Err` is `UNKNOWN`, never "free":
+    /// the remote could not be read, or this run reads only its basis.
+    pub fn remote_claims(&self) -> Option<Result<Vec<remote::RemoteClaim>, String>> {
+        let name = self.remote.as_deref()?;
+        if !crate::vfs::is_disk() {
+            return Some(Err("not read in a hosted or recording run".to_owned()));
+        }
+        let Some(layout) = &self.layout else {
+            return Some(Err("this is not a git checkout".to_owned()));
+        };
+        Some(remote::seen_claims(
+            &layout.toplevel,
+            &layout.common_dir,
+            name,
+            self.remote_ttl_secs,
+            now_secs(),
+        ))
+    }
+
+    /// The line a view adds about the claims remote, if any: `Ok`, what it
+    /// holds that this clone does not; `Err`, `UNKNOWN`, when it could not be
+    /// read. `None` with no remote, or nothing held elsewhere.
+    #[must_use]
+    pub fn remote_line(&self) -> Option<Result<String, String>> {
+        let name = self.remote.as_deref()?;
+        match self.remote_claims()? {
+            Err(why) => Some(Err(format!(
+                "claims on the remote `{name}` are UNKNOWN ({why}): an item may be held on \
+                 another machine; `war admin claim` asks the remote before it claims"
+            ))),
+            Ok(remote) => {
+                let local = self.claims().unwrap_or_default();
+                let now = now_secs();
+                let held: Vec<String> = remote
+                    .iter()
+                    .filter(|(n, _)| !local.contains_key(n))
+                    .map(|(n, c)| match c {
+                        Some(c) => format!(
+                            "{} by {} ({})",
+                            c.target(),
+                            c.actor,
+                            c.held_on(now).unwrap_or_default()
+                        ),
+                        None => format!("`{n}` (not a claim)"),
+                    })
+                    .collect();
+                (!held.is_empty()).then(|| Ok(format!("held elsewhere: {}", held.join("; "))))
+            }
+        }
     }
 
     /// Where a new claim on the target is taken.
@@ -2418,29 +2489,29 @@ impl ReadyRow {
 /// with no items that nobody holds, in §11.5's order
 /// ([`crate::estimate::OrderKey`]).
 pub fn ready_rows(store: &Store, tickets: &[Ticket]) -> Result<Vec<ReadyRow>, RepoError> {
-    ready_rows_with(store, tickets, store.claims()?)
+    ready_rows_with(store, tickets, store.claims_seen()?)
 }
 
 /// Every claim now held, by lock file name ([`Store::claims`]).
 pub type Claims = BTreeMap<String, Option<claim::Claim>>;
 
-/// `f`, with [`Store::claims`] read meanwhile: on the disk on a thread of
-/// its own, elsewhere after `f`. The two are separate reads, and a caller
+/// `f`, with [`Store::claims_seen`] read meanwhile: on the disk on a thread
+/// of its own, elsewhere after `f`. The two are separate reads, and a caller
 /// takes `f`'s error before the claims', as when they were read in turn.
 pub fn with_claims<T>(store: &Store, f: impl FnOnce() -> T) -> (T, Result<Claims, RepoError>) {
     if !crate::vfs::is_disk() {
         let t = f();
-        return (t, store.claims());
+        return (t, store.claims_seen());
     }
     std::thread::scope(|scope| {
         let reading = std::thread::Builder::new()
-            .spawn_scoped(scope, || store.claims())
+            .spawn_scoped(scope, || store.claims_seen())
             .ok();
         let t = f();
         let claims = match reading.map(|h| h.join()) {
             Some(Ok(claims)) => claims,
             Some(Err(panic)) => std::panic::resume_unwind(panic),
-            None => store.claims(),
+            None => store.claims_seen(),
         };
         (t, claims)
     })
@@ -2743,7 +2814,9 @@ pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Out
     if human_too {
         human.push_str(&ready_lines(&rows));
     }
-    let result = if json_too {
+    let remote = store.remote_line();
+    // An UNKNOWN beside a list still prints the list (`ticket_answer`).
+    let result = if json_too || matches!(remote, Some(Err(_))) {
         serde_json::json!({"schema": "oh.war/ticket-ready/v1", "ready": &rows})
     } else {
         serde_json::Value::Null
@@ -2755,6 +2828,11 @@ pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Out
             f.file.clone().unwrap_or_default(),
             format!("skipped: {}", f.message),
         ));
+    }
+    // What is held on another machine is not offered, and says so.
+    match remote {
+        Some(Ok(line)) if human_too => out.human.push_str(&format!("\n{line}")),
+        _ => render::remote_said(store, &mut out),
     }
     crate::vfs::drop_later((tickets, rows));
     Ok(out)
@@ -2774,6 +2852,7 @@ fn new_claim(store: &Store, ticket: &str, item: Option<&str>, now: u64) -> claim
         lease_until: Some(rfc3339(now + store.lease_secs)),
         lease_until_unix: Some(now + store.lease_secs),
         coordination: None,
+        elsewhere: None,
     }
 }
 

@@ -224,7 +224,7 @@ fn detail(m: &mut Model) {
                 format!("claim on {}", c.target),
                 format!(
                     "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\n\
-                     tokens recorded: {}\n{}\n\
+                     tokens recorded: {}\nheld: {}\n{}\n\
                      A lock is renewed by the holder's `war` commands. It says when one last ran, \
                      not that an agent is alive.",
                     c.actor.as_deref().unwrap_or("UNKNOWN (the lock could not be read)"),
@@ -238,6 +238,10 @@ fn detail(m: &mut Model) {
                         c.scope.join(", ")
                     },
                     tokens(m.snap.usage.of(&c.target)),
+                    c.remote.as_ref().map_or_else(
+                        || "in this clone".to_owned(),
+                        |r| format!("on another machine, read from the remote `{r}`")
+                    ),
                     m.snap
                         .collisions
                         .iter()
@@ -558,6 +562,12 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
         // Recorded tokens, when there are any; the detail says UNKNOWN.
         if let Count::Known(n) = m.snap.usage.of(&c.target) {
             first.push(Span::styled(format!(" · {n} tok"), dim()));
+        }
+        if let Some(remote) = &c.remote {
+            first.push(Span::styled(
+                format!(" REMOTE ({remote})"),
+                Style::default().fg(Color::Magenta),
+            ));
         }
         if collided {
             first.push(Span::styled(

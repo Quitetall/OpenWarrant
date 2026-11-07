@@ -42,6 +42,8 @@ pub struct Brief {
     pub repos: Option<String>,
     /// What it conforms to, and any drift, in one line.
     pub interfaces: Option<String>,
+    /// With `[claims] remote`: what is held on another machine, in one line.
+    pub elsewhere: Option<String>,
 }
 
 /// A count, or `?`.
@@ -114,6 +116,16 @@ impl Brief {
             self.unknown.push(format!("ready work: {why}"));
             return;
         }
+        // Held on another machine is not ready; a remote that could not be
+        // read leaves the count unknown, never larger.
+        match store.remote_line() {
+            Some(Err(why)) => {
+                self.unknown.push(format!("ready work: {why}"));
+                return;
+            }
+            Some(Ok(line)) => self.elsewhere = Some(line),
+            None => {}
+        }
         match ticket::ready_rows_with(&store, work.tickets(), work.claims().clone()) {
             Ok(rows) => {
                 let ready: BTreeSet<&str> = rows.iter().map(|r| r.ticket.as_str()).collect();
@@ -157,6 +169,9 @@ impl Brief {
             counted(self.ready_tickets, "ticket"),
             counted(self.ready_stages, "stage")
         );
+        if let Some(line) = &self.elsewhere {
+            let _ = writeln!(out, "{}{}", line[..1].to_ascii_uppercase(), &line[1..]);
+        }
         let _ = writeln!(
             out,
             "Open by level: {}",

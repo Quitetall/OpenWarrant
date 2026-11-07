@@ -108,6 +108,7 @@ fn fixture() -> Model {
                 renewed_unix: Some(NOW - 4),
                 workspace: Some("/work/wt-a".to_owned()),
                 scope: vec!["src/a/**".to_owned()],
+                remote: None,
             },
             ClaimRow {
                 target: "t-9/i-1".to_owned(),
@@ -117,6 +118,7 @@ fn fixture() -> Model {
                 renewed_unix: None,
                 workspace: None,
                 scope: vec!["src/a/b.rs".to_owned()],
+                remote: None,
             },
         ],
         collisions: vec![Collision {
@@ -332,6 +334,15 @@ fn claims_say_who_how_long_what_lease_and_where_and_name_the_renewal() {
     assert!(s.contains("lock renewed UNKNOWN"), "{s}");
     assert!(s.contains("COLLISION"), "{s}");
     assert!(!s.to_lowercase().contains("heartbeat"), "{s}");
+}
+
+#[test]
+fn a_claim_held_on_another_machine_says_so_and_one_here_does_not() {
+    let mut m = fixture();
+    m.snap.claims[1].remote = Some("origin".to_owned());
+    let s = screen(&m);
+    assert!(s.contains("codex t-9/i-1 1h 01m REMOTE (origin)"), "{s}");
+    assert!(!s.contains("claude t-1a2b3/i-1 2m 05s REMOTE"), "{s}");
 }
 
 #[test]

@@ -718,6 +718,16 @@ enum DailyCommand {
         /// repository. Repeatable.
         #[arg(long = "test", value_name = "COMMAND", requires = "ci")]
         ci_tests: Vec<String>,
+        /// Set `[claims] remote`: claims and notices go through this git
+        /// remote, so clones on other machines see who holds what
+        /// (docs/TICKETS.md, "Two machines"). Works on a repository already
+        /// set up.
+        #[arg(
+            long = "claims-remote",
+            value_name = "REMOTE",
+            conflicts_with = "guided"
+        )]
+        claims_remote: Option<String>,
     },
     /// Create a Warrant (a ticket) and print its id: a title is enough.
     ///
@@ -3209,8 +3219,12 @@ fn official_section(
 fn init_extras(
     seed: Option<init::schema_seed::Seed>,
     ci: Option<(&camino::Utf8Path, &[String])>,
+    claims_remote: Option<(&camino::Utf8Path, &str)>,
 ) -> Result<Vec<String>, init::InitError> {
     let mut lines = Vec::new();
+    if let Some((root, remote)) = claims_remote {
+        lines.push(init::set_claims_remote(root, remote)?);
+    }
     if let Some(seed) = seed {
         let n = seed.len();
         seed.install()?;
@@ -4272,6 +4286,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             schemas,
             ci,
             ci_tests,
+            claims_remote,
         } => {
             // W1.4: checked before anything is written, so a copy that
             // differs refuses the whole command.
@@ -4279,8 +4294,11 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let seed = schemas.then(|| init::prepare_schemas(&dir)).transpose()?;
             // Asked of a repository already set up, only the extra is written.
             let ci = ci.then_some((dir.as_path(), ci_tests.as_slice()));
-            if (seed.is_some() || ci.is_some()) && dir.join(init::CONFIG_FILE).exists() {
-                let lines = init_extras(seed, ci)?;
+            let claims_remote = claims_remote.as_deref().map(|r| (dir.as_path(), r));
+            if (seed.is_some() || ci.is_some() || claims_remote.is_some())
+                && dir.join(init::CONFIG_FILE).exists()
+            {
+                let lines = init_extras(seed, ci, claims_remote)?;
                 if ctx.json {
                     let report = diagnostic::Report {
                         notes: lines,
@@ -4412,7 +4430,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                 }
             }
-            for line in init_extras(seed, ci)? {
+            for line in init_extras(seed, ci, claims_remote)? {
                 if ctx.json {
                     setup_messages.push(line);
                 } else {

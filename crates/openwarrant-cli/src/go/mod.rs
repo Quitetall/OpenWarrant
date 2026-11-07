@@ -1458,6 +1458,7 @@ impl Run<'_> {
             )),
             lease_until_unix: Some(now + self.store.lease_secs),
             coordination: None,
+            elsewhere: None,
         };
         match crate::ticket::claim::take(&lock, &claim) {
             Ok(crate::ticket::claim::Taken::Won) => {}

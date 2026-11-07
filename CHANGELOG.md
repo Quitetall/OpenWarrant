@@ -20,6 +20,20 @@ Notable changes to OpenWarrant. Format loosely follows
   Watch, and a Usage view in Records. Dollars only from `[usage.prices]` with
   `prices_as_of`, as `~$ est., prices of <date>`, and `STALE` past 90 days; cache
   tokens are priced only with their own rate.
+- With `[claims] remote`, every view sees claims held on other machines:
+  `war status`, `war view ready`, `next`, `prime`, `tickets` and Mission
+  Control show the holder, workspace and lease, marked `elsewhere` (`REMOTE` in
+  Mission Control), and ready work never includes them. Read at most once per
+  `[claims] remote_ttl` seconds (default 30); a remote that cannot be read is
+  `UNKNOWN` (`work.claims-remote-unknown`), never free. No remote, no network.
+- `war init --claims-remote <REMOTE>` sets `[claims] remote`, on a new or an
+  existing repository. docs/TICKETS.md has a "Two machines" how-to.
+
+### Fixed
+
+- A change pushed to the default branch from one clone now reaches the claims
+  it concerns in another clone, once, on that clone's next `war` call, even
+  when the first clone held no claim watching it.
 
 ## [1.0.0-alpha.7] — 2026-11-07
 

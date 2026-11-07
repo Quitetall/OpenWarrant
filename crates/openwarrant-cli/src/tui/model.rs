@@ -174,6 +174,9 @@ pub struct ClaimRow {
     pub workspace: Option<String>,
     /// Declared write paths; empty when none were.
     pub scope: Vec<String>,
+    /// Held on another machine: the claims remote it was read from. Its lock
+    /// is not in this clone, so `renewed_unix` is `None`.
+    pub remote: Option<String>,
 }
 
 /// Two claims whose declared paths cannot be proved disjoint.
