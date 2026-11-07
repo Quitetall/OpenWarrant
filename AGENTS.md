@@ -72,7 +72,8 @@ and never make a signature a step of the ticket loop.
 - An unavailable observation is `UNKNOWN`, distinct from `PASS` and `FAIL`.
   Stop the action that needs it; continue independent work.
 - Edit authored sources, never a file under `generated/`; regenerate through
-  the tool. Preserve signed revisions and resolved deliverable manifests;
+  the tool. Views are main's: commit masters only, never a path
+  `conformance/views.toml` lists; main's Views workflow writes them. Preserve signed revisions and resolved deliverable manifests;
   request the correction a change needs.
 - Establish whether the checker or the source is wrong before fixing either;
   never change a document to make a tool happy. Bound claims by evidence,
