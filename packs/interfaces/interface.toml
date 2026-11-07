@@ -1,0 +1,25 @@
+# An interface (pack `interfaces` 1.0.0): what two sides agree at the boundary
+# between them, so each can build against it at once. Numbered clauses, each
+# stating one observable fact and how it's verified. An open value is declared
+# `tbd` or `tbr` with an owner and a date, never left implied. Nothing of it is
+# claimed, authorized, verified or resolved (`form = "document"`).
+schema = "oh.war/profile/v1"
+format = "openwarrant/1.0"
+name = "interface"
+form = "document"
+note = "What two sides agree at the boundary between them: numbered clauses, each saying how it's verified"
+capabilities = ["structure", "links"]
+
+[frontmatter]
+required = ["version", "owner", "parties"]
+optional = []
+
+[records]
+types = ["clause"]
+
+[fields.clause]
+status = { required = true, shape = "enum", values = ["agreed", "tbd", "tbr"] }
+verify = { required = true, shape = "enum", values = ["test", "analysis", "demonstration", "inspection"] }
+check = { required = false, shape = "line" }
+owner = { required = false, shape = "line" }
+due = { required = false, shape = "date" }

@@ -299,7 +299,7 @@ name = "instruction, preset and type packs"
 paths = [
     "packs/**", "crates/openwarrant-cli/src/preset.rs", "crates/openwarrant-cli/src/types.rs",
 ]
-plants = ["140-presets.sh", "141-roles.sh", "15?-*.sh"]
+plants = ["191-interfaces.sh", "140-presets.sh", "141-roles.sh", "15?-*.sh"]
 
 [[rule]]
 name = "documents and runtime capture"

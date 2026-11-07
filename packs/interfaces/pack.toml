@@ -1,0 +1,7 @@
+# Boundaries between repositories or components: a pack of document types.
+# `war plan types add interfaces` copies these profiles into profiles/.
+schema = "oh.war/pack/v1"
+name = "interfaces"
+version = "1.0.0"
+note = "What two sides agree at the boundary between them: numbered clauses, each saying how it's verified."
+profiles = ["interface.toml"]
