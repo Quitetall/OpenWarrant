@@ -12,14 +12,10 @@ alias when work enters the governed workflow. Read `AGENTS.md` and
 When a Matt Pocock skill says "publish to the issue tracker", create an issue
 for the requested proposal. For a Warrant draft, use `/war-spec` and `war plan`.
 For stages and blocking edges inside a Warrant, use `/war-tickets` and
-`war plan frontier`. Use `/war-map` for a governed decision map.
+`war frontier`. Use `/war-map` for a governed decision map.
 
 Closing an issue records tracker state; it does not resolve a Warrant. Follow
 `AGENTS.md` for authorization, independent verification, and signing.
-
-For a light ticket, `war create --issue <n>` makes it from the issue in one
-command and can write back when the last item is done (docs/TICKETS.md, "From a
-GitHub issue, and back").
 
 ## From an issue to a Warrant (OW-WAR-0141)
 
@@ -67,22 +63,22 @@ step and nothing is written.
 
 **What the human sees next.** Exactly one row. Either:
 
-- the drafted Warrant's authorization, in `war sign --list` and `war status --next`
-  (the `war view ui` Queue and the TUI read the same pending list). Intake
+- the drafted Warrant's authorization, in `war sign --list` and `war next`
+  (the `war ui` Queue and the TUI read the same pending list). Intake
   authorizes nothing: the Warrant waits for a human's signature like any
   other, whatever the issue's text says; or
 - one question, when the issue is too thin to draft. The drafter answers with
   `unresolved_questions`, and no alias is allocated. The question waits under
   `docs/intake/github-<n>/questions/`, beside the request and the intake record
-  (`docs/intake/sentence-<digest>/` for a sentence). `war plan questions` and
-  `war status --next` list it as a human `answer` act. A human answers with
-  `war plan answer github-<n> Q-001 "<answer>" --as <actor>`, and the question
+  (`docs/intake/sentence-<digest>/` for a sentence). `war questions` and
+  `war next` list it as a human `answer` act. A human answers with
+  `war answer github-<n> Q-001 "<answer>" --as <actor>`, and the question
   record names the command that drafts the input again with its answers.
 
 ## What closes the issue
 
 Only a resolution does, and only through git. When the records of a Warrant
-with `plan/intake.json` change, `war admin commit` ends the message it drafts with
+with `plan/intake.json` change, `war commit` ends the message it drafts with
 the tracker's reference, once per issue:
 
 - `Closes #<n>` when the Warrant's `resolution.toml` is among the changes.
@@ -125,4 +121,4 @@ use a parent task list, a `Part of #<map>` pointer in each child, and
 Eligible children are open, unassigned, and have no open blockers. Read the live
 tracker before claiming work. Assign, record answers, and update tracker state
 within the user's authorized scope. For Warrant execution eligibility, consult
-`war status --next` and `war plan frontier`.
+`war next` and `war frontier`.

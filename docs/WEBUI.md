@@ -19,13 +19,13 @@ It holds no key.
 **Tickets** — the ticket loop (docs/TICKETS.md), and the page `war ui` opens
 on.
 - Every ticket with its state (open, in progress, done), progress (`2/5`),
-  priority and who holds a claim, in `war view tickets` order.
-- Each ticket's checklist as `war view show` prints it: done items with who did
-  them and their note, open items with the `war admin claim` that takes them and a
-  **ready** badge where `war status --ready` would offer them, then the notes.
+  priority and who holds a claim, in `war tickets` order.
+- Each ticket's checklist as `war show` prints it: done items with who did
+  them and their note, open items with the `war claim` that takes them and a
+  **ready** badge where `war ready` would offer them, then the notes.
 - On this machine's page only: **Claim** on a ready item and **Done** on an
   open one (it asks for an optional note). The server runs the same
-  `war admin claim` / `war done` the CLI does, in process, acting as `--as` when
+  `war claim` / `war done` the CLI does, in process, acting as `--as` when
   given; a refusal (someone else holds the claim, nobody claimed it) comes
   back by its rule. A ticket act is not a signing act and needs no key.
 - A paired LAN device sees the same page read-only, with no buttons; the
@@ -51,7 +51,7 @@ on.
 The exact terminal command is always beside the row.
 
 **Questions** — open questions, blocking first, with the asker's
-recommendation and the `war plan answer` that answers each.
+recommendation and the `war answer` that answers each.
 
 **Frontier** — every stage by state (open, claimed, done, blocked) and what
 it waits on.
@@ -59,8 +59,8 @@ it waits on.
 **Corpus** — every Warrant with its rung and unmet count.
 
 **Help** — what next and `war check`'s errors.
-- `war status --next`'s actions, the human ones first. (The ready ticket items
-  `war status --next` lists before them are on Tickets.)
+- `war next`'s actions, the human ones first. (The ready ticket items
+  `war next` lists before them are on Tickets.)
 - `war check`'s errors, one row per rule with a count and its remedy (§76.2).
 - An *automatic* remedy (never a signing verb, OW-WAR-0112) has a **Run**
   button.
@@ -83,7 +83,7 @@ a reload.
    `ssh-add -c`; **without `-c` a click signs without asking**
    (THREAT_MODEL entry 13a).
 
-**Run.** A Run button starts an automatic remedy (`war admin compile`, `war admin pins
+**Run.** A Run button starts an automatic remedy (`war compile`, `war pins
 --refresh …`, `war evidence record …`) the same way.
 
 One act runs at a time. The footer shows it running, and then its exit code
