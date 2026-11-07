@@ -2,7 +2,7 @@
 //! The app driven as a person drives it: keys into `handle_key`, a frame out
 //! of `draw`, over a fixture no file stands behind.
 
-use super::model::{ClaimRow, Collision, Count, NoticeRow, PhaseRow, QuestionItem, ReadyRow, Row, WorkRow};
+use super::model::{ClaimRow, Collision, NoticeRow, PhaseRow, QuestionItem, ReadyRow, Row, WorkRow};
 use super::*;
 use crate::diagnostic::Diagnostic;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -56,7 +56,7 @@ fn fixture() -> Model {
         program: "fixture".to_owned(),
         sas_in_force: "1.1.0".to_owned(),
         views,
-        queue: vec![queue_row("authorize:OW-WAR-0001"), queue_row("resolve:OW-WAR-0002")],
+        queue: vec![queue_row("OW-WAR-0001"), queue_row("OW-WAR-0002")],
         questions: vec![QuestionItem {
             warrant: "OW-WAR-0001".to_owned(),
             id: "Q-001".to_owned(),
@@ -137,7 +137,6 @@ fn fixture() -> Model {
         critical_path: vec!["t-1a2b3/i-2".to_owned()],
         critical_length: Some("30m".to_owned()),
         worktrees: Some(vec!["/work/repo".to_owned(), "/work/wt-a".to_owned()]),
-        tokens: Count::Unknown,
         ..model::Snapshot::default()
     });
     m
@@ -234,10 +233,46 @@ fn no_usage_recorded_reads_unknown_never_a_number() {
 #[test]
 fn a_recorded_count_is_shown_as_it_is() {
     let mut m = fixture();
-    m.snap.tokens = Count::Known(4_242);
+    m.snap.usage = usage::sum(
+        &[
+            usage::Run {
+                item: "t-1".to_owned(),
+                tokens: Some(4_242),
+                ..usage::Run::default()
+            },
+            usage::Run {
+                item: "t-2".to_owned(),
+                ..usage::Run::default()
+            },
+        ],
+        None,
+    );
     let s = screen(&m);
-    assert!(s.contains("TOKENS 4242"), "{s}");
+    assert!(s.contains("TOKENS 4242 (1 run(s) UNKNOWN)"), "{s}");
     assert!(!s.contains("TOKENS UNKNOWN"), "{s}");
+    assert!(!s.contains("~$"), "no price table, no dollars: {s}");
+}
+
+#[test]
+fn dollars_say_they_are_an_estimate_and_the_date_of_their_prices() {
+    let mut m = fixture();
+    let prices = usage::prices(
+        "[usage]\nprices_as_of = \"2026-11-01\"\n[usage.prices.m]\ninput_per_mtok = 2\noutput_per_mtok = 10\n",
+    )
+    .expect("a table");
+    m.snap.usage = usage::sum(
+        &[usage::Run {
+            item: "t-1".to_owned(),
+            tokens: Some(2_000_000),
+            input: Some(1_000_000),
+            output: Some(1_000_000),
+            model: Some("m".to_owned()),
+            ..usage::Run::default()
+        }],
+        prices.as_ref(),
+    );
+    let s = screen(&m);
+    assert!(s.contains("~$12.00 estimate, prices of 2026-11-01"), "{s}");
 }
 
 #[test]
@@ -336,7 +371,7 @@ fn one_check_signs_one_and_several_sign_as_one_batch() {
     assert_eq!(
         handle_key(&mut m, key('s')),
         Some(Effect::Terminal {
-            argv: sign_argv("authorize:OW-WAR-0001"),
+            argv: sign_argv("OW-WAR-0001"),
             root: None
         })
     );
@@ -344,7 +379,7 @@ fn one_check_signs_one_and_several_sign_as_one_batch() {
     let Some(Effect::Terminal { argv, .. }) = handle_key(&mut m, key('s')) else {
         panic!("a batch is a child that owns the terminal");
     };
-    assert_eq!(argv[1], "--batch=authorize:OW-WAR-0001,resolve:OW-WAR-0002");
+    assert_eq!(argv[1], "--batch=OW-WAR-0001,OW-WAR-0002");
 }
 
 /// Refusal: nothing checked signs nothing, and a check does not outlive the
@@ -357,13 +392,13 @@ fn a_check_follows_its_act_not_its_row() {
     assert!(m.message.starts_with("nothing checked"));
     handle_key(&mut m, key('j'));
     handle_key(&mut m, key(' '));
-    assert_eq!(act::checked_targets(&m), ["resolve:OW-WAR-0002"]);
+    assert_eq!(act::checked_targets(&m), ["OW-WAR-0002"]);
     let mut next = m.snap.clone();
     next.queue.remove(0);
     m.apply(next);
-    assert_eq!(act::checked_targets(&m), ["resolve:OW-WAR-0002"]);
+    assert_eq!(act::checked_targets(&m), ["OW-WAR-0002"]);
     let mut next = m.snap.clone();
-    next.queue = vec![queue_row("accept:2.0.0")];
+    next.queue = vec![queue_row("2.0.0")];
     m.apply(next);
     assert!(act::checked_targets(&m).is_empty());
 }
@@ -375,14 +410,14 @@ fn v_reads_the_request_and_enter_signs_the_row() {
     assert_eq!(
         handle_key(&mut m, key('v')),
         Some(Effect::Capture {
-            title: "war sign authorize:OW-WAR-0001 --show".to_owned(),
-            argv: argv::sign_show("authorize:OW-WAR-0001"),
+            title: "war sign OW-WAR-0001 --show".to_owned(),
+            argv: argv::sign_show("OW-WAR-0001"),
         })
     );
     assert_eq!(
         handle_key(&mut m, press(KeyCode::Enter)),
         Some(Effect::Terminal {
-            argv: sign_argv("authorize:OW-WAR-0001"),
+            argv: sign_argv("OW-WAR-0001"),
             root: None
         })
     );

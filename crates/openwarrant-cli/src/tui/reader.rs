@@ -22,7 +22,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use super::herdr_adapter::{self, Focus};
 use super::model::{
-    ClaimRow, Collision, Count, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
+    ClaimRow, Collision, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
     Snapshot, View, WorkRow,
 };
 use super::records;
@@ -424,12 +424,17 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         .map_err(|e| fault("the worktrees", e.to_string()))
         .ok();
 
+    let (usage, usage_faults) = super::usage::read(&repo, work.tickets());
+    for why in usage_faults {
+        fault("usage", why);
+    }
+
     let critical: BTreeSet<&str> = schedule
         .iter()
         .flat_map(|s| &s.critical_path)
         .map(String::as_str)
         .collect();
-    let work_rows = work_rows(&work, graph.as_ref(), &critical);
+    let work_rows = work_rows(&work, graph.as_ref(), &critical, &usage);
     let ready = schedule
         .iter()
         .flat_map(|s| &s.order)
@@ -486,7 +491,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
     snap.claims = claims;
     snap.notices = notices;
     snap.worktrees = worktrees;
-    snap.tokens = Count::Unknown;
+    snap.usage = usage;
     for (view, rows) in [
         (View::Tickets, tickets),
         (View::Frontier, frontier),
@@ -551,6 +556,7 @@ fn work_rows(
     work: &Work,
     graph: Option<&crate::graph::Graph>,
     critical: &BTreeSet<&str>,
+    usage: &super::usage::Usage,
 ) -> Vec<WorkRow> {
     let tickets = work.tickets();
     let mut open: Vec<&crate::work::Item> = work.items().iter().filter(|i| !i.is_done()).collect();
@@ -573,13 +579,14 @@ fn work_rows(
             critical: critical.contains(item.id.as_str()),
             holder: claim_on(work.claims(), &item.id, None)
                 .and_then(|(_, c)| c.map(|c| c.actor.clone())),
-            tokens: Count::Unknown,
+            tokens: usage.of(&item.id),
         });
         for line in ticket.iter().flat_map(|t| &t.checklist.items) {
             let (false, Some(id)) = (line.done, line.id.as_deref()) else {
                 continue;
             };
             let target = format!("{}/{id}", item.id);
+            let tokens = usage.of(&target);
             rows.push(WorkRow {
                 state: graph
                     .and_then(|g| g.node(&target))
@@ -592,7 +599,7 @@ fn work_rows(
                 depth: 1,
                 holder: claim_on(work.claims(), &item.id, Some(id))
                     .and_then(|(_, c)| c.map(|c| c.actor.clone())),
-                tokens: Count::Unknown,
+                tokens,
             });
         }
     }

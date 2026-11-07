@@ -50,6 +50,7 @@ mod md;
 mod model;
 mod reader;
 mod records;
+mod usage;
 mod watch;
 
 #[cfg(test)]

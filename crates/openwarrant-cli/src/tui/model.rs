@@ -258,7 +258,7 @@ pub struct Snapshot {
     pub critical_length: Option<String>,
     /// Every checkout of this clone, for telling which agents work here.
     pub worktrees: Option<Vec<String>>,
-    pub tokens: Count,
+    pub usage: super::usage::Usage,
     /// Sources that could not be read, each said once.
     pub faults: Vec<String>,
     /// The newest journal events, for the panel without Herdr.

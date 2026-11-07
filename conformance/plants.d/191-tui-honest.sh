@@ -14,6 +14,8 @@
 #   sends `null` where its schema allows it, the agents show, and an answer it
 #   cannot read says UNKNOWN instead of a shorter fleet.
 # - A real claim shows its holder and a renewal labelled as what it is.
+# - Tokens a real `war evidence go` recorded are shown as recorded, a run that
+#   reported none is UNKNOWN and not zero, and an undated price table is refused.
 
 echo "== Mission Control is honest (t-3c16c W5) =="
 TH_TMP=$(mktemp -d)
@@ -142,5 +144,53 @@ else
     th_fail "a claim says what it knows" "$(grep -m2 -E 'CLAIMS|lock' <<<"$TH_WATCH" | tr '\n' ' ')"
 fi
 
+# Recorded usage: a real `war evidence go` whose harness reports its tokens, and
+# one whose harness reports none. The total is that number, the second run is
+# counted as UNKNOWN, not as zero, and nothing prices either: go.ended holds no
+# model, and without a dated table there are no dollars.
+cat >"$TH_TMP/reports.py" <<'PY'
+import json, os, subprocess, sys
+fixture = os.environ["TH_FIXTURE"]
+out = subprocess.run([sys.executable, fixture], stdin=sys.stdin, capture_output=True, text=True).stdout
+if os.environ.get("TH_REPORT"):
+    answer = json.loads(out)
+    answer["usage"] = {"tokens": 1234}
+    out = json.dumps(answer)
+sys.stdout.write(out)
+PY
+cat >>"$TH_ROOT/openwarrant.toml" <<EOF
+
+[go]
+harness_argv = ["python3", "$TH_TMP/reports.py"]
+EOF
+th_go() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR HERDR_SOCKET_PATH="$TH_TMP/no.sock" \
+    TH_FIXTURE="$REPO_ROOT/conformance/fixtures/go/performer.py" GO_LOG="$TH_TMP/go.log" "$TH_WAR" --root "$TH_ROOT" "$@" </dev/null; }
+th_war admin release "$TH_TICKET" >/dev/null 2>&1
+TH_ONE=$(th_war --json create "Reports its tokens" --item "one" 2>/dev/null \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
+git -C "$TH_ROOT" add -A >/dev/null 2>&1
+git -C "$TH_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm tickets >/dev/null 2>&1
+TH_REPORT=1 th_go evidence go --max-nodes 1 >/dev/null 2>&1
+th_go evidence go --max-nodes 1 >/dev/null 2>&1
+TH_WATCH=$(th_war tui --render watch 2>&1)
+if grep -q 'TOKENS 1234 (1 run(s) UNKNOWN)' <<<"$TH_WATCH" && ! grep -qE '~\$[0-9]' <<<"$TH_WATCH"; then
+    th_ok "recorded usage is shown as recorded" "1234, one run UNKNOWN, no dollars"
+else
+    th_fail "recorded usage is shown as recorded" "$(grep -m1 TOKENS <<<"$TH_WATCH"); ${TH_ONE:-no ticket}"
+fi
+# Refusal: an undated price table shows no dollars, and says why.
+cat >>"$TH_ROOT/openwarrant.toml" <<'EOF'
+
+[usage.prices.m]
+input_per_mtok = 2
+output_per_mtok = 10
+EOF
+TH_WATCH=$(th_war tui --render watch 2>&1)
+if grep -q 'prices_as_of' <<<"$TH_WATCH" && ! grep -qE '~\$[0-9]' <<<"$TH_WATCH"; then
+    th_ok "an undated price table is refused" "said on screen, no dollars"
+else
+    th_fail "an undated price table is refused" "$(grep -m1 TOKENS <<<"$TH_WATCH")"
+fi
+
 /usr/bin/rm -rf "$TH_TMP"
-unset TH_TMP TH_WAR TH_ROOT TH_TICKET TH_WATCH TH_OUT TH_STATUS TH_STUB TH_FAKE
+unset TH_ONE TH_TMP TH_WAR TH_ROOT TH_TICKET TH_WATCH TH_OUT TH_STATUS TH_STUB TH_FAKE

@@ -230,6 +230,25 @@ fn tokens(t: Count) -> String {
     }
 }
 
+/// The total, and what it leaves out, so a number never reads as complete
+/// when it is not. Dollars only as the table's dated estimate.
+fn usage_line(u: &super::usage::Usage) -> String {
+    let mut out = tokens(u.total);
+    if u.unknown_runs > 0 {
+        out.push_str(&format!(" ({} run(s) UNKNOWN)", u.unknown_runs));
+    }
+    if u.estimated > 0 {
+        out.push_str(&format!(" + {} est.", u.estimated));
+    }
+    if let Some(d) = &u.dollars {
+        out.push_str(&format!(" ~${:.2} estimate, prices of {}", d.estimate, d.as_of));
+        if d.unpriced_tokens > 0 {
+            out.push_str(&format!(", {} tok unpriced", d.unpriced_tokens));
+        }
+    }
+    out
+}
+
 fn lease(c: &ClaimRow, now: u64) -> String {
     match c.lease_until_unix {
         None => "none (a lock from before leases)".to_owned(),
@@ -303,7 +322,7 @@ fn vitals(m: &Model) -> Vec<Line<'static>> {
     };
     let top = Line::from(vec![
         label("TOKENS "),
-        value(tokens(s.tokens)),
+        value(usage_line(&s.usage)),
         label("  CLAIMS "),
         value(s.claims.len().to_string()),
         label(" ("),

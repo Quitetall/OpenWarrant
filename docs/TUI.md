@@ -27,6 +27,9 @@ Three rules hold everywhere:
   the highlighted row. The test suite parses every command line the app builds
   with the real CLI.
 
+To learn what is authoritative here now, read `docs/generated/CURRENT.md` first: it is
+the first document in Help.
+
 What was not recorded says `UNKNOWN`. A source that could not be read says so at
 the top of Work, never as an empty list. A list that has nothing says so ("not
 established", "UNREADABLE …"), never a blank.
@@ -40,7 +43,10 @@ a keypress, and a reload never holds a key.
 
 The top lines are counts, each read from a record:
 
-- **TOKENS**: tokens the records hold, or `UNKNOWN`. There are no dollars.
+- **TOKENS**: tokens the records hold (`war evidence go` node counts and runtime
+  capture receipts), or `UNKNOWN`, with how many runs recorded none. A provider's own
+  estimate is kept out of the total and shown as `est.`. Dollars appear only from a
+  dated `[usage]` price table, labelled as an estimate (`docs/design/tui-usage.md`).
 - **CLAIMS**: live claims, how many leases are live and expired.
 - **COLLISIONS**: pairs of claims whose declared paths `ticket::scopes` will not
   call disjoint. Claims that declared nothing conflict with nothing.

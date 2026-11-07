@@ -62,9 +62,9 @@ pub fn parses(args: &[String]) -> Result<(), String> {
 #[must_use]
 pub fn table() -> Vec<Vec<String>> {
     vec![
-        sign_show("authorize:OW-WAR-0001"),
-        super::sign_argv("authorize:OW-WAR-0001"),
-        sign_batch(&["authorize:OW-WAR-0001".to_owned(), "sas:2.0.0".to_owned()]),
+        sign_show("OW-WAR-0001"),
+        super::sign_argv("OW-WAR-0001"),
+        sign_batch(&["OW-WAR-0001".to_owned(), "2.0.0".to_owned()]),
         commit_message(),
         init(),
         roadmap_edit(),
