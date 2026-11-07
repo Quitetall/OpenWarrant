@@ -3289,7 +3289,7 @@ fn owns_claim(store: &Store, claim: &claim::Claim) -> bool {
 
 /// The Warrants `store.actor` holds a live claim on (whole or on an item),
 /// by id, in id order.
-fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
+pub fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
     let now = now_secs();
     let mut ids: Vec<String> = store
         .claims()?

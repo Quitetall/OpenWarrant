@@ -28,6 +28,9 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `--interactive` on `init`, `create`, `start`, `done`, `status` and `check`. A
+  caller with no terminal, or under `--json`, is refused by name and never
+  prompted.
 - `war status --next`, `--ready` and `--view`, `war start --claim`, and `war done
   --release` and `--reopen` are the commands they fold, envelope included. The
   old spellings keep working. A retiring top-level spelling says so on stderr at

@@ -59,6 +59,7 @@ pub mod inbox;
 pub mod init;
 pub mod install;
 pub mod instructions;
+pub mod interactive;
 pub mod interop;
 pub mod interview;
 pub mod invalidation;
@@ -670,7 +671,7 @@ enum DailyCommand {
         /// Ask the setup questions at a terminal: who signs, the SAS, the
         /// first Warrant. Refused without a terminal; plain `war init` asks
         /// nothing.
-        #[arg(long, conflicts_with_all = ["non_interactive", "namespace"])]
+        #[arg(long, visible_alias = "interactive", conflicts_with_all = ["non_interactive", "namespace"])]
         guided: bool,
         /// Never ask. Plain `war init` already asks nothing; the flag is kept
         /// so scripts that pass it keep working.
@@ -721,8 +722,11 @@ enum DailyCommand {
     Create {
         /// What this work accomplishes, in one sentence. With `--issue`, the
         /// issue's title unless given.
-        #[arg(required_unless_present_any = ["issue", "issue_file"])]
+        #[arg(required_unless_present_any = ["issue", "issue_file", "interactive"])]
         title: Option<String>,
+        /// Ask for what is not given. Needs a terminal.
+        #[arg(long)]
+        interactive: bool,
         /// Keep the old manifest-and-atoms encoding for a legacy integration.
         #[arg(long, hide = true)]
         legacy: bool,
@@ -825,6 +829,9 @@ enum DailyCommand {
         /// With `--worktree`: the commit the worktree starts from (default HEAD).
         #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
+        /// Pick from what is ready. Needs a terminal.
+        #[arg(long, conflicts_with = "worktree")]
+        interactive: bool,
         /// Only take it, with no brief: `war admin claim`.
         #[arg(long, conflicts_with = "worktree")]
         claim: bool,
@@ -861,6 +868,9 @@ enum DailyCommand {
         /// is UNKNOWN, never a pass.
         #[arg(long)]
         check: bool,
+        /// Pick what you hold and say what was done. Needs a terminal.
+        #[arg(long)]
+        interactive: bool,
         /// Give the claim back without finishing it: `war admin release`.
         #[arg(long, requires = "target", conflicts_with_all = ["note", "check", "reopen"])]
         release: bool,
@@ -922,6 +932,9 @@ enum DailyCommand {
         /// The pending human acts (`oh.war/corpus-pending/v1`) instead of the status.
         #[arg(long, conflicts_with = "alias")]
         pending: bool,
+        /// Pick an item to show. Needs a terminal.
+        #[arg(long)]
+        interactive: bool,
         /// What is ready, and whose step it is: `war view next`.
         #[arg(long, conflicts_with_all = ["alias", "timeline", "pending", "ready"])]
         next: bool,
@@ -987,6 +1000,9 @@ enum DailyCommand {
         /// `[score] floor = true` turns it on instead.
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
+        /// Pick what to check. Needs a terminal.
+        #[arg(long)]
+        interactive: bool,
     },
 }
 
@@ -3608,6 +3624,13 @@ fn check_action(
 
 fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
+    let command = match interactive::answer(ctx, command)? {
+        interactive::Answered::Run(command) => command,
+        interactive::Answered::Stopped(why) => {
+            println!("{why}");
+            return Ok(EXIT_OK);
+        }
+    };
     match command {
         DailyCommand::Create {
             title,
@@ -3631,6 +3654,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             issue_file,
             implements,
             actor,
+            ..
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             // OW-WAR-0148 M5: the issue is read once, before anything is
@@ -6557,6 +6581,7 @@ fn run_view(ctx: &Ctx, command: ViewGroup) -> Result<u8, Box<dyn std::error::Err
                 ready: false,
                 actor: None,
                 view: None,
+                interactive: false,
             },
         ),
     }
