@@ -26,8 +26,30 @@ needs no signature; configured approval requirements still apply.
 [The daily loop](docs/TICKETS.md).
 
 The six daily commands are `init`, `create`, `start`, `done`, `status`, `check`.
-Advanced commands live in `plan`, `sign`, `evidence`, `view`, and `admin`.
-Earlier spellings remain compatible. [Command reference](docs/COMMANDS.md).
+Advanced commands live in `plan`, `sign`, `evidence`, `view`, and `admin`, and
+`war sign` stays for humans, outside the agent loop. Each of the six takes
+`--interactive` for a person at a terminal; an agent passes arguments, and with
+no terminal the flag is refused by name. Earlier spellings keep working and are
+retiring. [Command reference](docs/COMMANDS.md).
+
+There is one item and one format, in three levels. The level is derived from the
+item's fields and never stored:
+
+| Level | What makes it one | Done means |
+|---|---|---|
+| **Ticket** (default) | nothing extra | the agent says it is done |
+| **Warrant** | a trigger for completion, such as a test | the trigger passed |
+| **Order** | a required human signature | the trigger passed, if any, and a person signed at the end |
+
+```bash
+war create "Fix login" --test "cargo test login"   # a Warrant: war done runs the test
+war create "Ship the release" --sign               # an Order: a person signs it off
+war plan promote <id>                              # raise a ticket in place: same id
+```
+
+`--path`, `--tool` and `--command` say how the work may run and never change its
+level. `war init --ci` adds one opt-in pull-request gate, and `war init --schemas`
+writes the schema pack for another tool; the binary carries it either way.
 
 **Read first: [the current state](docs/generated/CURRENT.md)** — the master
 document `war admin compile` writes from the records, current by construction
@@ -38,8 +60,8 @@ document `war admin compile` writes from the records, current by construction
 [Build the CLI](#build-the-current-cli) ·
 [Contribute](CONTRIBUTING.md)
 
-> **Under development.** Alpha.5 is the published prerelease; the alpha.6
-> changes are being qualified. [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md)
+> **Under development.** Alpha.7 is the published prerelease.
+> [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md)
 > records the owner's accepted direction. Adoption of the current
 > [Format 1.0 text revision](docs/format/FORMAT-1.0.md) is a separate act;
 > neither that edition nor Stable 1.0 is claimed here. Legacy records retain
@@ -74,11 +96,16 @@ run. WAR expands to **Work Authorization Record**; the everyday name is
 ```bash
 war context OW-WAR-0146              # what one Warrant needs, in a fixed order
 war context t-0d61d --tokens 4000    # within a budget; nothing is cut mid-record
+war context docs/TICKETS.md          # a long document: the units that fit, every cut named
+war context 'docs/TICKETS.md#claims' # one section of a document
+war context "ready tickets"          # a topic: ranked units, local and model-free
+war context src/lib.rs               # a code path: the work that declares it
 ```
 
 The output is deterministic: the same records give the same bytes. Each record
-is printed in full (`[F]`) or as its one-line summary (`[S]`) when the budget
-runs out, and `--strict` refuses instead of summarizing. `docs/generated/llms.txt`
+or unit is printed in full (`[F]`) or as its one-line summary (`[S]`) when the
+budget runs out, and `--strict` refuses instead of summarizing; `--full` returns
+everything anyway. `docs/generated/llms.txt`
 indexes every record with the command that loads it. `--json` gives the
 `oh.war/context/v1` packet; MCP clients get the same through `war_context`.
 
@@ -182,14 +209,17 @@ roadmap, updating live, the signing queue with each act's dry-run verdict,
 and buttons that start the signature your key's dialog confirms
 ([docs/WEBUI.md](docs/WEBUI.md)).
 
-Type `war` anywhere: outside a repository it opens **Projects**, every
+Type `war` anywhere: outside a repository it opens **Repos**, every
 repository you have used `war` in, remembered on use (`war admin projects`;
 `OPENWARRANT_NO_PROJECTS=1` turns it off). Type `war` in a repository and,
-at a terminal, it opens the app — setup,
-help, the signing queue and every pane of the corpus, with the exact command
-behind each row ([docs/TUI.md](docs/TUI.md)). It signs nothing itself; every
-act runs `war sign --ssh-sign` in your terminal. On a pipe, `war` refuses by
-name and points at `war status --json`.
+at a terminal, it opens Mission Control: **Watch** shows where the work stands and
+who is on it, **Act** is where you start things (`Tab`, `1` and `2`), **Records**
+opens on `3` and **Repos** on `p`, each row with the exact command behind it
+([docs/TUI.md](docs/TUI.md)). It signs nothing itself; every act runs
+`war sign --ssh-sign` in your terminal. On a pipe, `war` refuses by name and
+points at `war status --json`. Agents running in a claim hear when a document or
+interface they were given changes, on their next `war` call
+([docs/TICKETS.md](docs/TICKETS.md), [docs/INTERFACES.md](docs/INTERFACES.md)).
 
 Inspect this repository's existing records and generated-file consistency:
 
@@ -198,7 +228,7 @@ Inspect this repository's existing records and generated-file consistency:
 ```
 
 That command checks records and generated-file drift. It does not run every
-implementation test or provide human acceptance. `war new "<title>" --format 1.0`
+implementation test or provide human acceptance. `war plan new "<title>" --format 1.0`
 writes a single-file Warrant; the older manifest-and-atoms directories read
 unchanged, with generated Markdown and JSON views.
 

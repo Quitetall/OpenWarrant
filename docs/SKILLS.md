@@ -3,7 +3,8 @@
 Say `war` in an OpenWarrant request: `war progress`, `war grill this`,
 `war spec this`, `war tickets`, `war migrate`, `war review`, or `war start OW-WAR-0075`.
 The [war router](../.claude/skills/war/SKILL.md) selects only the needed method.
-Bare `war` shows progress. These are chat cues; only documented CLI commands
+In chat, bare `war` shows progress; typed at a terminal, `war` alone opens Mission
+Control (docs/TUI.md). These are chat cues; only documented CLI commands
 are shell commands. Explicit skill invocation is `/war` in supporting Claude
 harnesses or `$war` in supporting Codex harnesses. Automatic discovery depends on
 installation and the harness; a rare keyword alone is not a trigger guarantee.
@@ -11,15 +12,15 @@ installation and the harness; a rare keyword alone is not a trigger guarantee.
 ## Current command
 
 ```sh
-war overview                 # unresolved legacy records, titles, states, gaps
+war view overview            # unresolved legacy records, titles, states, gaps
 war progress --json          # same view, one machine report
-war overview --all            # include recorded resolutions
+war view overview --all      # include recorded resolutions
 ```
 
 The view is built from live records, not committed status files. It does not award
 Verified status or claim that every unresolved record is unfinished code. Use
-`war status <alias> --json` for details, `war next --json` for pending human acts,
-`war questions --open --json` for questions and `war frontier --json` for legacy
+`war status <alias> --json` for details, `war status --next --json` for pending human acts,
+`war plan questions --open --json` for questions and `war plan frontier --json` for legacy
 stages. For a source checkout, use `target/debug/war` after building.
 
 ## Methods

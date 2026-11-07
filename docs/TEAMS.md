@@ -34,7 +34,7 @@ actors per act. Unknown keys (`authorize = [...]`, a misspelling) are refused
 rather than read as "no assignment": the authorizer is who signs the
 assignment, so authorization itself cannot be assigned.
 
-`war authorize <alias>` lists the assignment and its digest beside the
+`war sign authorize <alias>` lists the assignment and its digest beside the
 deliverable set, and `war sign` shows it on the screen being signed and echoes
 the digest into the response. **The human who authorizes signs who reviews.**
 
@@ -77,10 +77,10 @@ On an assigned resolve act, `war sign <alias>` with no `--as` picks the
 assigned resolver; `--dry-run` reports `sign.signer` naming them. An eligible
 resolver who is not assigned is refused `sign.not-assigned`. `war sign --list`
 marks an assigned act `[assigned: …]`, or the rule that blocks it. A
-hand-written `war resolve <alias> --response` naming anyone else is refused
+hand-written `war sign resolve <alias> --response` naming anyone else is refused
 `resolution.not-assigned` before anything is written.
 
-On an assigned verify act, `war verify <alias> --response <file>` records a
+On an assigned verify act, `war evidence verify <alias> --response <file>` records a
 verdict only from the assigned verifier (`verify.not-assigned` otherwise), and
 only while that actor holds `verifier` in `roles.toml` (`verify.role-missing`).
 Refused verdicts are not written under `verifications/`.
@@ -89,11 +89,11 @@ Refused verdicts are not written under `verifications/`.
 
 ```
 war sign --list --as Ada          # the acts Ada may sign now, assigned first
-war inbox --as Ada                # the same inbox, filtered to Ada
+war sign inbox --as Ada                # the same inbox, filtered to Ada
 war --json sign --list --as Ada   # the same list: target, act, eligible, assigned
 ```
 
-Both read the same functions as the shared `war sign --list` and `war inbox`
+Both read the same functions as the shared `war sign --list` and `war sign inbox`
 and filter them, so a queue can only ever be a subset of what the register and
 the assignments allow. Questions stay in every inbox: answering one is no
 role's act. `--as` names whose queue to show; it signs nothing and proves
@@ -115,7 +115,7 @@ not yet measured) is that git reports a conflict when the second one merges.
 - It does not change who may sign by kind (§27.2). Agents stay refused.
 - It does not claim two-person review. Assigning Ada and Ben records who was
   chosen; only the records of who actually signed and verified say who did.
-  `war show <alias>`, `war status <alias>` and each Warrant's `review` in
+  `war view show <alias>`, `war status <alias>` and each Warrant's `review` in
   `war status --json` list who authorized, verified and resolved, and count
   the distinct humans among them (§27.4). None of them says "reviewed".
 
