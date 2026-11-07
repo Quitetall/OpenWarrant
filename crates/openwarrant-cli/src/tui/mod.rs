@@ -587,6 +587,7 @@ fn handle_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
         }
         return None;
     }
+    clamp_cursors(m);
     match (k.code, k.modifiers) {
         (KeyCode::Char('q'), _) | (KeyCode::Char('c'), KeyModifiers::CONTROL) => {
             return Some(Effect::Quit);
@@ -644,6 +645,19 @@ fn handle_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
         }
     }
     None
+}
+
+/// A snapshot can arrive with a shorter list than the cursor stood on; a key
+/// then acts on the row the frame shows, the last one.
+fn clamp_cursors(m: &mut Model) {
+    for panel in model::Panel::WATCH {
+        let at = m.selected_in(panel).min(watch::panel_len(m, panel).saturating_sub(1));
+        m.select_in(panel, at);
+    }
+    for panel in model::Panel::ACT {
+        let at = m.selected_in(panel).min(act::panel_len(m, panel).saturating_sub(1));
+        m.select_in(panel, at);
+    }
 }
 
 /// A filter that changed moves the cursor to the top of what it left.

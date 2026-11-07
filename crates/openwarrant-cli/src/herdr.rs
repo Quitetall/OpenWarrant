@@ -361,13 +361,26 @@ fn root_pane_in(result: &serde_json::Value) -> Result<String, String> {
         .ok_or_else(|| "tab.create answered with no root pane".to_owned())
 }
 
-/// Start an agent of `kind` in a shell pane. Herdr waits until it is up.
+/// How long a new tab's shell gets to come up.
+const SHELL_TRIES: u32 = 25;
+const SHELL_WAIT: Duration = Duration::from_millis(200);
+
+/// Start an agent of `kind` in a shell pane. Herdr waits until it is up. A
+/// tab's shell is not there the moment the tab is: until it is, Herdr answers
+/// `agent_pane_busy`, "not an available shell", and that alone is retried.
 pub fn start_agent(name: &str, kind: &str, pane: &str, args: &[String]) -> Result<(), String> {
-    call_herdr(
-        "agent.start",
-        serde_json::json!({"name": name, "kind": kind, "pane_id": pane, "args": args}),
-    )?;
-    Ok(())
+    let params = serde_json::json!({"name": name, "kind": kind, "pane_id": pane, "args": args});
+    let mut tries = SHELL_TRIES;
+    loop {
+        match call_herdr("agent.start", params.clone()) {
+            Err(why) if tries > 0 && why.contains("not an available shell") => {
+                tries -= 1;
+                std::thread::sleep(SHELL_WAIT);
+            }
+            Err(why) => return Err(why),
+            Ok(_) => return Ok(()),
+        }
+    }
 }
 
 #[cfg(test)]

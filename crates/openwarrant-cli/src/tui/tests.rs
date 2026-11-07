@@ -396,6 +396,23 @@ fn one_check_signs_one_and_several_sign_as_one_batch() {
     assert_eq!(argv[1], "--batch=OW-WAR-0001,OW-WAR-0002");
 }
 
+#[test]
+fn a_shorter_list_moves_the_cursor_to_the_row_that_shows() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('j'));
+    let mut next = m.snap.clone();
+    next.queue.truncate(1);
+    m.apply(next);
+    assert_eq!(
+        handle_key(&mut m, press(KeyCode::Enter)),
+        Some(Effect::Terminal {
+            argv: sign_argv("OW-WAR-0001"),
+            root: None
+        })
+    );
+}
+
 /// Refusal: nothing checked signs nothing, and a check does not outlive the
 /// act it was on or slide to the row that took its place.
 #[test]

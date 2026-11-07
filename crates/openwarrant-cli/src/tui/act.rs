@@ -21,7 +21,7 @@ fn step(panel: Panel, by: isize) -> Panel {
     all[(at.cast_signed() + by).rem_euclid(n).cast_unsigned()]
 }
 
-fn panel_len(m: &Model, panel: Panel) -> usize {
+pub fn panel_len(m: &Model, panel: Panel) -> usize {
     match panel {
         Panel::Dispatch => visible_ready(m).len(),
         Panel::Answer => watch::visible_questions(m).len(),

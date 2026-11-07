@@ -37,7 +37,8 @@ established", "UNREADABLE …"), never a blank.
 The records are re-read on their own: a background thread watches the fingerprint
 of the Warrants, tickets, claims and notices, and a change that has settled is read
 into a finished snapshot, so a signature given in another terminal shows up without
-a keypress, and a reload never holds a key.
+a keypress, and a reload never holds a key. Help's what-next list is the slowest part
+of a read, so it arrives after the rest.
 
 ## Watch
 
@@ -54,7 +55,7 @@ The top lines are counts, each read from a record:
 - **WARRANTS**, **PHASES**, **ITEMS**: progress as counts, from `status::build`,
   `roadmap_cmd::view_with` and `work::Work`. Never a percentage: Warrants are not
   equal, and a percentage would be a number nobody recorded.
-- **CRITICAL PATH**: its length in nodes and the estimate from `war plan schedule`.
+- **CRITICAL PATH**: its length in nodes and the estimate from `war plan estimate`.
   An estimate, and labelled so.
 
 The panels, moved between with `h` and `l`:
