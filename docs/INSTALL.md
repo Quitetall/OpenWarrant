@@ -10,7 +10,7 @@ other platform, build from source (the third way below).
 
 | how | the line | today |
 |---|---|---|
-| `install.sh` | `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh \| bash` | works; `war update` manages the result |
+| `install.sh` | `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh \| bash` | works; `war admin update` manages the result |
 | cargo-binstall | `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli` | works once the binstall metadata is on `main` (below) |
 | cargo-binstall, from crates.io | `cargo binstall openwarrant-cli` | not yet: nothing is published on crates.io ([PUBLISHING.md](PUBLISHING.md)) |
 | Homebrew | `brew install quitetall/openwarrant/openwarrant` | not yet: the tap repository does not exist (below) |
@@ -18,13 +18,13 @@ other platform, build from source (the third way below).
 
 All of them install the same two release archives, so all of them stop at
 Linux x86_64 and macOS on Apple silicon. Only `install.sh` (and the tarball
-by hand) puts `war` where `war update` manages it; the others are updated the
+by hand) puts `war` where `war admin update` manages it; the others are updated the
 way they were installed.
 
 ## Three ways to install
 
 **1. `install.sh`** (recommended). It installs the newest release into the
-layout `war update` manages. After that, `war update` owns the install.
+layout `war admin update` manages. After that, `war admin update` owns the install.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
@@ -55,7 +55,7 @@ OW_VERSION=<tag> bash install.sh
 
 Settings: `OW_VERSION` (a tag, default `latest`), `OW_BIN_DIR` (default
 `~/.local/bin`), `OW_REPO`. `XDG_DATA_HOME`, when set, moves the install root
-to `$XDG_DATA_HOME/openwarrant`, exactly as it does for `war update`.
+to `$XDG_DATA_HOME/openwarrant`, exactly as it does for `war admin update`.
 
 **2. A verified tarball, by hand.** From the release page, download the
 archive for your platform and its `.sha256`. Then:
@@ -67,7 +67,7 @@ tar -xzf openwarrant-<tag>-linux-x86_64.tar.gz -C ~/.local/lib/openwarrant/<vers
 ln -s ~/.local/lib/openwarrant/<version>/bin/war ~/.local/bin/war
 ```
 
-Use exactly that layout and a symlink, and `war update` manages it from then
+Use exactly that layout and a symlink, and `war admin update` manages it from then
 on. A copied binary is never managed.
 
 **3. `cargo install`**, from a checkout (or from crates.io, once the crates
@@ -78,7 +78,7 @@ cargo install --locked --path crates/openwarrant-cli   # from a clone
 cargo install --locked openwarrant-cli                 # from crates.io, once published
 ```
 
-This puts a binary in `~/.cargo/bin`. `war update` does not manage it and
+This puts a binary in `~/.cargo/bin`. `war admin update` does not manage it and
 will not overwrite it. Update it the same way you installed it.
 
 ## cargo-binstall
@@ -114,8 +114,8 @@ at that tag with `cargo binstall --manifest-path crates/openwarrant-cli`.
 
 What it does not do: binstall downloads the archive over HTTPS from the
 release, but it does not read the `.sha256` beside it, so the checksum
-`install.sh` and `war update` insist on is not checked. The binary lands in
-`~/.cargo/bin`, which `war update` treats as unmanaged; update it with
+`install.sh` and `war admin update` insist on is not checked. The binary lands in
+`~/.cargo/bin`, which `war admin update` treats as unmanaged; update it with
 `cargo binstall` again.
 
 ## Homebrew
@@ -150,18 +150,18 @@ Setting the tap up is the owner's step, once:
 4. For each later release, render again and commit. Nothing in this
    repository pushes to the tap.
 
-A `war` installed by Homebrew is updated with `brew upgrade`; `war update`
+A `war` installed by Homebrew is updated with `brew upgrade`; `war admin update`
 treats it as unmanaged.
 
 ## The one way to update
 
 ```bash
-war update --check   # what is published, and how this build compares
-war update           # install the newest release on this build's channel
+war admin update --check # what is published, and how this build compares
+war admin update         # install the newest release on this build's channel
 ```
 
 - **The channel follows the running build.** A prerelease build such as
-  `1.0.0-alpha.2` is on the preview channel, so `war update` offers
+  `1.0.0-alpha.2` is on the preview channel, so `war admin update` offers
   prereleases. A stable build is offered stable releases. `--preview` forces
   the preview channel.
 - **Newer means newer by SemVer precedence.** A build newer than every
@@ -188,7 +188,7 @@ What it refuses:
 Beside a managed link, any other `war` on `PATH` is reported
 `update.not-ours` and left untouched.
 
-`OPENWARRANT_RELEASES_URL` points `war update` at another releases list.
+`OPENWARRANT_RELEASES_URL` points `war admin update` at another releases list.
 Every use is reported `update.source`, because that server's checksums are
 the ones believed.
 
@@ -198,10 +198,10 @@ When a newer release is published, `war` prints one line on stderr after a
 command finishes:
 
 ```text
-war: v1.0.0-alpha.3 is published (this is 1.0.0-alpha.2). Update: war update --to 1.0.0-alpha.3
+war: v1.0.0-alpha.3 is published (this is 1.0.0-alpha.2). Update: war admin update --to 1.0.0-alpha.3
 ```
 
-It installs nothing; only `war update` installs.
+It installs nothing; only `war admin update` installs.
 
 **What it sends.** At most once a day, `war` starts itself in the background
 and makes one GET to the releases list:
@@ -223,7 +223,7 @@ request:
 
 - when stderr is not a terminal;
 - under `--json`;
-- for `war update`, `war version` and `war mcp`;
+- for `war admin update`, `war admin version` and `war admin mcp`;
 - when either of these is set to a non-empty value:
   - `OPENWARRANT_NO_UPDATE_CHECK=1` turns it off for you;
   - `CI` turns it off in CI (most CI systems set it).
@@ -237,7 +237,7 @@ catches a corrupt, truncated or substituted download.
 A checksum from the same release is **not a signature**. It does not show
 who made the release. Someone able to replace the archive on the release
 page, or the account that publishes it, can replace its checksum too.
-Releases are not signed today, and `war update` reports that on every
+Releases are not signed today, and `war admin update` reports that on every
 install as `update.unsigned`. Whether and how to sign them is an open
 question (OW-WAR-0143, Q-001).
 
@@ -250,12 +250,12 @@ nothing inside it can fix that. Three commands get out:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"   # and add this line to your shell profile
-war version                            # the new build, and any old `war` it shadows
+war admin version                      # the new build, and any old `war` it shadows
 ```
 
-`install.sh` names any older `war` that comes first on `PATH`. `war version`
+`install.sh` names any older `war` that comes first on `PATH`. `war admin version`
 shows every `war` on `PATH` and what each one is. Once the new one runs
-first, remove the old one. After that, `war update` keeps the install
+first, remove the old one. After that, `war admin update` keeps the install
 current.
 
 ## Which build is this?
@@ -277,11 +277,11 @@ There are four build classes:
 | `unreleased` | built from a git checkout, with its commit and whether tracked files were modified (`dirty`). |
 | `unknown` | neither source was available. It is never taken for a release. |
 
-`war version` (and `war doctor`) print the class, commit, dirty flag and
+`war admin version` (and `war admin doctor`) print the class, commit, dirty flag and
 profile of the running binary, and every `war` on `PATH`.
-`war version --json` carries them under `result.build`. A build of the same
+`war admin version --json` carries them under `result.build`. A build of the same
 version as a release, but not the release itself, is told `update.unreleased`
-by `war update --check`, never `update.current`.
+by `war admin update --check`, never `update.current`.
 
 ## Version skew: text newer than the binary
 
@@ -291,14 +291,14 @@ have, and an agent would read the old binary's refusal as a rule of the
 repository. Two stamps say which `war` the text came with:
 
 - AGENTS.md ends with `<!-- openwarrant agents-md: written by war X -->`,
-  written by the `war init` or `war agents-md` that made it. The line sits
+  written by the `war init` or `war admin agents-md` that made it. The line sits
   inside the managed block (below), so a CLAUDE.md carrying the block is
   read the same way;
 - the Claude Code plugin's `.claude-plugin/plugin.json` `version` is the
   `war` release it ships with (it moves every release), read from the
   repository root and from `$CLAUDE_PLUGIN_ROOT` when the harness sets it.
 
-`war doctor` and `war prime` compare each stamp with the running version and
+`war admin doctor` and `war view prime` compare each stamp with the running version and
 warn `install.version-skew`, naming both versions and the update command,
 when the stamp is newer. An equal or older stamp, or a file with none (written
 before the stamps existed), says nothing.
@@ -312,14 +312,16 @@ else. `war` keeps one small block in them, and nothing more:
 <!-- openwarrant:begin -->
 <!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->
 Ordinary coding needs no Warrant and no ticket: work here as in any repository.
-Tracked work, when there is some: `war start` takes the next ready Warrant and prints
-only what it needs; `war done <id> --note "what you did"` closes it.
-`war view prime` lists what is open, one line each.
+Tracked work, when there is some: run `war start` before reading anything else (it takes
+the next ready item, or `war start T8` a named one, by id or words of its title, and
+prints only what it needs). Don't read docs/tickets/ directly: it costs far more. Close
+it with your last test run:
+`<your tests> && war done --note "what you did"`. `war view prime` lists all.
 <!-- openwarrant agents-md: written by war 1.0.0-alpha.6 -->
 <!-- openwarrant:end -->
 ```
 
-- `war agents-md --block` inserts or updates it in every root `AGENTS.md`
+- `war admin agents-md --block` inserts or updates it in every root `AGENTS.md`
   and `CLAUDE.md` that exists, or writes an `AGENTS.md` holding only the
   block when neither does. `--file <path>` names another file (created when
   absent); `--stdout` prints the block. A `CLAUDE.md` that is a link to
@@ -330,7 +332,7 @@ only what it needs; `war done <id> --note "what you did"` closes it.
   with it has only the lines between the markers rewritten. Every byte
   outside the markers stays as it was, and a second run changes nothing.
 - The block never holds the Warrant you are working on or any other state
-  that changes: `war prime` says that, and the file stays stable. The one
+  that changes: `war view prime` says that, and the file stays stable. The one
   exception is one you ask for: `--ready <N>` lists up to five ready Warrants
   in `AGENTS.md`, never `CLAUDE.md`, for a harness with no prompt hook. Only
   running it again refreshes the list, a plain `--block` keeps it, and
@@ -344,7 +346,7 @@ only what it needs; `war done <id> --note "what you did"` closes it.
 - `war init` writes the full AGENTS.md guide (which ends with the block)
   when there is none, and adds the block to an `AGENTS.md` or `CLAUDE.md`
   you already have, printing one line per file it touched.
-- `war doctor` reports each root file's block: `doctor.agents-block` when it
+- `war admin doctor` reports each root file's block: `doctor.agents-block` when it
   is this `war`'s, `doctor.agents-block-missing`, `doctor.agents-block-stale`
   (written by an older `war`, or edited between the markers), and
   `doctor.agents-block-malformed`. A block a newer `war` wrote is version
@@ -353,16 +355,16 @@ only what it needs; `war done <id> --note "what you did"` closes it.
 The sections of these files are also records that plans can cite
 (`md:CLAUDE.md#testing`); [docs/TYPES.md](TYPES.md) has the details.
 
-## Signing setup: `war doctor`
+## Signing setup: `war admin doctor`
 
 Ordinary work needs no signing setup. When a person wants to sign off with
-`war sign --ssh-sign`, `war doctor` probes what that needs without signing
+`war sign --ssh-sign`, `war admin doctor` probes what that needs without signing
 anything: `ssh-keygen` on `PATH`, the agent behind `SSH_AUTH_SOCK` and the
 keys `ssh-add -L` lists, `docs/authority/roles.toml` (a human with the
 authorizer or resolver role and an `ssh_principal`), and an
 `docs/authority/allowed_signers` line for that principal whose key the agent
 holds. Each missing piece is a WARN that says what to run or add. At a
-terminal, `war doctor --fix-signing` walks through them: it signs nothing,
+terminal, `war admin doctor --fix-signing` walks through them: it signs nothing,
 writes `roles.toml` or `allowed_signers` only when the file does not exist
 yet (from your answers, after showing the exact bytes and asking), and for a
 file that exists prints the lines to add by hand, because no command edits

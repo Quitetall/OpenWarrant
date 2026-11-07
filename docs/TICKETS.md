@@ -19,12 +19,40 @@ are added. Existing manifest-and-atoms records remain supported. Optional
 human sign-off supplies assurance; it does not define whether work exists.
 `war plan promote` adds a field in place; `war plan new --from` is the legacy directory workflow.
 
+## One item, three levels
+
+There is one item and one format. Its level is derived from its fields and never
+stored:
+
+| Level | What makes it one | Done means |
+|---|---|---|
+| **Ticket** (default) | nothing extra | the agent says it is done |
+| **Warrant** | a trigger, such as a test | the trigger passed |
+| **Order** | a required human signature | the trigger passed, if any, and a person signed at the end |
+
+`war create "..."` makes a Ticket. `--test "<command>"` makes it a Warrant, and
+`war done` runs the test and closes the work only on a pass. `--sign` makes it an
+Order: a milestone that ticks only when a person signs
+(`war sign <id>/<item> --ssh-sign`), and `war view prime` marks it `Order`.
+`war plan promote <id>` does either later, in place, with the same id. The
+permissions `--path`, `--tool` and `--command` are separate from the level: they
+say how the work may run, and none declared means no limit (docs/GO.md).
+
+The daily commands are six: `init`, `create`, `start`, `done`, `status`, `check`.
+Each takes `--interactive` for a person at a terminal (`--guided` on `init`), and
+`war` alone opens Mission Control (docs/TUI.md). `war sign` stays for humans. The
+earlier spellings in this page that are not among the six (`war admin claim`,
+`war view show`, `war plan add`) are the groups' own; the top-level forms they
+had (`war claim`, `war show`, `war add`) still work and are retiring
+(docs/COMMANDS.md).
+
 ## The loop in three commands
 
 ```bash
 war create "Add password reset" --item "Reset endpoint" --item "Email template"
 war start                                   # takes the next ready ticket; prints only what its work needs
 war done --note "POST /reset, rate-limited" # closes the ticket you hold: every item, in one call
+war status                                  # where the work stands
 ```
 
 `war start` claims the ticket whole, so nobody else takes it, and prints a short human brief. With `--json`, it also returns the complete
@@ -66,7 +94,7 @@ More, when you need them:
 | `war plan add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
 | `war done <item> --check` | run the item's tests and KPIs and tick at **observed** only when they pass; a plain `war done` ticks as **claimed** |
 | `war evidence kpi run <ticket>` | run every KPI, journal each value, and say latest, best and target |
-| `war evidence verify <item>` / `war sign <item> --ssh-sign` | an independent verdict, or a human's sign-off, of one item: the **independent** and **signed** levels |
+| `war evidence verify <item>` / `war sign <item> --ssh-sign` | an independent verdict, or a human's sign-off, of one item: the **independent** and **signed** rungs of the tick ladder |
 
 Every command takes `--json` and answers with the same `oh.war/report/v1`
 envelope as the rest of `war`. Read-only views inspect the applicable records and claims; context compilation
@@ -130,7 +158,7 @@ its own ticket) is refused (`ticket.part-of-cycle`).
 New Markdown sources use header fields. In legacy sources each is one optional
 line in `manifest.toml` (`type = "bug"`,
 `labels = [...]`, `part_of = "t-e9a1"`), absent when unset: a ticket written
-before they existed reads, and is worked, byte for byte as it was. `war edit`
+before they existed reads, and is worked, byte for byte as it was. `war plan edit`
 adds, replaces or removes exactly that line and journals the change
 (`ticket.edited`). In `war plan model` the epic link is a `part_of` relation, as
 each item is `part_of` its ticket and each `after` is a `depends_on`.
@@ -229,7 +257,7 @@ Nobody signed anything. The next agent's `war view prime` shows only what is lef
 
 ## Claims
 
-`war claim` takes an item (or, with a ticket id, the whole ticket) so no other
+`war admin claim` takes an item (or, with a ticket id, the whole ticket) so no other
 agent works on it. A second agent's claim is refused and names who holds it and
 since when. Of two agents claiming at the same instant, exactly one wins.
 `war done` refuses an item nobody claimed, or someone else did, so two agents
@@ -253,7 +281,7 @@ A claim is a lease. It carries `lease_until`, 30 minutes after it was taken
 keeps its claims without thinking about them. A renewal touches the lock
 file's modification time and nothing else. When a lease runs out, the holder
 probably stopped: `war view ready` offers the item again (`lease ran out`), and a
-plain `war claim` takes it, journalled as `ticket.claim_reclaimed` with whom
+plain `war admin claim` takes it, journalled as `ticket.claim_reclaimed` with whom
 it was taken from and when their lease ended. A claim with a live lease that
 is older than two hours (`claim_ttl_minutes`, counted from when it was
 taken, whatever its renewals) can still be taken with `war admin claim --steal`,
@@ -289,7 +317,7 @@ says so: the local claim is given back, a claim that landed refuses other
 agents until its lease runs out, and a retry from the same session takes it
 back. `war view ready`
 reads this machine's claims only; a claim held elsewhere is refused at
-`war claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
+`war admin claim`. Nothing is signed: the commit is written with `--no-gpg-sign`
 under a fixed `war` identity, and pushes skip hooks.
 
 ### Branches that merge
@@ -373,9 +401,9 @@ revision now, and nothing is written; read again and retry. On `done` and
 `edit` the compare and the write are one step. Without `--if-rev` every
 command behaves as it always has.
 
-### What `war next` offers first
+### What `war status --next` offers first
 
-`war next` and `war view ready` give one order, and `war evidence go`
+`war status --next` and `war view ready` give one order, and `war evidence go`
 starts work in the same one (FORMAT-1.0 §11.5). The candidates are the
 open items nothing they wait on holds back and no live claim holds (a claim
 whose lease ran out holds nothing), and each Warrant with no items that
@@ -396,7 +424,7 @@ ordered by:
 
 The answer is a function of the files, the journals, the claims and the
 time, so ten agents asking at once get the same list and each claims the
-first it can; the claim lock makes exactly one win. `war next --at
+first it can; the claim lock makes exactly one win. `war status --next --at
 <RFC 3339>` answers as of a given time (which leases have run out is judged
 then). With `--json`, each row carries its effective `due` and, when there
 is more than one row to order, its `remaining_secs`.
@@ -416,10 +444,10 @@ A ticket can also be one Format 1.0 document (FORMAT-1.0 §4.1):
 `docs/tickets/<id>.md` or `docs/tickets/<id>/ticket.md`, its frontmatter
 holding `alias`, `uuid`, `summary` and the ticket keys (`priority`, `type`,
 `labels`, `due`, `part_of`, ...), its items the box lines of its units.
-`war claim`, `war done`, `war add`, `war note`, `war admin release`, `war
-admin reopen`, `war next` and `war view ready` work it exactly as they work
+`war admin claim`, `war done`, `war plan add`, `war plan note`, `war admin release`, `war
+admin reopen`, `war status --next` and `war view ready` work it exactly as they work
 a directory ticket: the same claims, the same `--if-rev`, the same order.
-A Format 1.0 ticket with no items is worked as itself: it is a `war next`
+A Format 1.0 ticket with no items is worked as itself: it is a `war status --next`
 candidate, `war admin claim t-x` and `war done t-x` act on the document, no line
 is added, and its done is a `work.item_done` naming the document (`war
 admin reopen t-x` undoes it the same way). An item waits on what its
@@ -427,7 +455,7 @@ document `depends_on` as well as on its own `after`. Each item's revision is the
 of its frontmatter and preamble, the revisions `war plan model` gives. Its
 journal lies in `docs/tickets/<id>/journal.jsonl` and is written in the
 Format 1.0 envelope (below). A command that writes what such a ticket does
-not have — `war edit` (a manifest), `war plan promote`, `war plan add --test` (a
+not have — `war plan edit` (a manifest), `war plan promote`, `war plan add --test` (a
 checks atom) — is refused by name (`ticket.format-document`): edit the
 document itself.
 
@@ -457,7 +485,7 @@ done and a reopening), the later `occurred_at` wins, the greater `id` on a
 tie. A tick
 whose level marker the journal does not back (an `[observed]` with no
 passing run recorded) reads as the level that is backed, and `war check`
-and `war show` say so with a warning, `work.tick-unbacked`.
+and `war view show` say so with a warning, `work.tick-unbacked`.
 
 ### Rule ids renamed
 
@@ -514,12 +542,12 @@ its whole title), through `war view prime --prompt`, within 6,144 bytes and with
 harness with no such hook can read a short list from `AGENTS.md`, which `war admin agents-md --block --ready 3`
 writes; only that command refreshes it, so run it before agents start. `war view prime` lists what
 is open, one line per ticket, and `war view prime <id>` shows one in full.
-Leave what the next agent needs to know with `war note`. Do not ask the human
+Leave what the next agent needs to know with `war plan note`. Do not ask the human
 to sign anything during this loop; nothing in it needs a signature.
 
 Every tick says how it was earned. A plain `war done` is **claimed**: your
 word. When the item (or its Warrant) has a test or a KPI, `war done --check`
-runs them and ticks at **observed** only when they pass; `war show` lists
+runs them and ticks at **observed** only when they pass; `war view show` lists
 them, and an item whose minimum is observed says so in `war view prime`. A failed
 check refuses the tick by name and leaves the claim yours: fix the work and
 run it again.
@@ -593,7 +621,7 @@ human's acts, exactly as before. The ticket stays workable meanwhile.
 Working a ticket does not make recorded evidence stale. A gate with no
 declared `inputs` is bound to the tree it ran over, and the files the loop
 writes — each ticket's manifest, journal, intent and checklist, and the claim
-locks — are outside that binding, so `war claim`, `done` and `note` after
+locks — are outside that binding, so `war admin claim`, `done` and `note` after
 `war evidence record` leave the receipts admissible. Anything else in a
 ticket's directory stays bound. The reasoning, and the limit it states:
 docs/RESOLVING.md, "Working a ticket does not move the tree".

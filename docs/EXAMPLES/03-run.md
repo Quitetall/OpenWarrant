@@ -13,7 +13,7 @@ OW-WAR-0066, *Run: the conformance battery as a service stage*. Two
 ```bash
 war run OW-WAR-0066 STAGE-001
 ls docs/warrants/OW-WAR-0066/{dispatches,gate-runs,submissions}
-war journal OW-WAR-0066 | tail -2
+war admin journal OW-WAR-0066 | tail -2
 ```
 
 - `dispatches/<dispatch-id>.json` — the Stage Dispatch that was compiled for

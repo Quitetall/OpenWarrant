@@ -11,6 +11,42 @@ war create "Describe the outcome" --item "First step" --item "Second step"
 Ordinary coding needs none of this: tickets are there when you want the work
 tracked.
 
+### One item, three levels
+
+There is one item and one format. Its level comes from its fields and is never
+stored:
+
+| Level | What makes it one | Done means |
+|---|---|---|
+| **Ticket** (default) | nothing extra | the agent says it is done |
+| **Warrant** | a trigger, such as a test | the trigger passed |
+| **Order** | a required human signature | the trigger passed, if any, and a person signed at the end |
+
+```bash
+war create "Fix login" --test "cargo test login"        # a Warrant: war done runs the test
+war create "Ship the release" --sign                    # an Order: a person signs it off
+war plan promote <id>                                   # raise a ticket in place: same id, no new document
+```
+
+`--test` and `--sign` are optional and can be added later with `war plan
+promote` (a signature by default; `--test "<cmd>"` makes a Warrant).
+Permissions are separate: `--path "src/**"`, `--tool Bash` and `--command "cargo
+test"` say how the work may run, and never change its level.
+
+### Six commands
+
+`init`, `create`, `start`, `done`, `status`, `check`. Each takes `--interactive`
+at a terminal (on `init` it is `--guided`): it asks for what you did not give,
+then does what the plain command does. Without a terminal, or under `--json`, it
+refuses by name and asks nothing. `war` alone, at a terminal, opens Mission
+Control: **Watch** and **Act** (`Tab`, `1`, `2`), **Records** on `3` and **Repos**
+on `p` ([docs/TUI.md](docs/TUI.md)). `war sign` stays for humans. Earlier
+spellings keep working and are retiring ([docs/COMMANDS.md](docs/COMMANDS.md)).
+
+An opt-in pull-request gate is one command, yours to edit or delete:
+`war init --ci` writes `.github/workflows/openwarrant.yml`, which runs
+`war check --changed` and, with `--test "<command>"`, your tests.
+
 The schemas are in the binary, so setup writes `openwarrant.toml` and the
 instruction block and no `schemas/`. An archive retains the binary's pack.
 `war init --schemas` writes a copy for another tool; files that match stay
@@ -25,8 +61,16 @@ Then work it — no signature, no human step, each command well under a second:
 ```bash
 war start                      # take the next ready ticket; prints only what its work needs
 war done --note "what you did" # close the ticket you hold: every item, in one call
+war status                     # where the work stands, from the records
 war view prime                 # what is open, one line each
 ```
+
+Give an agent a long document by its parts, not whole. `war context` takes a
+Warrant, a document (`docs/TICKETS.md` returns the units that fit the budget and
+names every unit it cut), one section (`docs/TICKETS.md#the-loop-in-three-commands`),
+a few words (`war context "ready tickets"`) or a code path
+(`war context src/lib.rs` returns the work that declares that path). `--strict`
+refuses what does not fit and `--full` returns it all.
 
 `docs/TICKETS.md` has the whole loop. The rest of this page is the governed
 path, which a ticket joins only when someone asks for sign-off
@@ -64,7 +108,7 @@ and touches nothing outside it ([INSTALL](docs/INSTALL.md#the-pointer-block-in-c
 ### One file per Warrant (Format 1.0)
 
 ```bash
-war new "Add password reset" --format 1.0   # writes docs/warrants/APP-WAR-0001.md
+war plan new "Add password reset" --format 1.0   # writes docs/warrants/APP-WAR-0001.md
 war check APP-WAR-0001
 war context APP-WAR-0001                     # what an agent loads to start it
 ```
@@ -165,7 +209,7 @@ war sign DM-WAR-0001 --ssh-sign     # HUMAN: one dialog
 war status --verbose                # DM-WAR-0001: resolved / RQ-001: satisfied
 ```
 
-At every step `war next` says whose act comes next. It never hands an agent a
+At every step `war status --next` says whose act comes next. It never hands an agent a
 signature.
 
 Leave `war view watch --notify-send` running in a terminal and the two human

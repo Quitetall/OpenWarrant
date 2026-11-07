@@ -24,13 +24,13 @@ or a separate model reading the memo, not by the gate.
 ## The records
 
 ```bash
-war show OW-WAR-0065
+war view show OW-WAR-0065
 cat docs/research/tokenizer-approximation.md
 cat docs/warrants/OW-WAR-0065/deliverables.toml     # content_digest of the memo
 war document review OW-WAR-0065                     # today: NOT READY — review-absent
 ```
 
-The Warrant was created with `war new`, its atoms written by hand: an intent
+The Warrant was created with `war plan new`, its atoms written by hand: an intent
 that names what is out of scope (calling a tokenizer), a basis that records
 where the numbers came from, a work order with one deliverable, one milestone
 with one agent stage whose `context_sections` narrows its Dispatch to the
@@ -43,13 +43,13 @@ asks a reviewer to re-run one.
 ## The loop from here
 
 ```bash
-war authorize OW-WAR-0065 && war sign OW-WAR-0065 --ssh-sign     # human
+war sign authorize OW-WAR-0065 && war sign OW-WAR-0065 --ssh-sign     # human
 war evidence record OW-WAR-0065          # runs document.review; today it records NOT READY, honestly
-war verify OW-WAR-0065 --performer claude --bundle               # the memo, its atoms, its record, in one file
+war evidence verify OW-WAR-0065 --performer claude --bundle               # the memo, its atoms, its record, in one file
 # hand the bundle to a separate context; ingest the verdicts
-war verify OW-WAR-0065 --response verdicts.toml
+war evidence verify OW-WAR-0065 --response verdicts.toml
 war evidence record OW-WAR-0065          # now the gate passes: review present
-war resolve OW-WAR-0065 && war sign OW-WAR-0065 --ssh-sign       # human
+war sign resolve OW-WAR-0065 && war sign OW-WAR-0065 --ssh-sign       # human
 ```
 
 ## What to copy
