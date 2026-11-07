@@ -231,6 +231,46 @@ pub fn default_targets(root: &Utf8Path) -> Vec<Utf8PathBuf> {
     }
 }
 
+/// Whether `text` (a `CLAUDE.md`) imports the root `AGENTS.md` with Claude Code's
+/// `@path` syntax, outside a code fence: `@AGENTS.md` or `@./AGENTS.md` as a
+/// word of its own. Such a `CLAUDE.md` already reads the block through
+/// `AGENTS.md`, so a second copy in it would be read twice.
+#[must_use]
+pub fn imports_agents(text: &str) -> bool {
+    let mut fenced = false;
+    for line in text.lines() {
+        let t = line.trim_start();
+        if t.starts_with("```") || t.starts_with("~~~") {
+            fenced = !fenced;
+            continue;
+        }
+        if !fenced
+            && line
+                .split_whitespace()
+                .any(|w| matches!(w, "@AGENTS.md" | "@./AGENTS.md"))
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// `text` with its one block removed, with the line ending after it, and a
+/// blank line before it that would otherwise be left doubled.
+fn without_block(text: &str, block: &instruction::Block) -> String {
+    let mut start = block.start;
+    let mut end = block.end;
+    if text[end..].starts_with("\r\n") {
+        end += 2;
+    } else if text[end..].starts_with('\n') {
+        end += 1;
+    }
+    if text[..start].ends_with("\n\n") {
+        start -= 1;
+    }
+    format!("{}{}", &text[..start], &text[end..])
+}
+
 /// Set the block in each of `targets` (absolute paths under `root`). Every
 /// file is read and checked before any is written, so a refusal writes
 /// nothing; a file that does not exist is created holding the block alone.
@@ -306,6 +346,28 @@ pub fn write_blocks_with(
                 continue;
             }
         };
+        // A CLAUDE.md that imports AGENTS.md reads the block through it, so it
+        // holds none of its own; one written before is taken out.
+        if path.file_name() == Some("CLAUDE.md")
+            && imports_agents(text)
+            && (root.join("AGENTS.md").is_file()
+                || targets.iter().any(|t| t.file_name() == Some("AGENTS.md")))
+        {
+            match instruction::find_block(text) {
+                Ok(Some(block)) => planned.push((
+                    rel(path),
+                    Some(Pending {
+                        real,
+                        before: existing.clone(),
+                        after: without_block(text, &block),
+                    }),
+                    "deduplicated",
+                )),
+                Ok(None) => planned.push((rel(path), None, "imported")),
+                Err(e) => report.push(refusal(&rel(path), &e)),
+            }
+            continue;
+        }
         let rows = ready.filter(|_| path.file_name() != Some("CLAUDE.md"));
         match instruction::upsert_with(text, version(), rows) {
             Ok((out, change)) => {
@@ -379,6 +441,22 @@ pub fn doctor_for(root: &Utf8Path, running: &str) -> Vec<Diagnostic> {
             continue;
         };
         any = true;
+        if name == "CLAUDE.md" && imports_agents(&text) && root.join("AGENTS.md").is_file() {
+            out.push(if instruction::find_block(&text).ok().flatten().is_some() {
+                Diagnostic::warn(
+                    "doctor.agents-block-duplicate",
+                    name,
+                    "CLAUDE.md imports AGENTS.md and also holds its own openwarrant block, so an \
+                     agent reads it twice. `war admin agents-md --block` removes the copy",
+                )
+            } else {
+                Diagnostic::pass(
+                    "doctor.agents-block",
+                    "CLAUDE.md imports AGENTS.md, which carries the openwarrant block",
+                )
+            });
+            continue;
+        }
         let scan = instruction::scan(&text);
         if let Some(e) = scan.problems.first() {
             out.push(Diagnostic::warn(
@@ -539,6 +617,61 @@ mod tests {
         );
         std::fs::remove_dir_all(root).unwrap();
         std::fs::remove_dir_all(elsewhere).unwrap();
+    }
+
+    #[test]
+    fn a_claude_md_importing_agents_md_holds_no_block() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = Utf8PathBuf::from_path_buf(tmp.path().to_path_buf()).unwrap();
+        std::fs::write(root.join("AGENTS.md"), "# Agents\n").unwrap();
+        std::fs::write(root.join("CLAUDE.md"), "# Claude\n\n@AGENTS.md\n").unwrap();
+        let w = write_blocks(&root, &default_targets(&root)).unwrap();
+        let changes: Vec<_> = w.iter().map(|w| w.change).collect();
+        assert_eq!(changes, ["inserted", "imported"]);
+        let claude = std::fs::read_to_string(root.join("CLAUDE.md")).unwrap();
+        assert_eq!(claude, "# Claude\n\n@AGENTS.md\n");
+        assert!(
+            doctor_for(&root, version())
+                .iter()
+                .all(|d| d.rule != "doctor.agents-block-duplicate")
+        );
+    }
+
+    #[test]
+    fn a_duplicate_block_in_an_importing_claude_md_is_removed() {
+        let tmp = tempfile::tempdir().unwrap();
+        let root = Utf8PathBuf::from_path_buf(tmp.path().to_path_buf()).unwrap();
+        let block = instruction::block_text(version());
+        std::fs::write(root.join("AGENTS.md"), format!("# Agents\n\n{block}\n")).unwrap();
+        let claude = format!("# Claude\n\n@AGENTS.md\n\n{block}\n");
+        std::fs::write(root.join("CLAUDE.md"), &claude).unwrap();
+        assert!(
+            doctor_for(&root, version())
+                .iter()
+                .any(|d| d.rule == "doctor.agents-block-duplicate")
+        );
+        let w = write_blocks(&root, &default_targets(&root)).unwrap();
+        let changes: Vec<_> = w.iter().map(|w| w.change).collect();
+        assert_eq!(changes, ["unchanged", "deduplicated"]);
+        assert_eq!(
+            std::fs::read_to_string(root.join("CLAUDE.md")).unwrap(),
+            "# Claude\n\n@AGENTS.md\n"
+        );
+        // Twice changes nothing.
+        let w = write_blocks(&root, &default_targets(&root)).unwrap();
+        assert_eq!(
+            w.iter().map(|w| w.change).collect::<Vec<_>>(),
+            ["unchanged", "imported"]
+        );
+    }
+
+    #[test]
+    fn an_import_in_a_fence_or_another_word_is_no_import() {
+        assert!(imports_agents("see @AGENTS.md for rules\n"));
+        assert!(imports_agents("@./AGENTS.md\n"));
+        assert!(!imports_agents("```\n@AGENTS.md\n```\n"));
+        assert!(!imports_agents("mail@AGENTS.md.example\n@AGENTS.mdx\n"));
+        assert!(!imports_agents("AGENTS.md\n"));
     }
 
     #[cfg(unix)]

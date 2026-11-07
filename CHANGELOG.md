@@ -6,6 +6,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `war init` and `war admin agents-md --block` wrote the openwarrant block into a
+  `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it
+  twice. Such a `CLAUDE.md` now gets no block, a copy written before is removed, and
+  `war admin doctor` warns `doctor.agents-block-duplicate` until it is.
+
 ### Changed
 
 - `war admin mcp` serves seven tools by default (`war_create`, `war_start`,
