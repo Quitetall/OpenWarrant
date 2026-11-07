@@ -201,7 +201,8 @@ written on main only. `conformance/views.toml` is the one list of view paths,
 and `conformance/views.py` is what every check reads it with.
 
 - **A pull request carries no views.** Fast CI's `views` step refuses one
-  that adds, edits or deletes a view, naming each path (`views.pr`), and one
+  that adds or edits a view, naming each path (`views.pr`; a deletion is
+  allowed, so a removed master's views can go with it), and one
   that touches a resolved Warrant's projection (`views.record`).
   `python3 conformance/views.py drop --base origin/main` takes them out.
 - **Views are still checked.** Fast CI's `corpus` step compiles them fresh

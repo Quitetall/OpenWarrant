@@ -115,7 +115,7 @@ jobs:
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
       # Acceptance needs the base: on a pull request HEAD^1 is the target branch.
       # `corpus` compiles the views fresh in a scratch worktree and checks them
-      # there; `views` refuses a pull request that adds, edits or deletes a view
+      # there; `views` refuses a pull request that adds or edits a view
       # (conformance/views.toml). On main the Views workflow writes them, so
       # `views` runs on pull requests and queued merges only.
       - name: Record, views, and candidate acceptance

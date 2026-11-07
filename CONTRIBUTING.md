@@ -159,8 +159,8 @@ Apache-2.0.
 4. **Commit masters, never views.** Views (the paths in
    `conformance/views.toml`) are written on main only, by the Views workflow
    after each push (docs/STORAGE.md, "Views on main"). `war compile` still
-   writes them locally for reading; fast CI refuses a pull request that adds,
-   edits or deletes one (`views.pr`), and compiles them fresh in a scratch
+   writes them locally for reading; fast CI refuses a pull request that adds
+   or edits one (`views.pr`; deleting one is allowed), and compiles them fresh in a scratch
    worktree to check them. `python3 conformance/views.py drop --base origin/main`
    takes them back out of a branch.
 5. **Open a pull request.** Describe the diff you are actually submitting, not

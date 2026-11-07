@@ -105,6 +105,17 @@ else
     vw_fail "hand-edited view refused" "exit $st: $(head -3 <<<"$out" | tr '\n' '|')"
 fi
 
+# Paired: deleting a view is not carrying one (a removed master's views go with it).
+vw_git checkout -q -f -b vw-delete "$VW_BASE"
+vw_git rm -q docs/generated/HISTORY.md
+vw_git commit -qm "delete a view"
+out=$(vw_views pr --base "$VW_BASE"); st=$?
+if [[ $st -eq 0 ]]; then
+    vw_ok "deleting a view is allowed" "views.pr passes a deletion"
+else
+    vw_fail "deleting a view is allowed" "exit $st: $(head -3 <<<"$out" | tr '\n' '|')"
+fi
+
 # ---- 4. a resolved Warrant's projection: refused in a PR ----
 vw_git checkout -q -f -b vw-record "$VW_BASE"
 printf '\nedited\n' >> "$VW_W/docs/warrants/$VW_RESOLVED/generated/WAR.md"
@@ -205,5 +216,5 @@ vw_git checkout -q -f -- .
 
 git -C "$REPO_ROOT" worktree remove --force "$VW_W" 2>/dev/null
 git -C "$REPO_ROOT" worktree prune 2>/dev/null
-for b in vw-masters vw-hand vw-record; do git -C "$REPO_ROOT" branch -q -D "$b" 2>/dev/null; done
+for b in vw-masters vw-hand vw-delete vw-record; do git -C "$REPO_ROOT" branch -q -D "$b" 2>/dev/null; done
 [[ "$VW_TMP" == */tmp.* ]] && /usr/bin/rm -rf -- "$VW_TMP"

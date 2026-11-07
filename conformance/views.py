@@ -6,8 +6,9 @@ A pull request edits masters; after each push to main the Views workflow
 compiles and commits the views. The paths are conformance/views.toml, the one
 list. Every command here reads it, and nothing else decides what a view is.
 
-  views.py pr --base REF          refuse a change that adds, edits or deletes a
-                                  view, or a resolved Warrant's projection
+  views.py pr --base REF          refuse a change that adds or edits a view
+                                  (deleting one is allowed), or that touches a
+                                  resolved Warrant's projection
   views.py changed                after `war compile` in this tree: print each
                                   changed view; refuse (exit 1) when anything
                                   that is not a view changed
@@ -138,6 +139,8 @@ def cmd_pr(args) -> int:
     at_base = marker_in_commit(top, base, views.marker)
     at_head = marker_in_commit(top, "HEAD", views.marker)
     refused = []
+    status = git("diff", "--name-status", "--no-renames", "-z", base, "HEAD", cwd=top).split("\0")
+    deleted = {status[i + 1] for i in range(0, len(status) - 1, 2) if status[i] == "D"}
     for path in diff_paths(top, base, "HEAD"):
         if views.kind(path, at_base) == "record":
             refused.append(
@@ -148,7 +151,9 @@ def cmd_pr(args) -> int:
             # Resolved in this change: its projection becomes the record now,
             # and `verify` holds it to a fresh compilation.
             continue
-        elif views.kind(path, at_base) == "derived":
+        elif views.kind(path, at_base) == "derived" and path not in deleted:
+            # A deletion is allowed: the views of a master this change removes
+            # go with it, and main's compile restores any whose master remains.
             refused.append(
                 f"views.pr: {path}: a derived view ({LIST}); pull requests carry masters "
                 "only, and main's Views workflow writes views"
