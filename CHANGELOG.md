@@ -6,7 +6,22 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- One work order, one place. A claim records its repository, origin URL, worktree,
+  branch and base commit, and `war start` prints them as the brief's first line
+  (`work in <wt> (repo <name>, branch <b>, from <commit>)`), as do `war status <id>`,
+  `war view show`, `war status --next` and Mission Control's claim detail. `war start`,
+  `war done` and `war note` on work held from another worktree are refused
+  (`work.other-worktree`) naming it; claiming for another actor in this checkout needs
+  `--here` (`dispatch.here`); `war start hpr:t-...` is refused (`work.other-repo`)
+  naming that repository, its pin and where to work. Plant 260.
+
 ### Fixed
+
+- `war start --worktree` on a `docs/work/` master looked for a `manifest.toml` and
+  refused it as uncommitted; it now checks the master's document, and refuses one
+  edited since the base commit, as it does a single-file ticket.
 
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it
