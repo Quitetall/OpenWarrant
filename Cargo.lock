@@ -992,7 +992,7 @@ dependencies = [
 
 [[package]]
 name = "openwarrant-cli"
-version = "1.0.0-alpha.6"
+version = "1.0.0-alpha.7"
 dependencies = [
  "blake3",
  "camino",
