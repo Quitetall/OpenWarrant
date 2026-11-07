@@ -977,6 +977,10 @@ fn instructions_on_init(root: &Utf8Path, namespace: &str) -> Result<Vec<String>,
                     w.path,
                     crate::instructions::version()
                 )),
+                "deduplicated" => Some(format!(
+                    "{}: removed its openwarrant block; it imports AGENTS.md, which carries it",
+                    w.path
+                )),
                 _ => None,
             })),
             Err(crate::instructions::Refused::Blocks(report)) => lines.extend(

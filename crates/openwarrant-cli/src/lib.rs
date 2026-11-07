@@ -7846,6 +7846,10 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
                                     "inserted" => "added the openwarrant block at its end",
                                     "updated" => "updated the openwarrant block",
                                     "linked" => "a link to a file above; written through it",
+                                    "imported" => "imports AGENTS.md, which carries the block; none added",
+                                    "deduplicated" => {
+                                        "imports AGENTS.md, which carries the block; its own copy was removed"
+                                    }
                                     _ => "the openwarrant block is current; nothing changed",
                                 }
                             )
