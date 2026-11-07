@@ -10,7 +10,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
 use super::model::{
-    Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow, Row,
+    ClaimRow, Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow,
+    Row,
 };
 use super::{argv, watch};
 
@@ -256,15 +257,18 @@ pub fn open_answer(m: &mut Model) {
     });
 }
 
+/// Who holds `target`: a claim on it, on the ticket it belongs to, or on an
+/// item of the ticket it names.
+fn holder<'a>(m: &'a Model, target: &str) -> Option<&'a ClaimRow> {
+    let ticket = |t: &'a str| t.split('/').next().unwrap_or(t);
+    let wanted = target.split('/').next().unwrap_or(target);
+    m.snap.claims.iter().find(|c| ticket(&c.target) == wanted)
+}
+
 /// `a` on work: a note on `target`, told to an agent in the holder's
 /// workspace if Herdr has one there.
 pub fn open_note(m: &mut Model, target: String) {
-    let workspace = m
-        .snap
-        .claims
-        .iter()
-        .find(|c| c.target == target || target.starts_with(&format!("{}/", c.target)))
-        .and_then(|c| c.workspace.clone());
+    let workspace = holder(m, &target).and_then(|c| c.workspace.clone());
     let pane = workspace.as_ref().and_then(|w| {
         m.live
             .agents
@@ -509,10 +513,7 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
                 None
             }
             KeyCode::Enter => {
-                let held =
-                    m.snap.claims.iter().any(|c| {
-                        c.target == *target || target.starts_with(&format!("{}/", c.target))
-                    });
+                let held = holder(m, target).is_some();
                 Some(Effect::Say {
                     title: format!("note on {target}"),
                     argv: argv::note(target, text.trim()),
