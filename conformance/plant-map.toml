@@ -451,8 +451,11 @@ plants = ["84-study-recorder.sh", "87-eval.sh"]
 
 [[rule]]
 name = "the command surface"
-paths = ["crates/openwarrant-cli/src/main.rs", "docs/COMMANDS.md", "docs/cli/**"]
-plants = ["130-small-surface.sh", "131-old-spellings.sh"]
+paths = [
+    "crates/openwarrant-cli/src/main.rs", "crates/openwarrant-cli/src/surface.rs",
+    "docs/COMMANDS.md", "docs/cli/**",
+]
+plants = ["130-small-surface.sh", "131-old-spellings.sh", "195-surface-folds.sh"]
 
 [[rule]]
 name = "design notes"

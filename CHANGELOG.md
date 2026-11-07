@@ -28,6 +28,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `war status --next`, `--ready` and `--view`, `war start --claim`, and `war done
+  --release` and `--reopen` are the commands they fold, envelope included. The
+  old spellings keep working. A retiring top-level spelling says so on stderr at
+  a terminal, or anywhere with `OPENWARRANT_DEPRECATIONS=warn`; a pipe sees
+  nothing. `docs/COMMANDS.md` has a parity table, and a test holds it to the
+  command tree.
 - `war init --ci` writes one opt-in workflow running `war check --changed` and
   the repository's tests on each pull request. `--test` names the tests;
   otherwise they are found from what the repository holds.

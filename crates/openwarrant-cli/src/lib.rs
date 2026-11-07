@@ -122,6 +122,7 @@ pub mod standing_cmd;
 pub mod states;
 pub mod status;
 pub mod status_brief;
+pub mod surface;
 pub mod telemetry;
 pub mod ticket;
 pub mod timeline;
@@ -824,6 +825,15 @@ enum DailyCommand {
         /// With `--worktree`: the commit the worktree starts from (default HEAD).
         #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
+        /// Only take it, with no brief: `war admin claim`.
+        #[arg(long, conflicts_with = "worktree")]
+        claim: bool,
+        /// With --claim: the paths or globs it will write.
+        #[arg(long, num_args = 1.., requires = "claim")]
+        paths: Vec<String>,
+        /// With --claim: take a claim past its TTL. Journalled.
+        #[arg(long, requires = "claim")]
+        steal: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -851,6 +861,15 @@ enum DailyCommand {
         /// is UNKNOWN, never a pass.
         #[arg(long)]
         check: bool,
+        /// Give the claim back without finishing it: `war admin release`.
+        #[arg(long, requires = "target", conflicts_with_all = ["note", "check", "reopen"])]
+        release: bool,
+        /// Untick a done item: `war admin reopen`. Needs --reason.
+        #[arg(long, requires_all = ["target", "reason"], conflicts_with_all = ["note", "check"])]
+        reopen: bool,
+        /// With --reopen: why it is open again; journalled.
+        #[arg(long, requires = "reopen")]
+        reason: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
         /// Act as of this time (RFC 3339) instead of now: the claim's
@@ -903,6 +922,22 @@ enum DailyCommand {
         /// The pending human acts (`oh.war/corpus-pending/v1`) instead of the status.
         #[arg(long, conflicts_with = "alias")]
         pending: bool,
+        /// What is ready, and whose step it is: `war view next`.
+        #[arg(long, conflicts_with_all = ["alias", "timeline", "pending", "ready"])]
+        next: bool,
+        /// With --next: answer as of this time (RFC 3339) instead of now.
+        #[arg(long, value_name = "RFC3339", requires = "next")]
+        at: Option<String>,
+        /// What can start now, most urgent first: `war view ready`.
+        #[arg(long, conflicts_with_all = ["alias", "timeline", "pending"])]
+        ready: bool,
+        /// With --ready: for this actor.
+        #[arg(long = "as", value_name = "ACTOR", requires = "ready")]
+        actor: Option<String>,
+        /// One projection of a Warrant, `war view show`'s: `full_warrant`,
+        /// `status`, or any other it names.
+        #[arg(long, value_name = "PROJECTION", requires = "alias")]
+        view: Option<String>,
     },
     /// Check the records deterministically, without any agent.
     ///
@@ -3041,6 +3076,7 @@ pub fn entrypoint() -> ExitCode {
         }
     };
     ticket::live::after(root.as_deref(), heard, actor, changed, json);
+    surface::announce(json);
     // OW-WAR-0143: after everything the command printed, at most one stderr
     // line when a newer release is published. It never waits on the network.
     // M12: a group's member is named by its own word (`war admin update` is
@@ -3686,12 +3722,43 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             Ok(ticket_answer(mode, "create", &outcome))
         }
         DailyCommand::Done {
+            target: Some(target),
+            release: true,
+            if_rev,
+            actor,
+            ..
+        } => run_admin(
+            ctx,
+            AdminCommand::Release {
+                target,
+                if_rev,
+                actor,
+            },
+        ),
+        DailyCommand::Done {
+            target: Some(target),
+            reopen: true,
+            reason: Some(reason),
+            if_rev,
+            actor,
+            ..
+        } => run_admin(
+            ctx,
+            AdminCommand::Reopen {
+                target,
+                reason,
+                if_rev,
+                actor,
+            },
+        ),
+        DailyCommand::Done {
             target,
             note,
             if_rev,
             check,
             actor,
             at,
+            ..
         } => {
             answer_at(at.as_deref())?;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
@@ -3761,6 +3828,18 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 Some(output::value(&outcome)),
             ))
         }
+        // W1.6: the folds. Each is the command it always was, envelope included.
+        DailyCommand::Status { next: true, at, .. } => {
+            run_view_member(ctx, ViewCommand::Next { at })
+        }
+        DailyCommand::Status {
+            ready: true, actor, ..
+        } => run_view_member(ctx, ViewCommand::Ready { actor }),
+        DailyCommand::Status {
+            alias: Some(alias),
+            view: Some(view),
+            ..
+        } => run_view_member(ctx, ViewCommand::Show { alias, view }),
         DailyCommand::Status {
             alias: Some(alias), ..
         } if warrants::kind_of(&alias) == warrants::IdKind::Light => {
@@ -3782,6 +3861,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             alias,
             timeline,
             pending,
+            ..
         } => {
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
@@ -4114,10 +4194,28 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
         }
         DailyCommand::Start {
             id,
+            claim: true,
+            paths,
+            steal,
+            actor,
+            ..
+        } if !id.is_empty() => run_admin(
+            ctx,
+            AdminCommand::Claim {
+                target: id.join(" "),
+                paths,
+                steal,
+                actor,
+                at: None,
+            },
+        ),
+        DailyCommand::Start {
+            id,
             worktree,
             print,
             base,
             actor,
+            ..
         } => {
             let id = (!id.is_empty()).then(|| id.join(" "));
             if worktree {
@@ -6454,6 +6552,11 @@ fn run_view(ctx: &Ctx, command: ViewGroup) -> Result<u8, Box<dyn std::error::Err
                 alias: None,
                 timeline: true,
                 pending: false,
+                next: false,
+                at: None,
+                ready: false,
+                actor: None,
+                view: None,
             },
         ),
     }
