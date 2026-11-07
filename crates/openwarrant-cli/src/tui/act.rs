@@ -334,8 +334,9 @@ fn dispatch_effect(
 }
 
 fn after_answer() -> String {
-    "Recorded. A question answers no running agent by itself: the agent reads this on its next \
-     `war start` or `war view show`."
+    "Recorded in this checkout. A question answers no running agent by itself: one here reads \
+     this on its next `war start` or `war view show`, and one in a worktree once this is \
+     committed and reaches its branch."
         .to_owned()
 }
 
@@ -709,7 +710,10 @@ fn form_lines(m: &Model, form: &Form) -> (String, Vec<Line<'static>>, String) {
                 field("Answer", text, !on_who),
                 field("As (a human role in roles.toml)", who, *on_who),
                 Line::from(""),
-                Line::from("An agent reads this on its next `war start` or `war view show`."),
+                Line::from(
+                    "An agent here reads this on its next `war start` or `war view show`; one in \
+                     a worktree, once it is merged across.",
+                ),
             ],
             "Enter next, an empty answer takes the recommendation · Esc cancels".to_owned(),
         ),
