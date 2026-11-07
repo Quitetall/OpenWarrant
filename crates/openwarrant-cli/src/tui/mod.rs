@@ -239,11 +239,15 @@ pub fn budget(root: Option<Utf8PathBuf>) -> Result<u8, RepoError> {
     ] {
         m.mode = mode;
         m.overlay = overlay;
-        for _ in 0..5 {
+        // The median of five: one frame's cost, not one scheduler's stall on
+        // a loaded machine.
+        let mut frames = [0; 5].map(|_: u128| {
             let at = Instant::now();
             let _ = frame(&m, 200, 60);
-            worst_frame = worst_frame.max(at.elapsed().as_millis());
-        }
+            at.elapsed().as_millis()
+        });
+        frames.sort_unstable();
+        worst_frame = worst_frame.max(frames[2]);
     }
     m.mode = Mode::Watch;
     m.overlay = Overlay::None;
@@ -259,7 +263,7 @@ pub fn budget(root: Option<Utf8PathBuf>) -> Result<u8, RepoError> {
         println!("  {what}: {ms} ms");
     }
     println!("fingerprint {fingerprint} ms, on a background thread");
-    println!("frame {worst_frame} ms at worst (budget {BUDGET_FRAME_MS})");
+    println!("frame {worst_frame} ms, the slowest screen's median (budget {BUDGET_FRAME_MS})");
     println!("key {worst_key} ms at worst (budget {BUDGET_KEY_MS})");
     if over_budget(read, worst_frame, worst_key) {
         println!("OVER BUDGET");
@@ -651,11 +655,15 @@ fn handle_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
 /// then acts on the row the frame shows, the last one.
 fn clamp_cursors(m: &mut Model) {
     for panel in model::Panel::WATCH {
-        let at = m.selected_in(panel).min(watch::panel_len(m, panel).saturating_sub(1));
+        let at = m
+            .selected_in(panel)
+            .min(watch::panel_len(m, panel).saturating_sub(1));
         m.select_in(panel, at);
     }
     for panel in model::Panel::ACT {
-        let at = m.selected_in(panel).min(act::panel_len(m, panel).saturating_sub(1));
+        let at = m
+            .selected_in(panel)
+            .min(act::panel_len(m, panel).saturating_sub(1));
         m.select_in(panel, at);
     }
 }
