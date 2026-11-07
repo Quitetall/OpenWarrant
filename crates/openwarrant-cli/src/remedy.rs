@@ -133,6 +133,7 @@ pub const TABLE: &[&str] = &[
     // dead end. A test below reads the source for `"sign.…"` literals and
     // holds this list to all of them.
     "sign.who",
+    "sign.signs-alone",
     "sign.ssh-principal",
     "sign.sweep-stopped",
     "sign.ssh-refused",
@@ -352,6 +353,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
         | "sign.not-draftable"
         | "sign.needs-decision"
         | "sign.response-exists"
+        | "sign.signs-alone"
         | "sign.would-record" => Remedy::new(
             Kind::Informational,
             &["war", "sign", "--list"],

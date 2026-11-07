@@ -567,10 +567,16 @@ fn a_breaking_change_is_an_order_with_one_acceptance_per_party() {
     );
     assert!(shown.contains("Order"), "{shown}");
 
-    // Nobody but a person closes it, and the refusal names what they sign.
+    // Nobody but a person closes it: an agent's done hands it over, naming
+    // what they sign.
     assert_eq!(json(&t.hpr, "a", &["start", &id])["exit_code"], 0);
+    let done = json(&t.hpr, "a", &["done", &id]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(
+        done["result"]["ticket_state"], "awaiting_signature",
+        "{done}"
+    );
     let out = run(&t.hpr, "a", &["done", &id]);
-    assert!(!out.status.success(), "{}", text(&out));
     assert!(text(&out).contains("war sign"), "{}", text(&out));
 }
 

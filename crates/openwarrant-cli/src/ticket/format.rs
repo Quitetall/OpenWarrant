@@ -416,9 +416,16 @@ fn content_end(text: &str, start: usize, end: usize) -> usize {
 pub fn append_item(text: &str, line: &str) -> String {
     let nl = newline_of(text);
     let doc = format::parse(text.as_bytes());
+    // Never under a signed milestone: the item would take its minimum, and
+    // an agent's work would silently become a person's.
+    let signature = |u: &&format::Unit| {
+        u.record_type == "milestone"
+            && u.fields.get("min").and_then(|v| v.as_str()) == Some("signed")
+    };
     if let Some(last) = doc
         .units
         .iter()
+        .filter(|u| !signature(u))
         .flat_map(|u| &u.items)
         .max_by_key(|i| i.end)
     {

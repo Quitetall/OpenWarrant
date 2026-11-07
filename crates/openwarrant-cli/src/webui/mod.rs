@@ -1835,7 +1835,10 @@ fn build_view(
             json!({"warrants": rows})
         }
         "help" => help(corpus)?,
-        "tickets" => crate::ticket::board(&crate::ticket::Store::open(repo, None)?)?,
+        "tickets" => {
+            let store = crate::ticket::Store::open(repo, None)?;
+            crate::ticket::board(&store, &crate::work::Work::tickets_of(&store))?
+        }
         // `war progress --snapshot`: attributed work reports, their links,
         // the frontier — the viewer's own validated snapshot.
         "snapshot" => json!({"snapshot": crate::progress_viewer::json_snapshot_with(corpus)?}),

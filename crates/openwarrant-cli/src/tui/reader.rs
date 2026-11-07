@@ -612,13 +612,13 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
         ),
     };
 
-    // Tickets (t-67ed): `ticket::board`, the same answer `war view tickets`,
+    // Tickets (t-67ed): `ticket::board` over the one list, the same answer `war view tickets`,
     // `war view show` and `war view ready` give. No row signs or runs.
     let store = crate::ticket::Store::open(&repo, None);
     let tickets = store
         .as_ref()
         .map_err(ToString::to_string)
-        .and_then(|s| crate::ticket::board(s).map_err(|e| e.to_string()))
+        .and_then(|s| crate::ticket::board(s, &work).map_err(|e| e.to_string()))
         .map_or_else(
             |e| {
                 vec![Row {

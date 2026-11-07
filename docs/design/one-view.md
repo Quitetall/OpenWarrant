@@ -14,7 +14,7 @@ work through one list, and an item's level is derived from its fields.
 | `war view next` | `next.rs`: `Corpus::tickets`, `status`, `frontier` | tickets plus stages and acts |
 | `war check` | `ticket::check`, `format_doc::check`, `corpus` | each encoding by its own rules |
 | `war view context` | `model::build`, `model::build_tickets` | records, not work items |
-| TUI, web page | `ticket::board` over `tickets()`, `console::board` | tickets only, plus acts |
+| TUI, web page | `ticket::board` over `Work`, `console::board` | tickets only, plus acts |
 | `frontier`, `console::board` | `Corpus::frontier`: stages of unresolved Warrants | stages, not items |
 
 No reader lists a single-file Warrant (`docs/warrants/<alias>.md`, FORMAT-1.0 §4.1):
@@ -77,8 +77,38 @@ piece of work.
 context` now find a single-file Warrant. `next` lists it, and work read in place,
 under `elsewhere`, which is absent when there is none.
 
+## An Order reaches its signer
+
+`war done` on an Order ticks what an agent may, runs what decides it, and hands the
+rest to a person. The handover is a journal event, `work.awaits_signature`, because
+nothing else tells an Order just created from one its agent finished: with no work
+items of its own, the two look the same. The queue reads that event and the document
+together, so a level is still never stored, and an item added or reopened since takes
+the Order out of the queue until the next `war done`.
+
+`war done` exits 0. An agent's act succeeded and nothing is left for it, as when it
+ticks one item of many, and a non-zero code would send a harness back to retry work
+that passed. Closed is not what an exit code says in either case: `ticket_state` is
+`awaiting_signature`, and `awaiting_signature` lists the targets.
+
+A sign-off is not a `sign::Pending`. It is one item's own record (`ticket::acts::sign`)
+with none of those acts' drafting or batching, so it joins the queue at
+`console::review_rows_with`, `war sign --list` and `next`. `war sign --all` and
+`--batch` leave each out and name its command, and `war sign <item>` signs it alone.
+
+## Single-file Warrants and Orders in status and the frontier
+
+`Work::documents` is every single-file item whose level is not Ticket, in
+`docs/warrants/` or `docs/tickets/`. `war status --verbose`, `--json` (as
+`single_file`) and `war plan frontier` list them beside the corpus projection, not in
+it. `status::build` feeds the committed `CORPUS_STATUS` files, so a document in it
+would make every `war create --test` a drift of `generated/`, and `status.rs` is pinned
+besides. `Work::documents` follows `read_in_place` and the tick tracker, which stay out
+of the projection for the same reason. The terse status already counts them by level.
+
+The frontier's `documents` is set for the command alone. A reader that dispatches
+(`console`, `graph`) sees stages only, because no document has a stage to dispatch.
+
 ## What remains of W1.1
 
-- The TUI (`ticket::board`), another agent's.
-- Single-file Warrants in `status::build` and the frontier.
 - FORMAT wording for the levels, which waits for a signing sitting.

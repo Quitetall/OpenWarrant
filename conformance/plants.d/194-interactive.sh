@@ -32,13 +32,16 @@ else
     IA_N0=$(ls "$IA_R/docs/tickets" 2>/dev/null | wc -l)
     IA_BAD=""
     for c in "create --interactive" "start --interactive" "done --interactive" \
-        "status --interactive" "check --interactive"; do
+        "status --interactive" "check --interactive" \
+        "create -I" "start -I" "done -I" "status -I" "check -I"; do
         # shellcheck disable=SC2086
         out=$(ia $c 2>&1 </dev/null); rc=$?
         [[ $rc -ne 0 ]] && grep -q 'interactive.no-terminal' <<<"$out" || IA_BAD="$IA_BAD [$c: $rc]"
     done
     out=$(ia init --interactive 2>&1 </dev/null); rc=$?
     [[ $rc -ne 0 ]] && grep -q 'needs a terminal' <<<"$out" || IA_BAD="$IA_BAD [init: $rc]"
+    out=$(ia init -I 2>&1 </dev/null); rc=$?
+    [[ $rc -ne 0 ]] && grep -q 'needs a terminal' <<<"$out" || IA_BAD="$IA_BAD [init -I: $rc]"
     IA_N1=$(ls "$IA_R/docs/tickets" 2>/dev/null | wc -l)
     if [[ -z "$IA_BAD" && $IA_N0 -eq $IA_N1 ]]; then
         ia_ok "no terminal, no prompt" "all six refused by name; nothing written"

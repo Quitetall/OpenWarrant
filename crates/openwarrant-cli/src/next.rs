@@ -621,10 +621,21 @@ fn judged(
     // OW-WAR-0141: a question waiting before its Warrant exists is a human's
     // act too (`answer`), read from `docs/intake/` by questions.rs.
     next.actions.extend(crate::questions::intake_actions(repo));
+    // An Order an agent finished: a person's, whatever the ticket store's
+    // read says below, which reports a store it could not read.
+    let sign_offs = crate::console::sign_offs(corpus).unwrap_or_default();
+    next.actions.extend(sign_offs.iter().map(|s| Action {
+        actor: Actor::Human,
+        warrant: s.ticket.clone(),
+        action: "sign off".to_owned(),
+        command: format!("war sign {} --ssh-sign", s.target),
+        why: format!("\"{}\" is finished and waits on a signature", s.title),
+        judged: None,
+    }));
     if !next.actions.is_empty() {
         next.nothing = None;
     }
-    judge(repo, pending, &mut next);
+    judge(repo, pending, &sign_offs, &mut next);
     preset_acts(repo, &mut next);
     let side = tickets();
     ready_rows_into(side.ready, &mut next);
@@ -720,11 +731,26 @@ fn ready_rows_into(rows: Result<Vec<ReadyItem>, RepoError>, next: &mut Next) {
 /// dozen reads of it. The sweep is over `pending` itself — the queue the
 /// actions were derived from, read by the caller in this process — not a
 /// second read of it (`sign::dry_run_all`, t-280c).
-pub fn judge(repo: &Repository, pending: &[Pending], next: &mut Next) {
-    let verdicts = match sign::dry_run_all(repo, pending) {
+pub fn judge(
+    repo: &Repository,
+    pending: &[Pending],
+    sign_offs: &[crate::ticket::acts::SignOff],
+    next: &mut Next,
+) {
+    let mut verdicts = match sign::dry_run_all(repo, pending) {
         Ok(report) => verdicts(pending, &report),
         Err(_) => std::collections::BTreeMap::new(),
     };
+    for s in sign_offs {
+        let judged = if s.eligible.is_empty() {
+            Judged::WouldRefuse {
+                rule: "sign.no-eligible-signer".to_owned(),
+            }
+        } else {
+            Judged::WouldRecord
+        };
+        verdicts.insert(s.target.clone(), judged);
+    }
     for a in &mut next.actions {
         let Some(target) = a.command.strip_prefix("war sign ") else {
             continue;
@@ -1066,6 +1092,7 @@ mod tests {
             claimed: 0,
             done: 0,
             blocked: 2,
+            documents: Vec::new(),
         };
         let mut report = crate::diagnostic::Report::default();
         report.push(crate::diagnostic::Diagnostic::unknown(
