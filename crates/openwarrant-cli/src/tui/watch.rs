@@ -223,7 +223,7 @@ fn detail(m: &mut Model) {
             (
                 format!("claim on {}", c.target),
                 format!(
-                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\n{}\n\
+                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\nheld: {}\n{}\n\
                      A lock is renewed by the holder's `war` commands. It says when one last ran, \
                      not that an agent is alive.",
                     c.actor.as_deref().unwrap_or("UNKNOWN (the lock could not be read)"),
@@ -236,6 +236,10 @@ fn detail(m: &mut Model) {
                     } else {
                         c.scope.join(", ")
                     },
+                    c.remote.as_ref().map_or_else(
+                        || "in this clone".to_owned(),
+                        |r| format!("on another machine, read from the remote `{r}`")
+                    ),
                     m.snap
                         .collisions
                         .iter()
@@ -544,6 +548,12 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
             Span::raw(format!("{} ", c.target)),
             Span::styled(span(m.now_unix.saturating_sub(c.since_unix)), dim()),
         ];
+        if let Some(remote) = &c.remote {
+            first.push(Span::styled(
+                format!(" REMOTE ({remote})"),
+                Style::default().fg(Color::Magenta),
+            ));
+        }
         if collided {
             first.push(Span::styled(
                 " COLLISION",

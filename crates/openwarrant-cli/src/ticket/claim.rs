@@ -78,6 +78,11 @@ pub struct Claim {
     /// Alpha.6 coordination metadata; absent on retained legacy claims.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub coordination: Option<Box<super::scopes::Coordination>>,
+    /// Set only as read: the claims remote this claim was read from, when no
+    /// lock of this clone holds it (it is held on another machine). Never
+    /// written to a lock or a published claim.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub elsewhere: Option<String>,
 }
 
 impl Claim {
@@ -140,6 +145,34 @@ impl Claim {
         self
     }
 
+    /// For a claim held on another machine, where and for how long:
+    /// `on origin, workspace /w, lease 12m left`. `None` for a claim of this
+    /// clone.
+    #[must_use]
+    pub fn held_on(&self, now: u64) -> Option<String> {
+        let remote = self.elsewhere.as_ref()?;
+        let workspace = self
+            .coordination
+            .as_ref()
+            .map(|c| format!(", workspace {}", c.workspace))
+            .unwrap_or_default();
+        let lease = if self.lease_expired(now) {
+            "lease ran out".to_owned()
+        } else {
+            format!("lease {} left", super::render::ago(self.lease_left(now)))
+        };
+        Some(format!("on {remote}{workspace}, {lease}"))
+    }
+
+    /// What a view adds after a holder's age: `, elsewhere on origin, ...`,
+    /// or nothing for a claim of this clone.
+    #[must_use]
+    pub fn where_held(&self, now: u64) -> String {
+        self.held_on(now)
+            .map(|h| format!(", elsewhere {h}"))
+            .unwrap_or_default()
+    }
+
     /// The claimed thing, `t-x` or `t-x/i-y`.
     #[must_use]
     pub fn target(&self) -> String {
@@ -160,6 +193,9 @@ pub fn lock_name(ticket: &str, item: Option<&str>) -> String {
 }
 
 /// What an attempt to take a lock found.
+// A value returned once per claim attempt and matched at once: boxing the
+// claim would cost an allocation on every refusal for no saving.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum Taken {
     /// The lock is now this claim.
@@ -597,6 +633,7 @@ mod tests {
             lease_until: None,
             lease_until_unix: None,
             coordination: None,
+            elsewhere: None,
         }
     }
 

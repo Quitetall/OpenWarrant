@@ -227,6 +227,7 @@ paths = [
 plants = [
     "188-live-updates.sh", "189-done-enforce.sh", "79-host.sh", "77-typed-demo.sh",
     "121-instruction-records.sh", "184-format-spec-acceptance.sh", "192-repos.sh",
+    "210-two-machines.sh",
 ]
 
 [[rule]]
@@ -360,7 +361,7 @@ paths = [
 plants = [
     "45-tickets.sh", "55-ticket-projections.sh", "55-evidence-tickets.sh", "76-ticket-features.sh",
     "100-concurrency.sh", "102-concurrency-stress.sh", "103-one-noun.sh", "132-first-done.sh",
-    "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh",
+    "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh", "210-two-machines.sh",
 ]
 
 [[rule]]

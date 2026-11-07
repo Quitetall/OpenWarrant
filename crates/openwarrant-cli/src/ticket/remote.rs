@@ -40,6 +40,13 @@ pub const NOTICE_PREFIX: &str = "refs/openwarrant/notices/";
 /// How long one git call to the remote may take before it reads as
 /// unreachable.
 const DEADLINE: Duration = Duration::from_secs(30);
+/// How long a view waits on the remote before its claims read as `UNKNOWN`.
+const VIEW_DEADLINE: Duration = Duration::from_secs(10);
+/// `[claims] remote_ttl`'s default: how many seconds the claims and notices
+/// read from the remote serve every view before they are read again.
+pub const DEFAULT_TTL_SECS: u64 = 30;
+/// Under git's common directory: the remote's claims as last read.
+const SEEN_FILE: &str = "openwarrant/remote-claims.json";
 
 /// `[claims]` in `openwarrant.toml`.
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -58,6 +65,11 @@ pub struct Policy {
     /// `[tickets] claim_ttl_minutes`.
     #[serde(default)]
     pub claim_ttl_minutes: Option<u64>,
+    /// How many seconds what was read from the remote (its claims, and the
+    /// notices other clones left) serves before it is read again (default
+    /// [`DEFAULT_TTL_SECS`]).
+    #[serde(default)]
+    pub remote_ttl: Option<u64>,
 }
 
 /// The ref a lock is published as.
@@ -289,6 +301,147 @@ pub fn read_notices(root: &Utf8Path, remote: &str) -> Result<Vec<String>, String
     Ok(out)
 }
 
+/// One claim the remote holds: its lock name here, and the claim (`None`:
+/// the ref's commit is not a claim, which holds all the same).
+pub type RemoteClaim = (String, Option<Claim>);
+
+/// Every claim the remote holds: one `ls-remote`, one fetch of the commits
+/// this clone lacks. Each claim is marked as read from `remote`.
+pub fn read_claims(root: &Utf8Path, remote: &str) -> Result<Vec<RemoteClaim>, String> {
+    let pattern = format!("{REF_PREFIX}*");
+    let listed = git_within(root, &["ls-remote", remote, &pattern], None, VIEW_DEADLINE)?;
+    if !listed.ok {
+        return Err(first_line(&listed.stderr));
+    }
+    let refs: Vec<(String, String)> = listed
+        .stdout
+        .lines()
+        .filter_map(|l| l.split_once('\t'))
+        .filter(|(_, r)| r.starts_with(REF_PREFIX))
+        .map(|(c, r)| (c.to_owned(), r.to_owned()))
+        .collect();
+    let mut missing = Vec::new();
+    for (commit, refname) in &refs {
+        let have = git(
+            root,
+            &["cat-file", "-e", &format!("{commit}^{{commit}}")],
+            None,
+        )?;
+        if !have.ok {
+            missing.push(refname.as_str());
+        }
+    }
+    if !missing.is_empty() {
+        let mut args = vec![
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "--no-write-fetch-head",
+            remote,
+        ];
+        args.extend(missing);
+        let fetched = git_within(root, &args, None, VIEW_DEADLINE)?;
+        if !fetched.ok {
+            return Err(first_line(&fetched.stderr));
+        }
+    }
+    let mut out = Vec::new();
+    for (commit, refname) in refs {
+        let shown = git(root, &["cat-file", "commit", &commit], None)?;
+        if !shown.ok {
+            return Err(first_line(&shown.stderr));
+        }
+        let message = shown
+            .stdout
+            .split_once("\n\n")
+            .map_or("", |(_, m)| m)
+            .trim();
+        let claim = serde_json::from_str::<Claim>(message).ok().map(|mut c| {
+            c.elsewhere = Some(remote.to_owned());
+            c
+        });
+        let name = format!("{}.lock", &refname[REF_PREFIX.len()..]);
+        out.push((name, claim));
+    }
+    Ok(out)
+}
+
+/// The remote's claims as a view sees them: read at most once per `ttl`
+/// seconds for every worktree of the clone, the answer kept under git's
+/// common directory. A remote that could not be read is kept as such for as
+/// long, so a dead remote costs one wait per `ttl`, not one per view.
+pub fn seen_claims(
+    root: &Utf8Path,
+    common_dir: &Utf8Path,
+    remote: &str,
+    ttl: u64,
+    now: u64,
+) -> Result<Vec<RemoteClaim>, String> {
+    #[derive(Serialize, Deserialize)]
+    struct Seen {
+        remote: String,
+        read_unix: u64,
+        #[serde(default)]
+        claims: Vec<RemoteClaim>,
+        #[serde(default)]
+        unknown: Option<String>,
+    }
+    let file = common_dir.join(SEEN_FILE);
+    let cached = std::fs::read(&file)
+        .ok()
+        .and_then(|b| serde_json::from_slice::<Seen>(&b).ok())
+        .filter(|s| s.remote == remote && now >= s.read_unix && now - s.read_unix < ttl);
+    let seen = cached.unwrap_or_else(|| {
+        let read = read_claims(root, remote);
+        let seen = Seen {
+            remote: remote.to_owned(),
+            read_unix: now,
+            unknown: read.as_ref().err().cloned(),
+            claims: read.unwrap_or_default(),
+        };
+        if let Ok(bytes) = serde_json::to_vec(&seen) {
+            if let Some(dir) = file.parent() {
+                let _ = std::fs::create_dir_all(dir);
+            }
+            let _ = crate::compile::atomic::write(&file, bytes);
+        }
+        seen
+    });
+    match seen.unknown {
+        Some(why) => Err(why),
+        None => Ok(seen.claims),
+    }
+}
+
+/// Fetch `branch` from `remote` into a ref of this clone's own,
+/// `refs/openwarrant/upstream/<branch>`, touching no branch or remote-tracking
+/// ref of the person's. Returns its commit.
+pub fn fetch_branch(root: &Utf8Path, remote: &str, branch: &str) -> Result<String, String> {
+    let local = format!("refs/openwarrant/upstream/{branch}");
+    let spec = format!("+refs/heads/{branch}:{local}");
+    let fetched = git_within(
+        root,
+        &[
+            "fetch",
+            "--quiet",
+            "--no-tags",
+            "--no-write-fetch-head",
+            remote,
+            &spec,
+        ],
+        None,
+        VIEW_DEADLINE,
+    )?;
+    if !fetched.ok {
+        return Err(first_line(&fetched.stderr));
+    }
+    let sha = git(root, &["rev-parse", "--verify", "--quiet", &local], None)?;
+    if !sha.ok {
+        return Err(format!("{local} is not there after the fetch"));
+    }
+    Ok(sha.stdout.trim().to_owned())
+}
+
 /// What a push found.
 #[derive(Debug)]
 pub enum Push {
@@ -345,6 +498,12 @@ fn push_within(
         Err(Unanswered::Unfinished(e)) => return Push::Unsettled(e),
     };
     if ran.ok {
+        // What the views read of the remote is stale now: read it again.
+        if refname.starts_with(REF_PREFIX)
+            && let Some(layout) = super::claim::git_layout(root)
+        {
+            let _ = std::fs::remove_file(layout.common_dir.join(SEEN_FILE));
+        }
         return Push::Won;
     }
     // `--porcelain`: a line per ref, `!` when it was rejected. A stale lease,
@@ -489,6 +648,87 @@ mod tests {
     }
 
     const REF: &str = "refs/openwarrant/claims/t-1";
+
+    fn a_claim(actor: &str) -> Claim {
+        Claim {
+            schema: super::super::claim::CLAIM_SCHEMA.to_owned(),
+            claim: format!("c-{actor}"),
+            ticket: "t-1".to_owned(),
+            item: Some("i-1".to_owned()),
+            actor: actor.to_owned(),
+            since: "2026-11-07T00:00:00Z".to_owned(),
+            since_unix: 1,
+            lease_until: None,
+            lease_until_unix: Some(2),
+            coordination: None,
+            elsewhere: None,
+        }
+    }
+
+    #[test]
+    fn the_remotes_claims_are_read_marked_and_kept_for_their_ttl() {
+        let top = tempfile::tempdir().unwrap();
+        let (clone, _) = clone_pushing_through(top.path(), "exit 1");
+        git_in(
+            clone.as_std_path(),
+            &["config", "--unset", "remote.origin.receivepack"],
+        );
+        let common = clone.join(".git");
+        let refname = "refs/openwarrant/claims/t-1--i-1";
+        let commit = commit_for(&clone, &a_claim("bob")).unwrap();
+        assert!(matches!(
+            push(&clone, "origin", refname, Some(&commit), None),
+            Push::Won
+        ));
+        let seen = seen_claims(&clone, &common, "origin", 30, 100).unwrap();
+        assert_eq!(seen.len(), 1);
+        assert_eq!(seen[0].0, "t-1--i-1.lock");
+        let c = seen[0].1.as_ref().unwrap();
+        assert_eq!(
+            (c.actor.as_str(), c.elsewhere.as_deref()),
+            ("bob", Some("origin"))
+        );
+        // Another machine's push moves nothing until the TTL has passed.
+        let other = commit_for(&clone, &a_claim("carol")).unwrap();
+        let r2 = "refs/openwarrant/claims/t-2";
+        Command::new("git")
+            .args(["push", "-q", "origin", &format!("{other}:{r2}")])
+            .current_dir(&clone)
+            .output()
+            .unwrap();
+        assert_eq!(
+            seen_claims(&clone, &common, "origin", 30, 120)
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            seen_claims(&clone, &common, "origin", 30, 131)
+                .unwrap()
+                .len(),
+            2
+        );
+    }
+
+    #[test]
+    fn a_remote_that_cannot_be_read_is_unknown_not_empty() {
+        let top = tempfile::tempdir().unwrap();
+        let (clone, _) = clone_pushing_through(top.path(), "exit 1");
+        let common = clone.join(".git");
+        git_in(
+            clone.as_std_path(),
+            &[
+                "remote",
+                "set-url",
+                "origin",
+                "file:///nonexistent/war-no-remote.git",
+            ],
+        );
+        let read = seen_claims(&clone, &common, "origin", 30, 100);
+        assert!(read.is_err(), "{read:?}");
+        // Kept as unknown for the TTL: a dead remote is one wait, not one per view.
+        assert!(seen_claims(&clone, &common, "origin", 30, 110).is_err());
+    }
 
     #[test]
     fn a_push_past_its_deadline_is_unsettled_not_failed() {
