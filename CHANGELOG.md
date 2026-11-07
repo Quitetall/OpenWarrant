@@ -17,6 +17,9 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `war plan types add interfaces` adds an `interface` document type: numbered
+  clauses two sides build against, each saying how it's verified, with an open
+  value declared `tbd` or `tbr`. `docs/INTERFACES.md` shows it.
 - `war view prime --prompt <text|->` and the plugin's UserPromptSubmit hook put
   the brief of the item a prompt names in context before the first turn. A
   prompt names an item by id, a capital code (`T8`), a double-quoted phrase or

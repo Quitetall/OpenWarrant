@@ -11,7 +11,7 @@ war plan types add ops            # packs/ops/ of this repository, else the ops 
 war plan types add ./my-pack      # or a directory of your own
 ```
 
-The two packs here are also built into `war`, byte for byte, so `war plan
+The packs here are also built into `war`, byte for byte, so `war plan
 types add ops` works in a repository without a `packs/` directory.
 
 `war plan types add` validates every file of the pack against the types the
@@ -25,5 +25,6 @@ install is recorded in `docs/types.toml`.
 |---|---|
 | `ops` | `runbook`, `slo`, `rollout`, `incident-review` |
 | `quality` | `threat-model`, `performance-budget`, `test-charter` |
+| `interfaces` | `interface` |
 
 docs/TYPES.md, "Every development document is a type", has the reference.

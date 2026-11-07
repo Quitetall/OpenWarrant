@@ -243,7 +243,7 @@ fn digest(bytes: &[u8]) -> String {
 
 /// The packs this build ships, installable in any repository: each its
 /// manifest and profile files, the bytes of `packs/<name>/`.
-const BUILTIN_PACKS: [(&str, &[(&str, &str)]); 2] = [
+const BUILTIN_PACKS: [(&str, &[(&str, &str)]); 3] = [
     (
         "ops",
         &[
@@ -281,6 +281,19 @@ const BUILTIN_PACKS: [(&str, &[(&str, &str)]); 2] = [
             (
                 "test-charter.toml",
                 include_str!("../../../packs/quality/test-charter.toml"),
+            ),
+        ],
+    ),
+    (
+        "interfaces",
+        &[
+            (
+                "pack.toml",
+                include_str!("../../../packs/interfaces/pack.toml"),
+            ),
+            (
+                "interface.toml",
+                include_str!("../../../packs/interfaces/interface.toml"),
             ),
         ],
     ),
