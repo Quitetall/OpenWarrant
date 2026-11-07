@@ -114,12 +114,15 @@ impl FormatDocs {
 }
 
 /// Whether `name` is an alias (§5): a record id or `t-<hex>`.
-fn is_alias(name: &str) -> bool {
-    openwarrant_core::relation::is_record_id(name) || openwarrant_core::ticket::is_ticket_id(name)
+pub(crate) fn is_alias(name: &str) -> bool {
+    openwarrant_core::relation::is_record_id(name)
+        || openwarrant_core::ticket::is_ticket_id(name)
+        || openwarrant_core::ticket::is_work_id(name)
+        || openwarrant_core::ticket::is_document_id(name)
 }
 
 /// The ticket store's directory, as `[tickets] dir` names it.
-fn tickets_dir(repo: &Repository) -> Utf8PathBuf {
+pub(crate) fn tickets_dir(repo: &Repository) -> Utf8PathBuf {
     crate::ticket::Store::open(repo, None)
         .map_or_else(|_| repo.root.join(crate::ticket::DEFAULT_DIR), |s| s.dir)
 }
@@ -136,7 +139,11 @@ const fn inner_name(place: Place) -> &'static str {
 /// `ticket.md`): such a directory is never read as a legacy one.
 #[must_use]
 pub fn is_document_dir(dir: &Utf8Path) -> bool {
-    crate::vfs::is_file(dir.join("warrant.md")) || crate::vfs::is_file(dir.join("ticket.md"))
+    crate::vfs::is_file(dir.join("warrant.md"))
+        || crate::vfs::is_file(dir.join("ticket.md"))
+        || dir
+            .file_name()
+            .is_some_and(|id| crate::subject::document_in(dir, id) != crate::subject::Held::None)
 }
 
 fn sorted_entries(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
@@ -207,7 +214,7 @@ pub fn spec_files(repo: &Repository) -> Vec<Utf8PathBuf> {
 
 /// The `profile:` a document's frontmatter names, read without parsing the
 /// document: the first such line between the opening `---` and the next.
-fn frontmatter_profile(text: &str) -> Option<&str> {
+pub(crate) fn frontmatter_profile(text: &str) -> Option<&str> {
     let mut lines = text.trim_start_matches('\u{feff}').lines();
     if lines.next()?.trim_end() != "---" {
         return None;
@@ -232,6 +239,12 @@ pub fn warrant_documents(repo: &Repository) -> FormatDocs {
         profiles: profiles(repo),
         ..FormatDocs::default()
     };
+    work_documents(
+        repo,
+        Place::Warrant,
+        &crate::subject::work_root(repo),
+        &mut out,
+    );
     work_documents(repo, Place::Warrant, &repo.warrants_dir(), &mut out);
     out
 }
@@ -278,6 +291,7 @@ pub fn load(repo: &Repository) -> FormatDocs {
         }
     }
     for (place, dir) in [
+        (Place::Warrant, crate::subject::work_root(repo)),
         (Place::Warrant, repo.warrants_dir()),
         (Place::Ticket, tickets_dir(repo)),
     ] {
@@ -342,12 +356,37 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
         let Some(name) = path.file_name().map(str::to_owned) else {
             continue;
         };
+        let master = dir.ends_with(crate::subject::WORK_ROOT);
         let (alias, file) = if crate::vfs::is_dir(&path) {
-            let inner = path.join(inner_name(place));
-            if !crate::vfs::exists(&inner) {
-                continue;
-            }
+            // The one rule for which file in a directory is the document
+            // (`crate::subject::document_in`): `warrant.md`, `ticket.md`,
+            // `<id>.md` or `<id>-<slug>.md`.
+            let inner = match crate::subject::document_in(&path, &name) {
+                crate::subject::Held::One(inner) => inner,
+                crate::subject::Held::None => continue,
+                crate::subject::Held::Many(files) => {
+                    out.faults.push(Fault {
+                        outcome: Outcome::Refusal,
+                        rule: "format.document-duplicate",
+                        file: repo.relative(&path),
+                        line: 1,
+                        message: format!(
+                            "{name} holds {} documents ({}); a work item has one",
+                            files.len(),
+                            files
+                                .iter()
+                                .filter_map(|f| f.file_name())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        ),
+                    });
+                    continue;
+                }
+            };
             (name, inner)
+        } else if master {
+            // A master is always a directory (docs/design/one-format.md).
+            continue;
         } else if let Some(stem) = name.strip_suffix(".md") {
             if !is_alias(stem) {
                 continue;

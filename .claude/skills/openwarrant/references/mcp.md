@@ -1,13 +1,23 @@
 # Over MCP
 
 `war admin mcp` serves the CLI to any harness over stdio (`war admin mcp --describe`
-prints the table). Every tool answers with the `oh.war/report/v1` envelope as
-structured content. Ordinary work needs none of these tools.
+prints the table). Ordinary work needs none of these tools.
+
+By default it serves the daily set: `war_start`, `war_done`, `war_create`,
+`war_status` (`next`, `ready`, `target` with `view` fold `war_next`,
+`war_ready` and `war_show`), `war_check`, `war_context` and `war_note`.
+`war_start` takes `claim` (the old `war_claim`); `war_done` takes `release`
+and `reopen` with `reason`. A reply is the CLI's text: a finding reads
+`refused (rule): ...` and a nonzero exit ends `exit N, not_ready`. Pass
+`json: true` for the `oh.war/report/v1` envelope (or set `[mcp] structured =
+true`).
+
+`war admin mcp --all` (or `[mcp] tools = "all"`) serves the whole table:
 
 | kind | tools |
 |---|---|
-| tickets (no signature anywhere) | `war_start`, `war_done`, `war_prime`, `war_ready`, `war_claim`, `war_create`, `war_add`, `war_note`, `war_show`, `war_tickets` |
-| read-only | `war_context` (the records a task needs, by id, within a budget), `war_check`, `war_status`, `war_show`, `war_journal`, `war_diff`, `war_gate_list`, `war_sas_status`, `war_resolve_dry_run`, `war_sign_list`, `war_sign_show`, `war_pins`, `war_next`, `war_questions`, `war_answers`, `war_standing_show` |
+| tickets (no signature anywhere) | `war_start`, `war_done`, `war_prime`, `war_ready`, `war_claim`, `war_create`, `war_add`, `war_note`, `war_show`, `war_tickets`, `war_heartbeat` |
+| read-only | `war_context`, `war_check`, `war_status`, `war_journal`, `war_diff`, `war_gate_list`, `war_sas_status`, `war_resolve_dry_run`, `war_sign_list`, `war_sign_show`, `war_pins`, `war_next`, `war_questions`, `war_answers`, `war_standing_show` |
 | request halves (write nothing) | `war_authorize_request`, `war_resolve_request`, `war_verify_request`, `war_sas_accept_request`, `war_plan_request`, `war_plan_validate` |
 | writes an agent makes | `war_new`, `war_deliver`, `war_evidence_record`, `war_compile`, `war_gate_run`, `war_journal_backfill`, `war_dispatch` (journals the dispatch), `war_ask`, `war_standing_apply`, `war_plan_apply` (reviewed=true only) |
 

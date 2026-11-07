@@ -663,6 +663,13 @@ impl Repository {
                 out.push(path);
             }
         }
+        // A Format 1.0 Warrant document is one too, by its state directory
+        // (`crate::subject`): every act reads it through `load_warrant`.
+        for found in crate::subject::all(self) {
+            if !out.contains(&found.state) {
+                out.push(found.state);
+            }
+        }
         out.sort();
         Ok(out)
     }
@@ -680,6 +687,9 @@ impl Repository {
             let dir = self.warrants_dir().join(alias);
             if fs::is_file(dir.join("manifest.toml")) {
                 return Ok(dir);
+            }
+            if let Some(found) = crate::subject::find(self, alias) {
+                return Ok(found.state);
             }
         }
         let dirs = self.warrant_dirs()?;
@@ -706,6 +716,11 @@ impl Repository {
     /// author re-run it once per defect.
     pub fn load_warrant(&self, dir: &Utf8Path) -> Result<Loaded, RepoError> {
         let manifest_path = dir.join("manifest.toml");
+        // One loader, two layouts: a Format 1.0 document lowers to the same
+        // Basis (`crate::subject`, docs/design/one-format.md).
+        if let Some(found) = crate::subject::of_state(dir) {
+            return crate::subject::load(self, &found);
+        }
         let manifest_bytes = fs::read(&manifest_path).map_err(|source| RepoError::Io {
             context: format!("could not read {manifest_path}"),
             source,

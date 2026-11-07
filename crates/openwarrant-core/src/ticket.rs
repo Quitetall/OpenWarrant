@@ -457,6 +457,26 @@ pub fn is_ticket_id(s: &str) -> bool {
     is_hash_id(s, "t-")
 }
 
+/// `w-` and 3 to 16 of `[0-9a-z]`: a work order's hash id in `docs/work/`
+/// (docs/design/one-format.md). The prefix shows the kind, never the tier.
+#[must_use]
+pub fn is_work_id(s: &str) -> bool {
+    is_hash_id(s, "w-")
+}
+
+/// `d-` and 3 to 16 of `[0-9a-z]`: a document's hash id in `docs/work/`.
+#[must_use]
+pub fn is_document_id(s: &str) -> bool {
+    is_hash_id(s, "d-")
+}
+
+/// The id of `uuid` at `len` hex characters under `prefix` (`w-`, `d-`):
+/// the head of the SHA-256 of the UUID's text, as [`ticket_id`].
+#[must_use]
+pub fn hash_id(prefix: &str, uuid: &str, len: usize) -> String {
+    format!("{prefix}{}", &sha_hex(uuid)[..len.clamp(3, 16)])
+}
+
 /// `i-` and 3 to 16 lowercase hex digits (FORMAT-1.0 §5): the tool mints
 /// hex, and an item is never named by hand.
 #[must_use]

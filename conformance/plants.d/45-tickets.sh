@@ -403,7 +403,7 @@ TK_SIGS0=$(find "$PLANT_ROOT/docs" \( -name 'authorization*' -o -name 'resolutio
     printf '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"war_sign","arguments":{"alias":"%s"}}}\n' "$TK7"
     printf '%s\n' '{"jsonrpc":"2.0","id":8,"method":"tools/call","params":{"name":"war_verify_ingest","arguments":{}}}'
 } > "$TK_TX"
-TK_MCP=$(cd "$PLANT_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$REPO_ROOT/$WAR" "$TK_TX" 2>/dev/null)
+TK_MCP=$(cd "$PLANT_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$REPO_ROOT/$WAR" "$TK_TX" --all --json 2>/dev/null)
 command rm -f "$TK_TX"
 if grep -q '"id":2.*"exit_code":0' <<<"$TK_MCP" && grep -q '"id":3.*claimed by mcp-agent' <<<"$TK_MCP" \
     && grep -q '"id":4.*"ticket_state":"done"' <<<"$TK_MCP" \

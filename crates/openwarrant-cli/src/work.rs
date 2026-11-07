@@ -274,6 +274,14 @@ pub struct Work {
     others_unread: Option<String>,
 }
 
+/// The repository-relative documents the corpus compiles.
+fn subject_places(repo: &Repository) -> std::collections::BTreeSet<String> {
+    crate::subject::all(repo)
+        .iter()
+        .map(|f| repo.relative(&f.file))
+        .collect()
+}
+
 impl Work {
     /// Every item of `repo`, in every encoding. Never fails: what could not
     /// be read is named by [`Self::unread`].
@@ -332,6 +340,8 @@ impl Work {
     pub fn elsewhere(repo: &Repository) -> Self {
         let mut work = Self::default();
         let (mut rows, mut faults) = crate::warrants::document_rows(repo);
+        let subjects = subject_places(repo);
+        rows.retain(|r| !subjects.contains(&r.dir));
         let adapted = crate::interop::adapters::load(repo);
         rows.extend(adapted.rows());
         faults.extend(adapted.diagnostics());

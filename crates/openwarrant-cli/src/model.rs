@@ -323,8 +323,13 @@ pub fn build(corpus: &Corpus) -> Result<Model, RepoError> {
     }
     let ownership = corpus.ownership().ok();
 
-    // ---- Warrants and their records.
+    // ---- Warrants and their records. A Format 1.0 document is modelled
+    // from the document itself (`crate::format_doc`), never from its
+    // lowering.
     for e in corpus.entries()? {
+        if crate::subject::is_document_state(&e.dir) {
+            continue;
+        }
         let one = match e.loaded() {
             Ok(one) => one,
             Err(err) => {

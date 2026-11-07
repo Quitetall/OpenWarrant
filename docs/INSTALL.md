@@ -310,13 +310,11 @@ else. `war` keeps one small block in them, and nothing more:
 
 ```markdown
 <!-- openwarrant:begin -->
-<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->
+<!-- Written by `war admin agents-md --block`, which rewrites these lines. -->
 Ordinary coding needs no Warrant and no ticket: work here as in any repository.
-Tracked work, when there is some: run `war start` before reading anything else (it takes
-the next ready item, or `war start T8` a named one, by id or words of its title, and
-prints only what it needs). Don't read docs/tickets/ directly: it costs far more. Close
-it with your last test run:
-`<your tests> && war done --note "what you did"`. `war view prime` lists all.
+Tracked work: `war start` first (the next ready item, or `war start T8` by id or title
+words) prints what it needs, for less than reading docs/tickets/. Close it with your
+last test run: `<your tests> && war done --note "what you did"`. `war view prime` lists all.
 <!-- openwarrant agents-md: written by war 1.0.0-alpha.7 -->
 <!-- openwarrant:end -->
 ```
@@ -343,7 +341,8 @@ it with your last test run:
   (`agents-md.block-unterminated`), an end marker with no begin
   (`agents-md.block-unopened`), and a file whose last code fence never
   closes (`agents-md.fence-unclosed`). Each names the line to fix.
-- `war init` writes the full AGENTS.md guide (which ends with the block)
+- `war init` writes the short AGENTS.md guide (under 4,000 bytes, ending
+  with the block; the full rules are `docs/agents/legacy-warrant-workflow.md`)
   when there is none, and adds the block to an `AGENTS.md` or `CLAUDE.md`
   you already have, printing one line per file it touched.
 - `war admin doctor` reports each root file's block: `doctor.agents-block` when it

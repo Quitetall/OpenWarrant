@@ -485,7 +485,7 @@ command rm -rf "$IK_CTL"
 # title, and an unreviewed apply with no policy — each writes nothing.
 ik_mcp() { # <transcript.jsonl> → the server's reply lines
     (cd "$PLANT_ROOT" && env PATH="$IK_BIN:$PATH" GH_TOKEN="$IK_TOKEN" GITHUB_TOKEN="$IK_TOKEN" \
-        python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$IK_WAR_ABS" "$1" 2>/dev/null)
+        python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$IK_WAR_ABS" "$1" --all --json 2>/dev/null)
 }
 ik_transcript() { # <out> then pairs of <tool> <arguments-json>
     python3 - "$@" <<'PY'
