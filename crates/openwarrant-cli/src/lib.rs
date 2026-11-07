@@ -112,6 +112,7 @@ pub mod schema_typescript;
 pub mod schemas;
 pub mod score;
 pub mod sdk;
+pub mod session_usage;
 pub mod show;
 pub mod sign;
 pub mod signing_probe;
@@ -896,6 +897,12 @@ enum DailyCommand {
         /// With --reopen: why it is open again; journalled.
         #[arg(long, requires = "reopen")]
         reason: Option<String>,
+        /// Journal this usage (`work.usage`) instead of reading the harness's
+        /// own record: a small JSON object, from a file or `-` for stdin,
+        /// `{"model"?, "input"?, "output"?, "cache_read"?, "cache_write"?,
+        /// "tokens"?, "reporter"?}`. Unverified, and it gates nothing.
+        #[arg(long, value_name = "FILE|-", conflicts_with_all = ["release", "reopen"])]
+        usage: Option<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
         /// Act as of this time (RFC 3339) instead of now: the claim's
@@ -967,6 +974,11 @@ enum DailyCommand {
         /// `status`, or any other it names.
         #[arg(long, value_name = "PROJECTION", requires = "alias")]
         view: Option<String>,
+        /// The tokens the records hold, by ticket, actor, model and day
+        /// (`oh.war/usage/v1`). UNKNOWN where nothing was recorded; dollars
+        /// only from a dated `[usage.prices]` table, as an estimate.
+        #[arg(long, conflicts_with_all = ["alias", "timeline", "pending", "next", "ready", "view"])]
+        usage: bool,
     },
     /// Check the records deterministically, without any agent.
     ///
@@ -1926,7 +1938,7 @@ enum ViewCommand {
         /// it is restored. Hidden; the battery's.
         #[arg(long, hide = true)]
         panic_after_setup: bool,
-        /// Draw one frame as text and exit: `watch`, `act`, `records` or
+        /// Draw one frame as text and exit: `watch`, `act`, `records`, `usage` or
         /// `repos`. Hidden; the battery cannot drive a pipe.
         #[arg(long, hide = true, value_name = "WHAT")]
         render: Option<String>,
@@ -3958,9 +3970,21 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             check,
             actor,
             at,
+            usage,
             ..
         } => {
             answer_at(at.as_deref())?;
+            let report = match usage.as_deref().map(session_usage::read_report) {
+                Some(Err(why)) => {
+                    let (rule, message) = why
+                        .split_once(": ")
+                        .unwrap_or(("usage.report-invalid", &why));
+                    let refusal = ticket::Outcome::refused(rule, String::new(), message);
+                    return Ok(ticket_answer(mode, "done", &refusal));
+                }
+                Some(Ok(r)) => Some(r),
+                None => None,
+            };
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let target = match target {
                 Some(t) => t,
@@ -3971,6 +3995,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             };
             let mut outcome =
                 ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
+            // A replay (`--at`) reads no harness's record.
+            if at.is_none() || report.is_some() {
+                session_usage::after_done(&repository.root, &store, &mut outcome, report.as_ref());
+            }
             // OW-WAR-0148 M17: in the ledger's agent mode, done asks for the
             // why. In every other mode nothing here changes.
             if !outcome.is_refused()
@@ -4040,6 +4068,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             view: Some(view),
             ..
         } => run_view_member(ctx, ViewCommand::Show { alias, view }),
+        DailyCommand::Status { usage: true, .. } => {
+            let (repository, store) = ctx.tickets(None)?;
+            let (tickets, _) = store.load_all()?;
+            let (human, value) = tui::usage::report(&repository, &tickets);
+            output::emit(mode, "status", &human, value);
+            Ok(EXIT_OK)
+        }
         DailyCommand::Status {
             alias: Some(alias), ..
         } if warrants::kind_of(&alias) == warrants::IdKind::Light => {
@@ -4469,7 +4504,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             ticket::cache::permit();
             let (repository, store) = ctx.tickets(actor.as_deref())?;
-            let outcome = ticket::start_cmd(&store, id.as_deref())?;
+            let mut outcome = ticket::start_cmd(&store, id.as_deref())?;
+            session_usage::after_start(&repository.root, &store, &mut outcome);
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "start", &outcome))
         }
@@ -6862,6 +6898,7 @@ fn run_view(ctx: &Ctx, command: ViewGroup) -> Result<u8, Box<dyn std::error::Err
                 actor: None,
                 view: None,
                 interactive: false,
+                usage: false,
             },
         ),
     }

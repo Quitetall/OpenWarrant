@@ -44,10 +44,12 @@ of a read, so it arrives after the rest.
 
 The top lines are counts, each read from a record:
 
-- **TOKENS**: tokens the records hold (`war evidence go` node counts and runtime
-  capture receipts), or `UNKNOWN`, with how many runs recorded none. A provider's own
+- **TOKENS**: tokens the records hold (`war evidence go` node counts, runtime
+  capture receipts, and the `work.usage` events `war done` journals from a harness's
+  session record), or `UNKNOWN`, with how many runs recorded none. A provider's own
   estimate is kept out of the total and shown as `est.`. Dollars appear only from a
-  dated `[usage]` price table, labelled as an estimate (`docs/design/tui-usage.md`).
+  dated `[usage.prices]` table, as `~$1.23 est., prices of 2026-11-01`, and a table
+  more than 90 days old says `STALE` beside its date (`docs/design/tui-usage.md`).
 - **CLAIMS**: live claims, how many leases are live and expired.
 - **COLLISIONS**: pairs of claims whose declared paths `ticket::scopes` will not
   call disjoint. Claims that declared nothing conflict with nothing.
@@ -170,6 +172,18 @@ the refusal's own words. `Enter` shows the statement, scope and gate.
 Gate runs grouped by class with verdict and reason, and the receipt each is bound to.
 `x` records the gate again (`war evidence record <alias> --gate <gate>`), an auto
 remedy.
+
+## Usage
+
+What the records say was spent: the total line Watch shows, then the recorded tokens
+by ticket, by actor, by model and by day (newest first). With a dated price table each
+row carries its `~$ est.`, or `no price` when its model has none; without one there
+are no dollars at all. Nothing recorded is one `UNKNOWN` row, never zero. The counts
+are the provider's, read from the harness's own record and unverified: they grant no
+assurance. `war status --usage` prints the same. Watch's Claims panel shows a
+claim's recorded tokens once its work has recorded some (its detail says UNKNOWN
+until then), then the most recently recorded work that no live claim holds. Herdr's live per-pane counts are not
+shown.
 
 ## Journal
 
