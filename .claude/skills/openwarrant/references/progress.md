@@ -21,7 +21,7 @@ missing evidence is not invented. This adapter is an attributed display claim,
 not an SDK assurance record. Unknown implementation stays unknown, and legacy
 resolution alone does not supply the new Verified mark.
 
-For one legacy record: `war status <alias> --json`. Human acts: `war next --json`.
+For one legacy record: `war status <alias> --json`. Human acts: `war status --next --json`.
 Open questions: `war plan questions --open --json`. Stages: `war plan frontier --json`.
 Follow named actors; a pending signature is no reason to wait on other work.
 On lookup failure, report UNKNOWN and the diagnostics rather than zero
