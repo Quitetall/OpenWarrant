@@ -67,6 +67,9 @@ pub struct Scope {
     pub paths: Vec<String>,
     pub tools: Vec<String>,
     pub commands: Vec<String>,
+    /// What it waits on beyond its own repository ([`super::depends`]). Not a
+    /// limit on the work: it says when the work can start.
+    pub depends_on: Vec<String>,
 }
 
 /// `text` with `scope` in its frontmatter.
@@ -83,6 +86,10 @@ pub(crate) fn with_scope(text: &str, scope: &Scope) -> String {
         lines.push_str(&block("paths", &scope.paths));
     }
     let mut requires = Vec::new();
+    if !scope.depends_on.is_empty() {
+        lines.push_str(&block(super::depends::KEY, &scope.depends_on));
+        requires.push(super::depends::KEY.to_owned());
+    }
     if !scope.commands.is_empty() {
         lines.push_str(&block(super::checks::COMMANDS_KEY, &scope.commands));
         requires.push(super::checks::COMMANDS_KEY.to_owned());

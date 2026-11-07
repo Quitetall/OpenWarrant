@@ -99,8 +99,33 @@ Nothing here touches the network or edits the other side. A repository that isn'
 declared or isn't on this machine, or a commit it doesn't hold, reads UNKNOWN. An
 id the pin doesn't hold is refused, never searched for. Local commands carry on.
 
+## Waiting on the other side
+
+A ticket can depend on an item or a clause, here or in a named repository:
+
+```sh
+war create "Use the new step" --depends-on hpr:t-abc
+```
+
+This writes `x.depends_on`, listed in `requires:`. The item stays out of
+`war view ready`, and `war view prime` says why in one line:
+
+```
+held: hpr:t-abc: done upstream, not pinned here (pin 5f951cf85a11, upstream 9cbe852edd4d); move the pin
+```
+
+That line appears once `origin`'s copy is done and fetched, and the pin isn't there
+yet. It's what lets two repositories release on their own cadence. Moving the pin
+and committing is what releases the item, in a ticket of its own if it's more than
+a bump. An explicit `war start` still works: nothing stops ordinary work.
+
+| The dependency is | `ready` | At `war done`, a Ticket | At `war done`, a Warrant or Order |
+|---|---|---|---|
+| Met: the pin holds it done | yes | closes | closes |
+| Open, tbd, or done upstream only | no | warns and closes | refused, nothing written |
+| UNKNOWN | no | warns and closes | UNKNOWN, stays open |
+
 ## What's next
 
-Showing work as *done upstream, not pinned here* is W6 of the lean programme,
-still landing. Until then, link a GitHub issue per feature, with a sub-issue in
-each repository.
+Link a GitHub issue per feature, with a sub-issue in each repository, for what
+W6 hasn't reached yet.

@@ -22,12 +22,17 @@
 //! could be either. A claim with nothing kept, because it was taken without
 //! `war start`, was never promised a comparison: it warns, and says so.
 //!
+//! A dependency beyond the repository ([`super::depends`]) that the pin does
+//! not hold is the same rule again: a Ticket warns and closes; a Warrant or an
+//! Order is refused, or `UNKNOWN` when it could not be read, and stays open.
+//!
 //! Every refusal comes before the first write of `war done`, and no refusal
 //! here writes a record. The rule ids are stable; FORMAT-1.0 does not name
 //! them yet, so they are not under `work.`.
 
 use openwarrant_core::ticks;
 
+use super::depends::{self, Dep};
 use super::live::{self, Standing};
 use super::{Outcome, Store, Ticket, ladder};
 use crate::diagnostic::Diagnostic;
@@ -55,6 +60,13 @@ pub const LEVEL_UNKNOWN: &str = "done.level-unknown";
 pub const SEEN_UNKNOWN: &str = "done.seen-unknown";
 /// A Warrant or an Order worked without `war start`: a warning.
 pub const UNRECORDED: &str = "done.unrecorded";
+
+/// A declared dependency this side does not hold: refused on a Warrant or an
+/// Order; on a Ticket, the warning of the same name.
+pub const DEPENDENCY: &str = "done.dependency";
+/// A declared dependency that could not be read: `UNKNOWN` on a Warrant or an
+/// Order; on a Ticket, the warning of the same name.
+pub const DEPENDENCY_UNKNOWN: &str = "done.dependency-unknown";
 
 /// The journal event of a widening that was let through.
 pub const WIDENED_EVENT: &str = "work.scope_widened";
@@ -105,9 +117,48 @@ pub fn judge(store: &Store, t: &Ticket, what: &str) -> Result<Gate, Box<Outcome>
         )));
     }
     let doc = store.rel(&t.checklist_path);
+    let waiting: Vec<Dep> = depends::of(store, t)
+        .into_iter()
+        .filter(|d| d.state != depends::State::Met)
+        .collect();
     let standing = live::standing(store, id);
     if level == Level::Ticket {
-        return Ok(ticket_gate(standing, what, &doc));
+        let mut gate = ticket_gate(standing, what, &doc);
+        for d in &waiting {
+            let rule = if d.state == depends::State::Unknown {
+                DEPENDENCY_UNKNOWN
+            } else {
+                DEPENDENCY
+            };
+            gate.warnings.push(Diagnostic::warn(
+                rule,
+                doc.clone(),
+                format!("{what} closes with a dependency not held: {}", d.line),
+            ));
+        }
+        return Ok(gate);
+    }
+    if let Some(unknown) = waiting.iter().find(|d| d.state == depends::State::Unknown) {
+        return Err(Box::new(Outcome::unknown(
+            DEPENDENCY_UNKNOWN,
+            doc,
+            format!(
+                "{what} is a {}: {}; nothing was written",
+                level.as_str(),
+                unknown.line
+            ),
+        )));
+    }
+    if let Some(line) = depends::one_line(&waiting) {
+        return Err(Box::new(Outcome::refused(
+            DEPENDENCY,
+            doc,
+            format!(
+                "{what} is a {} and {line}; nothing was written. It closes once this side \
+                 holds it",
+                level.as_str()
+            ),
+        )));
     }
     let mut gate = Gate::default();
     let mut widened = Vec::new();

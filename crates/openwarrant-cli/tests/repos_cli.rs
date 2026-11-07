@@ -318,3 +318,120 @@ fn what_the_pin_does_not_hold_is_never_guessed_at() {
     let out = run(&t.wmd, "o", &["view", "prime"]);
     assert!(out.status.success(), "{}", text(&out));
 }
+
+// ---- dependencies and pin-aware state --------------------------------------
+
+/// A ticket of WMD's waiting on `target`.
+fn waiting(t: &Two, target: &str, more: &[&str]) -> String {
+    let mut args = vec!["create", "The engine feature", "--depends-on", target];
+    args.extend(more);
+    let v = json(&t.wmd, "o", &args);
+    assert_eq!(v["exit_code"], 0, "{v}");
+    git(&t.wmd, &["add", "-A"]);
+    git(&t.wmd, &["commit", "-qm", "wait"]);
+    v["result"]["id"].as_str().unwrap().to_owned()
+}
+
+fn ready(root: &Path) -> String {
+    text(&run(root, "o", &["view", "ready"]))
+}
+
+fn prime(root: &Path) -> String {
+    text(&run(root, "o", &["view", "prime"]))
+}
+
+#[test]
+fn done_upstream_is_not_done_here_until_the_pin_moves() {
+    let t = two();
+    let target = format!("hpr:{}", t.feature);
+    let id = waiting(&t, &target, &[]);
+    // Open on both sides: it waits, and says so.
+    assert!(!ready(&t.wmd).contains(&id), "{}", ready(&t.wmd));
+    assert!(prime(&t.wmd).contains("held: "), "{}", prime(&t.wmd));
+
+    // HPR's agent finishes. Nothing here knows until it is fetched.
+    assert_eq!(json(&t.hpr, "a", &["start", &t.feature])["exit_code"], 0);
+    assert_eq!(json(&t.hpr, "a", &["done", &t.feature])["exit_code"], 0);
+    git(&t.hpr, &["add", "-A"]);
+    git(&t.hpr, &["commit", "-qm", "hpr work"]);
+    git(&t.hpr, &["push", "-q", "origin", "main"]);
+    assert!(
+        !prime(&t.wmd).contains("done upstream"),
+        "{}",
+        prime(&t.wmd)
+    );
+
+    git(&t.sub(), &["fetch", "-q", "origin"]);
+    let said = prime(&t.wmd);
+    assert!(said.contains("done upstream, not pinned here"), "{said}");
+    assert!(!ready(&t.wmd).contains(&id), "{}", ready(&t.wmd));
+
+    // A bump releases it.
+    t.bump();
+    assert!(ready(&t.wmd).contains(&id), "{}", ready(&t.wmd));
+    assert!(!prime(&t.wmd).contains("held: "), "{}", prime(&t.wmd));
+}
+
+#[test]
+fn a_ticket_warns_at_done_and_a_warrant_is_refused() {
+    let t = two();
+    let target = format!("hpr:{}", t.feature);
+    let plain = waiting(&t, &target, &[]);
+    let v = json(&t.wmd, "a", &["start", &plain]);
+    assert_eq!(v["exit_code"], 0, "explicit start is never forbidden: {v}");
+    let out = run(&t.wmd, "a", &["done", &plain]);
+    assert!(out.status.success(), "{}", text(&out));
+    assert!(text(&out).contains("done.dependency"), "{}", text(&out));
+
+    let tested = waiting(&t, &target, &["--test", "true"]);
+    assert_eq!(json(&t.wmd, "a", &["start", &tested])["exit_code"], 0);
+    let out = run(&t.wmd, "a", &["done", &tested]);
+    assert!(!out.status.success(), "{}", text(&out));
+    assert!(text(&out).contains("done.dependency"), "{}", text(&out));
+    assert!(text(&out).contains("nothing was written"), "{}", text(&out));
+}
+
+#[test]
+fn a_dependency_that_cannot_be_read_holds_a_warrant_as_unknown() {
+    let t = two();
+    let target = "nope:t-abc";
+    let tested = waiting(&t, target, &["--test", "true"]);
+    assert!(prime(&t.wmd).contains("UNKNOWN"), "{}", prime(&t.wmd));
+    assert!(!ready(&t.wmd).contains(&tested), "{}", ready(&t.wmd));
+    assert_eq!(json(&t.wmd, "a", &["start", &tested])["exit_code"], 0);
+    let out = run(&t.wmd, "a", &["done", &tested]);
+    assert_eq!(out.status.code(), Some(2), "{}", text(&out));
+    assert!(
+        text(&out).contains("UNKNOWN (done.dependency-unknown)"),
+        "{}",
+        text(&out)
+    );
+    // The local item it holds is not hurt by reading it.
+    assert!(run(&t.wmd, "o", &["status"]).status.success());
+}
+
+#[test]
+fn a_tbd_clause_holds_work_until_it_is_agreed_and_pinned() {
+    let t = two();
+    let id = waiting(&t, "hpr:CL-handle", &[]);
+    assert!(!ready(&t.wmd).contains(&id), "{}", ready(&t.wmd));
+    assert!(
+        prime(&t.wmd).contains("tbd (owner hpr, due 2026-11-20)"),
+        "{}",
+        prime(&t.wmd)
+    );
+
+    std::fs::write(
+        t.hpr.join(DOC),
+        INTERFACE.replace("status: tbd", "status: agreed"),
+    )
+    .unwrap();
+    t.push_and_fetch();
+    assert!(
+        prime(&t.wmd).contains("agreed upstream, not pinned here"),
+        "{}",
+        prime(&t.wmd)
+    );
+    t.bump();
+    assert!(ready(&t.wmd).contains(&id), "{}", ready(&t.wmd));
+}

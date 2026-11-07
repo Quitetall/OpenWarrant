@@ -59,6 +59,7 @@ pub mod inbox;
 pub mod init;
 pub mod install;
 pub mod instructions;
+pub mod interfaces;
 pub mod interop;
 pub mod interview;
 pub mod invalidation;
@@ -757,6 +758,11 @@ enum DailyCommand {
         /// A command this work may run; repeat for more.
         #[arg(long = "command", value_name = "CMD", conflicts_with = "legacy")]
         commands: Vec<String>,
+        /// What this work waits on: an item or clause here, or in a named
+        /// repository (`hpr:t-abc`, `hpr:CL-step`); repeat for more. It stays
+        /// out of `war view ready` until the pin holds it.
+        #[arg(long = "depends-on", value_name = "TARGET", conflicts_with = "legacy")]
+        depends_on: Vec<String>,
         /// A test: a shell command whose exit code decides pass or fail.
         /// Repeatable. `war done` runs it and finishes the work only when it
         /// passes.
@@ -3579,6 +3585,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             paths,
             tools,
             commands,
+            depends_on,
             tests,
             issue,
             issue_file,
@@ -3652,6 +3659,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     paths,
                     tools,
                     commands,
+                    depends_on,
                 },
                 tests,
             };
