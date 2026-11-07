@@ -4,10 +4,10 @@
 │WARRANTS 12/20 resolved  PHASES 1/4 achieved  ITEMS 3 open, 1 active, 9 done  CRITICAL PATH 1 node(s), est. 30m                                     │
 └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ┌ Phases ────────────────────────────────────────────┐┌ Claims ─────────────────────────────────────────┐┌ Live: working tree and journal ───────────┐
-│P1 2/3, 1 UNKNOWN not yet                           ││claude t-1a2b3/i-1 2m 05s COLLISION              ││git status                                 │
+│P1 2/3, 1 UNKNOWN not yet                           ││claude t-1a2b3/i-1 2m 05s COLLISION · tok UNKNOWN││git status                                 │
 └────────────────────────────────────────────────────┘│  lease 3m 42s left · lock renewed 4s ago · wt-a ││ M src/a.rs                                │
 ┌ Work  (* critical path) ───────────────────────────┐│  writes src/a/**                                ││                                           │
-│[ACTV] t-1a2b3 * Reset passwords                    ││codex t-9/i-1 1h 01m COLLISION                   ││                                           │
+│[ACTV] t-1a2b3 * Reset passwords                    ││codex t-9/i-1 1h 01m COLLISION · tok UNKNOWN     ││                                           │
 │  [ACTV] i-1 Email template [claude]                ││  lease expired 1m 00s ago · lock renewed UNKNOWN││                                           │
 │                                                    ││  writes src/a/b.rs                              ││                                           │
 │                                                    ││                                                 ││                                           │

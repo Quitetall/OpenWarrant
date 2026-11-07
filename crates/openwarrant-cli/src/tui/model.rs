@@ -21,6 +21,7 @@ pub enum View {
     Corpus,
     Obligations,
     Evidence,
+    Usage,
     Journal,
     Roadmap,
     Setup,
@@ -28,12 +29,13 @@ pub enum View {
 }
 
 impl View {
-    pub const ALL: [Self; 9] = [
+    pub const ALL: [Self; 10] = [
         Self::Tickets,
         Self::Frontier,
         Self::Corpus,
         Self::Obligations,
         Self::Evidence,
+        Self::Usage,
         Self::Journal,
         Self::Roadmap,
         Self::Setup,
@@ -47,6 +49,7 @@ impl View {
             Self::Corpus => "Corpus",
             Self::Obligations => "Obligations",
             Self::Evidence => "Evidence",
+            Self::Usage => "Usage",
             Self::Journal => "Journal",
             Self::Roadmap => "Roadmap",
             Self::Setup => "Setup",

@@ -280,7 +280,17 @@ fn dollars_say_they_are_an_estimate_and_the_date_of_their_prices() {
         prices.as_ref(),
     );
     let s = screen(&m);
-    assert!(s.contains("~$12.00 estimate, prices of 2026-11-01"), "{s}");
+    assert!(s.contains("~$12.00 est., prices of 2026-11-01"), "{s}");
+    assert!(!s.contains("STALE"), "{s}");
+    // A table past its date says so beside every dollar figure.
+    if let Some(d) = m.snap.usage.dollars.as_mut() {
+        d.stale_days = usage::stale("2026-01-01", "2026-11-07");
+    }
+    let s = screen(&m);
+    assert!(
+        s.contains("prices of 2026-11-01 (STALE, 310 days old)"),
+        "{s}"
+    );
 }
 
 #[test]

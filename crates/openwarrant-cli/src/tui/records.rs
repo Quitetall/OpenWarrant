@@ -867,6 +867,9 @@ fn list_title(m: &Model) -> String {
                 View::Corpus => "rungs; Enter shows the thirteen".to_owned(),
                 View::Obligations => "disposition, verifier, admissibility".to_owned(),
                 View::Evidence => "gate runs by class; x records again".to_owned(),
+                View::Usage => {
+                    "recorded tokens by ticket, actor, model, day; $ only est.".to_owned()
+                }
                 View::Journal => "newest first; / filters by day or kind".to_owned(),
                 View::Roadmap => "phases in order; Enter edits and signs once".to_owned(),
                 View::Setup => format!("{}; Enter runs war init", m.snap.setup_step),

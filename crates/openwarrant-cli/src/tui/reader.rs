@@ -742,6 +742,7 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
         (View::Corpus, corpus),
         (View::Obligations, obligations),
         (View::Evidence, evidence),
+        (View::Usage, super::usage::rows(&snap.usage)),
         (View::Journal, journal),
         (View::Roadmap, roadmap),
     ] {
