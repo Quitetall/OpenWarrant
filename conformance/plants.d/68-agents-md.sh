@@ -7,16 +7,27 @@ plant_cmd "agents-md refuses to clobber without --force" "agents-md.exists" "AGE
     "true" \
     agents-md
 
-# The generic legacy template stays byte-for-byte equal to the linked workflow
-# reference. Root AGENTS.md retains this repository's own context and routing.
+# The template is short (at most 4,000 bytes: an agent reads it every
+# session) and links the full rules, which the legacy reference keeps.
+# Refusal: the same predicate fails a template padded past the budget.
 LEGACY_AGENT_REFERENCE="docs/agents/legacy-warrant-workflow.md"
-if diff -q <(./target/debug/war agents-md --stdout) "$LEGACY_AGENT_REFERENCE" > /dev/null; then
-    printf 'ok    %-34s legacy reference is the rendered template\n' "agents-md template matches reference"
+am_short_and_linked() {
+    local t=$1
+    (( ${#t} <= 4000 )) && grep -Fq -- "$LEGACY_AGENT_REFERENCE" <<<"$t" \
+        && grep -Fq '### Writing the atoms' "$LEGACY_AGENT_REFERENCE" \
+        && grep -Fq 'war sign resolve --dry-run <alias>' "$LEGACY_AGENT_REFERENCE"
+}
+AM_SHORT=$(./target/debug/war agents-md --stdout)
+AM_PADDED="$AM_SHORT$(printf '%04000d' 0)"
+if am_short_and_linked "$AM_SHORT" && ! am_short_and_linked "$AM_PADDED"; then
+    printf 'ok    %-34s %s bytes, links the full rules; a padded one refused\n' "agents-md short and linked" "${#AM_SHORT}"
     PASSED=$((PASSED + 1))
 else
-    printf 'FAIL  %-34s legacy reference drifted from the template\n' "agents-md template matches reference"
+    printf 'FAIL  %-34s %s bytes, or the link or the full rules lost\n' "agents-md short and linked" "${#AM_SHORT}"
     FAILED=$((FAILED + 1))
 fi
+unset AM_SHORT AM_PADDED
+unset -f am_short_and_linked
 
 if grep -Fq -- "]($LEGACY_AGENT_REFERENCE)" AGENTS.md; then
     printf 'ok    %-34s root instructions link the legacy workflow\n' "agents-md preserves root routing"

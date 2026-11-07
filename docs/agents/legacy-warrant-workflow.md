@@ -1,4 +1,8 @@
-# Working in this repository
+# Warrant workflow: the full rules
+
+The `AGENTS.md` that `war init` writes is the short form of this page, and
+links here for the rest: tickets, context, planning, the atoms and the
+sign-off loop.
 
 Ordinary coding needs no Warrant and no ticket. Fix bugs, add features,
 refactor and run tests the way you would in any repository: nothing has to be
@@ -35,7 +39,7 @@ turn of its own. `war start` claims the item whole, so a second agent gets the
 next one instead; started again, it prints the one you hold. When several
 agents share the repository, give each one a name with `--as <name>` (or
 `OPENWARRANT_ACTOR`). Over MCP the same loop is `war_start`, `war_done`,
-`war_prime` and `war_create`. With nothing tracked, `war start` says "nothing
+`war_status` and `war_create`. With nothing tracked, `war start` says "nothing
 tracked; work freely".
 
 ## Loading context
@@ -169,23 +173,13 @@ sign-off, not your work.
 
 - `war <command> --help`: what each command does.
 - `war admin doctor`: what is installed and configured, signing included.
-- `war admin mcp`: the same commands over MCP; `war admin mcp --describe` lists them.
-  Reads, ticket writes, drafts and requests are tools; signing is a person's
-  act at a terminal, so it is not one.
+- `war admin mcp`: the daily commands over MCP, answering in the CLI's text
+  (`json: true` for the envelope); `--all` serves every read, ticket write,
+  draft and request; `war admin mcp --describe` lists them. Signing is a
+  person's act at a terminal, so it is not a tool.
 - Claude Code plugin (`.claude-plugin/`): the skills, this MCP server, an edit
   guard that turns back an edit to a generated file or to a file a closed
   Warrant pins (only in a repository with `openwarrant.toml`), and an
   end-of-turn check of what the session changed (`war check --changed`):
   silent when it holds; when it does not, it hands you the finding once,
   before the turn ends. You need not run `war check` yourself.
-
-<!-- openwarrant:begin -->
-<!-- Written by `war admin agents-md --block`, which rewrites the lines between these markers. -->
-Ordinary coding needs no Warrant and no ticket: work here as in any repository.
-Tracked work, when there is some: run `war start` before reading anything else (it takes
-the next ready item, or `war start T8` a named one, by id or words of its title, and
-prints only what it needs). Don't read docs/tickets/ directly: it costs far more. Close
-it with your last test run:
-`<your tests> && war done --note "what you did"`. `war view prime` lists all.
-<!-- openwarrant agents-md: written by war 1.0.0-alpha.7 -->
-<!-- openwarrant:end -->
