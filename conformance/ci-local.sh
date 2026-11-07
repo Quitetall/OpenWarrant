@@ -24,9 +24,13 @@ for tool in cargo-deny cargo-nextest; do
     command -v "$tool" >/dev/null || { echo "ci-local: $tool is not installed (CI installs it)"; exit 2; }
 done
 
-WORK=$(mktemp -d "$ROOT/ow-ci-local.XXXXXX") || exit 2
-[[ -n "$WORK" && "$WORK" == "$ROOT"/ow-ci-local.* ]] || exit 2
-trap '[[ "$WORK" == "$ROOT"/ow-ci-local.* ]] && rm -rf -- "$WORK"' EXIT
+# Plants put ssh-agent sockets under TMPDIR, and a Unix socket path is capped
+# at 108 bytes, so the parts this script adds are short and a long root is
+# refused here rather than as a plant's setup failure an hour in.
+(( ${#ROOT} <= 40 )) || { echo "ci-local: CI_LOCAL_TMP '$ROOT' is ${#ROOT} characters; use one of 40 or fewer"; exit 2; }
+WORK=$(mktemp -d "$ROOT/ci.XXXXXX") || exit 2
+[[ -n "$WORK" && "$WORK" == "$ROOT"/ci.* ]] || exit 2
+trap '[[ "$WORK" == "$ROOT"/ci.* ]] && rm -rf -- "$WORK"' EXIT
 CLONE="$WORK/repo"
 git clone -q --no-hardlinks "$SRC" "$CLONE" || { echo "ci-local: clone failed"; exit 2; }
 cd "$CLONE" || exit 2
@@ -43,12 +47,12 @@ VENV="$WORK/venv"
 python3 -m venv "$VENV" && PIP_DISABLE_PIP_VERSION_CHECK=1 "$VENV/bin/python" -m pip install -q 'jsonschema==4.26.0' \
     || { echo "ci-local: could not build the schema-validation venv"; exit 2; }
 
-mkdir -p "$WORK/home" "$WORK/tmp"
+mkdir -p "$WORK/h" "$WORK/t"
 CARGO_BIN=$(dirname "$(command -v cargo)")
 # Only what CI's runner would have. Toolchain and build-dir settings pass
 # through so a build reuses this machine's cache; nothing else does.
 CLEAN=(env -i
-    HOME="$WORK/home" TMPDIR="$WORK/tmp" CI=true LANG=C.UTF-8
+    HOME="$WORK/h" TMPDIR="$WORK/t" CI=true LANG=C.UTF-8
     PATH="$VENV/bin:$CARGO_BIN:/usr/local/bin:/usr/bin:/bin"
     CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}" RUSTUP_HOME="${RUSTUP_HOME:-$HOME/.rustup}"
     ${CARGO_BUILD_BUILD_DIR:+CARGO_BUILD_BUILD_DIR="$CARGO_BUILD_BUILD_DIR"}
