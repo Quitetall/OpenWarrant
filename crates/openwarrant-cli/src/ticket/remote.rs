@@ -34,6 +34,8 @@ use super::claim::Claim;
 
 /// Where claim refs live on the remote.
 pub const REF_PREFIX: &str = "refs/openwarrant/claims/";
+/// Where the notices one clone leaves for the others live.
+pub const NOTICE_PREFIX: &str = "refs/openwarrant/notices/";
 
 /// How long one git call to the remote may take before it reads as
 /// unreachable.
@@ -206,6 +208,12 @@ fn first_line(s: &str) -> String {
 /// The commit that carries `claim`: the empty tree, the claim as its
 /// message, a fixed identity, never signed.
 pub fn commit_for(root: &Utf8Path, claim: &Claim) -> Result<String, String> {
+    let message = serde_json::to_string(claim).map_err(|e| e.to_string())?;
+    commit_of(root, &message)
+}
+
+/// The empty tree with `message` on it, under the fixed identity.
+fn commit_of(root: &Utf8Path, message: &str) -> Result<String, String> {
     let tree = git(
         root,
         &["hash-object", "-t", "tree", "-w", "--stdin"],
@@ -215,16 +223,70 @@ pub fn commit_for(root: &Utf8Path, claim: &Claim) -> Result<String, String> {
         return Err(first_line(&tree.stderr));
     }
     let tree = tree.stdout.trim().to_owned();
-    let message = serde_json::to_string(claim).map_err(|e| e.to_string())?;
     let commit = git(
         root,
-        &["commit-tree", "--no-gpg-sign", &tree, "-m", &message],
+        &["commit-tree", "--no-gpg-sign", &tree, "-m", message],
         None,
     )?;
     if !commit.ok {
         return Err(first_line(&commit.stderr));
     }
     Ok(commit.stdout.trim().to_owned())
+}
+
+/// Leave a notice for the other clones. A ref that is there already holds the
+/// same change: it is named by it, and a lost race changes nothing.
+pub fn publish_notice(root: &Utf8Path, remote: &str, key: &str, body: &str) -> Result<(), String> {
+    let commit = commit_of(root, body)?;
+    let refname = format!("{NOTICE_PREFIX}{key}");
+    match push(root, remote, &refname, Some(&commit), None) {
+        Push::Won | Push::Lost => Ok(()),
+        Push::Failed(why) | Push::Unsettled(why) => Err(why),
+    }
+}
+
+/// Every notice the remote holds: the message of each ref under
+/// [`NOTICE_PREFIX`], fetching the commits this clone lacks.
+pub fn read_notices(root: &Utf8Path, remote: &str) -> Result<Vec<String>, String> {
+    let pattern = format!("{NOTICE_PREFIX}*");
+    let listed = git(root, &["ls-remote", remote, &pattern], None)?;
+    if !listed.ok {
+        return Err(first_line(&listed.stderr));
+    }
+    let mut out = Vec::new();
+    for line in listed.stdout.lines() {
+        let Some((commit, refname)) = line.split_once('\t') else {
+            continue;
+        };
+        let have = git(
+            root,
+            &["cat-file", "-e", &format!("{commit}^{{commit}}")],
+            None,
+        )?;
+        if !have.ok {
+            let fetched = git(
+                root,
+                &[
+                    "fetch",
+                    "--quiet",
+                    "--no-tags",
+                    "--no-write-fetch-head",
+                    remote,
+                    refname,
+                ],
+                None,
+            )?;
+            if !fetched.ok {
+                continue;
+            }
+        }
+        let shown = git(root, &["cat-file", "commit", commit], None)?;
+        if shown.ok {
+            let message = shown.stdout.split_once("\n\n").map_or("", |(_, m)| m);
+            out.push(message.trim().to_owned());
+        }
+    }
+    Ok(out)
 }
 
 /// What a push found.

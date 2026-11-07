@@ -230,6 +230,8 @@ pub enum MinimumSource {
     Milestone,
     /// The repo preset's `[preset] ticks` (OW-WAR-0148 M14).
     Preset,
+    /// A change request's class (t-3c16c W6).
+    Change,
 }
 
 impl MinimumSource {
@@ -242,6 +244,7 @@ impl MinimumSource {
             Self::Type => "the minimum the ticket's type sets ([ticks.types])",
             Self::Milestone => "the milestone's own minimum",
             Self::Preset => "the repo preset's [preset] ticks minimum",
+            Self::Change => "what the change request's class asks of it",
         }
     }
 }

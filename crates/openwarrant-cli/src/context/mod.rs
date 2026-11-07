@@ -329,6 +329,9 @@ pub struct Options {
     pub explicit_budget: bool,
     /// The preset; its budget and depth are the defaults of the two above.
     pub preset: Preset,
+    /// An id that names nothing stays refused: a read through a pin answers
+    /// for a commit, and a word search there would be a guess.
+    pub exact: bool,
 }
 
 impl Default for Options {
@@ -345,6 +348,7 @@ impl Options {
             budget: preset.budget,
             depth: preset.depth,
             strict: false,
+            exact: false,
             explicit_budget: false,
             preset,
         }

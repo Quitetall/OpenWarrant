@@ -61,6 +61,10 @@ pub struct CreateParams {
     /// Commands this work may run.
     #[serde(default)]
     pub commands: Vec<String>,
+    /// What this work waits on: an item or clause here, or in a named
+    /// repository (`hpr:t-abc`, `hpr:CL-step`).
+    #[serde(default)]
+    pub depends_on: Vec<String>,
     /// Tests: shell commands whose exit code decides pass or fail. `war_done`
     /// runs them and finishes the work only when they pass.
     #[serde(default)]
@@ -1232,6 +1236,13 @@ impl WarServer {
     )]
     fn war_prime(&self, Parameters(p): Parameters<PrimeParams>) -> ToolResult {
         self.ticket("prime", None, |s| {
+            if let Some(outcome) = p
+                .ticket
+                .as_deref()
+                .and_then(|t| crate::pinned_target(&self.repo, t))
+            {
+                return Ok(outcome);
+            }
             crate::ticket::prime(&self.repo, s, p.ticket.as_deref())
         })
     }
@@ -1251,6 +1262,64 @@ impl WarServer {
             p.depth,
         );
         opts.strict = p.strict;
+        // W6: another repository's target reads through its pin, or says why
+        // it could not.
+        let pinned = match crate::repos::classify(&self.repo.root, &p.target) {
+            crate::repos::Target::Local => None,
+            crate::repos::Target::Undeclared(name) => {
+                Some(Err(format!("{name} is not declared in [repos]")))
+            }
+            crate::repos::Target::Named(name, rest) => Some(Ok((name, rest))),
+        };
+        if let Some(pinned) = pinned {
+            let mut report = crate::diagnostic::Report::default();
+            let mut value = None;
+            let read = pinned.and_then(|(name, rest)| {
+                opts.exact = true;
+                let located = crate::repos::locate(&self.repo.root, name)?;
+                let also = rest.split('#').next().filter(|p| p.contains('/'));
+                let commit = located.pin.commit.clone();
+                let packet = crate::repos::read_at(&located, &commit, also, |other| {
+                    let corpus = crate::corpus::Corpus::new(other);
+                    let graph =
+                        crate::context::context_graph(&corpus).map_err(|e| e.to_string())?;
+                    let target = crate::context::relative_target(other, rest);
+                    match crate::context::answer_with(&corpus, &graph, &target, &opts) {
+                        crate::context::Answered::Units(p) => {
+                            let mut v = crate::output::value(&p);
+                            v["markdown"] = serde_json::json!(p.markdown);
+                            Ok(v)
+                        }
+                        crate::context::Answered::Records(Ok(p)) => {
+                            let mut v = crate::output::value(&p);
+                            v["markdown"] = serde_json::json!(p.markdown);
+                            Ok(v)
+                        }
+                        crate::context::Answered::Records(Err(r)) => Err(r.to_string()),
+                    }
+                })??;
+                report.note(crate::repos::read_line(&located));
+                value = Some(packet);
+                Ok(())
+            });
+            if let Err(why) = read {
+                report.push(crate::diagnostic::Diagnostic::unknown(
+                    crate::repos::UNKNOWN_RULE,
+                    p.target.clone(),
+                    why,
+                ));
+            }
+            let text = crate::output::envelope("context", &report, value);
+            let mut value: serde_json::Value = serde_json::from_str(&text).map_err(|e| {
+                McpError::internal_error(format!("envelope is not JSON: {e}"), None)
+            })?;
+            lean(&mut value);
+            return Ok(if report.is_ready() {
+                CallToolResult::structured(value)
+            } else {
+                CallToolResult::structured_error(value)
+            });
+        }
         let graph = match crate::context::context_graph(&corpus) {
             Ok(g) => g,
             Err(e) => return refused("context", &e),
@@ -1337,6 +1406,9 @@ impl WarServer {
             part_of: p.part_of,
             issue: None,
             scope: crate::ticket::Scope {
+                depends_on: p.depends_on,
+                change: None,
+                clauses: Vec::new(),
                 paths: p.paths,
                 tools: p.tools,
                 commands: p.commands,

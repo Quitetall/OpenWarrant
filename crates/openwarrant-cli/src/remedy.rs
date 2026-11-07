@@ -164,6 +164,8 @@ pub const TABLE: &[&str] = &[
     // OW-WAR-0148 M13: a ticket item's sign-off.
     "sign.no-eligible-signer",
     "sign.ssh-required",
+    // W6: a breaking change's parties sign separately.
+    "sign.one-party",
     "doctor.signing-keygen",
     "doctor.signing-agent",
     "doctor.signing-keys",
@@ -338,6 +340,7 @@ pub fn remedy_for(d: &Diagnostic) -> Option<Remedy> {
              --fix-signing` offers repairs. This blocks only the sign-off, not your work",
         ),
         "sign.no-tty"
+        | "sign.one-party"
         | "sign.no-target"
         | "sign.nothing-pending"
         | "sign.not-assigned"

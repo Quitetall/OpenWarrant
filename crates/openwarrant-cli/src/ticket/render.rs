@@ -1193,8 +1193,10 @@ pub fn prime(
     // The first screenful, in order; the rest are a count. The overview is
     // what a session starts with, so it may not grow with the backlog.
     const OPEN_SHOWN: usize = 15;
+    // W6: what waits on another repository, read once.
+    let held = super::depends::held(store, all);
     for t in open.iter().take(OPEN_SHOWN) {
-        md.push_str(&overview_line(store, all, t, claims, now));
+        md.push_str(&overview_line(store, all, t, claims, now, &held));
     }
     if open.len() > OPEN_SHOWN {
         md.push_str(&format!(
@@ -1262,6 +1264,7 @@ pub fn prime(
             "done_recent": recent.iter().map(|t| t.id()).collect::<Vec<_>>(),
             "done_compacted": old.iter().map(|t| t.id()).collect::<Vec<_>>(),
             "claims": claims.values().flatten().collect::<Vec<_>>(),
+            "held": held,
             "markdown": md,
         }),
     );
@@ -1288,6 +1291,13 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         t.manifest.priority,
         store.rel(&t.dir)
     ));
+    let waiting: Vec<super::depends::Dep> = super::depends::of(store, t)
+        .into_iter()
+        .filter(|d| d.state != super::depends::State::Met)
+        .collect();
+    for d in &waiting {
+        md.push_str(&format!("held: {}\n", d.line));
+    }
     let body = description(&t.intent);
     if !body.is_empty() {
         md.push('\n');
@@ -1361,7 +1371,14 @@ fn level_mark(store: &Store, t: &Ticket) -> String {
     }
 }
 
-fn overview_line(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u64) -> String {
+fn overview_line(
+    store: &Store,
+    all: &[Ticket],
+    t: &Ticket,
+    claims: &Claims,
+    now: u64,
+    held: &super::depends::Held,
+) -> String {
     let (d, n) = t.checklist.progress();
     let mut line = format!(
         "- {} — {} · {d}/{n} done · p{}{}",
@@ -1397,6 +1414,12 @@ fn overview_line(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now
     waits.dedup();
     if !open.is_empty() && open.iter().all(|i| !open_blockers(all, t, i).is_empty()) {
         line.push_str(&format!(" · waits on {}", waits.join(", ")));
+    }
+    if let Some(why) = held
+        .get(t.id())
+        .and_then(|deps| super::depends::one_line(deps))
+    {
+        line.push_str(&format!(" · held: {why}"));
     }
     line.push('\n');
     line
