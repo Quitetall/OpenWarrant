@@ -116,25 +116,25 @@ cp docs/authority/allowed_signers.example docs/authority/allowed_signers     # H
 ```
 
 Or let `war init --guided` at a terminal write both from your answers, once;
-`war doctor --fix-signing` offers the same for a file that is still missing.
+`war admin doctor --fix-signing` offers the same for a file that is still missing.
 
 ## 5. The SAS
 
 ```bash
 $EDITOR docs/sas/Acme_SAS.md     # the three sections the tool reads; the rest is yours
-war sas propose 0.1.0            # records the document's digest and its §106 rows
+war sign sas propose 0.1.0            # records the document's digest and its §106 rows
 war sign 0.1.0 --ssh-sign        # HUMAN: accept it
 ```
 
 ## 6. The first Warrant
 
 ```bash
-war check ACME-WAR-0001 && war compile && war check --generated
-war authorize ACME-WAR-0001      # the request: what a signature would mean
+war check ACME-WAR-0001 && war admin compile && war check --generated
+war sign authorize ACME-WAR-0001      # the request: what a signature would mean
 war sign ACME-WAR-0001 --ssh-sign # HUMAN: authorize it, one dialog
 ```
 
-`war resolve --dry-run ACME-WAR-0001` then reports what still blocks
+`war sign resolve --dry-run ACME-WAR-0001` then reports what still blocks
 closure. On a fresh adoption no obligation is established: the history
 before the baseline establishes none of them.
 

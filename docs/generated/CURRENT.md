@@ -11498,7 +11498,7 @@ then the act is the one the server chose, and the key's dialog asks.
 | D-005 | the shared parser; no inline CSP | `crates/openwarrant-cli/src/progress_viewer/server.rs` | verified |
 | D-006 | war progress --serve is war ui | `crates/openwarrant-cli/src/progress_viewer.rs` | drift |
 | D-007 | the command | `crates/openwarrant-cli/src/lib.rs` | drift |
-| D-008 | docs/WEBUI.md | `docs/WEBUI.md` | verified |
+| D-008 | docs/WEBUI.md | `docs/WEBUI.md` | drift |
 | D-009 | README.md: war ui | `README.md` | drift |
 | D-010 | THREAT_MODEL row | `docs/THREAT_MODEL.md` | verified |
 | D-011 | the plants | `conformance/plants.d/63-webui.sh` | verified |
@@ -14513,7 +14513,7 @@ the second is what the recorded run exposes.
 | D-006 | /war-tickets | `.claude/skills/war-tickets/SKILL.md` | drift |
 | D-007 | /war-review | `.claude/skills/war-review/SKILL.md` | verified |
 | D-008 | /war-map | `.claude/skills/war-map/SKILL.md` | verified |
-| D-009 | docs/SKILLS.md: the mapping, his to ours | `docs/SKILLS.md` | verified |
+| D-009 | docs/SKILLS.md: the mapping, his to ours | `docs/SKILLS.md` | drift |
 | D-010 | The plants for the frontier, the glossary and the em-dash rule | `conformance/plants.d/90-skills.sh` | verified |
 
 #### OW-WAR-0070 — Add `war inbox` to list Warrants awaiting a human act
@@ -15644,7 +15644,7 @@ Required at `basic`. The load-bearing obligations are OBL-002 and OBL-003:
 | D-007 | Intake rows in the friction script | `tools/friction/measure.sh` | verified |
 | D-008 | The second friction baseline, with intake | `docs/friction/baseline-2.json` | verified |
 | D-009 | Intake against a prompt and a Jira ticket | `docs/FRICTION.md` | verified |
-| D-010 | How an issue becomes a Warrant, and what closes it | `docs/agents/issue-tracker.md` | verified |
+| D-010 | How an issue becomes a Warrant, and what closes it | `docs/agents/issue-tracker.md` | drift |
 | D-011 | The intake plants | `conformance/plants.d/54-intake.sh` | verified |
 | D-012 | war plan --issue / --issue-file flags and their wiring into the plan handler (AM-002) | `crates/openwarrant-cli/src/lib.rs` | drift |
 | D-013 | Open intake questions as human answer acts in war next (AM-002) | `crates/openwarrant-cli/src/next.rs` | drift |
@@ -19081,7 +19081,7 @@ negative controls.
 | D-004 | The adopt Warrant's Basis names the baseline and what it does not claim | `crates/openwarrant-cli/templates/adopt/20-basis.md` | verified |
 | D-005 | The guided Baseline step | `crates/openwarrant-cli/src/init/guided.rs` | drift |
 | D-006 | Untracked work from the baseline, in the repository's namespace | `crates/openwarrant-cli/src/telemetry.rs` | verified |
-| D-007 | Adopting OpenWarrant in a repository with history | `docs/ADOPTING.md` | verified |
+| D-007 | Adopting OpenWarrant in a repository with history | `docs/ADOPTING.md` | drift |
 | D-008 | The adoption plants | `conformance/plants.d/59-adoption.sh` | verified |
 
 #### OW-WAR-0125 — The SAS as atoms: sections as governed records with their own currency
@@ -36112,7 +36112,7 @@ resolver is refused by kind whatever the file says.
 | D-003 | eligibility narrowed by assignment; the per-actor list | `crates/openwarrant-cli/src/sign.rs` | not_content_addressed |
 | D-004 | war inbox --as | `crates/openwarrant-cli/src/inbox/mod.rs` | verified |
 | D-005 | verify ingest checks the assigned verifier and its role | `crates/openwarrant-cli/src/verify.rs` | drift |
-| D-006 | docs/TEAMS.md | `docs/TEAMS.md` | verified |
+| D-006 | docs/TEAMS.md | `docs/TEAMS.md` | drift |
 | D-007 | THREAT_MODEL row: assignment and verdict attribution | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-008 | the plants | `conformance/plants.d/57-teams.sh` | verified |
 | D-009 | `war sign --list --as`, `war inbox --as`, `sign --list --json`, the review record after `war show` (AM-003) | `crates/openwarrant-cli/src/lib.rs` | drift |
@@ -36965,7 +36965,7 @@ device?
 | D-002 | TLS for the LAN listener | `crates/openwarrant-cli/src/webui/tls.rs` | verified |
 | D-003 | pairing, device credentials, nonces | `crates/openwarrant-cli/src/webui/pairing.rs` | verified |
 | D-004 | the page: pairing, nonces, host-only rows | `crates/openwarrant-cli/src/webui/assets/app.js` | drift |
-| D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | verified |
+| D-005 | WEBUI.md: Reach on the LAN | `docs/WEBUI.md` | drift |
 | D-006 | THREAT_MODEL row 13: loopback and LAN | `docs/THREAT_MODEL.md` | not_content_addressed |
 | D-007 | the plants | `conformance/plants.d/59-webui-lan.sh` | verified |
 | D-008 | the TLS dependency and the QR code crate, exact pins (AM-003) | `crates/openwarrant-cli/Cargo.toml` | drift |
@@ -39148,7 +39148,7 @@ through `resolve`, which refuses an agent by kind whatever
 | D-004 | the decision profile as data | `profiles/decision.toml` | verified |
 | D-005 | the contractor profile | `profiles/contractor.toml` | verified |
 | D-006 | war new --profile contractor | `crates/openwarrant-cli/src/new.rs` | drift |
-| D-007 | the walked contractor example | `docs/EXAMPLES/04-contractor.md` | verified |
+| D-007 | the walked contractor example | `docs/EXAMPLES/04-contractor.md` | drift |
 | D-008 | docs/PROFILES.md | `docs/PROFILES.md` | drift |
 | D-009 | the plants | `conformance/plants.d/56-contractor.sh` | verified |
 | D-010 | the repository loads profiles/ into the registry (AM-003) | `crates/openwarrant-cli/src/repo.rs` | drift |
