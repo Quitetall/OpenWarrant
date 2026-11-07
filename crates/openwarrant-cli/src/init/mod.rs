@@ -7,7 +7,7 @@ use std::fs;
 use camino::{Utf8Path, Utf8PathBuf};
 
 pub mod guided;
-mod schema_seed;
+pub mod schema_seed;
 use openwarrant_core::{Namespace, RepositoryConfig};
 
 /// The repository configuration file name (§60).
@@ -66,6 +66,13 @@ pub fn run(
     root: Option<Utf8PathBuf>,
 ) -> Result<(), InitError> {
     run_with(namespace, name, root, Baseline::Head, true).map(|_| ())
+}
+
+/// `war init --schemas`: the schemas the binary holds, checked against `root`
+/// before anything is written (W1.4). The schemas live in the binary, and a
+/// repository holds a copy only when someone asks for one.
+pub fn prepare_schemas(root: &Utf8Path) -> Result<schema_seed::Seed, InitError> {
+    schema_seed::Seed::prepare(root)
 }
 
 /// The first hint plain `war init` prints (t-67ed): most work starts as a
@@ -444,7 +451,6 @@ fn run_with_output(
     config.adoption = recorded
         .clone()
         .map(|baseline| openwarrant_core::config::AdoptionPolicy { baseline });
-    let schemas = schema_seed::Seed::prepare(&root)?;
     let adrs = adr_dirs(&root);
 
     // AM-001 (the owner's decision of 2026-09-24): a program is a git
@@ -493,7 +499,6 @@ fn run_with_output(
          allow_unmetered = true\n",
         1,
     );
-    schemas.install()?;
     fs::write(&config_path, rendered).map_err(|source| InitError::Io {
         context: format!("could not write {config_path}"),
         source,

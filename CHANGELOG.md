@@ -22,6 +22,10 @@ Notable changes to OpenWarrant. Format loosely follows
   The id stays. Drafting a directory Warrant from a ticket, which is what it
   did before, is `war plan new --from <ticket>`.
 
+- `war init` no longer writes `schemas/`: the schemas are in the binary, and an
+  archive of a repository with no copy retains the binary's pack.
+  `war init --schemas` writes a copy, on a new repository or one already set up.
+
 ### Added
 
 - `war create --sign` makes an Order, one document like the other levels.

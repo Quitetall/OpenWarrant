@@ -61,11 +61,24 @@ fn refused(message: impl Into<String>) -> InitError {
     }
 }
 
-pub(super) struct Seed(Vec<(Utf8PathBuf, &'static [u8])>);
+pub struct Seed(Vec<(Utf8PathBuf, &'static [u8])>);
+
+/// The pack the binary holds and its members, by the paths a repository's
+/// copy would have: what an archive retains from a repository with no copy.
+#[must_use]
+pub fn embedded() -> Vec<(String, &'static [u8])> {
+    let mut files = vec![("schemas/pack.json".to_owned(), PACK)];
+    files.extend(
+        MEMBERS
+            .iter()
+            .map(|(name, bytes)| (format!("schemas/oh.war/{name}/v1.json"), *bytes)),
+    );
+    files
+}
 
 impl Seed {
     /// Check the bundled pack and every destination before init changes the tree.
-    pub(super) fn prepare(root: &Utf8Path) -> Result<Self, InitError> {
+    pub fn prepare(root: &Utf8Path) -> Result<Self, InitError> {
         let pack: Pack = serde_json::from_slice(PACK).map_err(|e| refused(e.to_string()))?;
         let canonical =
             openwarrant_compiler::to_canonical_bytes(&pack).map_err(|e| refused(e.to_string()))?;
@@ -128,8 +141,21 @@ impl Seed {
         Ok(Self(files))
     }
 
-    /// New files only. Existing identical sources were checked, never rewritten.
-    pub(super) fn install(self) -> Result<(), InitError> {
+    // New files only. Existing identical sources were checked, never rewritten.
+    /// How many files the pack is.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Whether the pack is empty: never, for a checked one.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Write what is missing.
+    pub fn install(self) -> Result<(), InitError> {
         for (path, bytes) in self.0 {
             if let Ok(meta) = fs::symlink_metadata(&path) {
                 if meta.is_file()

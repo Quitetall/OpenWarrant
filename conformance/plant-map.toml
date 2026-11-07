@@ -388,7 +388,9 @@ plants = [
 [[rule]]
 name = "init and adoption"
 paths = ["crates/openwarrant-cli/src/init/**", "docs/ADOPTING.md", "scripts/release-1.0-wizard.sh"]
-plants = ["59-adoption.sh", "75-init-program.sh", "92-wizard.sh", "99-init.sh"]
+plants = [
+    "59-adoption.sh", "75-init-program.sh", "92-wizard.sh", "99-init.sh", "192-init-schemas.sh",
+]
 
 [[rule]]
 name = "records, states and projections"

@@ -117,7 +117,17 @@ pub(super) fn capture(
         limits,
     )?;
     match std::fs::symlink_metadata(root.join(PACK)) {
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        // No copy here: the schemas are in the binary (W1.4), and the pack
+        // declares itself by the same id and digests either way.
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let mut paths = vec![IDENTITY.to_owned()];
+            for (name, bytes) in crate::init::schema_seed::embedded() {
+                paths.push(name.clone());
+                insert(files, name, bytes.to_vec(), limits)?;
+            }
+            paths.sort();
+            return Ok(Some(paths));
+        }
         Err(e) => return Err(Error(e.to_string())),
         Ok(_) => (),
     }

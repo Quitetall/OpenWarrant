@@ -699,6 +699,11 @@ enum DailyCommand {
         /// test (or a formal Warrant) from everyone, and the signing examples.
         #[arg(long, conflicts_with = "guided")]
         regulated: bool,
+        /// Also write the schema pack under `schemas/`. They are in the binary,
+        /// and nothing reads this copy unless you want one to hand to another
+        /// tool. Works on a repository already set up.
+        #[arg(long, conflicts_with = "guided")]
+        schemas: bool,
     },
     /// Create a Warrant (a ticket) and print its id: a title is enough.
     ///
@@ -3076,6 +3081,18 @@ fn official_section(
     ))
 }
 
+/// What `war init` was asked for beyond the repository itself, written now,
+/// and a line each to say so.
+fn init_extras(seed: Option<init::schema_seed::Seed>) -> Result<Vec<String>, init::InitError> {
+    let mut lines = Vec::new();
+    if let Some(seed) = seed {
+        let n = seed.len();
+        seed.install()?;
+        lines.push(format!("schemas/: {n} files, the pack this binary holds"));
+    }
+    Ok(lines)
+}
+
 /// `war status <alias>` and `war view show <alias>` of a single-file Warrant,
 /// read through [`work`]: what it is and the document itself. `None` when
 /// `alias` is a directory Warrant or no item, for the corpus path to answer.
@@ -3911,7 +3928,31 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             no_preset,
             team,
             regulated,
+            schemas,
         } => {
+            // W1.4: checked before anything is written, so a copy that
+            // differs refuses the whole command.
+            let dir = init::init_root(ctx.root.clone())?;
+            let seed = schemas.then(|| init::prepare_schemas(&dir)).transpose()?;
+            // Asked of a repository already set up, only the extra is written.
+            if seed.is_some() && dir.join(init::CONFIG_FILE).exists() {
+                let lines = init_extras(seed)?;
+                if ctx.json {
+                    let report = diagnostic::Report {
+                        notes: lines,
+                        ..Default::default()
+                    };
+                    return Ok(go_answer(
+                        mode,
+                        "init",
+                        &report,
+                        serde_json::Value::Null,
+                        "",
+                    ));
+                }
+                println!("{}", lines.join("\n"));
+                return Ok(EXIT_OK);
+            }
             // OW-WAR-0148 M14: the preset is written after everything plain
             // init writes. Plain `war init` is vibe (owner, 2026-10-11): the
             // smallest setup is the default. `--program` scaffolds sign-off,
@@ -4025,6 +4066,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     } else {
                         println!("{line}");
                     }
+                }
+            }
+            for line in init_extras(seed)? {
+                if ctx.json {
+                    setup_messages.push(line);
+                } else {
+                    println!("{line}");
                 }
             }
             if ctx.json {
