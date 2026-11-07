@@ -451,3 +451,26 @@ proved only by fixture runs on a build of main at `9e4948385`, which is alpha.7'
 commit. Fixture runs (`fixture-reference`, `fixture-claim`) on tally T8 already showed
 `openwarrant@a6` and `openwarrant@a7` seed, grade and read their trackers: the reference
 passes in both, and a claimed but undone item is a false completion in both.
+
+### Results of amendment 5: `oc-v5-1`
+
+Run 2026-11-07 on harness commit `45ed987f1`, 21 cells, no harness errors (every cell's
+grade ran, no session errored), so nothing was rerun or excluded. From `run.py report`:
+
+| arm | directed passed | false completions | turns per session | ktokens per session | median ktokens per cell | median turns before first edit | relay items passing |
+|---|---|---|---|---|---|---|---|
+| `plain` | 6 of 6 | 0 | 34.5 | 1,822.9 | 1,730.3 | 7.0 | 11, in 12 sessions |
+| `openwarrant@a6` | 6 of 6 | 0 | 56.0 | 4,561.2 | 4,886.3 | 10.0 | 1, stalled after 3 |
+| `openwarrant@a7` | 6 of 6 | 0 | 38.3 | 1,636.1 | 1,980.3 | 8.5 | 11, in 12 sessions |
+
+`openwarrant@a7` against `openwarrant@a6`, by the rule: false completions 0 and 0;
+passes 6 and 6, a tie; median tokens per cell 1,980,342 against 4,886,330, 59.5% fewer.
+**alpha.7 wins on tokens.** Six directed cells and one relay per arm, one replicate:
+the token difference is large, and the pass counts can't separate the arms.
+
+`openwarrant@next` was not run. Fixture runs (`fixture-reference`, `fixture-claim`) on
+tally T8 proved the arm on a build of main at `9e4948385` (sha256
+`bd86c70c4242f3f58c23113614afb5fa3119b0a2f627896fb52e2b1e2da941c5`; it reports `war
+1.0.0-alpha.7 (unreleased, commit 9e4948385513)`, and differs in bytes from the
+published alpha.7): the reference passed, the claim was a false completion, and its
+seed is identical to `openwarrant@a7`'s once per-seeding ids are named.
