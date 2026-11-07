@@ -4262,6 +4262,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if scope.documents {
                             check::check_documents(&shared, &mut report);
                         }
+                        for document in &scope.work_documents {
+                            format_doc::check_one(&repository, document, &mut report);
+                        }
                         report.diagnostics.insert(
                             0,
                             diagnostic::Diagnostic::pass(

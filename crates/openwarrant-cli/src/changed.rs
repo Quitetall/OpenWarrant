@@ -35,6 +35,9 @@ pub struct Scope {
     pub tickets: bool,
     /// A document the `[documents] index` globs match changed.
     pub documents: bool,
+    /// The Format 1.0 work documents that changed, ticket or Warrant, each
+    /// checked as the document it is.
+    pub work_documents: BTreeSet<String>,
 }
 
 impl Scope {
@@ -45,6 +48,7 @@ impl Scope {
             && self.dependents.is_empty()
             && !self.tickets
             && !self.documents
+            && self.work_documents.is_empty()
     }
 
     /// Every Warrant to check: the changed ones and those citing them.
@@ -210,6 +214,19 @@ pub fn scope(corpus: &crate::corpus::Corpus, since: Option<&str>) -> Result<Scop
         if tickets.as_deref().is_some_and(|d| under(path, d)) {
             scope.tickets = true;
         }
+        let in_tree = |dir: &str| path.strip_prefix(dir).and_then(|r| r.strip_prefix('/'));
+        let work_document = in_tree(&warrants).is_some_and(|r| {
+            r.split_once('/')
+                .map_or(r.ends_with(".md"), |(_, inner)| inner == "warrant.md")
+        }) || tickets.as_deref().and_then(in_tree).is_some_and(|r| {
+            r.rsplit_once('/').map_or(
+                crate::ticket::format::single_file(r).is_some(),
+                |(_, name)| name == crate::ticket::format::INNER,
+            )
+        });
+        if work_document && repo.root.join(path).is_file() {
+            scope.work_documents.insert(path.clone());
+        }
         // The document index never walks the Warrant or ticket trees, a
         // `generated/` projection or a hidden directory (doc_index.rs), so a
         // change there is not a document's.
@@ -278,6 +295,9 @@ pub fn headline(scope: &Scope) -> String {
             "{} (they cite a changed parent)",
             names(&scope.dependents)
         ));
+    }
+    if !scope.tickets && !scope.work_documents.is_empty() {
+        parts.push(names(&scope.work_documents));
     }
     if scope.tickets {
         parts.push("the tickets".to_owned());

@@ -73,6 +73,20 @@ else
     ci_fail "its check passes and refuses" "clean=$CI_CLEAN bad=$CI_BAD: $(head -c 300 "$CI_T/bad.out")"
 fi
 
+# A single-file Warrant is in scope too: nothing else names its path.
+CI_R="$CI_T/doc"; mkdir -p "$CI_R"
+ciw init --namespace CD >/dev/null 2>&1
+ciw plan new --format 1.0 "One document" >/dev/null 2>&1
+git -C "$CI_R" add -A >/dev/null 2>&1
+git -C "$CI_R" -c user.name=t -c user.email=t@t commit -qm base >/dev/null 2>&1
+sed -i 's/^## Intent$/## Not it/' "$CI_R/docs/warrants/CD-WAR-0001.md"
+ciw check --changed >"$CI_T/doc.out" 2>&1; CI_DOC=$?
+if [[ $CI_DOC -ne 0 ]] && grep -q 'format.section-missing' "$CI_T/doc.out"; then
+    ci_ok "a changed document is checked" "single-file Warrant refused by its rule, exit $CI_DOC"
+else
+    ci_fail "a changed document is checked" "exit $CI_DOC: $(head -c 300 "$CI_T/doc.out")"
+fi
+
 CI_R="$CI_T/plain"
 printf 'mine\n' > "$CI_R/$CI_F"
 CI_ERR=$(ciw init --ci 2>&1); CI_S=$?
