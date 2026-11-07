@@ -825,7 +825,7 @@ enum DailyCommand {
         #[arg(value_name = "ID|WORDS", num_args = 0..)]
         id: Vec<String>,
         /// Start the node in a worktree of its own and launch the harness.
-        #[arg(long)]
+        #[arg(long, group = "takes_paths")]
         worktree: bool,
         /// With `--worktree`: print the command and the context; start nothing.
         #[arg(long, requires = "worktree")]
@@ -837,10 +837,12 @@ enum DailyCommand {
         #[arg(long, conflicts_with = "worktree")]
         interactive: bool,
         /// Only take it, with no brief: `war admin claim`.
-        #[arg(long, conflicts_with = "worktree")]
+        #[arg(long, conflicts_with = "worktree", group = "takes_paths")]
         claim: bool,
-        /// With --claim: the paths or globs it will write.
-        #[arg(long, num_args = 1.., requires = "claim")]
+        /// With `--worktree` or `--claim`: declared write paths for the claim;
+        /// refused when they overlap a live claim's. Default: what the Warrant
+        /// declares.
+        #[arg(long, value_name = "PATHS", num_args = 1.., requires = "takes_paths")]
         paths: Vec<String>,
         /// With --claim: take a claim past its TTL. Journalled.
         #[arg(long, requires = "claim")]
@@ -1914,6 +1916,18 @@ enum ViewCommand {
         /// it is restored. Hidden; the battery's.
         #[arg(long, hide = true)]
         panic_after_setup: bool,
+        /// Draw one frame as text and exit: `watch`, `act`, `records` or
+        /// `repos`. Hidden; the battery cannot drive a pipe.
+        #[arg(long, hide = true, value_name = "WHAT")]
+        render: Option<String>,
+        /// Parse every command line the app builds, or the ones in a file,
+        /// with the real CLI. Hidden; the battery's.
+        #[arg(long, hide = true, value_name = "FILE", num_args = 0..=1, default_missing_value = "")]
+        check_argv: Option<Utf8PathBuf>,
+        /// Time a read, frames and keys on this repository against the budget.
+        /// Hidden; the battery's.
+        #[arg(long, hide = true)]
+        budget: bool,
     },
     /// Read-only project board, including every stage and exact approval commands.
     Board {
@@ -4409,6 +4423,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             worktree,
             print,
             base,
+            paths,
             actor,
             ..
         } => {
@@ -4423,7 +4438,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     return Ok(ticket_answer(mode, "start", &refusal));
                 };
                 let repository = ctx.open_repo()?;
-                let opts = go::start::Options { actor, print, base };
+                let opts = go::start::Options {
+                    actor,
+                    print,
+                    base,
+                    paths,
+                };
                 let (report, result, human) = go::start::run(&repository, &id, &opts)?;
                 return Ok(go_answer(mode, "start", &report, result, &human));
             }
@@ -7070,9 +7090,24 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 &ticket::list(&store, &work, &filter)?,
             ))
         }
-        ViewCommand::Tui { panic_after_setup } => {
+        ViewCommand::Tui {
+            panic_after_setup,
+            render,
+            check_argv,
+            budget,
+        } => {
             if matches!(mode, output::Mode::Json) {
                 return Ok(tui::refuse_json());
+            }
+            if budget {
+                return Ok(tui::budget(ctx.root.clone())?);
+            }
+            if let Some(file) = check_argv {
+                let file = (!file.as_str().is_empty()).then_some(file);
+                return Ok(tui::check_argv(ctx.root.clone(), file.as_deref())?);
+            }
+            if let Some(what) = render {
+                return Ok(tui::render(ctx.root.clone(), &what)?);
             }
             Ok(tui::run(ctx.root.clone(), panic_after_setup)?)
         }

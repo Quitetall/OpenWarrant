@@ -43,6 +43,8 @@ pub struct Options {
     pub print: bool,
     /// The commit the worktree starts from (default HEAD).
     pub base: Option<String>,
+    /// Declared write paths for the claim; empty derives them from the item.
+    pub paths: Vec<String>,
 }
 
 /// The session marker the edit guard reads.
@@ -294,7 +296,7 @@ pub fn run(
     };
     let mut claim_id = None;
     if crate::ticket::is_ticket_ref(&node) {
-        let claimed = crate::ticket::claim_cmd(&store, &node, false)?;
+        let claimed = crate::ticket::claim_scoped(&store, &node, false, &opts.paths)?;
         if claimed.is_refused() {
             for d in claimed.report.diagnostics {
                 report.push(d);
