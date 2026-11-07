@@ -71,6 +71,11 @@ pub struct Frontier {
     pub claimed: usize,
     pub done: usize,
     pub blocked: usize,
+    /// Open single-file Warrants and Orders: `war view frontier` lists them,
+    /// and no reader that dispatches a stage sees them, since no stage of
+    /// theirs can be dispatched.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub documents: Vec<crate::work::Item>,
 }
 
 pub const SCHEMA: &str = "oh.war/frontier/v1";
@@ -324,6 +329,7 @@ fn frontier_of<'a>(
         done: count(StageState::Done),
         blocked: count(StageState::Blocked),
         rows,
+        documents: Vec::new(),
     };
     report.note(format!(
         "{} open, {} claimed, {} done, {} blocked across {} stage(s)",
@@ -412,6 +418,7 @@ pub fn render(f: &Frontier) -> String {
             }
         ));
     }
+    out.push_str(&crate::work::render_documents(&f.documents));
     out
 }
 

@@ -7,6 +7,10 @@
 # step. Refused: an agent ticking or signing the item; a failing test, with items or
 # with none, reaching the queue; an Order nobody finished reaching it; an item added
 # after the handover keeping it there. Throwaway key; session variables cleared.
+#
+# Also: `war status --json` and `war plan frontier` list single-file Warrants and
+# Orders, and refuse a plain ticket that place; nothing offers to dispatch one;
+# `war_create` takes `sign`.
 
 echo "== an Order reaches its signer (t-3c16c W1) =="
 OS_ROOT=$(scratch_corpus OS)
@@ -164,6 +168,53 @@ if ! os_listed "$OS_D"; then
     os_ok "work added takes it back" "an open item of the agent's: out of the queue"
 else
     os_fail "work added takes it back" "$(head -3 "$OS_T/out" | tr '\n' '|')"
+fi
+
+# ---- single-file Warrants and Orders, in status and the frontier ------------------------
+OS_E=$(os_create "A Warrant in one document" --test true)
+OS_F=$(os_create "A plain ticket")
+os_as owner --json plan new "A kept document" --format 1.0
+OS_G=$(os_py 'v["result"].get("warrant") or v["result"].get("alias") or v["result"].get("id")')
+os_as owner --json status
+OS_LISTED=$(os_py '" ".join(i["id"] for i in v["result"].get("single_file",[]))')
+OS_STATE=$(os_py 'next(i["state"] for i in v["result"]["single_file"] if i["id"]=="'"$OS_A"'")')
+if [[ " $OS_LISTED " == *" $OS_E "* && " $OS_LISTED " == *" $OS_A "* && " $OS_LISTED " == *" $OS_G "* \
+    && " $OS_LISTED " != *" $OS_F "* && $OS_STATE == done ]]; then
+    os_ok "status lists single-file work" "a Warrant, an Order and a document; a plain ticket is not one"
+else
+    os_fail "status lists single-file work" "[$OS_LISTED] e=$OS_E g=$OS_G f=$OS_F a=$OS_A/$OS_STATE"
+fi
+os_as owner --json plan frontier
+OS_LISTED=$(os_py '" ".join(i["id"] for i in v["result"].get("documents",[]))')
+os_as owner plan frontier; OS_HUMAN=$(cat "$OS_T/out")
+if [[ " $OS_LISTED " == *" $OS_E "* && " $OS_LISTED " == *" $OS_G "* && " $OS_LISTED " != *" $OS_F "* \
+    && " $OS_LISTED " != *" $OS_A "* && $OS_HUMAN == *"$OS_E"* ]]; then
+    os_ok "the frontier lists what is open" "open ones listed; a closed Order and a plain ticket are not"
+else
+    os_fail "the frontier lists what is open" "[$OS_LISTED] e=$OS_E g=$OS_G"
+fi
+os_as owner --json view console
+if [[ $(os_py '[s for s in v["result"]["stages"] if s["warrant"]=="'"$OS_E"'"]') == "[]" ]]; then
+    os_ok "nothing offers to dispatch them" "no stage row, so no command that could not run"
+else
+    os_fail "nothing offers to dispatch them" "$(head -3 "$OS_T/out" | tr '\n' '|')"
+fi
+
+# ---- war_create over MCP asks for the same ---------------------------------------------------
+OS_TX="$OS_T/tx"
+{
+    printf '%s\n' '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"plant","version":"1"}}}'
+    printf '%s\n' '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+    printf '%s\n' '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"war_create","arguments":{"title":"An Order over MCP","sign":true,"actor":"mcp-agent"}}}'
+    printf '%s\n' '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_create","arguments":{"title":"A ticket over MCP","sign":false,"actor":"mcp-agent"}}}'
+} >"$OS_TX"
+OS_MCP=$(cd "$OS_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$OS_WAR" "$OS_TX" 2>/dev/null)
+OS_ORDER=$(grep -l '^# An Order over MCP$' "$OS_ROOT"/docs/tickets/*.md 2>/dev/null | head -1)
+OS_TICKET=$(grep -l '^# A ticket over MCP$' "$OS_ROOT"/docs/tickets/*.md 2>/dev/null | head -1)
+if [[ -n $OS_ORDER && -n $OS_TICKET ]] && grep -q '^min: signed$' "$OS_ORDER" && ! grep -q '^min: signed$' "$OS_TICKET"; then
+    os_ok "war_create takes sign" "sign true writes min: signed; false writes none"
+else
+    os_fail "war_create takes sign" "$(head -c 300 <<<"$OS_MCP")"
 fi
 
 /usr/bin/rm -rf "$OS_T"

@@ -4123,6 +4123,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if !adapted.is_empty() {
                             value["read_in_place"] = interop::adapters::status(&adapted).1;
                         }
+                        // After the projection and never in it: a document
+                        // changes without a compile, as a ticket's ticks do.
+                        let documents = work::Work::read(&repository).documents();
+                        if !documents.is_empty() {
+                            value["single_file"] = output::value(&documents);
+                        }
                         // OW-WAR-0148 M14: each Warrant's officialness, under
                         // a preset only; never in the committed projection.
                         let policy = preset::Policy::read_or_default(&repository.root);
@@ -4176,6 +4182,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if !adapted.is_empty() {
                             print!("{}", interop::adapters::status(&adapted).0);
                         }
+                        print!(
+                            "{}",
+                            work::render_documents(&work::Work::read(&repository).documents())
+                        );
                         // OW-WAR-0148 M13: how the tickets' ticks were
                         // earned, after the projection and never in it (the
                         // committed projection does not move when a ticket
@@ -5654,7 +5664,14 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
-            let (report, f) = frontier::run(&repository, alias.as_deref())?;
+            let (report, mut f) = frontier::run(&repository, alias.as_deref())?;
+            if alias.is_none() {
+                f.documents = work::Work::read(&repository)
+                    .documents()
+                    .into_iter()
+                    .filter(|i| !i.is_done())
+                    .collect();
+            }
             match mode {
                 output::Mode::Human => {
                     print!("{}", frontier::render(&f));

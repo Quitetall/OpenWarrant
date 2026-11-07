@@ -6,6 +6,16 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `war status --json` (`single_file`), `war status --verbose` and `war plan
+  frontier` list single-file Warrants and Orders.
+
+- The MCP tool `war_create` takes `sign`, as `war create --sign` does.
+
+- `-I` is the short form of `--interactive` on all six commands. `-i` stays
+  `--item` on `create`.
+
 ### Fixed
 
 - A finished Order never reached its signer. `war done` on one with a signature
