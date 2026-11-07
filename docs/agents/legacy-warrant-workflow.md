@@ -4,13 +4,14 @@ Ordinary coding needs no Warrant and no ticket. Fix bugs, add features,
 refactor and run tests the way you would in any repository: nothing has to be
 created, claimed, approved or signed first.
 
-OpenWarrant is installed here as an optional kit for planning and tracking:
+OpenWarrant is installed here as an optional kit for tracking work. One item
+in one format, at one of three levels its fields decide:
 
-- a **Warrant** is a work plan; optional. The lightest one, a **ticket**, is a
-  title and a checklist, so the next person or agent can see what is done and
-  what is left; `war view warrants` lists every Warrant, tickets included;
-- some Warrant types add a person's sign-off, and only those come with the
-  rules near the end of this file.
+| Level | Made with | Done when |
+|---|---|---|
+| **Ticket** | `war create "..."` | you say so |
+| **Warrant** | `--test "<command>"` | the test passes |
+| **Order** | `--sign` | any test passes and a person signs |
 
 Use them when they help, or when the person you work with asks for them.
 
@@ -21,20 +22,21 @@ war start && ls                            # take the next ready Warrant with yo
 # do the work
 make test && war done --note "what you did"   # close it with your last test run: every item, one call
 war view prime                             # what is open, one line each (`war view prime <id>`: one in full)
-war note <ticket> "a decision, a dead end, a link"   # context for the next agent
-war create "What this work accomplishes" --item "..."   # new work; `war add <ticket> "..."` extends one
+war create "What this work accomplishes" --item "..."   # new work
+war status                                 # progress
+war check                                  # record integrity
 ```
 
-No step in this loop needs a signature or anyone's approval: a ticket is done
-when its boxes are ticked. Taking the work with your first look at the code
-and closing it with your last test run costs no turn of its own; `war start`
-and `war done` run alone just as well, and so do the item-level
-`war claim <item>` and `war done <item>`. `war start` claims the Warrant whole, so a second
-agent gets the next one instead; started again, it prints the one you hold. When several
+No step in this loop needs a signature or anyone's approval. On an Order,
+`war done` does your part, exits 0 and names the `war sign` command a person
+runs; nothing more is yours, and an agent cannot sign. Taking the work with
+your first look at the code and closing it with your last test run costs no
+turn of its own. `war start` claims the item whole, so a second agent gets the
+next one instead; started again, it prints the one you hold. When several
 agents share the repository, give each one a name with `--as <name>` (or
 `OPENWARRANT_ACTOR`). Over MCP the same loop is `war_start`, `war_done`,
-`war_prime`, `war_create`, `war_add` and `war_note`. With nothing tracked,
-`war start` says "nothing tracked; work freely".
+`war_prime` and `war_create`. With nothing tracked, `war start` says "nothing
+tracked; work freely".
 
 ## Loading context
 
@@ -53,9 +55,9 @@ summary. The same command over the same files prints the same bytes; over
 MCP it is `war_context`. Ordinary coding needs none of this; use it when a
 task names tracked work.
 
-## Planning with a Warrant (optional)
+## Planning a larger piece of work (optional)
 
-A Warrant writes a piece of work down before it starts: what it is for, what
+A directory Warrant writes the work down before it starts: what it is for, what
 is in and out of its scope, and how anyone will know it is done.
 
 ```bash
@@ -138,7 +140,7 @@ the signature. The tool holds five facts:
 The loop for such a Warrant:
 
 ```bash
-war next                                       # what is ready, and whose step it is
+war view next                                  # what is ready, and whose step it is
 war sign authorize <alias>                     # drafts the approval request; a person runs `war sign <alias>`
 war admin deliver <alias>                      # records what was delivered, at the bytes on disk
 war evidence record <alias>                    # runs the cited checks and records receipts
@@ -151,8 +153,8 @@ war sign resolve <alias>                       # drafts the close-out request; a
 `war evidence prepare <alias>` (or `--all`) runs your half of this in order (deliver,
 stages, checks, the configured verifier), skips what is current, signs
 nothing, and lists what is left for a person. Every command takes `--json`
-and answers with one `oh.war/report/v1` envelope; `war next --json` names the
-actor of every step.
+and answers with one `oh.war/report/v1` envelope; `war view next --json` names
+the actor of every step.
 
 The tool accepts only a person's signature for five acts: approving a plan,
 closing a Warrant, accepting a spec revision, correcting a delivered file,
