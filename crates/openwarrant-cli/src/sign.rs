@@ -3076,11 +3076,50 @@ fn edit(path: &Utf8Path) -> Result<(), RepoError> {
 /// thing and reads nothing it does not need. `--show` is the one path that
 /// reads without a terminal, because it writes nothing and asks nothing.
 pub fn run(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Report, RepoError> {
+    // An Order's sign-off has its own record: the console and the page reach
+    // it here, the command line before here.
+    if let Some(item) = target.filter(|t| crate::ticket::is_ticket_ref(t)) {
+        let store = crate::ticket::Store::open(repo, None)?;
+        let args = crate::ticket::acts::SignArgs {
+            actor: opts.actor.clone(),
+            meaning: opts.meaning.clone(),
+            ssh_sign: opts.ssh_sign,
+            dry_run: opts.dry_run || opts.show,
+        };
+        return Ok(crate::ticket::acts::sign(repo, &store, item, &args)?.report);
+    }
     let mut report = run_acts(repo, target, opts)?;
+    if target.is_none() && opts.all {
+        sweep_sign_offs(repo, opts, &mut report)?;
+    }
     // M9: each refusal names what is missing and ends by saying it blocks
     // only the sign-off. Rules are untouched, so every reader of them is too.
     crate::signing_probe::finish(repo, &mut report);
     Ok(report)
+}
+
+/// A sweep does not sign an Order's sign-off, which is one item's own record
+/// and signature: a dry run judges each, and the real one names its command.
+fn sweep_sign_offs(
+    repo: &Repository,
+    opts: &Options,
+    report: &mut Report,
+) -> Result<(), RepoError> {
+    for s in crate::ticket::acts::awaiting_in(repo)? {
+        if opts.dry_run && !s.eligible.is_empty() {
+            report.push(Diagnostic::pass(
+                "sign.would-record",
+                format!("{} — a sign-off would be recorded", s.line()),
+            ));
+        } else {
+            report.push(Diagnostic::warn(
+                "sign.signs-alone",
+                s.line(),
+                format!("signs alone: `war sign {} --ssh-sign`", s.target),
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn run_acts(repo: &Repository, target: Option<&str>, opts: &Options) -> Result<Report, RepoError> {

@@ -133,6 +133,7 @@ pub const TABLE: &[&str] = &[
     // dead end. A test below reads the source for `"sign.…"` literals and
     // holds this list to all of them.
     "sign.who",
+    "sign.signs-alone",
     "sign.ssh-principal",
     "sign.sweep-stopped",
     "sign.ssh-refused",

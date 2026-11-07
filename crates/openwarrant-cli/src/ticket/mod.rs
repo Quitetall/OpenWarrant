@@ -2486,7 +2486,10 @@ pub fn ready_rows_at(
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
         let mut rows = Vec::new();
-        if t.is_done() || held.contains_key(t.id()) {
+        if t.is_done()
+            || held.contains_key(t.id())
+            || !ladder::awaiting_signature(store, t).is_empty()
+        {
             return rows;
         }
         let Ok(candidate) = scopes::of(store, t, &[]) else {
@@ -4475,6 +4478,17 @@ fn finish(
     {
         return Ok(refusal);
     }
+    // The agent's last item of an Order hands it to a person: what decides
+    // that handover passes now, or this tick is refused with the rest.
+    let for_a_person = item_id
+        .as_deref()
+        .map_or_else(Vec::new, |id| ladder::left_for_a_person(store, t, Some(id)));
+    if !for_a_person.is_empty()
+        && matches!(how, How::Claimed | How::Check)
+        && let Err(refusal) = signature_trigger(store, t, &for_a_person, matches!(how, How::Check))?
+    {
+        return Ok(*refusal);
+    }
     // The claim, as `war admin claim` takes it: refused when the item is blocked
     // or someone took it meanwhile, journalled when it is taken.
     let mut auto_claimed = None;
@@ -4602,6 +4616,7 @@ fn finish(
         payload["run"] = serde_json::json!(r.run);
     }
     store.journal(&t, event::ITEM_DONE, &payload)?;
+    hand_over(store, &t, &for_a_person)?;
     let t = if whole_doc {
         store
             .load(&t.dir)
@@ -4653,7 +4668,9 @@ fn finish(
     // issue, say so there when write-back is configured.
     let mut issue_report = None;
     let mut unknown = None;
-    if state == TicketState::Done
+    if !for_a_person.is_empty() {
+        human.push_str(&format!("\n{}", waits_on_a_person(&t, &for_a_person)));
+    } else if state == TicketState::Done
         && let Some(number) = t.manifest.issue
     {
         let (report, line, diag) = issue_writeback(store, &t, number)?;
@@ -4682,6 +4699,7 @@ fn finish(
         "ticket_state": state,
         "level": reach.as_str(),
     });
+    awaiting_fields(&t, &for_a_person, &mut result);
     if let Some(r) = &round {
         result["checks"] = serde_json::to_value(r).unwrap_or_default();
     }
@@ -4707,6 +4725,77 @@ fn finish(
     Ok(out)
 }
 
+/// What `war done` says when an Order now waits on a person: one line, with
+/// the exact command for each item.
+fn waits_on_a_person(t: &Ticket, items: &[String]) -> String {
+    let commands: Vec<String> = items
+        .iter()
+        .map(|i| format!("`war sign {}/{i} --ssh-sign`", t.id()))
+        .collect();
+    format!("{} waits on a person: {}", t.id(), commands.join(", "))
+}
+
+/// A handed-over Order is not closed, whatever its exit code: `ticket_state`
+/// says so, and the targets name what is left.
+fn awaiting_fields(t: &Ticket, items: &[String], result: &mut serde_json::Value) {
+    if !items.is_empty() {
+        result["ticket_state"] = serde_json::json!(AWAITING_SIGNATURE);
+        result["awaiting_signature"] = serde_json::json!(
+            items
+                .iter()
+                .map(|i| format!("{}/{i}", t.id()))
+                .collect::<Vec<_>>()
+        );
+    }
+}
+
+/// `ticket_state` of an Order with nothing left for an agent.
+pub const AWAITING_SIGNATURE: &str = "awaiting_signature";
+
+/// Record that `items` wait on a person: the fact the signing queue reads.
+fn hand_over(store: &Store, t: &Ticket, items: &[String]) -> Result<(), RepoError> {
+    if items.is_empty() {
+        return Ok(());
+    }
+    store.journal(
+        t,
+        ladder::event::AWAITS_SIGNATURE,
+        &serde_json::json!({"target": t.id(), "items": items}),
+    )
+}
+
+/// What decides an Order beyond the items an agent ticks: checks on the
+/// document as a whole and on each item left for a person. Each must pass
+/// before the Order reaches its signer; a tick of the agent's own items never
+/// ran them. `Ok(Ok(round))` names the last that ran.
+fn signature_trigger(
+    store: &Store,
+    t: &Ticket,
+    items: &[String],
+    all: bool,
+) -> Result<Result<Option<ladder::CheckRound>, Box<Outcome>>, RepoError> {
+    let mut round = None;
+    if t.format {
+        let targets = std::iter::once(None).chain(items.iter().map(|i| Some(i.as_str())));
+        for target in targets {
+            match checks::on_done(store, t, target, all)? {
+                None => {}
+                Some(Ok(r)) => round = Some(r),
+                Some(Err(refusal)) => return Ok(Err(refusal)),
+            }
+        }
+    } else {
+        let checks = ladder::checks_of(t);
+        if ladder::decides(&checks, None) {
+            match ladder::check_for_tick(store, t, None, &checks, t.id())? {
+                Ok(r) => round = Some(r),
+                Err(refusal) => return Ok(Err(refusal)),
+            }
+        }
+    }
+    Ok(Ok(round))
+}
+
 /// `war done <ticket>` with items open: every open item ticked in one write,
 /// or none. Each is judged first as `war done <item>` judges it: held by this
 /// actor (or the whole ticket is; under the vibe preset, or with `--if-rev`,
@@ -4715,6 +4804,12 @@ fn finish(
 /// the least its item must reach. Each item gets its own `work.item_done`
 /// (estimates learn from them); a note is one ticket note, not a copy per
 /// line.
+///
+/// An item only a person can tick is left open: with the rest ticked and what
+/// decides the Order passed it is handed over (`work.awaits_signature`), and
+/// the command succeeds. An agent's act finished, as a tick of one item of
+/// many is; `ticket_state` says the Order is not closed, and a repeat says the
+/// same and writes nothing.
 fn finish_ticket(
     store: &Store,
     tickets: &[Ticket],
@@ -4738,19 +4833,50 @@ fn finish_ticket(
         t = reload(&t)?;
     }
     let what = t.id().to_owned();
+    // What only a person can tick stays open, and `war done` hands it over.
+    let for_a_person = {
+        let checks = ladder::checks_of(&t);
+        let mut left: Vec<String> = t
+            .checklist
+            .items
+            .iter()
+            .filter(|i| !i.done)
+            .filter_map(|i| i.id.clone())
+            .filter(|id| ladder::minimum(store, &t, &checks, Some(id)).0 >= Level::Signed)
+            .collect();
+        left.sort_unstable();
+        left
+    };
     let open: Vec<String> = t
         .checklist
         .items
         .iter()
         .filter(|i| !i.done)
         .filter_map(|i| i.id.clone())
+        .filter(|id| for_a_person.binary_search(id).is_err())
         .collect();
     let item_what = |id: &str| format!("{what}/{id}");
+    if open.is_empty() {
+        let waiting = ladder::awaiting_signature(store, &t);
+        if !waiting.is_empty() {
+            let mut result = serde_json::json!({"schema": "oh.war/ticket-done/v1",
+                "ticket": what, "already_done": true});
+            awaiting_fields(&t, &waiting, &mut result);
+            return Ok(Outcome::ok(waits_on_a_person(&t, &waiting), result));
+        }
+    }
+    // Whose this is: the agent's own items, or, on an Order with none open,
+    // what it hands over.
+    let held = if open.is_empty() {
+        &for_a_person
+    } else {
+        &open
+    };
 
     // The claim: every open item held by this actor, by its own claim or the
     // whole ticket's.
     let mut auto_claim = false;
-    if let Some(refusal) = open
+    if let Some(refusal) = held
         .iter()
         .find_map(|id| may_finish(store, &t, Some(id), &item_what(id)).err())
     {
@@ -4811,6 +4937,12 @@ fn finish_ticket(
             Err(refusal) => return Ok(*refusal),
         }
     }
+    if !for_a_person.is_empty() && judged_here && whole_round.is_none() {
+        match signature_trigger(store, &t, &for_a_person, checking)? {
+            Ok(round) => whole_round = round,
+            Err(refusal) => return Ok(*refusal),
+        }
+    }
     let mut ticks_of: Vec<(String, Option<ladder::CheckRound>)> = Vec::new();
     for id in &open {
         let mut round = whole_round.clone();
@@ -4835,7 +4967,7 @@ fn finish_ticket(
     }
     // Checks may have run for a while: the claim must still be this agent's.
     if ticks_of.iter().any(|(_, r)| r.is_some())
-        && let Some(refusal) = open
+        && let Some(refusal) = held
             .iter()
             .find_map(|id| may_finish(store, &t, Some(id), &item_what(id)).err())
     {
@@ -4892,6 +5024,7 @@ fn finish_ticket(
         }
         store.journal(&t, event::ITEM_DONE, &payload)?;
     }
+    hand_over(store, &t, &for_a_person)?;
     if let Some(n) = &note {
         let noted = self::note(store, &what, n, None)?;
         if noted.is_refused() {
@@ -4903,7 +5036,7 @@ fn finish_ticket(
     if let Some((remote_name, lock, commit)) = &remote_held {
         remote_warnings.extend(store.retire_remote(remote_name, lock, commit));
     }
-    for id in &open {
+    for id in open.iter().chain(&for_a_person) {
         let lock = store.lock_of(t.id(), Some(id));
         remote_warnings.extend(store.retire_published(&lock));
         let _ = claim::release(&lock, &store.actor);
@@ -4926,10 +5059,15 @@ fn finish_ticket(
         .filter(|(_, r)| r.is_some())
         .map(|(id, _)| id.as_str())
         .collect();
-    if observed.is_empty() {
+    if ticks_of.is_empty() {
+        human.push_str("\nnothing of yours was left to tick");
+    } else if observed.is_empty() {
         human.push_str("\nticked as claimed: nothing was checked");
     } else {
         human.push_str(&format!("\nticked at observed: {}", observed.join(", ")));
+    }
+    if !for_a_person.is_empty() {
+        human.push_str(&format!("\n{}", waits_on_a_person(&t, &for_a_person)));
     }
     let mut issue_report = None;
     let mut unknown = None;
@@ -4952,6 +5090,10 @@ fn finish_ticket(
         "ticket_state": state,
         "level": if observed.len() == ticks_of.len() { Level::Observed.as_str() } else { Level::Claimed.as_str() },
     });
+    if ticks_of.is_empty() {
+        result["level"] = serde_json::Value::Null;
+    }
+    awaiting_fields(&t, &for_a_person, &mut result);
     if let Some(c) = auto_claimed {
         result["auto_claimed"] = c;
     }

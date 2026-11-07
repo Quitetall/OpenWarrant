@@ -877,10 +877,15 @@ impl WarServer {
     fn war_sign_list(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
         value_of(
             "sign.list",
-            crate::sign::list(&self.repo).map(|pending| {
-                let lines: Vec<String> = pending.iter().map(crate::sign::line).collect();
-                serde_json::json!({"pending": lines, "count": lines.len(),
-                    "how": "a human runs `war sign <target> --ssh-sign` at a terminal"})
+            crate::sign::list(&self.repo).and_then(|pending| {
+                let offs = crate::ticket::acts::awaiting_in(&self.repo)?;
+                let lines: Vec<String> = pending
+                    .iter()
+                    .map(crate::sign::line)
+                    .chain(offs.iter().map(crate::ticket::acts::SignOff::line))
+                    .collect();
+                Ok(serde_json::json!({"pending": lines, "count": lines.len(),
+                    "how": "a human runs `war sign <target> --ssh-sign` at a terminal"}))
             }),
             "pending acts listed",
         )

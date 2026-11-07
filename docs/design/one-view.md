@@ -77,6 +77,25 @@ piece of work.
 context` now find a single-file Warrant. `next` lists it, and work read in place,
 under `elsewhere`, which is absent when there is none.
 
+## An Order reaches its signer
+
+`war done` on an Order ticks what an agent may, runs what decides it, and hands the
+rest to a person. The handover is a journal event, `work.awaits_signature`, because
+nothing else tells an Order just created from one its agent finished: with no work
+items of its own, the two look the same. The queue reads that event and the document
+together, so a level is still never stored, and an item added or reopened since takes
+the Order out of the queue until the next `war done`.
+
+`war done` exits 0. An agent's act succeeded and nothing is left for it, as when it
+ticks one item of many, and a non-zero code would send a harness back to retry work
+that passed. Closed is not what an exit code says in either case: `ticket_state` is
+`awaiting_signature`, and `awaiting_signature` lists the targets.
+
+A sign-off is not a `sign::Pending`. It is one item's own record (`ticket::acts::sign`)
+with none of those acts' drafting or batching, so it joins the queue at
+`console::review_rows_with`, `war sign --list` and `next`. `war sign --all` and
+`--batch` leave each out and name its command, and `war sign <item>` signs it alone.
+
 ## What remains of W1.1
 
 - The TUI (`ticket::board`), another agent's.

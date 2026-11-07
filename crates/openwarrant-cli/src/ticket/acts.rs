@@ -47,6 +47,78 @@ pub const RESPONSE_SCHEMA: &str = "oh.war/tick-verification-response/v1";
 /// The response a sign-off signs.
 pub const SIGNOFF_SCHEMA: &str = "oh.war/tick-signoff-response/v1";
 
+/// An item `war done` handed to a person, as the signing queue lists it.
+#[derive(Debug, Clone, Serialize)]
+pub struct SignOff {
+    /// `t-x/i-y`, what `war sign` takes.
+    pub target: String,
+    pub ticket: String,
+    pub title: String,
+    pub text: String,
+    /// Who could sign it, as [`sign`] chooses.
+    pub eligible: Vec<String>,
+}
+
+impl SignOff {
+    /// One row, as `war sign --list` names an act.
+    #[must_use]
+    pub fn line(&self) -> String {
+        format!("sign off  {}  \"{}\"", self.target, self.title)
+    }
+
+    /// `war sign --list --json`'s row.
+    #[must_use]
+    pub fn json(&self) -> serde_json::Value {
+        serde_json::json!({"target": self.target, "act": ACT, "role": "signer",
+            "eligible": self.eligible, "assigned": [], "blocked_by": null, "line": self.line()})
+    }
+}
+
+/// What the queue calls a sign-off.
+pub const ACT: &str = "sign_off";
+
+/// Who can sign an item off: a human with an ssh principal.
+fn human_signers(repo: &Repository) -> Result<Vec<String>, RepoError> {
+    Ok(repo
+        .load_authority_register()?
+        .assignments
+        .iter()
+        .filter(|a| {
+            a.actor_kind == openwarrant_core::authority::ActorKind::Human
+                && a.ssh_principal.is_some()
+        })
+        .map(|a| a.actor.clone())
+        .collect())
+}
+
+/// Every item waiting on a person's sign-off among `tickets`.
+pub fn awaiting(
+    repo: &Repository,
+    store: &Store,
+    tickets: &[Ticket],
+) -> Result<Vec<SignOff>, RepoError> {
+    let mut out = Vec::new();
+    for t in tickets {
+        for item in ladder::awaiting_signature(store, t) {
+            out.push(SignOff {
+                target: format!("{}/{item}", t.id()),
+                ticket: t.id().to_owned(),
+                title: t.manifest.title.clone(),
+                text: t.item(&item).map(|i| i.text.clone()).unwrap_or_default(),
+                eligible: human_signers(repo)?,
+            });
+        }
+    }
+    Ok(out)
+}
+
+/// [`awaiting`] over the repository's own tickets.
+pub fn awaiting_in(repo: &Repository) -> Result<Vec<SignOff>, RepoError> {
+    let store = Store::open(repo, None)?;
+    let (tickets, _) = store.load_all()?;
+    awaiting(repo, &store, &tickets)
+}
+
 /// A verifier's answer about one item.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -410,16 +482,7 @@ pub fn sign(
     };
     let what = format!("{}/{item}", t.id());
     let it = t.item(&item).expect("resolved");
-    let register = repo.load_authority_register()?;
-    let eligible: Vec<String> = register
-        .assignments
-        .iter()
-        .filter(|a| {
-            a.actor_kind == openwarrant_core::authority::ActorKind::Human
-                && a.ssh_principal.is_some()
-        })
-        .map(|a| a.actor.clone())
-        .collect();
+    let eligible = human_signers(repo)?;
     let opts = crate::sign::Options {
         actor: args.actor.clone(),
         meaning: None,

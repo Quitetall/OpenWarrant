@@ -8,6 +8,17 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- A finished Order never reached its signer. `war done` on one with a signature
+  item was refused and ticked nothing, and no list named it. It now ticks the
+  agent's items, runs any test, records the note, leaves the signature open and
+  exits 0, saying `t-x waits on a person: \`war sign t-x/i-y --ssh-sign\``.
+  `ticket_state` reads `awaiting_signature`. `war sign --list`, `war status`,
+  `war view next` and the signing queue name it, and the signature closes it. A
+  failing test queues nothing, and an agent still cannot tick the signature.
+
+- `war plan add` on an Order put the new item under the signature milestone,
+  which made an agent's work a person's. It now goes with the other items.
+
 - `war done` could disown its own claim. With no harness session variable set,
   `war start` in one terminal and `war done` in another read as two holders,
   and `war done` answered that nobody held the work. With no named session,

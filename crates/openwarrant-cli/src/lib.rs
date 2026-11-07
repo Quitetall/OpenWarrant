@@ -5829,6 +5829,7 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
             meaning,
             ssh_sign,
             dry_run,
+            show,
             ..
         } if ticket::is_ticket_ref(&target) => {
             let repository = ctx.open_repo()?;
@@ -5837,7 +5838,7 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
                 actor,
                 meaning,
                 ssh_sign,
-                dry_run,
+                dry_run: dry_run || show,
             };
             Ok(ticket_answer(
                 mode,
@@ -5872,25 +5873,32 @@ fn run_sign(ctx: &Ctx, args: SignArgs) -> Result<u8, Box<dyn std::error::Error>>
                 // they may sign now, assigned ones first — and `--json` carries
                 // the same list.
                 let waiting = sign::list_for(&repository, actor.as_deref())?;
+                let sign_offs: Vec<ticket::acts::SignOff> = ticket::acts::awaiting_in(&repository)?
+                    .into_iter()
+                    .filter(|s| actor.as_ref().is_none_or(|a| s.eligible.contains(a)))
+                    .collect();
                 let by = actor
                     .as_deref()
                     .map(|a| format!(" by {a}"))
                     .unwrap_or_default();
-                let text = if waiting.is_empty() {
+                let count = waiting.len() + sign_offs.len();
+                let text = if count == 0 {
                     format!("nothing awaits a signature{by}")
                 } else {
-                    let mut t = format!("{} awaiting a signature{by}:", waiting.len());
+                    let mut t = format!("{count} awaiting a signature{by}:");
                     for p in &waiting {
                         t.push_str(&format!("\n  {}", sign::line(p)));
                     }
+                    for s in &sign_offs {
+                        t.push_str(&format!("\n  {}", s.line()));
+                    }
                     t
                 };
-                output::emit(
-                    mode,
-                    "sign",
-                    &text,
-                    sign::list_json(&waiting, actor.as_deref()),
-                );
+                let mut listed = sign::list_json(&waiting, actor.as_deref());
+                if let Some(acts) = listed["acts"].as_array_mut() {
+                    acts.extend(sign_offs.iter().map(ticket::acts::SignOff::json));
+                }
+                output::emit(mode, "sign", &text, listed);
                 return Ok(EXIT_OK);
             }
             let parse_err = |what: &str, v: &str, known: &str| {
