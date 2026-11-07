@@ -25,11 +25,12 @@ OP_TMP=$(mktemp -d)
 SCRATCH_CORPORA+=("$OP_TMP") # The battery's own cleanup removes it.
 OP_TMP=$(cd "$OP_TMP" && pwd -P)
 op_git() { git -c user.email=plant@invalid -c user.name=plant -c commit.gpgsign=false "$@"; }
+OP_BIN="$REPO_ROOT/target/debug/war"
 # `war` in a directory, as an actor, with no harness session and no agent.
 op_war() {
     local dir=$1 who=$2; shift 2
     (cd "$dir" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_NO_PROJECTS=1 \
-        OPENWARRANT_NO_UPDATE_CHECK=1 OPENWARRANT_ACTOR="$who" "$WAR" "$@" 2>&1)
+        OPENWARRANT_NO_UPDATE_CHECK=1 OPENWARRANT_ACTOR="$who" "$OP_BIN" "$@" 2>&1)
 }
 op_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
 op_json() { python3 -c 'import json,sys
@@ -43,7 +44,7 @@ OP_H="$OP_TMP/hpr"
 for d in "$OP_W" "$OP_H"; do
     mkdir -p "$d" && op_git -C "$d" init -q -b main \
         || { printf 'PLANT SETUP FAILED: git init\n' >&2; exit 9; }
-    op_war "$d" lead init >/dev/null || { printf 'PLANT SETUP FAILED: war init\n' >&2; exit 9; }
+    OP_OUT=$(op_war "$d" lead init) || { printf 'PLANT SETUP FAILED: war init: %s\n' "$OP_OUT" >&2; exit 9; }
 done
 OP_HT=$(op_war "$OP_H" lead --json create "Upstream work" --item "a" | op_id)
 op_git -C "$OP_H" add -A && op_git -C "$OP_H" commit -qm start \
