@@ -180,9 +180,9 @@ by ticket, by actor, by model and by day (newest first). With a dated price tabl
 row carries its `~$ est.`, or `no price` when its model has none; without one there
 are no dollars at all. Nothing recorded is one `UNKNOWN` row, never zero. The counts
 are the provider's, read from the harness's own record and unverified: they grant no
-assurance. `war status --usage` prints the same. Watch's Claims panel shows each
-claim's recorded tokens (`tok UNKNOWN` until its work records some), then the most
-recently recorded work that no live claim holds. Herdr's live per-pane counts are not
+assurance. `war status --usage` prints the same. Watch's Claims panel shows a
+claim's recorded tokens once its work has recorded some (its detail says UNKNOWN
+until then), then the most recently recorded work that no live claim holds. Herdr's live per-pane counts are not
 shown.
 
 ## Journal

@@ -91,8 +91,8 @@ Only those three, read with no write and no change to any record:
 - A capture that fails `runtime_capture::inspect_retained` is not read. It is reported
   as a fault. A capture that reads is still unverified provider data: nothing here
   grants it assurance.
-- Watch: each live claim's recorded tokens (`tok UNKNOWN` until its work records some),
-  then the most recently recorded work no live claim holds. Records, Usage: the total,
+- Watch: a live claim's recorded tokens once its work has recorded some (its detail
+  says UNKNOWN until then), then the most recently recorded work no live claim holds. Records, Usage: the total,
   then by ticket, actor, model and day. `war status --usage` prints the same in a few
   lines, and `--json` gives `oh.war/usage/v1`.
 

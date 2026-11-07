@@ -555,16 +555,16 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
             Span::raw(format!("{} ", c.target)),
             Span::styled(span(m.now_unix.saturating_sub(c.since_unix)), dim()),
         ];
+        // Recorded tokens, when there are any; the detail says UNKNOWN.
+        if let Count::Known(n) = m.snap.usage.of(&c.target) {
+            first.push(Span::styled(format!(" · {n} tok"), dim()));
+        }
         if collided {
             first.push(Span::styled(
                 " COLLISION",
                 Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
             ));
         }
-        first.push(Span::styled(
-            format!(" · tok {}", tokens(m.snap.usage.of(&c.target))),
-            dim(),
-        ));
         let second = vec![
             Span::styled(
                 format!("  lease {} · ", lease(c, m.now_unix)),
