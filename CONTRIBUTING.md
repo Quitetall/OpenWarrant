@@ -68,8 +68,8 @@ every failing step rather than the first. Run it before tags, releases or
 downstream pins, nightly and on demand. A fast-tier pass is not a full-gate pass.
 
 `fast-gate` is the required PR status. The full gate runs nightly and on demand
-in Checkpoint and Bonsai, and before packaging in Release. Its 75-minute
-checkpoint deadline and all fourteen steps remain unchanged. Source-bound
+in Checkpoint and Bonsai, and before packaging in Release, which calls that same
+workflow. Its steps remain unchanged. Source-bound
 projections must be regenerated when build/profile inputs change; a stale
 projection is corrected, never ignored to obtain a green check.
 

@@ -30,41 +30,26 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # The tag must not be able to ship something that would fail CI. Running the
-  # same single gate command means a release cannot be greener than main.
+  # The tag must not be able to ship something that would fail CI, so the
+  # gate is CI's own checkpoint, called: the same jobs, sharded the same way.
+  # One unsharded job outgrew its 75-minute bound (run 42352870364).
   gate:
     name: gate
+    uses: ./.github/workflows/ci.yml
+    with:
+      full: true
+
+  preview-check:
+    name: preview check
     runs-on: ubuntu-latest
-    # Match CI's 75-minute gate bound. Run 38668856947 reached all gate
-    # steps and plants at the old 60-minute boundary but was cancelled before
-    # the final candidate check. Keep every check and individual deadline.
-    timeout-minutes: 75
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          # Full history, as CI's gate has (OW-WAR-0125 AM-002): a gate
-          # receipt's tree and a cited SAS section are compared through git.
-          # At depth 1 both read UNKNOWN, correctly, and the committed corpus
-          # status (compiled with history) no longer matches `war status`.
-          fetch-depth: 0
-      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
-      - name: Install cargo-deny
-        uses: taiki-e/install-action@4cef1412cce204788f482e778a0b9187f9626a29 # v2
-        with:
-          tool: cargo-deny
-      # As CI's gate: the roadmap and model plants use draft-2020-12 local
-      # references, which Ubuntu's older system jsonschema misresolves.
-      - name: Install schema-validation dependency
-        run: |
-          python3 -m venv "$RUNNER_TEMP/schema-validation"
-          "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
-          echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
       - run: python3 conformance/release/test_preview.py
-      - run: cargo xtask gate
 
   build:
     name: build ${{ matrix.target }}
-    needs: gate
+    needs: [gate, preview-check]
     timeout-minutes: 30
     strategy:
       fail-fast: false
