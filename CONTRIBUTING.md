@@ -156,8 +156,13 @@ Apache-2.0.
    authorized by the Warrant's autonomy envelope is an execution choice, not a
    new decision.
 3. **Build and gate.** `cargo build --workspace && cargo xtask gate`.
-4. **Recompile projections.** `war admin compile`, then `war check --generated` to
-   confirm no drift. Generated files are committed in this repository.
+4. **Commit masters, never views.** Views (the paths in
+   `conformance/views.toml`) are written on main only, by the Views workflow
+   after each push (docs/STORAGE.md, "Views on main"). `war compile` still
+   writes them locally for reading; fast CI refuses a pull request that adds,
+   edits or deletes one (`views.pr`), and compiles them fresh in a scratch
+   worktree to check them. `python3 conformance/views.py drop --base origin/main`
+   takes them back out of a branch.
 5. **Open a pull request.** Describe the diff you are actually submitting, not
    the state of the tree.
 

@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # The merge queue (main's ruleset, "Require merge queue"): a queued merge is
+  # checked under the same required name, `fast-gate`.
+  merge_group:
 
 permissions:
   contents: read
@@ -82,6 +85,13 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      # Views are written on main only (conformance/views.toml), so a branch's
+      # committed copies may be stale. Tests that read this repository's views
+      # read them compiled fresh from the masters; this checkout is disposable.
+      - name: Compile the views here
+        run: |
+          cargo build --locked --workspace
+          python3 conformance/views.py fresh --war target/debug/war
       - run: cargo xtask-fast --only tests
 
   corpus:
@@ -104,8 +114,14 @@ jobs:
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
       # Acceptance needs the base: on a pull request HEAD^1 is the target branch.
-      - name: Record and candidate acceptance
-        run: cargo xtask-fast --only corpus,acceptance --base HEAD^1
+      # `corpus` compiles the views fresh in a scratch worktree and checks them
+      # there; `views` refuses a pull request that adds, edits or deletes a view
+      # (conformance/views.toml). On main the Views workflow writes them, so
+      # `views` runs on pull requests and queued merges only.
+      - name: Record, views, and candidate acceptance
+        env:
+          STEPS: ${{ (github.event_name == 'pull_request' || github.event_name == 'merge_group') && 'corpus,views,acceptance' || 'corpus,acceptance' }}
+        run: cargo xtask-fast --only "$STEPS" --base HEAD^1
 
   schemas:
     name: fast / schemas
@@ -161,6 +177,10 @@ jobs:
         run: |
           python3 conformance/plant-select.py affected --base HEAD^1 \
             --shard "$SHARD/4" --cap 300 --out "$RUNNER_TEMP/plants.txt"
+      # The battery restores with `git checkout`, so fresh views must be in
+      # HEAD: a local commit in this disposable checkout, never pushed.
+      - name: Compile the views here
+        run: python3 conformance/views.py fresh --war target/debug/war --commit
       - name: Run them
         env:
           OW_PLANT_FILES: ${{ runner.temp }}/plants.txt

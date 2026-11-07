@@ -6,6 +6,16 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- Views are written on main only. Pull requests carry masters; fast CI refuses
+  one that adds, edits or deletes a view (`views.pr`) or touches a resolved
+  Warrant's projection (`views.record`), and checks the views compiled fresh in
+  a scratch worktree. The Views workflow compiles and commits them to main
+  with a deploy key, appends new ids to an append-only number index, and
+  reports `views: not published` until the owner's setup (docs/STORAGE.md) is
+  done. Fast CI also runs on `merge_group`. One list: `conformance/views.toml`.
+
 ## [1.0.0-alpha.7] — 2026-11-07
 
 ### Added

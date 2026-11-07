@@ -123,6 +123,15 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      # Views are written on main only, by the Views workflow, so this
+      # checkout's committed copies may lag the masters (conformance/views.toml).
+      # Compiled fresh here, in a disposable checkout; `fresh` refuses when the
+      # compile would change anything that is not a view, a resolved
+      # Warrant's projection included.
+      - name: Compile the views here
+        run: |
+          cargo build --locked --workspace
+          python3 conformance/views.py fresh --war target/debug/war
       - run: cargo xtask gate --only tests
 
   corpus:
@@ -145,6 +154,13 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/schema-validation"
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
+      # Views are written on main only, by the Views workflow, so this
+      # checkout's committed copies may lag the masters (conformance/views.toml).
+      # Compiled fresh here, in a disposable checkout; `fresh` refuses when the
+      # compile would change anything that is not a view, a resolved
+      # Warrant's projection included.
+      - name: Compile the views here
+        run: python3 conformance/views.py fresh --war target/debug/war
       - run: cargo xtask gate --only corpus,attest
       # OW-WAR-0134: an acceptance is valid only for the candidate a human
       # accepted. On a pull request HEAD is the merge commit and HEAD^1 the
@@ -183,6 +199,14 @@ jobs:
           "$RUNNER_TEMP/schema-validation/bin/python" -m pip install 'jsonschema==4.26.0'
           echo "$RUNNER_TEMP/schema-validation/bin" >> "$GITHUB_PATH"
       # One shard of the §92 battery. Shards partition the plant files (plant.sh).
+      # Views are written on main only, by the Views workflow, so this
+      # checkout's committed copies may lag the masters (conformance/views.toml).
+      # Compiled fresh here, in a disposable checkout; `fresh` refuses when the
+      # compile would change anything that is not a view, a resolved
+      # Warrant's projection included.
+      # The battery restores with `git checkout`: a local commit, never pushed.
+      - name: Compile the views here
+        run: python3 conformance/views.py fresh --war target/debug/war --commit
       - run: cargo xtask gate --only plants
         env:
           OW_PLANT_SHARD: ${{ matrix.shard }}/4

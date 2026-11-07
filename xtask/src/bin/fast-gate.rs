@@ -2,7 +2,7 @@
 //! The PR tier. The full, historically pinned `cargo xtask gate` stays unchanged.
 //!
 //! `cargo xtask-fast [--only <id>[,<id>...]] [--base <merge-base>]`. With no
-//! `--only`, every step runs; CI runs one id per job (fast.yml), and every job
+//! `--only`, every step runs (`views` and `acceptance` only with a base); CI runs one id per job (fast.yml), and every job
 //! runs this same definition. The steps are ordered so the schema feature
 //! build, which recompiles the workspace under different features, runs last.
 use std::process::{Command, ExitCode};
@@ -65,11 +65,19 @@ const STEPS: &[Step] = &[
         program: "cargo",
         args: &["deny", "check", "licenses"],
     },
+    // Views are written on main only (conformance/views.toml), so a branch's
+    // committed copies may be stale: they are compiled fresh from the masters
+    // in a scratch worktree and checked there, never read as committed.
     Step {
         id: "corpus",
-        name: "record and generated-view integrity",
-        program: "./target/debug/war",
-        args: &["check", "--generated"],
+        name: "record and generated-view integrity (views compiled fresh)",
+        program: "python3",
+        args: &[
+            "conformance/views.py",
+            "verify",
+            "--war",
+            "./target/debug/war",
+        ],
     },
     Step {
         id: "skills",
@@ -97,7 +105,7 @@ const STEPS: &[Step] = &[
 ];
 
 const USAGE: &str = "usage: cargo xtask-fast [--only <id>[,<id>...]] [--base <merge-base>]\n\
-    ids: build, format, clippy, tests, doc-tests, licenses, corpus, skills, schemas, acceptance";
+    ids: build, format, clippy, tests, doc-tests, licenses, corpus, skills, schemas, views, acceptance";
 
 fn main() -> ExitCode {
     let args: Vec<_> = std::env::args().skip(1).collect();
@@ -122,7 +130,8 @@ fn main() -> ExitCode {
     }
     let wanted = |id: &str| only.as_ref().is_none_or(|o| o.iter().any(|x| x == id));
     if let Some(ids) = &only {
-        let known = |id: &str| STEPS.iter().any(|s| s.id == id) || id == "acceptance";
+        let known =
+            |id: &str| STEPS.iter().any(|s| s.id == id) || id == "views" || id == "acceptance";
         if let Some(bad) = ids.iter().find(|id| !known(id)) {
             eprintln!("unknown step {bad:?}\n{USAGE}");
             return ExitCode::FAILURE;
@@ -141,6 +150,17 @@ fn main() -> ExitCode {
                 eprintln!("{}: COULD NOT RUN: {error}", step.name);
                 failed.push(step.name);
             }
+        }
+    }
+    // A pull request carries masters, never views (conformance/views.toml):
+    // a change to a view since the base is refused, path by path.
+    if let (true, Some(base)) = (wanted("views"), base.as_deref()) {
+        println!("== pull requests carry no views ==");
+        let result = Command::new("python3")
+            .args(["conformance/views.py", "pr", "--base", base])
+            .status();
+        if !result.is_ok_and(|status| status.success()) {
+            failed.push("pull requests carry no views");
         }
     }
     // Acceptance needs a base to compare with, so it runs only when one is given.

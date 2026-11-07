@@ -29,6 +29,8 @@ never edit a file under `generated/`, never change a document to make a tool
 happy. They apply whenever the authority layer is used, and never make a
 signature a step of the ticket loop.
 
+**Views are main's:** commit masters only, never a path `conformance/views.toml` lists; main's Views workflow writes them.
+
 ## Read the context needed for this task
 
 - **First, always:** run `war view prime`: open work, one line per ticket,
