@@ -24,9 +24,10 @@ subject to named gates.
 - **The document standard:** [Format 1.0](docs/format/FORMAT-1.0.md), and
   [format status](docs/format/README.md#status) for edition and adoption. An
   accepted direction and an accepted edition are separate; keep each status.
-- **Product or SDK design:** the [current SAS draft](docs/sas/drafts/1.0.0-rc.3/README.md)
-  and the companion for the feature. RC.3 is an unaccepted candidate: it does
-  not establish implemented behavior or rewrite signed history.
+- **Product or SDK design:** the [current model](docs/design/current-model.md),
+  the [shared document model](docs/design/one-format.md), and the applicable
+  Format sections. The [format status](docs/format/README.md#status) records
+  edition adoption and the historical standing of SAS drafts.
 - **Repository changes:** [CONTRIBUTING.md](CONTRIBUTING.md); inspect the
   checkout and existing changes, and run `war admin pins --resolved-only`
   before edits. Use the built `target/debug/war` when PATH has an older one.
@@ -51,9 +52,10 @@ one Markdown source; `war start --json` claims work and returns its context
 packet; `war done --note "..."` closes it, and you report the result;
 `war status --json` reads progress. Normal completion is unverified and needs
 no signature; explicit start, completion and assurance requirements bind.
-`ticket` and `t-...` remain compatibility names. New work gains detail without
-a second document or ID; use `war plan promote` only when the directory
-encoding is required.
+Ticket, Warrant and Order are levels derived from the same item's completion
+requirements. Adding required checks makes a Warrant, and requiring a human
+signature makes an Order. `war plan promote` adds requirements in place, keeping
+the ID. `war plan new --from` is the legacy directory adapter.
 
 Never run bare `war`: at a terminal, a harness pty included, it opens the
 full-screen app and waits for keys. Agents read `war status --json`,
