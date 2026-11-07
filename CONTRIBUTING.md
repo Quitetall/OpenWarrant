@@ -146,9 +146,11 @@ Apache-2.0.
 
 ## Making a change
 
-1. **Open a Warrant.** `war plan new "<title>"` — this project is built through its
-   own Warrants (SAS §93). Fill in the intent, basis, work order, milestones,
-   and assurance atoms.
+1. **Open a ticket, or a Warrant.** `war create "<title>"` makes a ticket in one
+   command, and `--test "<command>"` or `--sign` raise it to a Warrant or an Order
+   (docs/TICKETS.md). Governed work in this project is a directory Warrant, built
+   through its own process (SAS §93): `war plan new "<title>"`, then fill in the
+   intent, basis, work order, milestones, and assurance atoms.
 2. **Write the decision down if it is one.** A normative decision is a
    first-class ADR under `docs/adr/atoms/` (SAS §19). A choice already
    authorized by the Warrant's autonomy envelope is an execution choice, not a
@@ -162,7 +164,8 @@ Apache-2.0.
 ## The speed budget
 
 The verbs an agent runs all day stay fast on a large program: `war view
-ready`, `war next` and `war claim` each at most 50 ms median, for a release
+ready`, `war next` and `war claim` (the top-level spellings of `war status
+--next` and `war admin claim`, which the budget file times) each at most 50 ms median, for a release
 build, on 10,000 Warrants (9,800 tickets and 200 directory Warrants, nothing
 signed). `tools/scale/budget-10k.toml` holds the numbers; changing one is the
 owner's decision, never the way to turn the check green.

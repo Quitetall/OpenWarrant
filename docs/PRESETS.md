@@ -76,8 +76,13 @@ A Warrant's **kind** is read from the record, never declared:
 | kind | what it is |
 |---|---|
 | `vibe` | a title (and a checklist); a light Warrant with no test |
-| `tested` | a light Warrant with a test, or a KPI that decides a tick (`war add <id> --test "<command>"`) |
+| `tested` | a light Warrant with a test, or a KPI that decides a tick (`war plan add <id> --test "<command>"`) |
 | `formal` | a directory Warrant (`war plan new`) that `war check` passes. One that `war check` refuses counts as its title, `vibe`, until it passes |
+
+A kind says who may make the Warrant alone. It is not the item's level: Ticket,
+Warrant and Order (docs/TICKETS.md, "One item, three levels") say how the work
+ends. An Order that also has a test is `tested` here, and a Ticket with no test is
+`vibe`.
 
 The **roles** mirror GitHub's repository roles: `admin`, `maintain`,
 `write`, `triage`, `read`, and `none` for someone with no role (an
@@ -117,7 +122,7 @@ A Warrant is **official** when someone allowed made it, or approved it:
    `gh api` by `war check --pr` in CI. Anywhere else it is UNKNOWN, never a
    pass.
 
-`war show <id>` and `war status <id>` end with an `## Official` section, and
+`war view show <id>` and `war status <id>` end with an `## Official` section, and
 `war status --verbose` with one line per Warrant (and `official` under
 `--json`), only when a preset or `[roles]` is configured:
 
@@ -151,7 +156,7 @@ war sign approve t-3f2a --ssh-sign --as Ada   # the person's approval
 
 The request names what an approval binds and who may sign it, records
 `ticket.approval_requested` in the Warrant's journal (once per plan), and
-runs `[notify]`; `war next` and `war sign inbox` then list it as a person's
+runs `[notify]`; `war status --next` and `war sign inbox` then list it as a person's
 act. The signature writes
 `docs/authority/responses/<id>.approval.response.toml` and its `.sig`, made
 by the person's key through the ssh agent, and keeps it only when it
@@ -289,7 +294,7 @@ batch.
 
 ## Being told something waits
 
-- **`war next` and `war sign inbox`** list a person's acts: signatures as
+- **`war status --next` and `war sign inbox`** list a person's acts: signatures as
   always, and, under a preset, each approval someone asked for (`approve`,
   judged by its own dry run) and, under signing at release with two or
   more acts waiting, the one `war sign release <tag>` that signs them.
@@ -314,7 +319,7 @@ batch.
   nothing; the exit code is the command's own.
 - **The agent's end-of-session summary.** Under a preset, the Claude Code
   plugin's stop hook shows the person what waits (a `systemMessage` naming
-  the first acts `war next` lists), and the openwarrant skill asks the
+  the first acts `war status --next` lists), and the openwarrant skill asks the
   agent to say so when it ends a session. Neither holds the turn.
 
 ## Readings this implements

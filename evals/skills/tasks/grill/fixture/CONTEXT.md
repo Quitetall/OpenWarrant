@@ -36,11 +36,19 @@ The candidate is not signed adoption or proof of shipped behavior.
   OW-WAR-0142's separate decisions. The facility is permitted by §28.8 of
   [accepted SAS 1.3.0](docs/sas/revisions/1.3.0.toml). Each class still needs
   its own human signature and explicit terms; SAS acceptance activates no class.
-- **Ticket:** the working form of a delivery Warrant (OW-WAR-0147,
-  `docs/TICKETS.md`): an intent and a Markdown checklist under
-  `docs/tickets/<t-id>/`, worked with `war create`, `ready`, `claim`, `done`.
-  It needs no signature, evidence or verification; the file is its state.
-  `war plan promote` turns one into a Warrant when someone wants sign-off.
+- **Ticket:** the default level of an item (OW-WAR-0147, `docs/TICKETS.md`): a
+  title and a checklist in one Markdown document, `docs/tickets/<t-id>.md`, worked
+  with `war create`, `start` and `done`. Nothing is required of it; done means the
+  agent says so. Directory tickets made before stay readable.
+- **Level:** Ticket, Warrant or Order, derived from an item's fields and never
+  stored. A **Warrant** has a trigger for completion, such as a test, and is done
+  when the trigger passed. An **Order** requires a human signature, at the end by
+  default, and is done when the trigger (if any) passed and a person signed.
+  `war create --test` or `--sign` sets it, and `war plan promote` raises it in place.
+- **Six commands:** `init`, `create`, `start`, `done`, `status`, `check`; `war` alone
+  opens the TUI (Mission Control) and `--interactive` asks a person what is missing.
+  `war sign` stays for humans. Earlier spellings still work and are retiring
+  (`docs/COMMANDS.md`).
 - **Claim:** who is working an item now — a lock under
   `.openwarrant/state/claims/` plus a journal event. Coordination between
   agents, not authority; a stale claim (past the TTL) may be stolen, journalled.

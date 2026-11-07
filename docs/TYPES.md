@@ -295,9 +295,9 @@ see, never a way to read more than its parent.
   states (`phase`, `rung`, `currency`, `disposition`, `achieved`,
   `checklist`). An item's `in_progress` reads the claim locks, the one input
   outside the tree.
-- `war show <ticket>`: ` [in_review]` (or ` [in_review, lapsed]`) after the
+- `war view show <ticket>`: ` [in_review]` (or ` [in_review, lapsed]`) after the
   ticket's state or an item's line; `war view tickets`: the ones that hold.
-- `war show <alias>` (`full_warrant` and `status` views): a "Declared
+- `war view show <alias>` (`full_warrant` and `status` views): a "Declared
   states" section, only where the Warrant's journal holds one.
 
 ## The model
@@ -552,7 +552,7 @@ byte: nothing is migrated, and no signed digest moves.
 
 | encoding | where | its type | written by |
 |---|---|---|---|
-| light | `docs/tickets/<t-id>/`: a manifest, an intent and a checklist | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war admin import` |
+| light | `docs/tickets/<t-id>.md`: one Markdown document (a manifest, an intent and a checklist in `docs/tickets/<t-id>/` for records made before, or with `war create --legacy`) | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war admin import` |
 | directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war plan new`, `war plan --apply`, `war plan new --from` |
 | read in place | an OpenSpec change or a Spec Kit feature an `[[adapters]]` entry names | `openspec`, `speckit` | the tool that owns the folder; `war` never writes it |
 
@@ -571,7 +571,7 @@ written before it reads and writes back unchanged).
 | `speckit:<feature>`, `speckit:<feature>/<T-id>`, `speckit:<feature>/<FR-, SC- or US-id>` | a feature read in place, its task, its record | `speckit:001-photo-albums/T004` |
 
 The shape routes the id, so nothing is read to decide where it goes.
-`war show <id>` and `war status <id>` take any of them: a light Warrant
+`war view show <id>` and `war status <id>` take any of them: a light Warrant
 renders as its document, a directory one as its §17.5 projection, one read
 in place from its folder. `war plan impact` takes any record id of the model.
 
@@ -597,7 +597,7 @@ encoding's. A type that is neither, or a state that is none, is refused
 (`ticket.filter-type-unknown`, `ticket.filter-state-unknown`).
 
 `war view ready` lists the items that can be claimed now, which are the light
-Warrants'; `war next` adds the directory Warrants' acts and ready stages.
+Warrants'; `war status --next` adds the directory Warrants' acts and ready stages.
 A Warrant read in place is never claimed here: its tasks are ticked in its
 own files, by its own tool.
 
@@ -611,7 +611,7 @@ war admin export beads > issues.jsonl    # every light Warrant, as Beads issue J
 ```
 
 Each imported change, feature or issue becomes a light Warrant whose
-tasks are its items, worked with `war next`, `claim` and `done` like any
+tasks are its items, worked with `war status --next`, `war start` and `done` like any
 other.
 
 - **Deterministic.** An imported Warrant's id is `t-` and 8 hex of the
@@ -697,7 +697,7 @@ kind = "speckit"
 path = "specs"
 ```
 
-`war view warrants`, `war show`, `war status`, `war plan model`, `war plan impact` and
+`war view warrants`, `war view show`, `war status`, `war plan model`, `war plan impact` and
 `war check` then read those folders on every call, with the readers the
 import uses, and never write them. Each change or feature is a Warrant
 (`change`, `feature` in the model), each task an `item` `part_of` it, each
@@ -730,11 +730,11 @@ to any Warrant, a title-only one included (OW-WAR-0148 M13).
 ### Parts: tests, KPIs, milestones
 
 ```bash
-war add t-3f2a --test "cargo test -p parser"            # the Warrant's own test
-war add t-3f2a/i-9c01 --test "./smoke.sh" --name smoke  # one item's test
-war add t-3f2a --kpi p95_ms --cmd "./bench.sh p95" --direction min --target 120
-war add t-3f2a --milestone "Beta ships" --min observed  # an item with a minimum
-war add t-3f2a/i-9c01 --min independent                 # make an item a milestone
+war plan add t-3f2a --test "cargo test -p parser"            # the Warrant's own test
+war plan add t-3f2a/i-9c01 --test "./smoke.sh" --name smoke  # one item's test
+war plan add t-3f2a --kpi p95_ms --cmd "./bench.sh p95" --direction min --target 120
+war plan add t-3f2a --milestone "Beta ships" --min observed  # an item with a minimum
+war plan add t-3f2a/i-9c01 --min independent                 # make an item a milestone
 ```
 
 - A **test** is a shell command (`sh -c`, from the repository root); its
@@ -750,15 +750,18 @@ war add t-3f2a/i-9c01 --min independent                 # make an item a milesto
 
 On a ticket (`t-x`) a test or KPI is the Warrant's and applies to every
 item; on an item (`t-x/i-y`), or given with the text of a new item in the
-same `war add`, it is that item's. Each part added is one line in the
+same `war plan add`, it is that item's. Each part added is one line in the
 ticket's optional checks atom and one `ticket.part_added` in its journal.
-`war add` without a part is the item it always was.
+`war plan add` without a part is the item it always was.
 
 ### The checks atom
 
-A ticket-encoded Warrant keeps its parts in `atoms/30-checks.md`, written
-on the first part and found by that path (the manifest does not list it).
-A ticket without it has no parts and reads, byte for byte, as before.
+A single-document ticket keeps its parts in the document itself, as `## CHK-...`
+check sections and `## M-...` milestone sections that `war create --test`, `--sign` and
+`war plan add` write. A ticket in the directory encoding keeps them in
+`atoms/30-checks.md`, written on the first part and found by that path (the
+manifest does not list it); the layout below is that atom's. A ticket without
+parts reads, byte for byte, as before.
 
 ```markdown
 # Checks
@@ -784,7 +787,7 @@ A ticket without it has no parts and reads, byte for byte, as before.
   command exactly (a command holding backticks takes a longer fence).
 - A milestone is `- <item id>`, optionally ` · min <level>`.
 - Prose, other headings and fenced blocks are a person's and are kept.
-- Each line `war add` writes is appended to its section; nothing else
+- Each line `war plan add` writes is appended to its section; nothing else
   moves. Edit the file by hand and the tool follows it.
 - `war check` reports, by line, a malformed part (`checks.malformed`), a
   name used twice (`checks.duplicate`), and a part or milestone naming an
@@ -865,7 +868,7 @@ every run as `ticket.kpi_run` (value, verdict, direction, target, mode,
 commit), and says each one's latest, best and target. It ticks nothing. A
 run short of its target is a warning, `kpi.target-missed`; a run that
 printed no number, or exited non-zero, is UNKNOWN, `kpi.unknown`, and is
-recorded with no value. `war show` gives the same standing for every KPI.
+recorded with no value. `war view show` gives the same standing for every KPI.
 
 ### Independent and signed
 
@@ -893,7 +896,7 @@ holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
 
 | view | what it shows |
 |---|---|
-| `war show <ticket>` | each done item opens with its level, `(claimed)`, `(observed)`, `(independent: verified by X)`, `(signed: signed off by Y)`, and `; needs <level>` when below its minimum; an open milestone says what it ticks at; a **Checks** section lists tests, KPIs (latest, best, target) and milestones; `--json` items carry `tick` (`level`, `minimum`, `meets_minimum`, `written` and `unbacked` when a marker is not believed) |
+| `war view show <ticket>` | each done item opens with its level, `(claimed)`, `(observed)`, `(independent: verified by X)`, `(signed: signed off by Y)`, and `; needs <level>` when below its minimum; an open milestone says what it ticks at; a **Checks** section lists tests, KPIs (latest, best, target) and milestones; `--json` items carry `tick` (`level`, `minimum`, `meets_minimum`, `written` and `unbacked` when a marker is not believed) |
 | `war view tickets` | `[ticks: 2 claimed, 1 observed]` at the end of a line with ticks; `ticks` in the JSON row |
 | `war status --verbose` | a **Ticks** block after the corpus projection (never inside it, so working a ticket moves no generated file); `war status <ticket>` is the ticket's show |
 | `war plan roadmap` | a **Milestones** section (in a program with a roadmap record): each milestone with the level its tick shows and whether it meets its minimum |
@@ -902,7 +905,7 @@ holds no key. Without `--ssh-sign` nothing is signed (`sign.ssh-required`);
 
 ### The create hint
 
-`war create` prints one line suggesting `war add <id> --test "<command>"`:
+`war create` prints one line suggesting `war plan add <id> --test "<command>"`:
 a Warrant's smallest form is a title, and a test is what lets a tick be
 observed. It never refuses anything. `[warrants] hints = false` in
 `openwarrant.toml` turns it off.
