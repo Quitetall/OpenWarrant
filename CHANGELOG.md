@@ -18,6 +18,11 @@ Notable changes to OpenWarrant. Format loosely follows
   `SPEC.md` (`format.document-duplicate`). Built-in profiles `design` and `guide`.
   `war context` ranks a higher tier first within a distance. Corpus cases 069,
   070 and 174-177.
+- `war compile` writes the views of the masters in `docs/work/`: one page per
+  document (`docs/pages/<id>.md`), the open work orders by Roadmap phase
+  (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
+  `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
+  repository without masters. `conformance/views.toml` lists `docs/pages/**`.
 
 ### Fixed
 

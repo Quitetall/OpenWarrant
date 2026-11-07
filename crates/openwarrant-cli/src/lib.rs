@@ -135,6 +135,7 @@ pub mod tui;
 pub mod types;
 pub mod verify;
 pub mod vfs;
+pub mod views;
 pub mod warrants;
 pub mod watch;
 pub mod webui;
