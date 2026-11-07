@@ -8,6 +8,22 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- A note from Mission Control on work held in a worktree was written in the app's own
+  checkout, on another branch, and the holder never read it, while the form promised
+  its next `war` command. It is now written in the holder's workspace, on a ticket or
+  any of its items, and the form names the commands that show it. An answer now says
+  plainly that it reaches a worktree only once it is merged across.
+
+- Dispatch's detached launcher failed with `[go] allowed_acts = "declared"`, which
+  writes no session files and so left no directory for `.openwarrant/start.log`. The log
+  is a session file now, so it's no longer committed with the work or counted against a
+  worktree. A generic harness given by path no longer makes the path the claim's actor.
+
+- `war view tickets --type change-request` was refused as an unknown type.
+
+- Only ids starting `CL-` were picked out of a ticket's text as clauses to watch across
+  repositories. Any `name:id` is now looked up in what the interface declares.
+
 - `war done` could disown its own claim. With no harness session variable set,
   `war start` in one terminal and `war done` in another read as two holders,
   and `war done` answered that nobody held the work. With no named session,
@@ -21,6 +37,10 @@ Notable changes to OpenWarrant. Format loosely follows
   once, because its statement now covers that text.
 
 ### Changed
+
+- A notice now reaches a claim that depends on, or cites, an item in another repository
+  (`hpr:t-abc`), as it did for a clause. So a Warrant that depends on one now holds at
+  `war done` until the change is seen, then until the pin holds it.
 
 - `war plan promote` adds a field in place and writes no document: a sign-off
   item, so the work is an Order, or with `--test` a test, so it is a Warrant.
