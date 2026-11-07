@@ -685,8 +685,22 @@ fn a_note_says_who_reads_it_and_when() {
     };
     assert_eq!(argv, argv::note("t-1a2b3", "use the fast queue"));
     argv::parses(&argv).expect("it parses");
-    assert!(after.contains("Nobody holds this"), "{after}");
+    // Its item i-1 is held: the ticket is the holder's, not nobody's.
+    assert!(after.contains("the holder's checkout"), "{after}");
     assert_eq!(prompt, None, "no agent told unless asked");
+}
+
+/// Refusal of the claim above: work nobody holds is written here, and says so.
+#[test]
+fn a_note_on_work_nobody_holds_says_so() {
+    let mut m = fixture();
+    act::open_note(&mut m, "t-5e5e5".to_owned());
+    typed(&mut m, "later");
+    let Some(Effect::Say { after, at, .. }) = enter(&mut m) else {
+        panic!("a note");
+    };
+    assert!(after.contains("Nobody holds this"), "{after}");
+    assert_eq!(at, None, "written in this checkout");
 }
 
 /// With an agent in the holder's workspace, Herdr can deliver it now, and
