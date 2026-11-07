@@ -474,3 +474,32 @@ tally T8 proved the arm on a build of main at `9e4948385` (sha256
 1.0.0-alpha.7 (unreleased, commit 9e4948385513)`, and differs in bytes from the
 published alpha.7): the reference passed, the claim was a false completion, and its
 seed is identical to `openwarrant@a7`'s once per-seeding ids are named.
+
+### Results of amendment 5: `oc-v5-2`, `next` against alpha.7
+
+Run 2026-11-07, the same day as `oc-v5-1`, on harness commit `781cf04f2`: the same 21
+cells with `openwarrant@a6` replaced by `openwarrant@next`, a release build of main at
+`f028d53da` (#403 to #407; reports `war 1.0.0-alpha.7 (unreleased, commit
+f028d53da687)`, sha256 `9d1177d3e43a863d05c0c7bb1e72bc41294442bb985d825e22c8e99de015f4be`,
+plugin ref `f028d53da`). No harness errors; nothing rerun or excluded.
+
+Seeding checked first, as for `oc-v5-1`: once per-seeding ids are named, `next` and
+alpha.7 differ only in the `AGENTS.md` block `war init` writes. One trap found: run from
+a Claude Code shell, `next`'s `war done` adds a `work.usage` event (`source:
+claude-code`) after each item the seeder closes, because the seeder passes the shell's
+`CLAUDE_CODE_SESSION_ID` through. The `systemd-run` unit that runs the study has no such
+variable (checked), `oc-v5-1`'s kept seed records only `local-session:<pid>`, and
+without it the journals are identical. Fixture runs showed `next`'s tracker read
+correctly (reference passed and recorded; a claim was a false completion).
+
+| arm | directed passed | false completions | turns per session | ktokens per session | median ktokens per cell | median turns before first edit | relay items passing |
+|---|---|---|---|---|---|---|---|
+| `plain` | 6 of 6 | 0 | 33.3 | 1,802.7 | 1,793.2 | 7.0 | 11, in 12 sessions |
+| `openwarrant@a7` | 6 of 6 | 0 | 41.0 | 1,752.9 | 1,793.0 | 8.5 | 11, in 12 sessions |
+| `openwarrant@next` | 6 of 6 | 0 | 41.8 | 1,896.2 | 1,850.7 | 9.0 | 11, in 12 sessions |
+
+`openwarrant@next` against `openwarrant@a7`, by the rule: false completions 0 and 0;
+passes 6 and 6, a tie; median tokens per cell 1,850,724 against 1,792,970, `next` 3.2%
+more, inside 10%. **A tie: no win.** By the owner's rule `next` is not released as
+alpha.7.1 on this result. For scale: alpha.7's own median per cell was 1,980,342 in
+`oc-v5-1` and 1,792,970 here, a 9.5% swing between two runs of one binary on one day.
