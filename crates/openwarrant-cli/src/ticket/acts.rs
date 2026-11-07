@@ -533,6 +533,13 @@ pub fn sign(
         ));
         return Ok(out);
     }
+    if let Some(why) = super::change::second_signature(t, &item, &signer) {
+        return Ok(Outcome::refused(
+            "sign.one-party",
+            repo.relative(&path),
+            format!("{why}; nothing was recorded"),
+        ));
+    }
     if !args.ssh_sign {
         return Ok(Outcome::refused(
             "sign.ssh-required",

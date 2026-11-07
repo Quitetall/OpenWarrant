@@ -142,6 +142,8 @@ fn every_test_file_is_a_module_of_this_binary() {
 mod collector_loading;
 #[path = "collector_signature.rs"]
 mod collector_signature;
+#[path = "repos_cli.rs"]
+mod repos_cli;
 #[path = "unit_context_cli.rs"]
 mod unit_context_cli;
 #[path = "work_list.rs"]

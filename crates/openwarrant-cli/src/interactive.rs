@@ -162,7 +162,7 @@ pub(crate) enum Answered {
 /// before any question.
 pub(crate) fn answer(
     ctx: &crate::Ctx,
-    command: crate::DailyCommand,
+    mut command: crate::DailyCommand,
 ) -> Result<Answered, Box<dyn std::error::Error>> {
     use crate::DailyCommand as D;
     let name = match &command {
@@ -188,242 +188,105 @@ pub(crate) fn answer(
     }
     let stdin = std::io::stdin();
     let mut p = Prompts::new(stdin.lock(), std::io::stdout());
-    Ok(match command {
+    let stopped = |why: &str| Ok(Answered::Stopped(why.to_owned()));
+    match &mut command {
         D::Create {
             title,
-            mut items,
-            mut tests,
-            mut sign,
-            legacy,
-            summary,
-            body,
-            priority,
-            draft,
-            records,
-            area,
-            kind,
-            labels,
-            part_of,
-            paths,
-            tools,
-            commands,
-            issue,
-            issue_file,
-            implements,
-            actor,
-            ..
-        } => match create(&mut p, title.as_deref())? {
-            None => Answered::Stopped("no title, so nothing was created".to_owned()),
-            Some(c) => {
-                items.extend(c.items);
-                tests.extend(c.tests);
-                sign |= c.sign;
-                Answered::Run(D::Create {
-                    title: Some(c.title),
-                    items,
-                    tests,
-                    sign,
-                    interactive: false,
-                    legacy,
-                    summary,
-                    body,
-                    priority,
-                    draft,
-                    records,
-                    area,
-                    kind,
-                    labels,
-                    part_of,
-                    paths,
-                    tools,
-                    commands,
-                    issue,
-                    issue_file,
-                    implements,
-                    actor,
-                })
-            }
-        },
-        D::Start {
-            id,
-            worktree,
-            print,
-            base,
-            claim,
-            paths,
-            steal,
-            actor,
+            items,
+            tests,
+            sign,
             ..
         } => {
-            let picked = if id.is_empty() {
-                let (_, store) = ctx.tickets(actor.as_deref())?;
-                let (tickets, _) = store.load_all()?;
-                let mut seen = std::collections::BTreeSet::new();
-                let rows: Vec<_> = crate::ticket::ready_rows(&store, &tickets)?
-                    .into_iter()
-                    .filter(|r| seen.insert(r.ticket.clone()))
-                    .collect();
-                if rows.is_empty() {
-                    return Ok(Answered::Stopped("nothing is ready to start".to_owned()));
-                }
-                let lines: Vec<String> = rows
-                    .iter()
-                    .map(|r| format!("{}  {}", r.ticket, r.title))
-                    .collect();
-                match p.pick("Start which? (empty for the first)", &lines, Some(0))? {
-                    Some(n) => vec![rows[n].ticket.clone()],
-                    None => return Ok(Answered::Stopped("nothing was started".to_owned())),
-                }
-            } else {
-                id
+            let Some(c) = create(&mut p, title.as_deref())? else {
+                return stopped("no title, so nothing was created");
             };
-            Answered::Run(D::Start {
-                id: picked,
-                worktree,
-                print,
-                base,
-                claim,
-                paths,
-                steal,
-                actor,
-                interactive: false,
-            })
+            *title = Some(c.title);
+            items.extend(c.items);
+            tests.extend(c.tests);
+            *sign |= c.sign;
+        }
+        D::Start { id, actor, .. } if id.is_empty() => {
+            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (tickets, _) = store.load_all()?;
+            let mut seen = std::collections::BTreeSet::new();
+            let rows: Vec<_> = crate::ticket::ready_rows(&store, &tickets)?
+                .into_iter()
+                .filter(|r| seen.insert(r.ticket.clone()))
+                .collect();
+            if rows.is_empty() {
+                return stopped("nothing is ready to start");
+            }
+            let lines: Vec<String> = rows
+                .iter()
+                .map(|r| format!("{}  {}", r.ticket, r.title))
+                .collect();
+            let Some(n) = p.pick("Start which? (empty for the first)", &lines, Some(0))? else {
+                return stopped("nothing was started");
+            };
+            id.push(rows[n].ticket.clone());
         }
         D::Done {
             target,
             note,
-            if_rev,
-            check,
             release,
             reopen,
-            reason,
             actor,
-            at,
             ..
         } => {
-            let target = match target {
-                Some(t) => Some(t),
-                None => {
-                    let (_, store) = ctx.tickets(actor.as_deref())?;
-                    let held = crate::ticket::held_by_me(&store)?;
-                    match held.as_slice() {
-                        [] => None,
-                        [one] => Some(one.clone()),
-                        many => match p.pick("Finish which?", many, None)? {
-                            Some(n) => Some(many[n].clone()),
-                            None => {
-                                return Ok(Answered::Stopped("nothing was finished".to_owned()));
-                            }
-                        },
-                    }
-                }
-            };
-            let note = match (note, &target, release || reopen) {
-                (Some(n), _, _) => Some(n),
-                (None, Some(_), false) => {
-                    Some(p.ask("What was done? (empty for no note)")?).filter(|n| !n.is_empty())
-                }
-                _ => None,
-            };
-            Answered::Run(D::Done {
-                target,
-                note,
-                if_rev,
-                check,
-                release,
-                reopen,
-                reason,
-                actor,
-                at,
-                interactive: false,
-            })
+            if target.is_none() {
+                let (_, store) = ctx.tickets(actor.as_deref())?;
+                let held = crate::ticket::held_by_me(&store)?;
+                *target = match held.as_slice() {
+                    [] => None,
+                    [one] => Some(one.clone()),
+                    many => match p.pick("Finish which?", many, None)? {
+                        Some(n) => Some(many[n].clone()),
+                        None => return stopped("nothing was finished"),
+                    },
+                };
+            }
+            if note.is_none() && target.is_some() && !*release && !*reopen {
+                *note =
+                    Some(p.ask("What was done? (empty for no note)")?).filter(|n| !n.is_empty());
+            }
         }
-        D::Status {
-            alias,
-            timeline,
-            pending,
-            next,
-            at,
-            ready,
-            actor,
-            view,
-            ..
-        } => {
-            let alias = match alias {
-                Some(a) => Some(a),
-                None => {
-                    let repository = ctx.open_repo()?;
-                    let work = crate::work::Work::read(&repository);
-                    let open: Vec<_> = work.items().iter().filter(|i| !i.is_done()).collect();
-                    let lines: Vec<String> = open
-                        .iter()
-                        .map(|i| format!("{}  {}  {}", i.id, i.level.as_str(), i.title))
-                        .collect();
-                    if lines.is_empty() {
-                        None
-                    } else {
-                        p.pick("Show which? (empty for the summary)", &lines, None)?
-                            .map(|n| open[n].id.clone())
-                    }
-                }
-            };
-            Answered::Run(D::Status {
-                alias,
-                timeline,
-                pending,
-                next,
-                at,
-                ready,
-                actor,
-                view,
-                interactive: false,
-            })
+        D::Status { alias, .. } if alias.is_none() => {
+            let repository = ctx.open_repo()?;
+            let work = crate::work::Work::read(&repository);
+            let open: Vec<_> = work.items().iter().filter(|i| !i.is_done()).collect();
+            let lines: Vec<String> = open
+                .iter()
+                .map(|i| format!("{}  {}  {}", i.id, i.level.as_str(), i.title))
+                .collect();
+            if !lines.is_empty()
+                && let Some(n) = p.pick("Show which? (empty for the summary)", &lines, None)?
+            {
+                *alias = Some(open[n].id.clone());
+            }
         }
         D::Check {
             action,
             alias,
-            generated,
             changed,
-            since,
-            pr,
-            repo,
-            summary,
-            comment,
-            floor,
             ..
-        } => {
-            let mut scope = (alias, changed);
-            if scope.0.is_none() && !scope.1 && action.is_none() {
-                let repository = ctx.open_repo()?;
-                let ids: Vec<String> = crate::work::Work::read(&repository)
-                    .items()
-                    .iter()
-                    .filter(|i| !i.is_done())
-                    .map(|i| i.id.clone())
-                    .collect();
-                match check(&mut p, &ids)? {
-                    None => return Ok(Answered::Stopped("nothing was checked".to_owned())),
-                    Some(CheckScope::Everything) => {}
-                    Some(CheckScope::Changed) => scope.1 = true,
-                    Some(CheckScope::One(id)) => scope.0 = Some(id),
-                }
+        } if alias.is_none() && !*changed && action.is_none() => {
+            let repository = ctx.open_repo()?;
+            let ids: Vec<String> = crate::work::Work::read(&repository)
+                .items()
+                .iter()
+                .filter(|i| !i.is_done())
+                .map(|i| i.id.clone())
+                .collect();
+            match check(&mut p, &ids)? {
+                None => return stopped("nothing was checked"),
+                Some(CheckScope::Everything) => {}
+                Some(CheckScope::Changed) => *changed = true,
+                Some(CheckScope::One(id)) => *alias = Some(id),
             }
-            Answered::Run(D::Check {
-                action,
-                alias: scope.0,
-                generated,
-                changed: scope.1,
-                since,
-                pr,
-                repo,
-                summary,
-                comment,
-                floor,
-                interactive: false,
-            })
         }
-        other => Answered::Run(other),
-    })
+        _ => {}
+    }
+    Ok(Answered::Run(command))
 }
 
 #[cfg(test)]

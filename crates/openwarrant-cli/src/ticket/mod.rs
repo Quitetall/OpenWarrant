@@ -35,8 +35,10 @@ pub mod acts;
 pub(crate) mod authoring;
 pub use authoring::Scope;
 pub mod cache;
+pub mod change;
 pub mod checks;
 pub mod claim;
+pub mod depends;
 pub mod enforce;
 pub mod format;
 pub mod ladder;
@@ -1667,7 +1669,10 @@ fn refuse_fields(store: &Store, kind: Option<&str>, labels: &[String]) -> Option
                 format!("type {k:?} is not a word (lowercase, [a-z0-9_-])"),
             ));
         }
-        if let Some(why) = fields.refuse_type(k) {
+        // Every repository has change requests: it needs no profile edit.
+        if k != change::TYPE
+            && let Some(why) = fields.refuse_type(k)
+        {
             return Some(Outcome::refused(
                 "ticket.type-unknown",
                 "profiles/ticket.toml",
@@ -2447,8 +2452,9 @@ pub fn ready_rows_with(
 }
 
 /// [`ready_rows`] over claims already read, as of `now`: a pure function of
-/// the tickets (documents and journals), the claims and the time
-/// (FORMAT-1.0 §11.5), so callers asking at one time get one answer.
+/// the tickets (documents and journals), the claims, the time (FORMAT-1.0
+/// §11.5) and, for a ticket that declares a dependency beyond its repository
+/// ([`depends`]), the pin, so callers asking at one time get one answer.
 pub fn ready_rows_at(
     store: &Store,
     tickets: &[Ticket],
@@ -2474,11 +2480,13 @@ pub fn ready_rows_at(
         .collect();
     let by_id = first_by_id(tickets);
     let find = |id: &str| by_id.get(id).copied();
+    // Read here, once: other repositories are read on one thread.
+    let held = depends::held(store, tickets);
     // Each ticket's rows depend on it, the claims and the blockers alone:
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
         let mut rows = Vec::new();
-        if t.is_done() {
+        if t.is_done() || held.contains_key(t.id()) {
             return rows;
         }
         let Ok(candidate) = scopes::of(store, t, &[]) else {
@@ -3458,7 +3466,10 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         &given.packet,
         &given.text,
         &given.reach,
-        crate::go::packet::read_allowed(&tickets[index]).ok(),
+        live::Declares {
+            allowed: crate::go::packet::read_allowed(&tickets[index]).ok(),
+            pinned: depends::watches(store, &tickets[index]),
+        },
     ) {
         Ok(changes) => changes,
         Err(e) => {

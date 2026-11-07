@@ -72,8 +72,172 @@ when you have several.
 Run a clause's `check` in both repositories' CI. The lower layer ships first, and
 the other side moves its pin in a ticket of its own, with that test as its trigger.
 
-## What's next
+## Across repositories
 
-Reading another repository's clauses and tickets by name, and showing work as
-*done upstream, not pinned here*, are W6 of the lean programme. Until then, link a
-GitHub issue per feature, with a sub-issue in each repository.
+Name the other repository in `openwarrant.toml`, once on the side that depends on
+it. A submodule says its own commit:
+
+```toml
+[repos.hpr]
+path = "vendor/hpr"
+url = "https://example.com/hpr.git"
+```
+
+A sibling checkout adds `pin = "<commit>"`; a Cargo git dependency has its commit
+in `Cargo.lock`, found by `url`. The commit is what this repository has committed,
+never a working tree, so one commit reads one way. `war status` shows it.
+
+WMD then reads HPR through the pin, from HPR's git objects at that commit:
+
+```sh
+war context hpr:CL-step          # one clause
+war context hpr:t-abc            # one item
+war view prime hpr:t-abc         # one item in full
+```
+
+Nothing here touches the network or edits the other side. A repository that isn't
+declared or isn't on this machine, or a commit it doesn't hold, reads UNKNOWN. An
+id the pin doesn't hold is refused, never searched for. Local commands carry on.
+
+## Waiting on the other side
+
+A ticket can depend on an item or a clause, here or in a named repository:
+
+```sh
+war create "Use the new step" --depends-on hpr:t-abc
+```
+
+This writes `x.depends_on`, listed in `requires:`. The item stays out of
+`war view ready`, and `war view prime` says why in one line:
+
+```
+held: hpr:t-abc: done upstream, not pinned here (pin 5f951cf85a11, upstream 9cbe852edd4d); move the pin
+```
+
+That line appears once `origin`'s copy is done and fetched, and the pin isn't there
+yet. It's what lets two repositories release on their own cadence. Moving the pin
+and committing is what releases the item, in a ticket of its own if it's more than
+a bump. An explicit `war start` still works: nothing stops ordinary work.
+
+| The dependency is | `ready` | At `war done`, a Ticket | At `war done`, a Warrant or Order |
+|---|---|---|---|
+| Met: the pin holds it done | yes | closes | closes |
+| Open, tbd, or done upstream only | no | warns and closes | refused, nothing written |
+| UNKNOWN | no | warns and closes | UNKNOWN, stays open |
+
+## Keeping an interface honest
+
+`war check` counts open clauses across the interfaces this repository reaches, its
+own and those at its pins, and flags any past its `due` date. `--verbose` shows the
+count. It's a warning, never a failure.
+
+`war check --clauses` runs each clause's `check` here, the same command on both
+sides. A clause with no `check`, or a `tbd` one, reads UNKNOWN: nothing was
+established, and nothing failed. Keep it for CI, because UNKNOWN exits 2.
+
+Name a clause as a dependency the same way as an item, and a `tbd` clause holds the
+work out of `ready` until it's agreed and pinned:
+
+```sh
+war create "Reuse handles" --depends-on hpr:CL-handle
+```
+
+`held: hpr:CL-handle: tbd (owner hpr, due 2026-11-20)`. A `tbr` clause is decided,
+so it doesn't hold anything.
+
+Each side records what it conforms to, as a digest of the interface revision:
+
+```sh
+war check --clauses --record     # writes docs/interfaces.lock; refused if a clause failed
+```
+
+Commit that file. `war status` then shows drift in one line, and stays quiet about
+upstream until the pin moves:
+
+```
+Interfaces: drift: hpr:docs/records/physics.md is 1.1.0 (9e1f...), this side conforms to 1.0.0 (41ab...)
+```
+
+A clause's `check` from a pinned repository runs on this machine, like any code the
+pin brings in, and only when you ask for `--clauses`.
+
+## Changing an interface
+
+A change is a ticket of type `change-request` naming its clauses, classed by its
+effect. It lives in the repository that owns the interface:
+
+```sh
+war create "Reuse handles in one frame" --change breaking --clause CL-handle
+war create "Add a mass getter" --change compatible --clause CL-mass
+```
+
+| Class | Level | What closes it |
+|---|---|---|
+| `compatible` | Warrant | Its trigger: the clauses' checks, or `--test` if none has one |
+| `breaking` | Order | One sign-off per party of the interface, by different people |
+
+A breaking change gets a checklist item per party, `accept: hpr` and `accept: wmd`.
+`war done` refuses it and names the command a person runs, `war sign <id>/<item>
+--ssh-sign`, in the owning repository, whose `allowed_signers` lists both owners. An
+agent drafts the change and never signs it.
+
+`war plan impact` lists the running claims a change reaches on both sides, for a
+change request or a clause:
+
+```sh
+war plan impact t-abc            # from the owning side
+war plan impact hpr:CL-handle    # from the side that depends on it
+```
+
+The owning side names its users so it can look. `downstream` says the dependency
+runs the other way, so nothing is read through a pin:
+
+```toml
+[repos.wmd]
+path = "../wmd"
+downstream = true
+```
+
+A side with no checkout on this machine reads UNKNOWN, not "no claims".
+
+## Notices across the boundary
+
+A claim watches each clause its ticket depends on or cites as `hpr:CL-step`, by
+that clause's own text. When the clause changes, the agent hears on its next
+`war` call, once the change is fetched or the pin moves:
+
+```
+notice: hpr:CL-step changed upstream, not pinned here; run `war start t-abc`.
+```
+
+It hears once, even when the pin later moves to the same text. Someone depending
+on the clause beside it hears nothing. `war done` then holds as it does in one
+repository: a Warrant refuses until the change is seen, and again until the pin
+holds it. A Ticket warns.
+
+With `[claims] remote`, a notice is also published to
+`refs/openwarrant/notices/<key>`, so another clone hears before it fetches.
+
+## An example: WMD and HPR
+
+HPR is the lower layer, a submodule of WMD at `vendor/hpr`, and owns
+`docs/records/interfaces/physics.md`.
+
+1. **The agreement.** HPR's agent adds `CL-handle`, `status: tbd`. WMD's agent starts
+   `war create "Pool bodies" --depends-on hpr:CL-handle --test "cargo test pool"`. It
+   stays out of `ready`, and prime says who settles it and by when.
+2. **The work.** HPR settles the clause and ships, then pushes. WMD fetches:
+   `git -C vendor/hpr fetch`. Prime now says *agreed upstream, not pinned here*.
+3. **The pin.** A WMD ticket moves the pin and commits. The held item is released,
+   `war check --clauses` runs the same tests on both sides, and
+   `war check --clauses --record` clears the drift line.
+4. **A later break.** HPR opens `--change breaking`. `war plan impact` names WMD's
+   running claim, both owners sign, and that claim hears the clause changed once it
+   reaches it.
+
+## Limits
+
+Reads never fetch: nothing is known of the other side until `git fetch`. Only a
+checkout on this machine shows the other side's claims. Dependencies run one way:
+one side pins, the other is `downstream`, and an adapter handles anything that
+would make a cycle.
