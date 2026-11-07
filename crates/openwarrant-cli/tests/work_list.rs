@@ -207,7 +207,10 @@ fn a_warrant_without_a_signature_cannot_read_as_an_order() {
 #[test]
 fn a_directory_warrant_stays_readable_and_is_an_order_by_its_profile() {
     let root = repo();
-    let new = war(root.path(), &["plan", "new", "--format", "legacy", "A delivery Warrant"]);
+    let new = war(
+        root.path(),
+        &["plan", "new", "--format", "legacy", "A delivery Warrant"],
+    );
     assert_eq!(new["exit_code"], 0, "{new}");
     let work = list(root.path());
     let order = work
@@ -287,7 +290,10 @@ fn every_encoding_comes_back_from_one_read() {
     let root = repo();
     create(root.path(), "One file", &[]);
     create(root.path(), "A directory ticket", &["--legacy"]);
-    war(root.path(), &["plan", "new", "--format", "legacy", "A delivery Warrant"]);
+    war(
+        root.path(),
+        &["plan", "new", "--format", "legacy", "A delivery Warrant"],
+    );
     warrant_document(root.path(), "NX-WAR-0009", "delivery", "");
     adapter(root.path());
     let work = list(root.path());
@@ -335,7 +341,10 @@ fn prime_and_the_terse_status_show_a_level_only_where_it_is_not_the_default() {
     assert!(!prime.contains("Also open elsewhere"), "{prime}");
     assert!(human(root.path(), &["status"]).contains("Open by level: 1 Ticket, 1 Warrant\n"));
 
-    war(root.path(), &["plan", "new", "--format", "legacy", "A delivery Warrant"]);
+    war(
+        root.path(),
+        &["plan", "new", "--format", "legacy", "A delivery Warrant"],
+    );
     let prime = human(root.path(), &["view", "prime"]);
     assert!(
         prime.contains("Also open elsewhere: 1 Order (`war view tickets`)"),
@@ -355,7 +364,10 @@ fn work_that_could_not_be_read_is_a_question_mark_never_an_empty_list() {
     use std::os::unix::fs::PermissionsExt;
     let root = repo();
     let id = create(root.path(), "Plain", &[]);
-    war(root.path(), &["plan", "new", "--format", "legacy", "A delivery Warrant"]);
+    war(
+        root.path(),
+        &["plan", "new", "--format", "legacy", "A delivery Warrant"],
+    );
     let warrants = root.path().join("docs/warrants");
     let mode = |bits| std::fs::Permissions::from_mode(bits);
     std::fs::set_permissions(&warrants, mode(0o000)).unwrap();
@@ -385,7 +397,10 @@ fn work_that_could_not_be_read_is_a_question_mark_never_an_empty_list() {
 fn the_json_list_carries_each_rows_level() {
     let root = repo();
     create(root.path(), "Tested", &["--test", "true"]);
-    war(root.path(), &["plan", "new", "--format", "legacy", "A delivery Warrant"]);
+    war(
+        root.path(),
+        &["plan", "new", "--format", "legacy", "A delivery Warrant"],
+    );
     let listed = war(root.path(), &["view", "tickets"]);
     assert_eq!(listed["result"]["tickets"][0]["level"], "warrant");
     assert_eq!(listed["result"]["warrants"][0]["level"], "order");
@@ -503,7 +518,10 @@ fn check_status_next_and_context_all_find_a_single_file_warrant() {
     // `next` lists its acts with every Warrant's, never again under `elsewhere`.
     let next = war(root, &["view", "next"]);
     assert!(next["result"].get("elsewhere").is_none(), "{next}");
-    assert!(next.to_string().contains(&format!("war sign {alias}")), "{next}");
+    assert!(
+        next.to_string().contains(&format!("war sign {alias}")),
+        "{next}"
+    );
     assert!(human(root, &["view", "next"]).contains(&alias));
 
     let context = war(root, &["view", "context", &alias]);
