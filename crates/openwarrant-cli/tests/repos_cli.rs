@@ -655,9 +655,13 @@ fn impact_lists_claims_on_both_sides_and_says_what_it_could_not_read() {
     // From the lower layer, naming its user: the same claim, on that side.
     let cfg = t.hpr.join("openwarrant.toml");
     let mut config = std::fs::read_to_string(&cfg).unwrap();
-    config.push_str(&format!(
-        "\n[repos.wmd]\npath = \"../wmd\"\ndownstream = true\n"
-    ));
+    config.push_str(
+        "
+[repos.wmd]
+path = \"../wmd\"
+downstream = true
+",
+    );
     std::fs::write(&cfg, config).unwrap();
     let v = json(&t.hpr, "o", &["plan", "impact", "CL-step"]);
     let across = v["result"]["across"].as_array().unwrap();

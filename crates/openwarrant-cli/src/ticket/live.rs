@@ -1125,6 +1125,15 @@ fn unit_texts(packet: &TaskPacket, text: &BTreeMap<String, String>) -> BTreeMap<
         .collect()
 }
 
+/// What an item says of itself, kept beside its claim.
+#[derive(Debug, Default)]
+pub struct Declares {
+    /// What its work may touch and run; `None`: that could not be read.
+    pub allowed: Option<Allowed>,
+    /// The clauses of other repositories it watches through a pin.
+    pub pinned: Vec<Watched>,
+}
+
 /// `war start`, once its claim is held: keep what it was given and what the
 /// item declares, and, resuming, take what changed since and record it as
 /// seen. `root` is the workspace the packet was compiled in.
@@ -1135,9 +1144,13 @@ pub fn started(
     packet: &TaskPacket,
     text: &BTreeMap<String, String>,
     reach: &[Reach],
-    pinned: &[Watched],
-    declared: Option<Allowed>,
+    declares: Declares,
 ) -> std::io::Result<Vec<Change>> {
+    let Declares {
+        allowed: declared,
+        pinned,
+    } = declares;
+    let pinned = pinned.as_slice();
     if !enabled() {
         return Ok(Vec::new());
     }

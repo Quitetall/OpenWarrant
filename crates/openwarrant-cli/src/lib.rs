@@ -758,24 +758,8 @@ enum DailyCommand {
         /// A command this work may run; repeat for more.
         #[arg(long = "command", value_name = "CMD", conflicts_with = "legacy")]
         commands: Vec<String>,
-        /// What this work waits on: an item or clause here, or in a named
-        /// repository (`hpr:t-abc`, `hpr:CL-step`); repeat for more. It stays
-        /// out of `war view ready` until the pin holds it.
-        #[arg(long = "depends-on", value_name = "TARGET", conflicts_with = "legacy")]
-        depends_on: Vec<String>,
-        /// With `--type change-request`: `breaking` (both parties sign) or
-        /// `compatible` (a trigger closes it).
-        #[arg(
-            long,
-            value_name = "CLASS",
-            requires = "clauses",
-            conflicts_with = "legacy"
-        )]
-        change: Option<String>,
-        /// With `--change`: a clause it changes, here or `hpr:CL-step`;
-        /// repeat for more.
-        #[arg(long = "clause", value_name = "ID", requires = "change")]
-        clauses: Vec<String>,
+        #[command(flatten)]
+        across: Box<AcrossArgs>,
         /// A test: a shell command whose exit code decides pass or fail.
         /// Repeatable. `war done` runs it and finishes the work only when it
         /// passes.
@@ -963,6 +947,29 @@ enum DailyCommand {
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
     },
+}
+
+/// What `war create` adds for work across repositories (t-3c16c W6).
+#[derive(Debug, Clone, clap::Args)]
+struct AcrossArgs {
+    /// What this work waits on: an item or clause here, or in a named
+    /// repository (`hpr:t-abc`, `hpr:CL-step`); repeat for more. It stays out of
+    /// `war view ready` until the pin holds it.
+    #[arg(long = "depends-on", value_name = "TARGET", conflicts_with = "legacy")]
+    depends_on: Vec<String>,
+    /// With `--type change-request`: `breaking` (both parties sign) or
+    /// `compatible` (a trigger closes it).
+    #[arg(
+        long,
+        value_name = "CLASS",
+        requires = "clauses",
+        conflicts_with = "legacy"
+    )]
+    change: Option<String>,
+    /// With `--change`: a clause it changes, here or `hpr:CL-step`; repeat
+    /// for more.
+    #[arg(long = "clause", value_name = "ID", requires = "change")]
+    clauses: Vec<String>,
 }
 
 /// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): a Format
@@ -3624,15 +3631,18 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             paths,
             tools,
             commands,
-            depends_on,
-            change,
-            clauses,
+            across,
             tests,
             issue,
             issue_file,
             implements,
             actor,
         } => {
+            let AcrossArgs {
+                depends_on,
+                change,
+                clauses,
+            } = *across;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             // W6: a change request says what it is before anything is written.
             let (mut items, mut tests) = (items, tests);
@@ -3694,7 +3704,6 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 refresh_index_after(&repository, &outcome, true);
                 return Ok(ticket_answer(mode, "create", &outcome));
             }
-            let mut items = items;
             match ticket::implementing_items(&repository, &implements)? {
                 Ok(more) => items.extend(more),
                 Err(refusal) => return Ok(ticket_answer(mode, "create", &refusal)),

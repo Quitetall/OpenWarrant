@@ -351,13 +351,15 @@ pub fn run(
             &given.packet,
             &given.text,
             &given.reach,
-            &worked
-                .as_ref()
-                .map(|t| crate::ticket::depends::watches(&store, t))
-                .unwrap_or_default(),
-            worked
-                .as_ref()
-                .and_then(|t| crate::go::packet::read_allowed(t).ok()),
+            crate::ticket::live::Declares {
+                allowed: worked
+                    .as_ref()
+                    .and_then(|t| crate::go::packet::read_allowed(t).ok()),
+                pinned: worked
+                    .as_ref()
+                    .map(|t| crate::ticket::depends::watches(&store, t))
+                    .unwrap_or_default(),
+            },
         )
         .unwrap_or_else(|e| {
             report.push(Diagnostic::warn(

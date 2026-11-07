@@ -3466,8 +3466,10 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         &given.packet,
         &given.text,
         &given.reach,
-        &depends::watches(store, &tickets[index]),
-        crate::go::packet::read_allowed(&tickets[index]).ok(),
+        live::Declares {
+            allowed: crate::go::packet::read_allowed(&tickets[index]).ok(),
+            pinned: depends::watches(store, &tickets[index]),
+        },
     ) {
         Ok(changes) => changes,
         Err(e) => {
