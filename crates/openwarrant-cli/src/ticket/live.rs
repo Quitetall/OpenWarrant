@@ -71,6 +71,8 @@ const DELIVERED: &str = "delivered";
 const TIP_FILE: &str = ".tip";
 /// A file that is not there, where a digest would be.
 const ABSENT: &str = "absent";
+/// What a clause watched through a pin reached its claim by.
+pub const PIN: &str = "pin";
 /// How much of a diff `war start` prints for one file.
 const DIFF_LINES: usize = 30;
 /// Most units a notice names.

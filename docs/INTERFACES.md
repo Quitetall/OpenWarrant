@@ -161,7 +161,65 @@ Interfaces: drift: hpr:docs/records/physics.md is 1.1.0 (9e1f...), this side con
 A clause's `check` from a pinned repository runs on this machine, like any code the
 pin brings in, and only when you ask for `--clauses`.
 
-## What's next
+## Changing an interface
 
-Link a GitHub issue per feature, with a sub-issue in each repository, for what
-W6 hasn't reached yet.
+A change is a ticket of type `change-request` naming its clauses, classed by its
+effect. It lives in the repository that owns the interface:
+
+```sh
+war create "Reuse handles in one frame" --change breaking --clause CL-handle
+war create "Add a mass getter" --change compatible --clause CL-mass
+```
+
+| Class | Level | What closes it |
+|---|---|---|
+| `compatible` | Warrant | Its trigger: the clauses' checks, or `--test` if none has one |
+| `breaking` | Order | One sign-off per party of the interface, by different people |
+
+A breaking change gets a checklist item per party, `accept: hpr` and `accept: wmd`.
+`war done` refuses it and names the command a person runs, `war sign <id>/<item>
+--ssh-sign`, in the owning repository, whose `allowed_signers` lists both owners. An
+agent drafts the change and never signs it.
+
+`war plan impact` lists the running claims a change reaches on both sides, for a
+change request or a clause:
+
+```sh
+war plan impact t-abc            # from the owning side
+war plan impact hpr:CL-handle    # from the side that depends on it
+```
+
+The owning side names its users so it can look. `downstream` says the dependency
+runs the other way, so nothing is read through a pin:
+
+```toml
+[repos.wmd]
+path = "../wmd"
+downstream = true
+```
+
+A side with no checkout on this machine reads UNKNOWN, not "no claims".
+
+## An example: WMD and HPR
+
+HPR is the lower layer, a submodule of WMD at `vendor/hpr`, and owns
+`docs/records/interfaces/physics.md`.
+
+1. **The agreement.** HPR's agent adds `CL-handle`, `status: tbd`. WMD's agent starts
+   `war create "Pool bodies" --depends-on hpr:CL-handle --test "cargo test pool"`. It
+   stays out of `ready`, and prime says who settles it and by when.
+2. **The work.** HPR settles the clause and ships, then pushes. WMD fetches:
+   `git -C vendor/hpr fetch`. Prime now says *agreed upstream, not pinned here*.
+3. **The pin.** A WMD ticket moves the pin and commits. The held item is released,
+   `war check --clauses` runs the same tests on both sides, and
+   `war check --clauses --record` clears the drift line.
+4. **A later break.** HPR opens `--change breaking`. `war plan impact` names WMD's
+   running claim, both owners sign, and that claim hears the clause changed once it
+   reaches it.
+
+## Limits
+
+Reads never fetch: nothing is known of the other side until `git fetch`. Only a
+checkout on this machine shows the other side's claims. Dependencies run one way:
+one side pins, the other is `downstream`, and an adapter handles anything that
+would make a cycle.

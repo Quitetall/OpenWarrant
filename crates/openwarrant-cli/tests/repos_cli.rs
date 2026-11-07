@@ -539,3 +539,142 @@ fn drift_is_one_line_in_status_until_it_is_conformed_to() {
     let _ = json(&t.wmd, "o", &["check", "--clauses", "--record"]);
     assert_eq!(line(&t.wmd).as_deref(), Some("Interfaces: 1 conform"));
 }
+
+// ---- change requests -------------------------------------------------------
+
+#[test]
+fn a_breaking_change_is_an_order_with_one_acceptance_per_party() {
+    let t = two();
+    let v = json(
+        &t.hpr,
+        "o",
+        &[
+            "create",
+            "Reuse handles",
+            "--change",
+            "breaking",
+            "--clause",
+            "CL-handle",
+        ],
+    );
+    assert_eq!(v["exit_code"], 0, "{v}");
+    let id = v["result"]["id"].as_str().unwrap().to_owned();
+    assert_eq!(v["result"]["type"], "change-request");
+    let shown = text(&run(&t.hpr, "o", &["view", "prime", &id]));
+    assert!(
+        shown.contains("accept: hpr") && shown.contains("accept: wmd"),
+        "{shown}"
+    );
+    assert!(shown.contains("Order"), "{shown}");
+
+    // Nobody but a person closes it, and the refusal names what they sign.
+    assert_eq!(json(&t.hpr, "a", &["start", &id])["exit_code"], 0);
+    let out = run(&t.hpr, "a", &["done", &id]);
+    assert!(!out.status.success(), "{}", text(&out));
+    assert!(text(&out).contains("war sign"), "{}", text(&out));
+}
+
+#[test]
+fn a_compatible_change_is_a_warrant_closed_by_the_clause_check() {
+    let t = two();
+    let v = json(
+        &t.hpr,
+        "o",
+        &[
+            "create",
+            "Add a getter",
+            "--change",
+            "compatible",
+            "--clause",
+            "CL-step",
+        ],
+    );
+    assert_eq!(v["exit_code"], 0, "{v}");
+    let id = v["result"]["id"].as_str().unwrap().to_owned();
+    assert!(text(&run(&t.hpr, "o", &["view", "prime", &id])).contains("Warrant"));
+
+    // Refusals, each by name, and nothing written.
+    for (args, rule) in [
+        (
+            vec!["create", "x", "--type", "change-request"],
+            "change.class",
+        ),
+        (
+            vec!["create", "x", "--change", "maybe", "--clause", "CL-step"],
+            "change.class",
+        ),
+        (
+            vec![
+                "create",
+                "x",
+                "--change",
+                "compatible",
+                "--clause",
+                "CL-gone",
+            ],
+            "change.clauses",
+        ),
+        // A clause with no check, and no --test: nothing could close it.
+        (
+            vec![
+                "create",
+                "x",
+                "--change",
+                "compatible",
+                "--clause",
+                "CL-handle",
+            ],
+            "change.no-trigger",
+        ),
+    ] {
+        let out = run(&t.hpr, "o", &args);
+        assert!(!out.status.success(), "{args:?}: {}", text(&out));
+        assert!(text(&out).contains(rule), "{args:?}: {}", text(&out));
+    }
+}
+
+#[test]
+fn impact_lists_claims_on_both_sides_and_says_what_it_could_not_read() {
+    let t = two();
+    let agreed = INTERFACE.replace("status: tbd", "status: agreed");
+    std::fs::write(t.hpr.join(DOC), &agreed).unwrap();
+    t.push_and_fetch();
+    t.bump();
+    let step = waiting(&t, "hpr:CL-step", &[]);
+    let other = waiting(&t, "hpr:CL-handle", &[]);
+    assert_eq!(json(&t.wmd, "alice", &["start", &step])["exit_code"], 0);
+    assert_eq!(json(&t.wmd, "bob", &["start", &other])["exit_code"], 0);
+
+    // From the side that depends: its own claim, by the other side's id.
+    let v = json(&t.wmd, "o", &["plan", "impact", "hpr:CL-step"]);
+    let across = v["result"]["across"].as_array().unwrap();
+    assert_eq!(across.len(), 1, "{v}");
+    assert_eq!(across[0]["ticket"], step.as_str());
+    assert_eq!(across[0]["side"], "here");
+
+    // From the lower layer, naming its user: the same claim, on that side.
+    let cfg = t.hpr.join("openwarrant.toml");
+    let mut config = std::fs::read_to_string(&cfg).unwrap();
+    config.push_str(&format!(
+        "\n[repos.wmd]\npath = \"../wmd\"\ndownstream = true\n"
+    ));
+    std::fs::write(&cfg, config).unwrap();
+    let v = json(&t.hpr, "o", &["plan", "impact", "CL-step"]);
+    let across = v["result"]["across"].as_array().unwrap();
+    assert_eq!(across.len(), 1, "{v}");
+    assert_eq!(across[0]["side"], "wmd");
+    assert_eq!(across[0]["actor"], "alice");
+
+    // A side not on this machine is UNKNOWN, not nobody.
+    let moved = t.wmd.with_extension("moved");
+    std::fs::rename(&t.wmd, &moved).unwrap();
+    let v = json(&t.hpr, "o", &["plan", "impact", "CL-step"]);
+    assert!(v["result"]["across"].as_array().unwrap().is_empty(), "{v}");
+    assert!(
+        v["result"]["unread"][0]
+            .as_str()
+            .unwrap()
+            .contains("UNKNOWN"),
+        "{v}"
+    );
+}

@@ -35,6 +35,7 @@ pub mod acts;
 pub(crate) mod authoring;
 pub use authoring::Scope;
 pub mod cache;
+pub mod change;
 pub mod checks;
 pub mod claim;
 pub mod depends;
@@ -1668,7 +1669,10 @@ fn refuse_fields(store: &Store, kind: Option<&str>, labels: &[String]) -> Option
                 format!("type {k:?} is not a word (lowercase, [a-z0-9_-])"),
             ));
         }
-        if let Some(why) = fields.refuse_type(k) {
+        // Every repository has change requests: it needs no profile edit.
+        if k != change::TYPE
+            && let Some(why) = fields.refuse_type(k)
+        {
             return Some(Outcome::refused(
                 "ticket.type-unknown",
                 "profiles/ticket.toml",

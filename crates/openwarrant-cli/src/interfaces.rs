@@ -46,6 +46,9 @@ pub struct Clause {
     /// The repository-relative path of its document.
     pub source: String,
     pub line: usize,
+    /// The digest of its own text, so a change to the clause beside it does
+    /// not reach anyone who depends on this one.
+    pub digest: String,
 }
 
 impl Clause {
@@ -129,6 +132,9 @@ pub fn all(repo: &Repository) -> Vec<Interface> {
                     due: one(&u.fields, "due"),
                     source: d.source.clone(),
                     line: u.line,
+                    digest: openwarrant_core::format::sha256(
+                        d.bytes.get(u.start..u.end).unwrap_or_default(),
+                    ),
                 })
                 .collect(),
             source: d.source,
@@ -163,7 +169,8 @@ pub fn reached(repo: &Repository) -> (Vec<(String, Interface)>, Vec<String>) {
         .map(|i| (i.source.clone(), i))
         .collect();
     let mut unread = Vec::new();
-    for name in repos::declared(&repo.root).unwrap_or_default().keys() {
+    for name in repos::pinned(&repo.root) {
+        let name = &name;
         match repos::through_pin(&repo.root, name, None, all) {
             Ok((_, found)) => {
                 out.extend(

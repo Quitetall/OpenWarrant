@@ -763,6 +763,19 @@ enum DailyCommand {
         /// out of `war view ready` until the pin holds it.
         #[arg(long = "depends-on", value_name = "TARGET", conflicts_with = "legacy")]
         depends_on: Vec<String>,
+        /// With `--type change-request`: `breaking` (both parties sign) or
+        /// `compatible` (a trigger closes it).
+        #[arg(
+            long,
+            value_name = "CLASS",
+            requires = "clauses",
+            conflicts_with = "legacy"
+        )]
+        change: Option<String>,
+        /// With `--change`: a clause it changes, here or `hpr:CL-step`;
+        /// repeat for more.
+        #[arg(long = "clause", value_name = "ID", requires = "change")]
+        clauses: Vec<String>,
         /// A test: a shell command whose exit code decides pass or fail.
         /// Repeatable. `war done` runs it and finishes the work only when it
         /// passes.
@@ -3595,6 +3608,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             tools,
             commands,
             depends_on,
+            change,
+            clauses,
             tests,
             issue,
             issue_file,
@@ -3602,6 +3617,25 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             actor,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            // W6: a change request says what it is before anything is written.
+            let (mut items, mut tests) = (items, tests);
+            let kind = if change.is_some() {
+                Some(ticket::change::TYPE.to_owned())
+            } else {
+                kind
+            };
+            if kind.as_deref() == Some(ticket::change::TYPE) {
+                match ticket::change::prepare(&repository, change.as_deref(), &clauses, &tests) {
+                    Ok(prepared) => {
+                        items.extend(prepared.items);
+                        tests.extend(prepared.tests);
+                    }
+                    Err((rule, why)) => {
+                        let refusal = ticket::Outcome::refused(rule, String::new(), why);
+                        return Ok(ticket_answer(mode, "create", &refusal));
+                    }
+                }
+            }
             // OW-WAR-0148 M5: the issue is read once, before anything is
             // written; a refusal of the read is the command's refusal.
             let issue = match (issue, issue_file) {
@@ -3669,6 +3703,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     tools,
                     commands,
                     depends_on,
+                    change,
+                    clauses,
                 },
                 tests,
             };
@@ -4827,11 +4863,25 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let repository = ctx.open_repo()?;
             gate_cmd::source::remember_tree_reads();
             let corpus = corpus::Corpus::new(&repository);
+            // W6: `hpr:CL-step` is no record here; what it reaches still is.
+            let foreign = !matches!(
+                repos::classify(&repository.root, &record),
+                repos::Target::Local
+            );
+            let (reached, unread) = ticket::change::across(&repository, &record);
+            if foreign {
+                let value = serde_json::json!({"across": reached, "unread": unread});
+                let human = ticket::change::render(&reached, &unread);
+                output::emit(mode, "impact", human.trim_end(), value);
+                return Ok(EXIT_OK);
+            }
             let (report, impact) = impact::build(&corpus, &record)?;
+            let across = ticket::change::render(&reached, &unread);
             match mode {
                 output::Mode::Human => {
                     if let Some(i) = &impact {
                         print!("{}", impact::render(i));
+                        print!("{across}");
                     }
                     for d in report
                         .diagnostics
@@ -4845,12 +4895,17 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     }
                     Ok(output::exit_code(&report))
                 }
-                output::Mode::Json => Ok(output::finish(
-                    mode,
-                    "impact",
-                    &report,
-                    impact.as_ref().map(output::value),
-                )),
+                output::Mode::Json => {
+                    // Additive, and outside `oh.war/impact/v1`: what reaches
+                    // another repository is not a record of this model.
+                    let value = impact.as_ref().map(|i| {
+                        let mut v = output::value(i);
+                        v["across"] = serde_json::json!(reached);
+                        v["unread"] = serde_json::json!(unread);
+                        v
+                    });
+                    Ok(output::finish(mode, "impact", &report, value))
+                }
             }
         }
         PlanCommand::Spec { command } => {

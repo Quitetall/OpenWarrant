@@ -203,6 +203,7 @@ mod tests {
             awaiting_signature: Some(7),
             blocking_questions: Some(2),
             unknown: Vec::new(),
+            ..Brief::default()
         };
         assert_eq!(
             brief.render(),

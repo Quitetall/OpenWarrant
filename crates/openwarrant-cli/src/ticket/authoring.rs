@@ -70,6 +70,10 @@ pub struct Scope {
     /// What it waits on beyond its own repository ([`super::depends`]). Not a
     /// limit on the work: it says when the work can start.
     pub depends_on: Vec<String>,
+    /// A change request's class ([`super::change`]).
+    pub change: Option<String>,
+    /// The clauses a change request changes.
+    pub clauses: Vec<String>,
 }
 
 /// `text` with `scope` in its frontmatter.
@@ -86,6 +90,12 @@ pub(crate) fn with_scope(text: &str, scope: &Scope) -> String {
         lines.push_str(&block("paths", &scope.paths));
     }
     let mut requires = Vec::new();
+    if let Some(change) = &scope.change {
+        lines.push_str(&format!("{}: {change}\n", super::change::CHANGE_KEY));
+        requires.push(super::change::CHANGE_KEY.to_owned());
+        lines.push_str(&block(super::change::CLAUSES_KEY, &scope.clauses));
+        requires.push(super::change::CLAUSES_KEY.to_owned());
+    }
     if !scope.depends_on.is_empty() {
         lines.push_str(&block(super::depends::KEY, &scope.depends_on));
         requires.push(super::depends::KEY.to_owned());

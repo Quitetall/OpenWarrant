@@ -273,6 +273,7 @@ mod tests {
                 due: None,
                 source: String::new(),
                 line: 1,
+                digest: String::new(),
             })
         };
         assert!(clause("agreed").settled());

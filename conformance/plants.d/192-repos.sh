@@ -163,3 +163,51 @@ else
     rp_fail "a pin bump releases the item" "$RP_DONE_RC $RP_DONE | $RP_MOVED"
 fi
 
+
+# ---- interfaces that act ----------------------------------------------------
+
+RP_CHECK=$(wmd owner --verbose check 2>&1)
+RP_CLAUSES=$(wmd owner --json check --clauses 2>&1); RP_CLAUSES_RC=$?
+if grep -q '1 tbd, 0 tbr' <<<"$RP_CHECK" \
+    && grep -Pzoq '"clause": "hpr:CL-step",\s+"source": "[^"]*",\s+"result": "PASS"' <<<"$RP_CLAUSES" \
+    && grep -Pzoq '"clause": "hpr:CL-mass",\s+"source": "[^"]*",\s+"result": "UNKNOWN"' <<<"$RP_CLAUSES" \
+    && [[ $RP_CLAUSES_RC -eq 2 ]]; then
+    rp_ok "clauses counted, run, or UNKNOWN" "a clause with no check is never a pass"
+else
+    rp_fail "clauses counted, run, or UNKNOWN" "$RP_CLAUSES_RC: $(head -c 600 <<<"$RP_CLAUSES")"
+fi
+
+RP_TBD=$(wmd owner --json create "Needs the handle rule" --depends-on hpr:CL-handle 2>/dev/null | rp_id)
+rp_git -C "$RP_TMP/wmd" add -A && rp_git -C "$RP_TMP/wmd" commit -qm tbd
+RP_READY=$(wmd a view ready 2>&1)
+RP_HELD=$(wmd a view prime 2>&1)
+if ! grep -q "$RP_TBD" <<<"$RP_READY" && grep -q "$RP_TBD.*held: hpr:CL-handle: tbd (owner hpr, due 2026-11-20)" <<<"$RP_HELD"; then
+    rp_ok "a tbd clause holds what names it" "out of ready, with its owner and date"
+else
+    rp_fail "a tbd clause holds what names it" "$RP_HELD"
+fi
+
+wmd owner check --clauses --record >/dev/null 2>&1
+rp_git -C "$RP_TMP/wmd" add -A && rp_git -C "$RP_TMP/wmd" commit -qm conform
+RP_LINE=$(wmd owner status 2>&1 | grep '^Interfaces:')
+
+# ---- notices across the boundary, and a change request ----------------------
+
+RP_STEP=$(wmd owner --json create "Uses a step" --depends-on hpr:CL-step --test true 2>/dev/null | rp_id)
+RP_MASS=$(wmd owner --json create "Uses mass" --depends-on hpr:CL-mass 2>/dev/null | rp_id)
+rp_git -C "$RP_TMP/wmd" add -A && rp_git -C "$RP_TMP/wmd" commit -qm more
+wmd alice start "$RP_STEP" >/dev/null 2>&1
+wmd bob start "$RP_MASS" >/dev/null 2>&1
+
+RP_IMPACT=$(wmd owner plan impact hpr:CL-step 2>&1)
+RP_BREAK=$(hpr --json create "Change what a step means" --change breaking --clause CL-step 2>/dev/null | rp_id)
+RP_REFUSED=$(hpr start "$RP_BREAK" 2>&1; hpr done "$RP_BREAK" 2>&1); RP_REFUSED_RC=$?
+RP_NO_CLASS=$(hpr create "Unclassed" --type change-request 2>&1); RP_NO_CLASS_RC=$?
+if grep -q "here: $RP_STEP (alice) reaches hpr:CL-step" <<<"$RP_IMPACT" && ! grep -q "$RP_MASS" <<<"$RP_IMPACT" \
+    && [[ $RP_REFUSED_RC -ne 0 && $RP_NO_CLASS_RC -ne 0 ]] \
+    && grep -q 'war sign' <<<"$RP_REFUSED" && grep -q 'change.class' <<<"$RP_NO_CLASS"; then
+    rp_ok "a breaking change waits on people" "impact names the claim; done names what they sign"
+else
+    rp_fail "a breaking change waits on people" "$RP_REFUSED_RC $RP_NO_CLASS_RC $RP_IMPACT | $RP_REFUSED | $RP_NO_CLASS"
+fi
+

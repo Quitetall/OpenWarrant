@@ -1338,6 +1338,8 @@ impl WarServer {
             issue: None,
             scope: crate::ticket::Scope {
                 depends_on: Vec::new(),
+                change: None,
+                clauses: Vec::new(),
                 paths: p.paths,
                 tools: p.tools,
                 commands: p.commands,

@@ -65,6 +65,11 @@ pub struct Named {
     /// The commit, for a sibling. A submodule's gitlink needs none.
     #[serde(default)]
     pub pin: Option<String>,
+    /// It depends on this repository, not the other way: nothing is read
+    /// through a pin, and a change's impact looks at its claims. Dependencies
+    /// have one direction, so the lower layer names its users this way.
+    #[serde(default)]
+    pub downstream: bool,
 }
 
 #[derive(Deserialize)]
@@ -83,6 +88,17 @@ pub fn declared(root: &Utf8Path) -> Result<BTreeMap<String, Named>, String> {
     toml::from_str::<File>(&text)
         .map(|f| f.repos)
         .map_err(|e| format!("the [repos] table: {}", e.message()))
+}
+
+/// The names of the repositories this one reads through a pin.
+#[must_use]
+pub fn pinned(root: &Utf8Path) -> Vec<String> {
+    declared(root)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|(_, n)| !n.downstream)
+        .map(|(name, _)| name)
+        .collect()
 }
 
 /// What a target's first word turned out to be.
@@ -173,6 +189,18 @@ fn submodule_name(root: &Utf8Path, path: &str) -> String {
         }
     }
     path.to_owned()
+}
+
+/// The checkout of `name` on this machine, for what only a checkout holds.
+#[must_use]
+pub fn checkout(root: &Utf8Path, name: &str) -> Option<Utf8PathBuf> {
+    let all = declared(root).ok()?;
+    let path = all.get(name)?.path.as_deref()?;
+    let at = |base: &Utf8Path| {
+        let dir = base.join(path);
+        dir.join(".git").exists().then_some(dir)
+    };
+    at(root).or_else(|| at(own_git_dir(root)?.parent()?))
 }
 
 /// Where the objects of `named` are: its own checkout, or the superproject's
@@ -561,11 +589,11 @@ pub fn take_read() -> Option<String> {
 #[must_use]
 pub fn status_line(root: &Utf8Path) -> Option<String> {
     let all = declared(root).ok()?;
-    if all.is_empty() {
+    if all.values().all(|n| n.downstream) {
         return None;
     }
-    let parts: Vec<String> = all
-        .keys()
+    let parts: Vec<String> = pinned(root)
+        .iter()
         .map(|name| match locate(root, name) {
             Ok(l) => read_line(&l),
             Err(_) => format!("{name} UNKNOWN"),
