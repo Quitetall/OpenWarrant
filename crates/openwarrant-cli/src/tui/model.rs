@@ -410,7 +410,10 @@ pub enum Effect {
         root: Option<Utf8PathBuf>,
     },
     /// A child off the main thread; its output lands in a popup.
-    Capture { title: String, argv: Vec<String> },
+    Capture {
+        title: String,
+        argv: Vec<String>,
+    },
     /// A child off the main thread, its output and `after` in a popup, and
     /// `prompt`, a pane and text, sent there when it succeeded.
     Say {

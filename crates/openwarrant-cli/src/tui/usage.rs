@@ -38,9 +38,7 @@ pub fn prices(text: &str) -> Result<Option<Prices>, String> {
     let as_of = usage
         .get("prices_as_of")
         .and_then(toml::Value::as_str)
-        .filter(|d| {
-            d.len() == 10 && chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").is_ok()
-        })
+        .filter(|d| d.len() == 10 && chrono::NaiveDate::parse_from_str(d, "%Y-%m-%d").is_ok())
         .ok_or("[usage] prices need prices_as_of = \"YYYY-MM-DD\"; no dollars are shown")?;
     let mut models = BTreeMap::new();
     for (model, price) in table {
@@ -131,8 +129,7 @@ pub fn sum(runs: &[Run], prices: Option<&Prices>) -> Usage {
     let (mut total, mut any) = (0u64, false);
     let (mut dollars, mut unpriced, mut priced_any) = (0.0, 0u64, false);
     for r in runs {
-        let again = r.input.is_some()
-            && r.dispatch.as_deref().is_some_and(|d| counted.contains(d));
+        let again = r.input.is_some() && r.dispatch.as_deref().is_some_and(|d| counted.contains(d));
         if again {
             continue;
         }
@@ -326,13 +323,17 @@ mod tests {
         assert_eq!(usage.unknown_runs, 1);
         assert_eq!(usage.of("t-1"), Count::Known(40));
         assert_eq!(usage.of("t-1/i-2"), Count::Unknown);
-        assert_eq!(usage.of("t-11"), Count::Unknown, "a prefix of an id is not it");
+        assert_eq!(
+            usage.of("t-11"),
+            Count::Unknown,
+            "a prefix of an id is not it"
+        );
     }
 
     #[test]
     fn a_node_says_unknown_as_the_journal_writes_it() {
-        let run = run_of_node(r#"{"node":"t-1","dispatch_id":"d","tokens":"unknown"}"#)
-            .expect("a run");
+        let run =
+            run_of_node(r#"{"node":"t-1","dispatch_id":"d","tokens":"unknown"}"#).expect("a run");
         assert_eq!(run.tokens, None);
         let run = run_of_node(r#"{"node":"t-1","tokens":1234}"#).expect("a run");
         assert_eq!(run.tokens, Some(1234));
@@ -369,7 +370,11 @@ mod tests {
         let usage = sum(&[node("t-1", Some(15)), receipt("t-1", "m", 10, 5)], None);
         assert_eq!(usage.total, Count::Known(15));
         let usage = sum(&[node("t-1", None), receipt("t-1", "m", 10, 5)], None);
-        assert_eq!(usage.total, Count::Known(15), "the receipt had the only count");
+        assert_eq!(
+            usage.total,
+            Count::Known(15),
+            "the receipt had the only count"
+        );
     }
 
     #[test]
@@ -387,7 +392,10 @@ mod tests {
     fn what_cannot_be_priced_is_listed_not_averaged() {
         let p = table();
         assert_eq!(sum(&[node("t-1", Some(9))], Some(&p)).dollars, None);
-        assert_eq!(sum(&[receipt("t-1", "other", 1, 1)], Some(&p)).dollars, None);
+        assert_eq!(
+            sum(&[receipt("t-1", "other", 1, 1)], Some(&p)).dollars,
+            None
+        );
         let usage = sum(
             &[receipt("t-1", "m", 1_000_000, 0), node("t-2", Some(9))],
             Some(&p),

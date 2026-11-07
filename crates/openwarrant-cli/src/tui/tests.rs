@@ -2,8 +2,10 @@
 //! The app driven as a person drives it: keys into `handle_key`, a frame out
 //! of `draw`, over a fixture no file stands behind.
 
-use super::model::{ClaimRow, Collision, NoticeRow, Panel, PhaseRow, QuestionItem, ReadyRow, Row, WorkRow};
 use super::model::Form;
+use super::model::{
+    ClaimRow, Collision, NoticeRow, Panel, PhaseRow, QuestionItem, ReadyRow, Row, WorkRow,
+};
 use super::*;
 use crate::diagnostic::Diagnostic;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -171,7 +173,10 @@ fn tab_flips_and_digits_go_direct_and_no_key_differs_by_case_alone() {
                 k.to_uppercase()
             };
             assert!(
-                other == k || !keys.iter().any(|l| l.split_whitespace().any(|w| w == other)),
+                other == k
+                    || !keys
+                        .iter()
+                        .any(|l| l.split_whitespace().any(|w| w == other)),
                 "{k} and {other} are both keys"
             );
         }
@@ -223,7 +228,9 @@ fn no_usage_recorded_reads_unknown_never_a_number() {
     let s = screen(&m);
     assert!(s.contains("TOKENS UNKNOWN"), "{s}");
     assert!(
-        !s.split('$').skip(1).any(|t| t.starts_with(|c: char| c.is_ascii_digit())),
+        !s.split('$')
+            .skip(1)
+            .any(|t| t.starts_with(|c: char| c.is_ascii_digit())),
         "no dollars: {s}"
     );
     assert!(!s.contains("% complete"), "no percentage: {s}");
@@ -309,7 +316,9 @@ fn a_notice_shows_how_far_it_got() {
 #[test]
 fn a_source_that_could_not_be_read_is_said() {
     let mut m = fixture();
-    m.snap.faults.push("the claims: permission denied".to_owned());
+    m.snap
+        .faults
+        .push("the claims: permission denied".to_owned());
     let s = screen(&m);
     assert!(s.contains("UNKNOWN the claims: permission denied"), "{s}");
 }
@@ -343,7 +352,11 @@ fn with_herdr_the_panel_follows_the_agent_and_brackets_step() {
         herdr: model::Herdr::Connected {
             version: "0.9.5".to_owned(),
         },
-        agents: vec![agent("w9:p1", "elsewhere"), agent("w1:p1", "first"), agent("w1:p2", "second")],
+        agents: vec![
+            agent("w9:p1", "elsewhere"),
+            agent("w1:p1", "first"),
+            agent("w1:p2", "second"),
+        ],
         text: "agent output".to_owned(),
     };
     live.agents[1].cwd = "/work/wt-a/sub".to_owned();
@@ -644,7 +657,13 @@ fn a_note_says_who_reads_it_and_when() {
     let mut m = fixture();
     handle_key(&mut m, key('a'));
     typed(&mut m, "use the fast queue");
-    let Some(Effect::Say { argv, after, prompt, .. }) = enter(&mut m) else {
+    let Some(Effect::Say {
+        argv,
+        after,
+        prompt,
+        ..
+    }) = enter(&mut m)
+    else {
         panic!("a note is a child off the main thread");
     };
     assert_eq!(argv, argv::note("t-1a2b3", "use the fast queue"));
@@ -658,10 +677,12 @@ fn a_note_says_who_reads_it_and_when() {
 #[test]
 fn a_note_goes_through_herdr_only_when_asked() {
     let mut m = fixture();
-    m.live.agents = vec![serde_json::from_value(serde_json::json!({
-        "pane_id": "w1:p1", "cwd": "/work/wt-a",
-    }))
-    .expect("an agent")];
+    m.live.agents = vec![
+        serde_json::from_value(serde_json::json!({
+            "pane_id": "w1:p1", "cwd": "/work/wt-a",
+        }))
+        .expect("an agent"),
+    ];
     act::open_note(&mut m, "t-1a2b3/i-1".to_owned());
     handle_key(&mut m, press(KeyCode::Tab));
     typed(&mut m, "stop");
@@ -729,7 +750,10 @@ fn q_quits_from_the_list_and_only_closes_a_popup() {
     assert!(m.popup.is_none());
     assert_eq!(handle_key(&mut m, key('q')), Some(Effect::Quit));
     assert_eq!(
-        handle_key(&mut m, KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)),
+        handle_key(
+            &mut m,
+            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL)
+        ),
         Some(Effect::Quit)
     );
 }

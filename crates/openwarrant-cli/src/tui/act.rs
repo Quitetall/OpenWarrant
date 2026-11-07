@@ -9,7 +9,9 @@ use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
-use super::model::{Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow, Row};
+use super::model::{
+    Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow, Row,
+};
 use super::{argv, watch};
 
 fn step(panel: Panel, by: isize) -> Panel {
@@ -160,7 +162,10 @@ fn warrant_of(m: &mut Model) -> Option<String> {
         .snap
         .views
         .get(&super::model::View::Corpus)
-        .is_some_and(|rows| rows.iter().any(|r| r.text.starts_with(&format!("{alias} "))));
+        .is_some_and(|rows| {
+            rows.iter()
+                .any(|r| r.text.starts_with(&format!("{alias} ")))
+        });
     if known {
         Some(alias)
     } else {
@@ -418,7 +423,10 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
                     edit(scope, code);
                     None
                 }
-                (DispatchStep::Worktree, KeyCode::Char(' ' | 'j' | 'k') | KeyCode::Up | KeyCode::Down) => {
+                (
+                    DispatchStep::Worktree,
+                    KeyCode::Char(' ' | 'j' | 'k') | KeyCode::Up | KeyCode::Down,
+                ) => {
                     *worktree = !*worktree;
                     None
                 }
@@ -497,11 +505,10 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
                 None
             }
             KeyCode::Enter => {
-                let held = m
-                    .snap
-                    .claims
-                    .iter()
-                    .any(|c| c.target == *target || target.starts_with(&format!("{}/", c.target)));
+                let held =
+                    m.snap.claims.iter().any(|c| {
+                        c.target == *target || target.starts_with(&format!("{}/", c.target))
+                    });
                 Some(Effect::Say {
                     title: format!("note on {target}"),
                     argv: argv::note(target, text.trim()),
@@ -555,7 +562,14 @@ pub fn command(m: &Model) -> String {
     }
 }
 
-fn text_panel(f: &mut ratatui::Frame, m: &Model, area: Rect, panel: Panel, title: &str, lines: Vec<Line<'static>>) {
+fn text_panel(
+    f: &mut ratatui::Frame,
+    m: &Model,
+    area: Rect,
+    panel: Panel,
+    title: &str,
+    lines: Vec<Line<'static>>,
+) {
     f.render_widget(
         Paragraph::new(lines).wrap(Wrap { trim: false }).block(
             Block::default()
@@ -634,19 +648,31 @@ fn form_lines(m: &Model, form: &Form) -> (String, Vec<Line<'static>>, String) {
                 DispatchStep::Executor => {
                     lines.push(Line::from("Executor, from [go]"));
                     for (i, e) in m.snap.executors.iter().enumerate() {
-                        lines.push(choice(e.name.clone(), i == *executor, e.unavailable.as_deref()));
+                        lines.push(choice(
+                            e.name.clone(),
+                            i == *executor,
+                            e.unavailable.as_deref(),
+                        ));
                     }
                     "j k choose · Enter next · Esc cancels"
                 }
                 DispatchStep::Scope => {
                     lines.push(field("Executor", &chosen.name, false));
-                    lines.push(field("Write scope, space separated; empty is what the task declares", scope, true));
+                    lines.push(field(
+                        "Write scope, space separated; empty is what the task declares",
+                        scope,
+                        true,
+                    ));
                     "Enter next · Esc cancels"
                 }
                 DispatchStep::Worktree => {
                     lines.push(field("Executor", &chosen.name, false));
                     lines.push(choice("a new worktree".to_owned(), *worktree, None));
-                    lines.push(choice("this checkout: claim only, start nothing".to_owned(), !*worktree, None));
+                    lines.push(choice(
+                        "this checkout: claim only, start nothing".to_owned(),
+                        !*worktree,
+                        None,
+                    ));
                     "space toggles · Enter next · Esc cancels"
                 }
                 DispatchStep::Launch => {
@@ -798,7 +824,10 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         .iter()
         .map(|q| {
             ListItem::new(Line::from(vec![
-                Span::styled(format!("{}: ", q.target()), Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    format!("{}: ", q.target()),
+                    Style::default().fg(Color::Cyan),
+                ),
                 Span::raw(q.question.clone()),
             ]))
         })

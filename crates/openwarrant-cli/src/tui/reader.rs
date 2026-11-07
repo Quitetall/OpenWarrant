@@ -24,8 +24,8 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use super::herdr_adapter::{self, Focus};
 use super::model::{
-    ClaimRow, Collision, Dispatch, ExecutorRow, Herdr, Launcher, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
-    Snapshot, View, WorkRow,
+    ClaimRow, Collision, Dispatch, ExecutorRow, Herdr, Launcher, Live, NoticeRow, PhaseRow,
+    Progress, QuestionItem, ReadyRow, Row, Snapshot, View, WorkRow,
 };
 use super::records;
 use crate::repo::Repository;
@@ -56,6 +56,12 @@ pub enum Update {
     /// A read that panicked or could not start; the last snapshot stands.
     ReadFailed(String),
     Live(Box<Live>),
+    /// Everyone on the Repos list, before any one's facts are read.
+    RepoList {
+        generation: u64,
+        rows: Vec<(crate::projects::Tier, crate::projects::Row)>,
+        hidden: usize,
+    },
     /// One repository's facts for the Repos list.
     Repo {
         generation: u64,
@@ -63,7 +69,10 @@ pub enum Update {
         row: Box<crate::projects::Row>,
     },
     /// A finished child, for a popup.
-    Child { title: String, text: String },
+    Child {
+        title: String,
+        text: String,
+    },
 }
 
 /// What wakes the Live thread.
@@ -171,9 +180,9 @@ impl Reader {
                 if let Some((pane, line)) = prompt {
                     match crate::herdr::prompt_agent(&pane, &line) {
                         Ok(()) => text.push_str(&format!("\n\nDelivered to {pane} now.")),
-                        Err(why) => text.push_str(&format!(
-                            "\n\nNot delivered to {pane}: {why}\n\n{after}"
-                        )),
+                        Err(why) => {
+                            text.push_str(&format!("\n\nNot delivered to {pane}: {why}\n\n{after}"))
+                        }
                     }
                 } else {
                     text.push_str(&format!("\n\n{after}"));
@@ -195,13 +204,24 @@ impl Reader {
         });
     }
 
-    /// Read each repository's facts, one after another, off the main thread.
-    pub fn read_repos(&mut self, rows: Vec<crate::projects::Row>) {
+    /// Read the Repos list, then each repository's facts, one after another,
+    /// off the main thread: the list alone stats every entry.
+    pub fn read_repos(&mut self) {
         self.repo_generation += 1;
         let generation = self.repo_generation;
         let tx = self.tx.clone();
         spawn_named("repos", move || {
-            for (index, mut row) in rows.into_iter().enumerate() {
+            let (rows, hidden) = crate::projects::hub();
+            let projects: Vec<_> = rows.iter().map(|(_, r)| r.clone()).collect();
+            let listed = Update::RepoList {
+                generation,
+                rows,
+                hidden,
+            };
+            if tx.send(listed).is_err() {
+                return;
+            }
+            for (index, mut row) in projects.into_iter().enumerate() {
                 if row.missing {
                     continue;
                 }
@@ -261,12 +281,20 @@ fn started_in(envelope: &str) -> Result<Started, String> {
 
 fn launch(root: &Utf8Path, plan: &Dispatch) -> Result<String, String> {
     let mut argv = vec!["--json".to_owned()];
-    argv.extend(super::argv::start(&plan.node, &plan.actor, &plan.paths, true));
+    argv.extend(super::argv::start(
+        &plan.node,
+        &plan.actor,
+        &plan.paths,
+        true,
+    ));
     let args: Vec<&str> = argv.iter().map(String::as_str).collect();
     let out = super::run_child_output(root, &args)?;
     let started = started_in(&out)?;
     let worktree = &started.worktree;
-    let done = format!("claimed {} as {}\nworktree {worktree}", plan.node, started.actor);
+    let done = format!(
+        "claimed {} as {}\nworktree {worktree}",
+        plan.node, started.actor
+    );
     match &plan.launcher {
         Launcher::Herdr { kind } => {
             let Some(args) = started.command.get(1..) else {
@@ -322,11 +350,15 @@ fn panic_message(p: &(dyn std::any::Any + Send)) -> String {
 }
 
 fn send_read(root: &Utf8Path, binary: &Row, tx: &Sender<Update>) -> bool {
-    let update = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| read(root, binary)))
-        .map_or_else(
-            |p| Update::ReadFailed(panic_message(p.as_ref())),
-            |s| Update::Snapshot(Box::new(s)),
-        );
+    let update = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        read_in_stages(root, binary, |early| {
+            let _ = tx.send(Update::Snapshot(Box::new(early.clone())));
+        })
+    }))
+    .map_or_else(
+        |p| Update::ReadFailed(panic_message(p.as_ref())),
+        |s| Update::Snapshot(Box::new(s)),
+    );
     tx.send(update).is_ok()
 }
 
@@ -336,7 +368,9 @@ fn records_thread(root: &Utf8Path, binary: &Row, ask: &Receiver<Ask>, tx: &Sende
     let fingerprint = || {
         Repository::discover(Some(root.to_owned()))
             .ok()
-            .map_or(0, |r| crate::watch::fingerprint(&crate::watch::watched_dirs(&r)))
+            .map_or(0, |r| {
+                crate::watch::fingerprint(&crate::watch::watched_dirs(&r))
+            })
     };
     let mut read_at = fingerprint();
     if !send_read(root, binary, tx) {
@@ -406,9 +440,8 @@ fn next_look(live: &Live, focus: &Focus) -> Duration {
 
 fn live_thread(mut focus: Focus, rx: &Receiver<Wake>, tx: &Sender<Update>) {
     loop {
-        let look = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            herdr_adapter::look(&focus)
-        }));
+        let look =
+            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| herdr_adapter::look(&focus)));
         let wait = look.as_ref().map_or(LIVE_TREE, |l| next_look(l, &focus));
         if let Ok(live) = look
             && tx.send(Update::Live(Box::new(live))).is_err()
@@ -448,6 +481,12 @@ impl Lap {
 /// Everything the app shows, read once. `binary` is Help's first row.
 #[must_use]
 pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
+    read_in_stages(root, binary, |_| {})
+}
+
+/// [`read`], handing `early` everything but Help's what-next list, which
+/// costs more than the rest together: Watch and Act should not wait for it.
+fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot)) -> Snapshot {
     let mut lap = Lap::new();
     let now = crate::gate_cmd::receipt::rfc3339_from_secs(crate::ticket::now_secs());
     let setup = crate::init::guided::Machine::new(crate::init::guided::Facts::read(root), now);
@@ -592,25 +631,14 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         );
 
     lap.mark("roadmap and tickets");
-    // Help: what next.
-    let next = crate::next::run_with(&compiled).ok();
-    let (doctor, _) = crate::doctor::run(Some(root.to_owned()), None, false);
-    let check = crate::check::run_with(&compiled, None, false).ok();
-    let help = with_binary(records::help_rows(
-        setup_ref,
-        next.as_ref(),
-        Some(&doctor),
-        check.as_ref(),
-    ));
-
-    lap.mark("next, doctor, check");
     // The graph: what can start, and the critical path.
     let scheduled = store.as_ref().ok().map(|s| {
-        let prior = crate::go::policy::load(&repo.root).ok().map(|p| p.prior_secs);
-        crate::estimate::run(&compiled, s, crate::estimate::prior_secs(&repo.root, prior))
-            .and_then(|(_, schedule, _)| {
-                crate::graph::build(&compiled, s).map(|(_, g)| (g, schedule))
-            })
+        let prior = crate::go::policy::load(&repo.root)
+            .ok()
+            .map(|p| p.prior_secs);
+        crate::estimate::run(&compiled, s, crate::estimate::prior_secs(&repo.root, prior)).and_then(
+            |(_, schedule, _)| crate::graph::build(&compiled, s).map(|(_, g)| (g, schedule)),
+        )
     });
     let (graph, schedule) = match scheduled {
         Some(Ok((g, s))) => (Some(g), Some(s)),
@@ -626,10 +654,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         Ok(s) => claim_rows(s, work.claims()),
         Err(_) => Vec::new(),
     };
-    let notices = store
-        .as_ref()
-        .map(notice_rows)
-        .unwrap_or_default();
+    let notices = store.as_ref().map(notice_rows).unwrap_or_default();
     let worktrees = crate::worktrees::inventory(&repo, false, "git")
         .map(|w| w.into_iter().map(|r| r.path).collect::<Vec<_>>())
         .map_err(|e| fault("the worktrees", e.to_string()))
@@ -665,9 +690,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         (
             s.warrants
                 .iter()
-                .filter(|w| {
-                    w.rung == openwarrant_core::status::WarrantRung::Resolved
-                })
+                .filter(|w| w.rung == openwarrant_core::status::WarrantRung::Resolved)
                 .count(),
             s.warrants.len(),
         )
@@ -713,8 +736,6 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
             Vec::new()
         }
     };
-    lap.mark("the rest");
-    snap.laps = lap.laps;
     for (view, rows) in [
         (View::Tickets, tickets),
         (View::Frontier, frontier),
@@ -723,10 +744,37 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         (View::Evidence, evidence),
         (View::Journal, journal),
         (View::Roadmap, roadmap),
-        (View::Help, help),
     ] {
         snap.views.insert(view, rows);
     }
+    snap.views.insert(
+        View::Help,
+        vec![
+            binary.clone(),
+            Row {
+                text: "reading what next…".to_owned(),
+                command: "war view next".to_owned(),
+                ..Row::default()
+            },
+        ],
+    );
+    lap.mark("everything but Help");
+    early(&snap);
+
+    // Help: what next.
+    let next = crate::next::run_with(&compiled).ok();
+    let (doctor, _) = crate::doctor::run(Some(root.to_owned()), None, false);
+    let check = crate::check::run_with(&compiled, None, false).ok();
+    let help = with_binary(records::help_rows(
+        setup_ref,
+        next.as_ref(),
+        Some(&doctor),
+        check.as_ref(),
+    ));
+
+    snap.views.insert(View::Help, help);
+    lap.mark("next, doctor, check");
+    snap.laps = lap.laps;
     snap
 }
 
@@ -740,9 +788,9 @@ fn executor_rows(policy: &crate::go::policy::Policy) -> Vec<ExecutorRow> {
         Harness::Generic => program.map_or_else(|| "harness".to_owned(), Clone::clone),
     };
     let mut rows = vec![ExecutorRow {
-        unavailable: program.is_none().then(|| {
-            "no harness for a session: set [go] harness or start_argv".to_owned()
-        }),
+        unavailable: program
+            .is_none()
+            .then(|| "no harness for a session: set [go] harness or start_argv".to_owned()),
         herdr_kind: program
             .and_then(|p| Utf8Path::new(p).file_name())
             .filter(|n| HERDR_KINDS.contains(n))
@@ -760,9 +808,30 @@ fn executor_rows(policy: &crate::go::policy::Policy) -> Vec<ExecutorRow> {
 
 /// The agents `herdr agent start --kind` takes.
 const HERDR_KINDS: &[&str] = &[
-    "pi", "claude", "codex", "gemini", "cursor", "devin", "agy", "cline", "omp", "mastracode",
-    "opencode", "copilot", "kimi", "kiro", "droid", "amp", "grok", "hermes", "kilo", "qodercli",
-    "qwen", "letta", "maki", "muse",
+    "pi",
+    "claude",
+    "codex",
+    "gemini",
+    "cursor",
+    "devin",
+    "agy",
+    "cline",
+    "omp",
+    "mastracode",
+    "opencode",
+    "copilot",
+    "kimi",
+    "kiro",
+    "droid",
+    "amp",
+    "grok",
+    "hermes",
+    "kilo",
+    "qodercli",
+    "qwen",
+    "letta",
+    "maki",
+    "muse",
 ];
 
 /// The human the register names, when there is exactly one, so an answer's
@@ -927,7 +996,9 @@ fn collisions(rows: &[ClaimRow], claims: &crate::ticket::Claims) -> Vec<Collisio
         .filter_map(|c| {
             let name = rows
                 .iter()
-                .find(|r| r.actor.as_deref() == Some(c.actor.as_str()) && r.since_unix == c.since_unix)
+                .find(|r| {
+                    r.actor.as_deref() == Some(c.actor.as_str()) && r.since_unix == c.since_unix
+                })
                 .map_or(c.ticket.as_str(), |r| r.target.as_str());
             c.coordination.as_deref().map(|co| (name, co))
         })

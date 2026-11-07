@@ -318,7 +318,10 @@ fn usage_line(u: &super::usage::Usage) -> String {
         out.push_str(&format!(" + {} est.", u.estimated));
     }
     if let Some(d) = &u.dollars {
-        out.push_str(&format!(" ~${:.2} estimate, prices of {}", d.estimate, d.as_of));
+        out.push_str(&format!(
+            " ~${:.2} estimate, prices of {}",
+            d.estimate, d.as_of
+        ));
         if d.unpriced_tokens > 0 {
             out.push_str(&format!(", {} tok unpriced", d.unpriced_tokens));
         }
@@ -623,7 +626,10 @@ fn live_lines(m: &Model, height: usize) -> Vec<Line<'static>> {
     } else {
         0
     };
-    lines[tail..].iter().map(|l| Line::from(l.clone())).collect()
+    lines[tail..]
+        .iter()
+        .map(|l| Line::from(l.clone()))
+        .collect()
 }
 
 fn question_items(m: &Model) -> Vec<ListItem<'static>> {
@@ -639,7 +645,10 @@ fn question_items(m: &Model) -> Vec<ListItem<'static>> {
                 } else {
                     Span::styled("question ", Style::default().fg(Color::Yellow))
                 },
-                Span::styled(format!("{}: ", q.target()), Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    format!("{}: ", q.target()),
+                    Style::default().fg(Color::Cyan),
+                ),
                 Span::raw(q.question.clone()),
             ]))
         })
@@ -668,10 +677,7 @@ fn notice_items(m: &Model) -> Vec<ListItem<'static>> {
         })
         .collect();
     if items.is_empty() {
-        items.push(ListItem::new(Line::from(Span::styled(
-            "no notices",
-            dim(),
-        ))));
+        items.push(ListItem::new(Line::from(Span::styled("no notices", dim()))));
     }
     items
 }
@@ -687,9 +693,7 @@ fn panel_list(
 ) {
     let mut state = ListState::default();
     if !items.is_empty() {
-        state.select(Some(
-            (m.selected_in(panel) + offset).min(items.len() - 1),
-        ));
+        state.select(Some((m.selected_in(panel) + offset).min(items.len() - 1)));
     }
     f.render_stateful_widget(
         List::new(items)
@@ -736,8 +740,7 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
     };
     if !phases.is_empty() {
         f.render_widget(
-            Paragraph::new(phases)
-                .block(Block::default().borders(Borders::ALL).title(" Phases ")),
+            Paragraph::new(phases).block(Block::default().borders(Borders::ALL).title(" Phases ")),
             phase_area,
         );
     }

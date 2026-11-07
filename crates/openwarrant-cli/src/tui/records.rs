@@ -542,8 +542,11 @@ pub fn ticket_rows(board: &serde_json::Value) -> Vec<Row> {
 // ---- Repos ----------------------------------------------------------------
 
 /// Everyone on the list, from the list alone; facts arrive from the reader.
-pub fn load_repos(m: &mut Model) {
-    let (rows, hidden) = crate::projects::hub();
+pub fn set_repos(
+    m: &mut Model,
+    rows: Vec<(crate::projects::Tier, crate::projects::Row)>,
+    hidden: usize,
+) {
     (m.repos.tiers, m.repos.projects) = rows.into_iter().unzip();
     m.repos.hidden = hidden;
     if m.repos.projects.is_empty() {
@@ -921,7 +924,9 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
             height: 1,
         };
         f.render_widget(
-            Paragraph::new(if !m.snap.loaded {
+            Paragraph::new(if m.overlay == Overlay::Repos {
+                "reading the list…"
+            } else if !m.snap.loaded {
                 "reading the records…"
             } else if m.filter.is_empty() {
                 "nothing here — not established, not blank"

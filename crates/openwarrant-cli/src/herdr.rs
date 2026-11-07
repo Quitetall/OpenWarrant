@@ -35,16 +35,17 @@ fn socket_path_from(env: impl Fn(&str) -> Option<String>) -> PathBuf {
     }
     let config = set("HERDR_CONFIG_DIR").map_or_else(
         || {
-            set("XDG_CONFIG_HOME").map_or_else(
-                || {
-                    set("HOME").map_or_else(
-                        || PathBuf::from("/tmp"),
-                        |home| Path::new(&home).join(".config"),
-                    )
-                },
-                PathBuf::from,
-            )
-            .join("herdr")
+            set("XDG_CONFIG_HOME")
+                .map_or_else(
+                    || {
+                        set("HOME").map_or_else(
+                            || PathBuf::from("/tmp"),
+                            |home| Path::new(&home).join(".config"),
+                        )
+                    },
+                    PathBuf::from,
+                )
+                .join("herdr")
         },
         PathBuf::from,
     );
@@ -277,7 +278,10 @@ pub fn subscribe(mut event: impl FnMut(), alive: impl Fn() -> bool) -> Result<()
             let v: serde_json::Value =
                 serde_json::from_slice(&line).map_err(|e| format!("invalid JSON: {e}"))?;
             if v.get("error").is_some() {
-                return Err(v["error"]["message"].as_str().unwrap_or("refused").to_owned());
+                return Err(v["error"]["message"]
+                    .as_str()
+                    .unwrap_or("refused")
+                    .to_owned());
             }
             started = true;
         }
@@ -336,11 +340,7 @@ pub fn prompt_agent(target: &str, text: &str) -> Result<(), String> {
 
 /// Create a tab for an isolated task or worktree. Returns its root pane, the
 /// shell `agent.start` runs in.
-pub fn create_tab(
-    cwd: &str,
-    label: &str,
-    env: &[(&str, &str)],
-) -> Result<String, String> {
+pub fn create_tab(cwd: &str, label: &str, env: &[(&str, &str)]) -> Result<String, String> {
     let env: serde_json::Map<String, serde_json::Value> = env
         .iter()
         .map(|(k, v)| ((*k).to_owned(), serde_json::json!(v)))
