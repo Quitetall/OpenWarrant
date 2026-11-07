@@ -165,7 +165,12 @@ fn annotation(
                 } else {
                     ""
                 };
-                format!("claimed by {} ({} ago{stale})", c.actor, ago(c.age(now)))
+                format!(
+                    "claimed by {} ({} ago{stale}{})",
+                    c.actor,
+                    ago(c.age(now)),
+                    c.where_held(now)
+                )
             }
             None => "claimed (unreadable lock)".to_owned(),
         });
@@ -790,6 +795,7 @@ pub fn list(
             format!("the Warrants outside the ticket store could not be read: {why}"),
         ));
     }
+    remote_said(store, &mut out);
     Ok(out)
 }
 
@@ -1214,10 +1220,11 @@ pub fn prime(
         if !shown {
             md.push_str(&match c {
                 Some(c) => format!(
-                    "- {} — claimed by {}, {} ago\n",
+                    "- {} — claimed by {}, {} ago{}\n",
                     c.target(),
                     c.actor,
-                    ago(c.age(now))
+                    ago(c.age(now)),
+                    c.where_held(now)
                 ),
                 None => format!("- `{name}` — unreadable lock\n"),
             });
@@ -1277,7 +1284,22 @@ pub fn prime(
             format!("the Warrants outside the ticket store could not be read: {why}"),
         ));
     }
+    remote_said(store, &mut out);
     Ok(out)
+}
+
+/// With `[claims] remote` that could not be read: one `UNKNOWN` finding
+/// (stderr, or the envelope), so a view never reads an item held on another
+/// machine as free.
+pub(crate) fn remote_said(store: &Store, out: &mut Outcome) {
+    if let Some(Err(line)) = store.remote_line() {
+        out.report.push(crate::diagnostic::Diagnostic::new(
+            crate::diagnostic::Severity::Unknown,
+            "work.claims-remote-unknown",
+            None,
+            line,
+        ));
+    }
 }
 
 /// `war view prime <ticket>`: one ticket in full, remaining items only.
@@ -1400,7 +1422,12 @@ fn overview_line(
             } else {
                 ""
             };
-            format!("{} ({} ago{lapsed})", c.actor, ago(c.age(now)))
+            format!(
+                "{} ({} ago{lapsed}{})",
+                c.actor,
+                ago(c.age(now)),
+                c.where_held(now)
+            )
         })
         .collect();
     holders.dedup();

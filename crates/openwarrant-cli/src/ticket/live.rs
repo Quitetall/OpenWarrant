@@ -51,8 +51,12 @@
 //!
 //! With `[claims] remote`, a change a detector finds is also published as
 //! `refs/openwarrant/notices/<key>`, the pattern of the claims in
-//! [`super::remote`], for the other clones, which read it at most once a
-//! minute and when an answer waits on it.
+//! [`super::remote`], for the other clones, which read it at most once per
+//! `[claims] remote_ttl`, at any `war` call while a claim watches something.
+//! A change another clone pushed to the default branch is heard the same way,
+//! by its own claims: the branch is fetched into
+//! `refs/openwarrant/upstream/<branch>` and each claim's watched files are
+//! compared at it, whether or not the other clone had a claim to notice it.
 //!
 //! Nothing here signs or touches a signed record, and nothing here is
 //! authority: a claim, and so a notice, is coordination. It is off in a hosted
@@ -84,10 +88,9 @@ const DELIVERED: &str = "delivered";
 /// The default branch's commit last compared, so a tip that did not move
 /// starts no process.
 const TIP_FILE: &str = ".tip";
-/// When the other clones' notices were last read.
+/// When the other clones' notices, and the remote's default branch, were
+/// last read; they are read again once `[claims] remote_ttl` has passed.
 const READ_FILE: &str = ".remote-read";
-/// How often a write reads them.
-const READ_EVERY_SECS: u64 = 60;
 /// What a clause watched through a pin reached its claim by.
 pub const PIN: &str = "pin";
 /// A file that is not there, where a digest would be.
@@ -674,13 +677,10 @@ fn exchange(store: &Store, dir: &Utf8Path, live: &[Live], now: u64, out: &mut Sc
             let _ = remote::publish_notice(root, remote_name, &key, &body);
         }
     }
-    let stamp = dir.join(READ_FILE);
-    let last = std::fs::read_to_string(&stamp)
-        .ok()
-        .and_then(|t| t.trim().parse::<u64>().ok());
-    if last.is_some_and(|l| now.saturating_sub(l) < READ_EVERY_SECS) {
+    if !remote_due(store, dir, now) {
         return;
     }
+    let stamp = dir.join(READ_FILE);
     let _ = std::fs::create_dir_all(dir);
     let _ = write_whole(&stamp, now.to_string().as_bytes());
     if let Ok(bodies) = remote::read_notices(root, remote_name) {
@@ -689,6 +689,111 @@ fn exchange(store: &Store, dir: &Utf8Path, live: &[Live], now: u64, out: &mut Sc
             .filter_map(|b| serde_json::from_str(b).ok())
             .collect();
         import(dir, live, &found, now, out);
+    }
+    let before = out.fresh.len();
+    scan_upstream(layout, dir, live, remote_name, now, out);
+    // Every clone compares the branch for itself: nothing here to publish.
+    out.fresh.truncate(before);
+}
+
+/// Whether `[claims] remote_ttl` has passed since the remote was last read
+/// for notices.
+fn remote_due(store: &Store, dir: &Utf8Path, now: u64) -> bool {
+    let last = std::fs::read_to_string(dir.join(READ_FILE))
+        .ok()
+        .and_then(|t| t.trim().parse::<u64>().ok());
+    !last.is_some_and(|l| now.saturating_sub(l) < store.remote_ttl_secs)
+}
+
+/// The default branch as the remote holds it, fetched into a ref of this
+/// clone's own, compared with what each live claim watches: what another
+/// clone pushed is heard here once, by the claims it reaches, and by no other.
+/// A branch the remote holds at this clone's own tip was compared already.
+fn scan_upstream(
+    layout: &claim::GitLayout,
+    dir: &Utf8Path,
+    live: &[Live],
+    remote_name: &str,
+    now: u64,
+    out: &mut Scan,
+) {
+    let root = &layout.toplevel;
+    let Some((branch, tip)) = default_branch(&layout.common_dir, root) else {
+        return;
+    };
+    let Ok(upstream) = remote::fetch_branch(root, remote_name, &branch) else {
+        return;
+    };
+    // This clone's own tip already holds it: compared already.
+    if crate::repos::holds(&layout.common_dir, &tip, &upstream) {
+        return;
+    }
+    let place = format!("on {remote_name}/{branch}");
+    for (_, k, c) in live {
+        let Some(coord) = c.coordination.as_ref().filter(|_| !c.lease_expired(now)) else {
+            continue;
+        };
+        for w in k.watched.iter().filter(|w| w.reach != PIN) {
+            let Some(d) = digest_at(root, &upstream, &w.source) else {
+                continue;
+            };
+            let id = notice_id(&k.claim, &w.source, &d);
+            if w.known.contains(&d) || posted_already(dir, &id) {
+                continue;
+            }
+            // Its workspace holds these bytes already.
+            let workspace = Utf8Path::new(&coord.workspace);
+            if std::fs::read(workspace.join(&w.source)).is_ok_and(|b| digest(&b) == d) {
+                continue;
+            }
+            let from = coord
+                .base_revision
+                .as_ref()
+                .and_then(|b| merge_base(root, b, &upstream));
+            // The branch did not move it since this claim's line left it.
+            if from
+                .as_deref()
+                .and_then(|f| digest_at(root, f, &w.source))
+                .is_some_and(|f| f == d)
+            {
+                continue;
+            }
+            let verb = if d == ABSENT {
+                "was removed"
+            } else {
+                "changed"
+            };
+            let _ = post(
+                dir,
+                Notice {
+                    schema: NOTICE_SCHEMA.to_owned(),
+                    line: format!(
+                        "notice: {} {verb} {place}; run `war start {}`.",
+                        w.source, k.ticket
+                    ),
+                    id,
+                    claim: k.claim.clone(),
+                    ticket: k.ticket.clone(),
+                    actor: c.actor.clone(),
+                    workspace: coord.workspace.clone(),
+                    source: w.source.clone(),
+                    units: if w.reach == "manifest" {
+                        Vec::new()
+                    } else {
+                        vec![w.because.clone()]
+                    },
+                    reach: w.reach.clone(),
+                    place: place.clone(),
+                    digest: d,
+                    from,
+                    to: Some(upstream.clone()),
+                    checkout: root.to_string(),
+                    at: rfc3339(now),
+                    path: None,
+                },
+                out,
+            );
+        }
     }
 }
 
@@ -1565,14 +1670,19 @@ pub fn after(
     if !silent(leaf)
         && enabled()
         && let Some(leaf) = leaf
-        && writes(leaf, changed)
         && let Some(layout) = layout_at(root)
     {
         // No claim watching anything: nothing to compare, nothing to open.
         let any = !notice_files(&layout.shared_claims_dir().join(GIVEN)).is_empty();
+        let write = writes(leaf, changed);
+        // With a claims remote, a read looks too, once its `remote_ttl` has
+        // passed: what another clone pushed reaches a claim on its next call.
         if any
             && let Some(store) = open_store(root, actor)
+            && (write
+                || (store.remote.is_some() && remote_due(&store, &dir_of(&layout), now_secs())))
             && let Err(e) = detect(&store)
+            && write
             && !changed
         {
             eprintln!("warning (notices.unavailable): {e}");
