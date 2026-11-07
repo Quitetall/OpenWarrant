@@ -5878,10 +5878,9 @@ pub fn watched(repo: &Repository) -> Vec<Utf8PathBuf> {
 /// Every ticket as `war view tickets` lists it, each with `war view show`'s items,
 /// notes and Markdown, and which of its items `war view ready` offers now. The
 /// TUI and the web page render this and compute nothing of their own.
-pub fn board(store: &Store) -> Result<serde_json::Value, RepoError> {
-    let list = tickets(store)?;
-    let (all, _) = store.load_all()?;
-    let ready: BTreeSet<String> = ready_rows(store, &all)?
+pub fn board(store: &Store, work: &crate::work::Work) -> Result<serde_json::Value, RepoError> {
+    let list = render::list(store, work, &Filter::default())?;
+    let ready: BTreeSet<String> = ready_rows_with(store, work.tickets(), work.claims().clone())?
         .iter()
         .map(ReadyRow::target)
         .collect();
