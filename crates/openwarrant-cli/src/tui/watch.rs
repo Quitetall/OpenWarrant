@@ -223,7 +223,7 @@ fn detail(m: &mut Model) {
             (
                 format!("claim on {}", c.target),
                 format!(
-                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\n\
+                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\n{}\nscope: {}\n\
                      tokens recorded: {}\nheld: {}\n{}\n\
                      A lock is renewed by the holder's `war` commands. It says when one last ran, \
                      not that an agent is alive.",
@@ -231,7 +231,10 @@ fn detail(m: &mut Model) {
                     span(m.now_unix.saturating_sub(c.since_unix)),
                     lease(c, m.now_unix),
                     renewed(c, m.now_unix),
-                    c.workspace.as_deref().unwrap_or("UNKNOWN"),
+                    c.place.clone().unwrap_or_else(|| format!(
+                        "workspace: {}",
+                        c.workspace.as_deref().unwrap_or("UNKNOWN")
+                    )),
                     if c.scope.is_empty() {
                         "none declared".to_owned()
                     } else {

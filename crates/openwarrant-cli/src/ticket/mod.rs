@@ -470,6 +470,17 @@ fn date_of(secs: u64) -> String {
 /// working side by side in worktrees of one repository share its claims, and
 /// under one name each would take another's claim for its own (`war start`
 /// resumes what "you" hold).
+/// Who this process acts as when no `--as` is given: `OPENWARRANT_ACTOR`,
+/// else [`default_actor`].
+#[must_use]
+pub fn own_actor(repo: &Repository) -> String {
+    std::env::var("OPENWARRANT_ACTOR")
+        .ok()
+        .map(|a| ticket::one_line(&a))
+        .filter(|a| !a.is_empty())
+        .unwrap_or_else(|| default_actor(repo))
+}
+
 fn default_actor(repo: &Repository) -> String {
     let performer = repo.performer();
     match repo.root.file_name() {
@@ -2885,6 +2896,9 @@ pub(crate) fn claim_scoped_at(
     paths: &[String],
     workspace: &Utf8Path,
 ) -> Result<Outcome, RepoError> {
+    if let Some(refusal) = other_repo(&store.root, query) {
+        return Ok(refusal);
+    }
     let workspace = workspace
         .canonicalize_utf8()
         .map_err(io("could not resolve execution workspace".into()))?;
@@ -2957,6 +2971,20 @@ pub(crate) fn claim_scoped_at(
     };
     coordination.workspace = workspace.to_string();
     coordination.base_revision = ladder::head_commit(&workspace);
+    coordination.locate(store, &workspace);
+    // One work order, one place: work held from another worktree is
+    // continued there, by whoever holds it.
+    if !steal
+        && let Some(there) = claimed_elsewhere(
+            &claims,
+            t.id(),
+            item.as_deref(),
+            workspace.as_str(),
+            now,
+        )
+    {
+        return Ok(elsewhere_refusal(&what, "Continue it", &there));
+    }
     let mut overlaps = Vec::new();
     for old in claims.values().flatten() {
         let same_target =
@@ -3374,6 +3402,92 @@ pub(crate) fn claim_scoped_at(
     Ok(answer)
 }
 
+/// `query` names work of another repository (`hpr:t-abc`, through
+/// `[repos]`): the refusal that says which, at what pin, and where its work
+/// is done. `None` for work of this one.
+pub fn other_repo(root: &Utf8Path, query: &str) -> Option<Outcome> {
+    let crate::repos::Target::Named(name, rest) = crate::repos::classify(root, query) else {
+        return None;
+    };
+    let pin = crate::repos::locate(root, name).map_or_else(
+        |why| format!("{name} @ UNKNOWN ({why})"),
+        |l| crate::repos::read_line(&l),
+    );
+    let there = crate::repos::checkout(root, name).map_or_else(
+        || format!("<{name}'s checkout>"),
+        |p| p.canonicalize_utf8().unwrap_or(p).to_string(),
+    );
+    Some(Outcome::refused(
+        "work.other-repo",
+        query.to_owned(),
+        format!(
+            "{query} belongs to {name}, not this repository; this one reads it at {pin}. Work in \
+             a worktree of {name}, never this one: `cd {there} && war start --worktree {rest}`"
+        ),
+    ))
+}
+
+/// A live claim on `ticket` (whole, or `item`) taken from a worktree other
+/// than `here` that still exists: where that work is done. A lapsed lease, a
+/// claim held on another machine, or a worktree since removed holds no place.
+pub(crate) fn claimed_elsewhere(
+    claims: &Claims,
+    ticket: &str,
+    item: Option<&str>,
+    here: &str,
+    now: u64,
+) -> Option<scopes::Coordination> {
+    claims
+        .values()
+        .flatten()
+        .filter(|c| {
+            c.ticket == ticket
+                && (c.item.is_none() || item.is_none() || c.item.as_deref() == item)
+                && !c.lease_expired(now)
+                && c.elsewhere.is_none()
+        })
+        .filter_map(|c| c.coordination.as_deref())
+        .find(|co| co.workspace != here && Utf8Path::new(&co.workspace).is_dir())
+        .cloned()
+}
+
+/// The refusal of an act on work held from another worktree, naming it.
+fn elsewhere_refusal(what: &str, act: &str, there: &scopes::Coordination) -> Outcome {
+    Outcome::refused(
+        "work.other-worktree",
+        there.workspace.clone(),
+        format!(
+            "{what} is held from another worktree: {}. {act} there (`cd {}`), never from this \
+             checkout",
+            there.place(),
+            there.workspace
+        ),
+    )
+}
+
+/// `war done` and `war note` write to work held from another worktree: the
+/// refusal naming that worktree. A read is never refused.
+fn place_refusal(store: &Store, query: &str, act: &str) -> Result<Option<Outcome>, RepoError> {
+    let (tickets, _) = store.load_all()?;
+    let (index, item) = match resolve(&tickets, query) {
+        Ok(Target::Ticket(n)) => (n, None),
+        Ok(Target::Item(n, i)) => (n, Some(i)),
+        Err(_) => return Ok(None),
+    };
+    let t = &tickets[index];
+    let what = item
+        .as_ref()
+        .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    Ok(claimed_elsewhere(
+        &store.claims()?,
+        t.id(),
+        item.as_deref(),
+        &scopes::workspace(store),
+        now_secs(),
+    )
+    .map(|there| elsewhere_refusal(&what, act, &there)))
+}
+
 /// Session and optional nonce fence managed callers independently of display names.
 fn owns_claim(store: &Store, claim: &claim::Claim) -> bool {
     claim.actor == store.actor
@@ -3400,6 +3514,22 @@ pub fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
     ids.sort();
     ids.dedup();
     Ok(ids)
+}
+
+/// Each live claim `store.actor` holds, by target, with where its work is
+/// done ([`scopes::Coordination::place`]); claims that recorded no place are
+/// left out.
+pub fn held_places(store: &Store) -> Vec<(String, String)> {
+    let now = now_secs();
+    let Ok(claims) = store.claims() else {
+        return Vec::new();
+    };
+    claims
+        .values()
+        .flatten()
+        .filter(|c| owns_claim(store, c) && !c.lease_expired(now))
+        .filter_map(|c| c.coordination.as_ref().map(|co| (c.target(), co.place())))
+        .collect()
 }
 
 /// What `war done` with no id closes: the one Warrant this actor holds.
@@ -3531,12 +3661,20 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
-    let workspace = store
+    // A resumption from another worktree is refused as a claim from one is.
+    if query.is_none()
+        && let Some(refusal) = place_refusal(store, tickets[index].id(), "Continue it")?
+    {
+        return Ok(refusal);
+    }
+    let held: Option<scopes::Coordination> = store
         .claims()?
         .values()
         .flatten()
         .find(|claim| claim.ticket == tickets[index].id() && owns_claim(store, claim))
-        .and_then(|claim| claim.coordination.as_ref())
+        .and_then(|claim| claim.coordination.as_deref().cloned());
+    let workspace = held
+        .as_ref()
         .map(|coordination| Utf8PathBuf::from(&coordination.workspace))
         .unwrap_or_else(|| {
             store
@@ -3580,9 +3718,21 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         answer.result["changed"] =
             serde_json::to_value(&changes).map_err(|e| RepoError::Message(e.to_string()))?;
     }
-    if workspace != store.root {
-        answer.human.push_str(&format!("\nworkspace: {workspace}"));
-    }
+    // The brief's first line: where this work is done.
+    let place = held.map_or_else(
+        || {
+            let mut here = scopes::Coordination {
+                workspace: workspace.to_string(),
+                base_revision: ladder::head_commit(&workspace),
+                ..scopes::Coordination::default()
+            };
+            here.locate(store, &workspace);
+            here.place()
+        },
+        |c| c.place(),
+    );
+    answer.human = format!("{place}\n{}", answer.human);
+    answer.result["place"] = serde_json::json!(place);
     Ok(answer)
 }
 
@@ -4405,6 +4555,9 @@ pub fn done_with(
     if_rev: Option<&str>,
     check: bool,
 ) -> Result<Outcome, RepoError> {
+    if let Some(refusal) = place_refusal(store, query, "Finish it")? {
+        return Ok(refusal);
+    }
     finish(
         store,
         query,
@@ -5692,6 +5845,9 @@ pub fn note(
         .as_ref()
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
     if let Some(refusal) = check_if_rev(store, t, item.as_deref(), &what, if_rev) {
+        return Ok(refusal);
+    }
+    if let Some(refusal) = place_refusal(store, query, "Note it")? {
         return Ok(refusal);
     }
     let body = text.trim();

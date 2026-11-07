@@ -1005,6 +1005,7 @@ fn claim_rows(store: &crate::ticket::Store, claims: &crate::ticket::Claims) -> V
                     .and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok())
                     .map(|d| d.as_secs()),
                 workspace: coordination.map(|co| co.workspace.clone()),
+                place: coordination.map(scopes::Coordination::place),
                 scope: coordination
                     .filter(|co| !scopes::undeclared(co))
                     .map(|co| co.paths.clone())
@@ -1114,6 +1115,7 @@ mod tests {
                 base_revision: None,
                 paths: paths.iter().map(|p| (*p).to_owned()).collect(),
                 display_name: actor.to_owned(),
+                ..scopes::Coordination::default()
             })),
             elsewhere: None,
         }

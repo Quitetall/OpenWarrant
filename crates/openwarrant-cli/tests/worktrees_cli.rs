@@ -287,7 +287,10 @@ fn a_claim_in_a_nested_project_retains_its_containing_worktree() {
     );
     let made = war(&nested, &["create", "Retain active nested work"]);
     let id = made["result"]["id"].as_str().unwrap();
-    let claimed = war(&nested, &["admin", "claim", id, "--as", "nested-builder"]);
+    let claimed = war(
+        &nested,
+        &["admin", "claim", id, "--as", "nested-builder", "--here"],
+    );
     assert_eq!(claimed["exit_code"], 0, "{claimed}");
     let overview = war(&root, &["admin", "worktrees", "--prune"]);
     let row = overview["result"]["worktrees"]

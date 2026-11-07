@@ -139,6 +139,24 @@ fn today() -> chrono::NaiveDate {
 
 type Claims = BTreeMap<String, Option<claim::Claim>>;
 
+/// Where the live claims on `ticket` do its work, one line each
+/// ([`super::scopes::Coordination::place`]), each place once.
+pub fn places_of(claims: &Claims, ticket: &str, now: u64) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    for c in claims.values().flatten() {
+        if c.ticket != ticket || c.lease_expired(now) {
+            continue;
+        }
+        if let Some(co) = &c.coordination {
+            let line = co.place();
+            if !out.contains(&line) {
+                out.push(line);
+            }
+        }
+    }
+    out
+}
+
 /// The annotation after an open item: who holds it, or what it waits on.
 fn annotation(
     store: &Store,
@@ -870,6 +888,12 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         md.push_str(&facts.join(" · "));
         md.push('\n');
     }
+    // Where its live claims do the work: one line each.
+    let places = places_of(&claims, t.id(), now);
+    for p in &places {
+        md.push_str(p);
+        md.push('\n');
+    }
     let body = description(&t.intent);
     if !body.is_empty() {
         md.push('\n');
@@ -1034,6 +1058,9 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
     });
     if !children.is_empty() {
         result["tickets"] = serde_json::to_value(&children).unwrap_or_default();
+    }
+    if !places.is_empty() {
+        result["places"] = serde_json::json!(places);
     }
     let mut out = Outcome::ok(md.trim_end().to_owned(), result);
     for w in super::ladder::unbacked(store, t, &report) {
