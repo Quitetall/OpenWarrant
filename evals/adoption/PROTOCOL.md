@@ -363,3 +363,21 @@ about the agents and are excluded. The cause of the emptied registry wasn't foun
 tally cells stand. `rem-c5` repeats the 11 knightlm cells on the same build, after
 `prepare` restored the registry. This was decided before seeing `rem-c5`.
 
+### Results of amendment 4
+
+OpenWarrant arm on Sonnet 5.5, directed cells, main at 0d7846544: `rem-c4` tally and
+`rem-c5` knightlm.
+
+| Run | Cells | Passed | False completions | Mean turns | Cost per 22 | Median tokens before first edit |
+|---|---|---|---|---|---|---|
+| `full-1` | 44 | 44 | 0 | 13.5 | 3.74 | 142,166 |
+| `full-1-hook` | 22 | 22 | 0 | 11.9 | 3.65 | 132,039 |
+| `rem-c2` and `rem-c3` | 44 | 40 | 4 | 10.5 | 3.24 | 101,595 |
+| fixed | 22 | 22 | 0 | 10.4 | 3.19 | 100,883 |
+| `plain` in `full-1` | 44 | 44 | 0 | 9.9 | 3.92 | |
+
+The comparisons ran on other days and against other builds, so these are suggestive.
+Relay and parallel weren't repeated after the fix: `rem-c2` cost 1.89 and 0.88 against
+3.28 and 1.26 before it. The study's value here was the four false completions, which
+found a bug no test had: sections of a single-file ticket never reached a brief.
+
