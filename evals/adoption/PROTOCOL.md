@@ -503,3 +503,16 @@ passes 6 and 6, a tie; median tokens per cell 1,850,724 against 1,792,970, `next
 more, inside 10%. **A tie: no win.** By the owner's rule `next` is not released as
 alpha.7.1 on this result. For scale: alpha.7's own median per cell was 1,980,342 in
 `oc-v5-1` and 1,792,970 here, a 9.5% swing between two runs of one binary on one day.
+
+### Setup note to amendment 5: the seeder strips session variables
+
+Made after `oc-v5-2`, with no run live. `arms.seed` and `arms.scaffold` now hand `war`
+(and every other seeding tool) the caller's environment less its session and harness
+variables: every `CLAUDE*` and `CODEX_*` variable, `OPENWARRANT_SESSION_ID`,
+`KATANA_SESSION_ID`, and, as before, the SSH agent's. A seed made by hand from an agent's
+shell now matches one made by a run's `systemd-run` unit. It changes no cell of `oc-v5-1`
+or `oc-v5-2`: neither unit's environment had any of these variables. Checked from a
+Claude Code shell after the change: tally's T8 cell seeded for `openwarrant@a7` and
+`openwarrant@next` (main at `f028d53da`) is identical once per-seeding ids are named,
+except the `AGENTS.md` block `war init` writes, and no journal holds a `work.usage` event
+or a Claude session.

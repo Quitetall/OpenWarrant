@@ -42,6 +42,20 @@ SEED_ENV = {
 }
 
 
+# A caller's session and harness variables. Seeding from an agent's shell would otherwise reach
+# `war` with them (from a Claude Code shell, `war done` records usage against CLAUDE_CODE_SESSION_ID),
+# so a hand seed would differ from a run's, whose unit has none. Stripped before any tool runs.
+SESSION_VARS = ("OPENWARRANT_SESSION_ID", "KATANA_SESSION_ID", "SSH_AUTH_SOCK", "SSH_AGENT_PID")
+SESSION_PREFIXES = ("CLAUDE", "CODEX_")
+
+
+def seed_env(tools: dict) -> dict:
+    """The environment a seeder hands its tools: the caller's, less session and harness variables."""
+    env = {k: v for k, v in os.environ.items()
+           if k not in SESSION_VARS and not k.startswith(SESSION_PREFIXES)}
+    return {**env, **SEED_ENV, **tools}
+
+
 def _run(argv, cwd, env, check=True, input_text=None):
     p = subprocess.run(
         argv, cwd=cwd, env=env, text=True, input=input_text,
@@ -471,9 +485,7 @@ TRACKERS = {"plain": tracker_plain, "plans": tracker_plans, "speckit": tracker_s
 
 
 def seed(arm: str, repo: Path, backlog: dict, done: set[str], tools: dict) -> None:
-    env = {**os.environ, **SEED_ENV, **tools}
-    env.pop("SSH_AUTH_SOCK", None)
-    env.pop("SSH_AGENT_PID", None)
+    env = seed_env(tools)
     # The commit message names the tool, not the version: the seed is the same for every version.
     SEEDERS[tool_of(arm)](repo, backlog, done, env)
     _run(["git", "add", "-A"], repo, env)
@@ -484,9 +496,7 @@ def scaffold(arm: str, repo: Path, backlog: dict, tools: dict) -> None:
     """A repository set up for `arm` with no backlog in it: what a spec author starts from, and what a
     stored spec is laid over for a worker (spec_study.apply_spec). Plans and Spec Kit carry no pointer
     yet: it names where the spec is, and that is not known until there is one."""
-    env = {**os.environ, **SEED_ENV, **tools}
-    env.pop("SSH_AUTH_SOCK", None)
-    env.pop("SSH_AGENT_PID", None)
+    env = seed_env(tools)
     if arm == "speckit":
         setup_speckit(repo, backlog, env, "")
     elif arm == "beads":
