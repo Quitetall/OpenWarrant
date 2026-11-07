@@ -6,6 +6,14 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- The formal path reads a single-file Warrant: authorize, evidence record,
+  verify, resolve, compile, check, status and pins take `docs/warrants/<alias>.md`,
+  with its state in `docs/warrants/<alias>/`. Its contract digest covers the
+  document's exact bytes, so an edit after authorization lapses it
+  (docs/design/one-format.md).
+
 ## [1.0.0-alpha.7] — 2026-11-07
 
 ### Added

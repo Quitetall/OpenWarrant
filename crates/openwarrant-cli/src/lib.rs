@@ -125,6 +125,7 @@ pub mod standing_cmd;
 pub mod states;
 pub mod status;
 pub mod status_brief;
+pub mod subject;
 pub mod surface;
 pub mod telemetry;
 pub mod ticket;

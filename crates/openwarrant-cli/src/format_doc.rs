@@ -114,12 +114,12 @@ impl FormatDocs {
 }
 
 /// Whether `name` is an alias (§5): a record id or `t-<hex>`.
-fn is_alias(name: &str) -> bool {
+pub(crate) fn is_alias(name: &str) -> bool {
     openwarrant_core::relation::is_record_id(name) || openwarrant_core::ticket::is_ticket_id(name)
 }
 
 /// The ticket store's directory, as `[tickets] dir` names it.
-fn tickets_dir(repo: &Repository) -> Utf8PathBuf {
+pub(crate) fn tickets_dir(repo: &Repository) -> Utf8PathBuf {
     crate::ticket::Store::open(repo, None)
         .map_or_else(|_| repo.root.join(crate::ticket::DEFAULT_DIR), |s| s.dir)
 }
@@ -207,7 +207,7 @@ pub fn spec_files(repo: &Repository) -> Vec<Utf8PathBuf> {
 
 /// The `profile:` a document's frontmatter names, read without parsing the
 /// document: the first such line between the opening `---` and the next.
-fn frontmatter_profile(text: &str) -> Option<&str> {
+pub(crate) fn frontmatter_profile(text: &str) -> Option<&str> {
     let mut lines = text.trim_start_matches('\u{feff}').lines();
     if lines.next()?.trim_end() != "---" {
         return None;

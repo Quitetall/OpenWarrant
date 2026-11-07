@@ -158,6 +158,11 @@ pub fn directory_rows(repo: &Repository) -> Result<(Vec<Row>, Vec<Diagnostic>), 
 fn directory_row(repo: &Repository, dir: &Utf8Path) -> (Option<Row>, Vec<Diagnostic>) {
     let mut faults = Vec::new();
     let manifest = dir.join("manifest.toml");
+    // A Format 1.0 document's state directory: its row is the document's
+    // ([`document_rows`]), not a manifest's.
+    if !crate::vfs::is_file(&manifest) && crate::subject::of_state(dir).is_some() {
+        return (None, faults);
+    }
     let rel = repo.relative(&manifest);
     let parsed = crate::vfs::read_to_string(&manifest)
         .map_err(|e| e.to_string())

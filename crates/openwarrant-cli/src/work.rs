@@ -272,6 +272,17 @@ pub struct Work {
     tickets_unread: Option<String>,
     claims_unread: Option<String>,
     others_unread: Option<String>,
+    /// The places of documents the corpus compiles (`crate::subject`): they
+    /// are listed with the corpus, so never again beside it.
+    subjects: std::collections::BTreeSet<String>,
+}
+
+/// The repository-relative documents the corpus compiles.
+fn subject_places(repo: &Repository) -> std::collections::BTreeSet<String> {
+    crate::subject::all(repo)
+        .iter()
+        .map(|f| repo.relative(&f.file))
+        .collect()
 }
 
 impl Work {
@@ -332,6 +343,8 @@ impl Work {
     pub fn elsewhere(repo: &Repository) -> Self {
         let mut work = Self::default();
         let (mut rows, mut faults) = crate::warrants::document_rows(repo);
+        let subjects = subject_places(repo);
+        rows.retain(|r| !subjects.contains(&r.dir));
         let adapted = crate::interop::adapters::load(repo);
         rows.extend(adapted.rows());
         faults.extend(adapted.diagnostics());
@@ -348,6 +361,7 @@ impl Work {
     }
 
     fn read_others(&mut self, repo: &Repository) {
+        self.subjects = subject_places(repo);
         self.types = crate::warrants::type_words(repo);
         match crate::warrants::other_rows(repo) {
             Ok((rows, faults)) => {
@@ -373,7 +387,11 @@ impl Work {
     pub fn documents(&self) -> Vec<Item> {
         self.items
             .iter()
-            .filter(|i| i.encoding == Encoding::SingleFile && i.level != Level::Ticket)
+            .filter(|i| {
+                i.encoding == Encoding::SingleFile
+                    && i.level != Level::Ticket
+                    && !self.subjects.contains(&i.place)
+            })
             .cloned()
             .collect()
     }
