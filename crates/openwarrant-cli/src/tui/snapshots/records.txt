@@ -1,5 +1,5 @@
  1 Watch  2 Act  3 Records  p Repos
-┌ Tickets — state and progress, remaining items; Enter shows checklist and notes  [ ] 1/9 · Esc back ────────────────────────────────────────────────┐
+┌ Tickets — state and progress, remaining items; Enter shows checklist and notes  [ ] 1/10 · Esc back ───────────────────────────────────────────────┐
 │▶ open t-1a2b3 0/2 p1 Reset passwords                                                                                                               │
 │                                                                                                                                                    │
 │                                                                                                                                                    │

@@ -1,0 +1,1 @@
+{"type":"assistant","timestamp":"2026-11-07T10:00:05.000Z","sessionId":"fixture","isSidechain":true,"message":{"id":"msg_3","model":"claude-z","role":"assistant","content":[{"type":"text","text":"FIXTURE-SECRET subagent"}],"usage":{"input_tokens":3,"output_tokens":4}}}
