@@ -277,6 +277,8 @@ pub struct Snapshot {
     pub drafter: Option<String>,
     /// The one human the register names, for `war plan answer --as`.
     pub human: Option<String>,
+    /// Milliseconds each part of the read took.
+    pub laps: Vec<(&'static str, u128)>,
     /// Sources that could not be read, each said once.
     pub faults: Vec<String>,
     /// The newest journal events, for the panel without Herdr.

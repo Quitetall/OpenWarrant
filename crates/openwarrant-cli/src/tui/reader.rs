@@ -15,6 +15,8 @@
 //! What cannot be read is said, in `Snapshot::faults`, never shown as empty.
 
 use std::collections::BTreeSet;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender, channel};
 use std::time::Duration;
 
@@ -22,7 +24,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use super::herdr_adapter::{self, Focus};
 use super::model::{
-    ClaimRow, Collision, Dispatch, ExecutorRow, Launcher, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
+    ClaimRow, Collision, Dispatch, ExecutorRow, Herdr, Launcher, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
     Snapshot, View, WorkRow,
 };
 use super::records;
@@ -36,8 +38,14 @@ pub const THREAD_PREFIX: &str = "war-tui-";
 
 /// How often the tree's fingerprint is looked at.
 const FINGERPRINT_EVERY: Duration = Duration::from_secs(1);
-/// How often the Live panel is refreshed.
-const LIVE_EVERY: Duration = Duration::from_millis(1000);
+/// How often an agent at work is read: Herdr has no event for new output.
+const LIVE_WORKING: Duration = Duration::from_millis(1000);
+/// How often an idle fleet is re-read in case an event was missed.
+const LIVE_IDLE: Duration = Duration::from_secs(30);
+/// How often the working tree is looked at without Herdr.
+const LIVE_TREE: Duration = Duration::from_secs(3);
+/// How long before asking Herdr for a subscription again.
+const EVENTS_RETRY_SECS: u32 = 5;
 /// The newest events kept for the panel without Herdr.
 const PROGRESS_LINES: usize = 8;
 
@@ -58,6 +66,14 @@ pub enum Update {
     Child { title: String, text: String },
 }
 
+/// What wakes the Live thread.
+enum Wake {
+    /// Look somewhere else.
+    Focus(Focus),
+    /// Herdr said the fleet changed.
+    Event,
+}
+
 enum Ask {
     /// Read again now.
     Reload,
@@ -68,7 +84,9 @@ pub struct Reader {
     tx: Sender<Update>,
     rx: Receiver<Update>,
     ask: Sender<Ask>,
-    focus: Sender<Focus>,
+    focus: Sender<Wake>,
+    /// Set when the app leaves, or moves to another repository.
+    stop: Arc<AtomicBool>,
     /// The Repos read in flight; an older one's rows are dropped.
     pub repo_generation: u64,
     last_focus: Focus,
@@ -93,11 +111,16 @@ impl Reader {
         };
         let last_focus = first.clone();
         spawn_named("live", move || live_thread(first, &focus_rx, &live_tx));
+        let stop = Arc::new(AtomicBool::new(false));
+        let events = focus.clone();
+        let stopped = Arc::clone(&stop);
+        spawn_named("herdr-events", move || events_thread(&events, &stopped));
         Self {
             tx,
             rx,
             ask,
             focus,
+            stop,
             repo_generation: 0,
             last_focus,
         }
@@ -116,7 +139,7 @@ impl Reader {
     pub fn focus(&mut self, focus: Focus) {
         if focus != self.last_focus {
             self.last_focus = focus.clone();
-            let _ = self.focus.send(focus);
+            let _ = self.focus.send(Wake::Focus(focus));
         }
     }
 
@@ -278,6 +301,12 @@ fn launch(root: &Utf8Path, plan: &Dispatch) -> Result<String, String> {
     }
 }
 
+impl Drop for Reader {
+    fn drop(&mut self) {
+        self.stop.store(true, Ordering::Relaxed);
+    }
+}
+
 fn spawn_named(name: &str, f: impl FnOnce() + Send + 'static) {
     let _ = std::thread::Builder::new()
         .name(format!("{THREAD_PREFIX}{name}"))
@@ -340,19 +369,55 @@ fn records_thread(root: &Utf8Path, binary: &Row, ask: &Receiver<Ask>, tx: &Sende
     }
 }
 
-fn live_thread(mut focus: Focus, rx: &Receiver<Focus>, tx: &Sender<Update>) {
+/// Hold a subscription whenever Herdr is there, and try again when it is not.
+fn events_thread(wake: &Sender<Wake>, stop: &AtomicBool) {
+    while !stop.load(Ordering::Relaxed) {
+        let _ = crate::herdr::subscribe(
+            || {
+                let _ = wake.send(Wake::Event);
+            },
+            || !stop.load(Ordering::Relaxed),
+        );
+        for _ in 0..EVENTS_RETRY_SECS {
+            if stop.load(Ordering::Relaxed) {
+                return;
+            }
+            std::thread::sleep(Duration::from_secs(1));
+        }
+    }
+}
+
+/// How long until the next look when nothing wakes the thread. Herdr pushes
+/// fleet changes, and has no event for new output, so only an agent at work
+/// is read on a clock. Without Herdr the working tree is looked at instead.
+fn next_look(live: &Live, focus: &Focus) -> Duration {
+    let working = live
+        .agents
+        .iter()
+        .find(|a| focus.pane.as_ref() == Some(&a.pane_id))
+        .or_else(|| live.agents.first())
+        .is_some_and(|a| a.agent_status == "working");
+    match live.herdr {
+        Herdr::Connected { .. } if working => LIVE_WORKING,
+        Herdr::Connected { .. } => LIVE_IDLE,
+        _ => LIVE_TREE,
+    }
+}
+
+fn live_thread(mut focus: Focus, rx: &Receiver<Wake>, tx: &Sender<Update>) {
     loop {
         let look = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             herdr_adapter::look(&focus)
         }));
+        let wait = look.as_ref().map_or(LIVE_TREE, |l| next_look(l, &focus));
         if let Ok(live) = look
             && tx.send(Update::Live(Box::new(live))).is_err()
         {
             return;
         }
-        match rx.recv_timeout(LIVE_EVERY) {
-            Ok(next) => focus = next,
-            Err(RecvTimeoutError::Timeout) => {}
+        match rx.recv_timeout(wait) {
+            Ok(Wake::Focus(next)) => focus = next,
+            Ok(Wake::Event) | Err(RecvTimeoutError::Timeout) => {}
             Err(RecvTimeoutError::Disconnected) => return,
         }
     }
@@ -360,9 +425,30 @@ fn live_thread(mut focus: Focus, rx: &Receiver<Focus>, tx: &Sender<Update>) {
 
 // ---- one read -------------------------------------------------------------
 
+/// Where a read's time goes, for the budget.
+struct Lap {
+    at: std::time::Instant,
+    laps: Vec<(&'static str, u128)>,
+}
+
+impl Lap {
+    fn new() -> Self {
+        Self {
+            at: std::time::Instant::now(),
+            laps: Vec::new(),
+        }
+    }
+
+    fn mark(&mut self, what: &'static str) {
+        self.laps.push((what, self.at.elapsed().as_millis()));
+        self.at = std::time::Instant::now();
+    }
+}
+
 /// Everything the app shows, read once. `binary` is Help's first row.
 #[must_use]
 pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
+    let mut lap = Lap::new();
     let now = crate::gate_cmd::receipt::rfc3339_from_secs(crate::ticket::now_secs());
     let setup = crate::init::guided::Machine::new(crate::init::guided::Facts::read(root), now);
     let setup_done = setup.step == crate::init::guided::Step::Done;
@@ -424,6 +510,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
             None
         }
     };
+    lap.mark("corpus, board, status");
     let work = Work::read(&repo);
     for (source, what) in [
         (Source::Tickets, "the tickets"),
@@ -461,6 +548,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         || [Vec::new(), Vec::new(), Vec::new()],
         records::status_rows,
     );
+    lap.mark("frontier and status rows");
     let journal = records::journal_rows(&repo);
 
     // The roadmap, and the phases as counts.
@@ -503,6 +591,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
             |b| records::ticket_rows(&b),
         );
 
+    lap.mark("roadmap and tickets");
     // Help: what next.
     let next = crate::next::run_with(&compiled).ok();
     let (doctor, _) = crate::doctor::run(Some(root.to_owned()), None, false);
@@ -514,6 +603,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         check.as_ref(),
     ));
 
+    lap.mark("next, doctor, check");
     // The graph: what can start, and the critical path.
     let scheduled = store.as_ref().ok().map(|s| {
         let prior = crate::go::policy::load(&repo.root).ok().map(|p| p.prior_secs);
@@ -531,6 +621,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         None => (None, None),
     };
 
+    lap.mark("graph and schedule");
     let claims = match &store {
         Ok(s) => claim_rows(s, work.claims()),
         Err(_) => Vec::new(),
@@ -549,6 +640,7 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         fault("usage", why);
     }
 
+    lap.mark("claims, notices, worktrees, usage");
     let critical: BTreeSet<&str> = schedule
         .iter()
         .flat_map(|s| &s.critical_path)
@@ -621,6 +713,8 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
             Vec::new()
         }
     };
+    lap.mark("the rest");
+    snap.laps = lap.laps;
     for (view, rows) in [
         (View::Tickets, tickets),
         (View::Frontier, frontier),

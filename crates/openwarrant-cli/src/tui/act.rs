@@ -9,7 +9,7 @@ use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph, Wrap};
 
-use super::model::{Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel};
+use super::model::{Dispatch, DispatchStep, Effect, ExecutorRow, Form, Launcher, Model, Panel, ReadyRow, Row};
 use super::{argv, watch};
 
 fn step(panel: Panel, by: isize) -> Panel {
@@ -21,16 +21,31 @@ fn step(panel: Panel, by: isize) -> Panel {
 
 fn panel_len(m: &Model, panel: Panel) -> usize {
     match panel {
-        Panel::Dispatch => m.snap.ready.len(),
-        Panel::Answer => m.snap.questions.len(),
-        Panel::Sign => m.snap.queue.len(),
+        Panel::Dispatch => visible_ready(m).len(),
+        Panel::Answer => watch::visible_questions(m).len(),
+        Panel::Sign => visible_queue(m).len(),
         _ => 0,
     }
 }
 
-fn sign_target(m: &Model) -> Option<String> {
+/// The ready tasks the filter keeps.
+#[must_use]
+pub fn visible_ready(m: &Model) -> Vec<&ReadyRow> {
     m.snap
-        .queue
+        .ready
+        .iter()
+        .filter(|r| m.passes(&format!("{} {}", r.id, r.title)))
+        .collect()
+}
+
+/// The queue rows the filter keeps.
+#[must_use]
+pub fn visible_queue(m: &Model) -> Vec<&Row> {
+    m.snap.queue.iter().filter(|r| m.passes(&r.text)).collect()
+}
+
+fn sign_target(m: &Model) -> Option<String> {
+    visible_queue(m)
         .get(m.selected_in(Panel::Sign))
         .and_then(|r| r.sign_target.clone())
 }
@@ -70,9 +85,8 @@ pub fn key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
             }
         }
         KeyCode::Char('a') if panel == Panel::Sign => {
-            m.checked = m
-                .snap
-                .queue
+            // All of what shows: a filter narrows what `a` means.
+            m.checked = visible_queue(m)
                 .iter()
                 .filter_map(|r| r.sign_target.clone())
                 .collect();
@@ -123,10 +137,13 @@ pub fn key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
         KeyCode::Char('a') => open_answer(m),
         KeyCode::Enter if panel == Panel::Answer => open_answer(m),
         KeyCode::Char('i') if panel == Panel::Answer => {
-            let q = m.snap.questions.get(m.selected_in(Panel::Answer))?;
+            let warrant = watch::visible_questions(m)
+                .get(m.selected_in(Panel::Answer))?
+                .warrant
+                .clone();
             return Some(Effect::Capture {
-                title: format!("war plan interview {} (read-only)", q.warrant),
-                argv: argv::interview(&q.warrant),
+                title: format!("war plan interview {warrant} (read-only)"),
+                argv: argv::interview(&warrant),
             });
         }
         _ => {}
@@ -190,7 +207,10 @@ fn open_create(m: &mut Model) {
 
 /// `d`: the highlighted ready task, on to its executor.
 pub fn open_dispatch(m: &mut Model) {
-    let Some(task) = m.snap.ready.get(m.selected_in(Panel::Dispatch)).cloned() else {
+    let Some(task) = visible_ready(m)
+        .get(m.selected_in(Panel::Dispatch))
+        .map(|r| (*r).clone())
+    else {
         m.message = "nothing can start now".to_owned();
         return;
     };
@@ -212,7 +232,10 @@ pub fn open_dispatch(m: &mut Model) {
 
 /// `a`: the highlighted question.
 pub fn open_answer(m: &mut Model) {
-    let Some(q) = m.snap.questions.get(m.selected_in(Panel::Answer)).cloned() else {
+    let Some(q) = watch::visible_questions(m)
+        .get(m.selected_in(Panel::Answer))
+        .map(|q| (*q).clone())
+    else {
         m.message = "no open question".to_owned();
         return;
     };
@@ -517,19 +540,15 @@ pub fn command(m: &Model) -> String {
     let at = m.selected_in(m.act_panel);
     match m.act_panel {
         Panel::Create => "war create \"what this work accomplishes\"".to_owned(),
-        Panel::Dispatch => m
-            .snap
-            .ready
+        Panel::Dispatch => visible_ready(m)
             .get(at)
-            .map(|r| format!("war start --worktree {}", r.id))
+            .map(|r| format!("war start {} --worktree", r.id))
             .unwrap_or_default(),
-        Panel::Answer => m
-            .snap
-            .questions
+        Panel::Answer => watch::visible_questions(m)
             .get(at)
             .map(|q| q.command.clone())
             .unwrap_or_default(),
-        _ => watch::queue(m)
+        _ => visible_queue(m)
             .get(at)
             .map(|r| r.command.clone())
             .unwrap_or_default(),
@@ -746,9 +765,7 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         )));
     }
     text_panel(f, m, create, Panel::Create, " Create ", create_lines);
-    let mut ready: Vec<ListItem> = m
-        .snap
-        .ready
+    let mut ready: Vec<ListItem> = visible_ready(m)
         .iter()
         .map(|r| {
             ListItem::new(Line::from(vec![
@@ -777,9 +794,7 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         " Dispatch — what can start now, critical path first; d dispatches ".to_owned(),
         ready,
     );
-    let mut questions: Vec<ListItem> = m
-        .snap
-        .questions
+    let mut questions: Vec<ListItem> = watch::visible_questions(m)
         .iter()
         .map(|q| {
             ListItem::new(Line::from(vec![
@@ -799,9 +814,7 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         " Answer — a answers, i interviews (read-only) ".to_owned(),
         questions,
     );
-    let queue_items: Vec<ListItem> = m
-        .snap
-        .queue
+    let queue_items: Vec<ListItem> = visible_queue(m)
         .iter()
         .map(|r| {
             let on = r

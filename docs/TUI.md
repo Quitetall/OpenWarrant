@@ -67,7 +67,11 @@ The panels, moved between with `h` and `l`:
   renewed, the workspace and the declared paths. *Lock renewed* is the holder's last
   `war` command and nothing more: a silent agent can be working, and a renewed lock
   does not prove one is.
-- **Live**: with Herdr, the focused agent's terminal; `[` and `]` step the agents.
+- **Live**: with Herdr, the focused agent's terminal; `[` and `]` step the agents, the
+  ones in a checkout of this clone first. `/` with this panel focused searches the
+  transcript and shows the lines that match. Herdr pushes changes to the fleet
+  (`events.subscribe`), and an agent at work is read each second, since Herdr has no
+  event for new output.
   Without Herdr, `git status` and `git diff --stat` for the highlighted claim's
   workspace, and the journal's newest events.
 - **Questions**: open questions, blocking first.
@@ -244,7 +248,7 @@ The list is read when you open it, not every second: `r` re-reads it.
 | `Esc` | close Records or Repos; clear a filter |
 | `h` `l` | move between panels |
 | `j` `k` | move (in a document: next/previous document) |
-| `/` | filter this list; `Esc` clears |
+| `/` | filter the lists showing, or search the transcript from Live; `Esc` clears |
 | `Enter` | open the row's detail; sign (Act, Help); run `war init` (Setup); open a repository |
 | `v` | show the request behind a signing row |
 | `space` `a` `n` | Sign panel: check row / all / none (these win over `a` above) |
@@ -292,6 +296,13 @@ is lost.
 | Roadmap | phases; edit; sign a revision | Records, Roadmap; counts in Watch, Phases |
 | Projects | every repository; open; new; re-read | Repos |
 | Tickets | state, progress, items, detail | Records, Tickets; open items in Watch, Work |
+
+## Performance budget
+
+`war view tui --budget` times a read of the repository, and then the frames and keys
+on the main thread, against the budget the battery holds: a frame at most 50 ms, a key
+at most 10 ms, with every Warrant loaded. The read has a generous budget of its own, and
+it does not count against a keypress: it runs on a background thread.
 
 ## The terminal comes back
 

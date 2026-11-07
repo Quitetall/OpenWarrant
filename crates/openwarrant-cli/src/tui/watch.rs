@@ -9,7 +9,9 @@ use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 
-use super::model::{ClaimRow, Count, Effect, Herdr, Model, Panel, Row, WorkRow, span};
+use super::model::{
+    ClaimRow, Count, Effect, Herdr, Model, NoticeRow, Panel, QuestionItem, WorkRow, span,
+};
 
 fn dim() -> Style {
     Style::default().fg(Color::DarkGray)
@@ -49,9 +51,9 @@ pub(super) fn state_badge(state: &str) -> (&'static str, Style) {
 pub fn panel_len(m: &Model, panel: Panel) -> usize {
     match panel {
         Panel::Work => visible_work(m).len(),
-        Panel::Claims => m.snap.claims.iter().filter(|c| m.passes(&claim_text(c))).count(),
-        Panel::Questions => m.snap.questions.len(),
-        Panel::Notices => m.snap.notices.len(),
+        Panel::Claims => visible_claims(m).len(),
+        Panel::Questions => visible_questions(m).len(),
+        Panel::Notices => visible_notices(m).len(),
         _ => 0,
     }
 }
@@ -63,6 +65,36 @@ pub fn visible_work(m: &Model) -> Vec<&WorkRow> {
         .work
         .iter()
         .filter(|w| m.passes(&format!("{} {} {}", w.id, w.title, w.state)))
+        .collect()
+}
+
+/// The claims the filter keeps.
+#[must_use]
+pub fn visible_claims(m: &Model) -> Vec<&ClaimRow> {
+    m.snap
+        .claims
+        .iter()
+        .filter(|c| m.passes(&claim_text(c)))
+        .collect()
+}
+
+/// The questions the filter keeps.
+#[must_use]
+pub fn visible_questions(m: &Model) -> Vec<&QuestionItem> {
+    m.snap
+        .questions
+        .iter()
+        .filter(|q| m.passes(&format!("{} {}", q.target(), q.question)))
+        .collect()
+}
+
+/// The notices the filter keeps.
+#[must_use]
+pub fn visible_notices(m: &Model) -> Vec<&NoticeRow> {
+    m.snap
+        .notices
+        .iter()
+        .filter(|n| m.passes(&format!("{} {} {}", n.ticket, n.actor, n.line)))
         .collect()
 }
 
@@ -148,7 +180,7 @@ fn answer(m: &mut Model) {
             }
         }
         Panel::Claims => {
-            if let Some(target) = m.snap.claims.get(at).map(|c| c.target.clone()) {
+            if let Some(target) = visible_claims(m).get(at).map(|c| c.target.clone()) {
                 super::act::open_note(m, target);
             }
         }
@@ -187,11 +219,11 @@ fn detail(m: &mut Model) {
                 ),
             )
         }),
-        Panel::Claims => m.snap.claims.get(at).map(|c| {
+        Panel::Claims => visible_claims(m).get(at).map(|c| {
             (
                 format!("claim on {}", c.target),
                 format!(
-                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\n\n\
+                    "holder: {}\nheld for: {}\nlease: {}\nlock renewed: {}\nworkspace: {}\nscope: {}\n{}\n\
                      A lock is renewed by the holder's `war` commands. It says when one last ran, \
                      not that an agent is alive.",
                     c.actor.as_deref().unwrap_or("UNKNOWN (the lock could not be read)"),
@@ -204,10 +236,16 @@ fn detail(m: &mut Model) {
                     } else {
                         c.scope.join(", ")
                     },
+                    m.snap
+                        .collisions
+                        .iter()
+                        .filter(|x| x.a == c.target || x.b == c.target)
+                        .map(|x| format!("collides with {} and {}: {}\n", x.a, x.b, x.why))
+                        .collect::<String>(),
                 ),
             )
         }),
-        Panel::Questions => m.snap.questions.get(at).map(|q| {
+        Panel::Questions => visible_questions(m).get(at).map(|q| {
             (
                 format!("question {}", q.target()),
                 format!(
@@ -223,7 +261,7 @@ fn detail(m: &mut Model) {
                 ),
             )
         }),
-        Panel::Notices => m.snap.notices.get(at).map(|n| {
+        Panel::Notices => visible_notices(m).get(at).map(|n| {
             (
                 format!("notice to {} on {}", n.actor, n.ticket),
                 format!(
@@ -250,15 +288,11 @@ pub fn command(m: &Model) -> String {
             .get(at)
             .map(|w| format!("war view show {}", w.id))
             .unwrap_or_default(),
-        Panel::Claims => m
-            .snap
-            .claims
+        Panel::Claims => visible_claims(m)
             .get(at)
             .map(|c| format!("war view show {}", c.target))
             .unwrap_or_default(),
-        Panel::Questions => m
-            .snap
-            .questions
+        Panel::Questions => visible_questions(m)
             .get(at)
             .map(|q| q.command.clone())
             .unwrap_or_default(),
@@ -483,7 +517,7 @@ fn phase_lines(m: &Model) -> Vec<Line<'static>> {
 
 fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
     let mut items = Vec::new();
-    for c in m.snap.claims.iter().filter(|c| m.passes(&claim_text(c))) {
+    for c in visible_claims(m) {
         let collided = m
             .snap
             .collisions
@@ -513,7 +547,7 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
                 Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
             ));
         }
-        let mut second = vec![
+        let second = vec![
             Span::styled(
                 format!("  lease {} · ", lease(c, m.now_unix)),
                 if expired {
@@ -525,10 +559,14 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
             Span::styled(format!("lock renewed {} · ", renewed(c, m.now_unix)), dim()),
             Span::raw(workspace),
         ];
+        let mut lines = vec![Line::from(first), Line::from(second)];
         if !c.scope.is_empty() {
-            second.push(Span::styled(format!(" [{}]", c.scope.join(", ")), dim()));
+            lines.push(Line::from(Span::styled(
+                format!("  writes {}", c.scope.join(", ")),
+                dim(),
+            )));
         }
-        items.push(ListItem::new(vec![Line::from(first), Line::from(second)]));
+        items.push(ListItem::new(lines));
     }
     if items.is_empty() {
         items.push(ListItem::new(Line::from(Span::styled(
@@ -540,6 +578,15 @@ fn claim_items(m: &Model) -> Vec<ListItem<'static>> {
 }
 
 fn live_title(m: &Model) -> String {
+    let title = live_source(m);
+    if searching(m) {
+        let n = m.live.text.lines().filter(|l| m.passes(l)).count();
+        return format!("{title}· {n} line(s) match {} ", m.filter);
+    }
+    title
+}
+
+fn live_source(m: &Model) -> String {
     match (&m.live.herdr, m.focused_agent()) {
         (_, Some(a)) => format!(
             " {} {} ({}/{})  [ ] agents ",
@@ -554,9 +601,20 @@ fn live_title(m: &Model) -> String {
     }
 }
 
+/// Whether `/` is searching the transcript rather than filtering lists.
+fn searching(m: &Model) -> bool {
+    m.panel() == Panel::Live && !m.filter.is_empty()
+}
+
 fn live_lines(m: &Model, height: usize) -> Vec<Line<'static>> {
     let mut lines: Vec<String> = m.live.text.lines().map(str::to_owned).collect();
-    if m.focused_agent().is_none() && !m.snap.progress_lines.is_empty() {
+    if searching(m) {
+        lines.retain(|l| m.passes(l));
+        if lines.is_empty() {
+            lines.push(format!("nothing in the transcript matches {}", m.filter));
+        }
+    }
+    if m.focused_agent().is_none() && !m.snap.progress_lines.is_empty() && !searching(m) {
         lines.push("journal".to_owned());
         lines.extend(m.snap.progress_lines.iter().cloned());
     }
@@ -569,9 +627,7 @@ fn live_lines(m: &Model, height: usize) -> Vec<Line<'static>> {
 }
 
 fn question_items(m: &Model) -> Vec<ListItem<'static>> {
-    let mut items: Vec<ListItem> = m
-        .snap
-        .questions
+    let mut items: Vec<ListItem> = visible_questions(m)
         .iter()
         .map(|q| {
             ListItem::new(Line::from(vec![
@@ -598,9 +654,7 @@ fn question_items(m: &Model) -> Vec<ListItem<'static>> {
 }
 
 fn notice_items(m: &Model) -> Vec<ListItem<'static>> {
-    let mut items: Vec<ListItem> = m
-        .snap
-        .notices
+    let mut items: Vec<ListItem> = visible_notices(m)
         .iter()
         .map(|n| {
             ListItem::new(Line::from(vec![
@@ -735,10 +789,4 @@ pub fn draw(f: &mut ratatui::Frame, m: &Model, body: Rect) {
         notice_items(m),
         0,
     );
-}
-
-/// The Sign panel's rows are the queue; both modes read the same list.
-#[must_use]
-pub fn queue(m: &Model) -> &[Row] {
-    &m.snap.queue
 }

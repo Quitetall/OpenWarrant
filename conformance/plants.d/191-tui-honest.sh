@@ -222,6 +222,15 @@ else
     th_fail "one checkout may not overlap" "exit $TH_STATUS2: $(head -2 <<<"$TH_OUT2" | tr '\n' ' ')"
 fi
 
+# The budget, on this repository's Warrants: frames and keys. The refusal is
+# its own arithmetic: a key over budget exits 2 (tui::tests).
+TH_OUT=$("$TH_WAR" tui --budget 2>&1); TH_STATUS=$?
+if [[ $TH_STATUS -eq 0 ]] && grep -qE '^[0-9]{2,} Warrants' <<<"$TH_OUT" && grep -q 'key .* at worst' <<<"$TH_OUT"; then
+    th_ok "the budget on this corpus" "$(grep -E 'Warrants|^read|^frame|^key' <<<"$TH_OUT" | cut -d'(' -f1 | tr '\n' ';')"
+else
+    th_fail "the budget on this corpus" "exit $TH_STATUS: $(tail -4 <<<"$TH_OUT" | tr '\n' ' ')"
+fi
+
 git -C "$TH_ROOT" worktree prune >/dev/null 2>&1
 /usr/bin/rm -rf "$TH_TMP"
 unset TH_A TH_B TH_C TH_D TH_OUT2 TH_STATUS2 TH_WT TH_ONE TH_TMP TH_WAR TH_ROOT TH_TICKET TH_WATCH TH_OUT TH_STATUS TH_STUB TH_FAKE

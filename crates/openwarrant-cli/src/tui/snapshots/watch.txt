@@ -6,10 +6,10 @@
 ┌ Phases ────────────────────────────────────────────┐┌ Claims ─────────────────────────────────────────┐┌ Live: working tree and journal ───────────┐
 │P1 2/3, 1 UNKNOWN not yet                           ││claude t-1a2b3/i-1 2m 05s COLLISION              ││git status                                 │
 └────────────────────────────────────────────────────┘│  lease 3m 42s left · lock renewed 4s ago · wt-a ││ M src/a.rs                                │
-┌ Work  (* critical path) ───────────────────────────┐│codex t-9/i-1 1h 01m COLLISION                   ││                                           │
-│[ACTV] t-1a2b3 * Reset passwords                    ││  lease expired 1m 00s ago · lock renewed UNKNOWN││                                           │
-│  [ACTV] i-1 Email template [claude]                ││                                                 ││                                           │
-│                                                    ││                                                 ││                                           │
+┌ Work  (* critical path) ───────────────────────────┐│  writes src/a/**                                ││                                           │
+│[ACTV] t-1a2b3 * Reset passwords                    ││codex t-9/i-1 1h 01m COLLISION                   ││                                           │
+│  [ACTV] i-1 Email template [claude]                ││  lease expired 1m 00s ago · lock renewed UNKNOWN││                                           │
+│                                                    ││  writes src/a/b.rs                              ││                                           │
 │                                                    ││                                                 ││                                           │
 │                                                    ││                                                 ││                                           │
 │                                                    ││                                                 ││                                           │

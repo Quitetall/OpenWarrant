@@ -1806,6 +1806,10 @@ enum ViewCommand {
         /// with the real CLI. Hidden; the battery's.
         #[arg(long, hide = true, value_name = "FILE", num_args = 0..=1, default_missing_value = "")]
         check_argv: Option<Utf8PathBuf>,
+        /// Time a read, frames and keys on this repository against the budget.
+        /// Hidden; the battery's.
+        #[arg(long, hide = true)]
+        budget: bool,
     },
     /// Read-only project board, including every stage and exact approval commands.
     Board {
@@ -6552,9 +6556,13 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             panic_after_setup,
             render,
             check_argv,
+            budget,
         } => {
             if matches!(mode, output::Mode::Json) {
                 return Ok(tui::refuse_json());
+            }
+            if budget {
+                return Ok(tui::budget(ctx.root.clone())?);
             }
             if let Some(file) = check_argv {
                 let file = (!file.as_str().is_empty()).then_some(file);

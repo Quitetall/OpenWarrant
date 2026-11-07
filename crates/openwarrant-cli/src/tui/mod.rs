@@ -201,6 +201,73 @@ pub fn render(root: Option<Utf8PathBuf>, what: &str) -> Result<u8, RepoError> {
     Ok(crate::EXIT_OK)
 }
 
+/// A frame on this repository may take this long, Warrants and all.
+const BUDGET_FRAME_MS: u128 = 50;
+/// A key may take this long: it runs nothing, so it is the cursor's cost.
+const BUDGET_KEY_MS: u128 = 10;
+/// A background read may take this long on a debug build under load.
+const BUDGET_READ_MS: u128 = 300_000;
+
+const fn over_budget(read: u128, frame: u128, key: u128) -> bool {
+    read > BUDGET_READ_MS || frame > BUDGET_FRAME_MS || key > BUDGET_KEY_MS
+}
+
+/// `war view tui --budget`: a read of this repository, then the frames and
+/// keys it costs the main thread, against the budget. Never run on the main
+/// thread in the app: the read's time is reported so it can be watched, and a
+/// keypress does not wait for it.
+pub fn budget(root: Option<Utf8PathBuf>) -> Result<u8, RepoError> {
+    use std::time::Instant;
+    let repo = Repository::discover(root)?;
+    let mut m = model_for(repo.root.clone());
+    m.overlay = Overlay::None;
+    let at = Instant::now();
+    let snap = reader::read(&m.root, &m.binary);
+    let read = at.elapsed().as_millis();
+    let at = Instant::now();
+    let _ = crate::watch::fingerprint(&crate::watch::watched_dirs(&repo));
+    let fingerprint = at.elapsed().as_millis();
+    let warrants = snap.progress.warrants.map_or(0, |(_, n)| n);
+    let laps = snap.laps.clone();
+    m.apply(snap);
+    let mut worst_frame = 0;
+    for (mode, overlay) in [
+        (Mode::Watch, Overlay::None),
+        (Mode::Act, Overlay::None),
+        (Mode::Watch, Overlay::Records(View::Journal)),
+        (Mode::Watch, Overlay::Records(View::Obligations)),
+    ] {
+        m.mode = mode;
+        m.overlay = overlay;
+        for _ in 0..5 {
+            let at = Instant::now();
+            let _ = frame(&m, 200, 60);
+            worst_frame = worst_frame.max(at.elapsed().as_millis());
+        }
+    }
+    m.mode = Mode::Watch;
+    m.overlay = Overlay::None;
+    let mut worst_key = 0;
+    for code in [KeyCode::Char('j'), KeyCode::Char('k'), KeyCode::Char('l')].repeat(40) {
+        let at = Instant::now();
+        let _ = handle_key(&mut m, KeyEvent::new(code, KeyModifiers::NONE));
+        worst_key = worst_key.max(at.elapsed().as_millis());
+    }
+    println!("{warrants} Warrants");
+    println!("read {read} ms (budget {BUDGET_READ_MS}), on a background thread");
+    for (what, ms) in &laps {
+        println!("  {what}: {ms} ms");
+    }
+    println!("fingerprint {fingerprint} ms, on a background thread");
+    println!("frame {worst_frame} ms at worst (budget {BUDGET_FRAME_MS})");
+    println!("key {worst_key} ms at worst (budget {BUDGET_KEY_MS})");
+    if over_budget(read, worst_frame, worst_key) {
+        println!("OVER BUDGET");
+        return Ok(crate::EXIT_NOT_READY);
+    }
+    Ok(crate::EXIT_OK)
+}
+
 /// `m` drawn, as lines of text.
 fn frame(m: &Model, width: u16, height: u16) -> String {
     let backend = ratatui::backend::TestBackend::new(width, height);
@@ -904,7 +971,7 @@ t                       Records, on Tickets
 Esc                     close Records or Repos; clear a filter
 h l                     move between panels
 j k                     move (in a document: next/previous document)
-/                       filter this list (Esc clears)
+/                       filter the lists showing, or search the transcript from Live (Esc clears)
 Enter                   open the row's detail; sign (Act, Help); run war init (Setup); open a repository
 v                       show the request behind a signing row
 space  a  n             Sign panel: check row / check all / check none (these win over a above)

@@ -224,6 +224,72 @@ fn call_herdr(_method: &str, _params: serde_json::Value) -> Result<serde_json::V
     Err("herdr IPC is supported on Unix only".to_owned())
 }
 
+/// What can change the fleet: an agent's status, a pane coming or going. Herdr
+/// has no event for new output, so a working agent's terminal is still read.
+const EVENTS: &[&str] = &[
+    "pane.created",
+    "pane.closed",
+    "pane.exited",
+    "pane.updated",
+    "pane.agent_detected",
+];
+
+/// Hold an `events.subscribe` connection open. `event` runs for each event and
+/// `alive` about once a second; a false from it ends the subscription. Returns
+/// when the daemon goes away or says no.
+#[cfg(unix)]
+pub fn subscribe(mut event: impl FnMut(), alive: impl Fn() -> bool) -> Result<(), String> {
+    use std::io::ErrorKind;
+    use std::os::unix::net::UnixStream;
+
+    let mut stream = UnixStream::connect(socket_path()).map_err(|e| e.to_string())?;
+    stream
+        .set_read_timeout(Some(Duration::from_secs(1)))
+        .map_err(|e| e.to_string())?;
+    let subscriptions: Vec<_> = EVENTS
+        .iter()
+        .map(|t| serde_json::json!({"type": t}))
+        .collect();
+    let req = serde_json::json!({
+        "id": "ow-tui-events",
+        "method": "events.subscribe",
+        "params": {"subscriptions": subscriptions},
+    });
+    let mut payload = serde_json::to_vec(&req).map_err(|e| e.to_string())?;
+    payload.push(b'\n');
+    stream.write_all(&payload).map_err(|e| e.to_string())?;
+    let mut pending = Vec::new();
+    let mut chunk = [0u8; 8192];
+    let mut started = false;
+    while alive() {
+        match stream.read(&mut chunk) {
+            Ok(0) => return Err("herdr closed the subscription".to_owned()),
+            Ok(n) => pending.extend_from_slice(&chunk[..n]),
+            Err(e) if matches!(e.kind(), ErrorKind::WouldBlock | ErrorKind::TimedOut) => continue,
+            Err(e) => return Err(e.to_string()),
+        }
+        while let Some(end) = pending.iter().position(|b| *b == b'\n') {
+            let line: Vec<u8> = pending.drain(..=end).collect();
+            if started {
+                event();
+                continue;
+            }
+            let v: serde_json::Value =
+                serde_json::from_slice(&line).map_err(|e| format!("invalid JSON: {e}"))?;
+            if v.get("error").is_some() {
+                return Err(v["error"]["message"].as_str().unwrap_or("refused").to_owned());
+            }
+            started = true;
+        }
+    }
+    Ok(())
+}
+
+#[cfg(not(unix))]
+pub fn subscribe(_event: impl FnMut(), _alive: impl Fn() -> bool) -> Result<(), String> {
+    Err("herdr IPC is supported on Unix only".to_owned())
+}
+
 /// Query active agent fleet across all workspaces from Herdr.
 pub fn list_agents() -> Result<Vec<HerdrAgent>, String> {
     let result = call_herdr("agent.list", serde_json::json!({}))?;

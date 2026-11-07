@@ -734,6 +734,63 @@ fn q_quits_from_the_list_and_only_closes_a_popup() {
     );
 }
 
+/// Refusal: the budget is seen to fail on each of its three numbers.
+#[test]
+fn over_budget_is_over_on_any_one_number() {
+    assert!(!over_budget(BUDGET_READ_MS, BUDGET_FRAME_MS, BUDGET_KEY_MS));
+    assert!(over_budget(BUDGET_READ_MS + 1, 0, 0));
+    assert!(over_budget(0, BUDGET_FRAME_MS + 1, 0));
+    assert!(over_budget(0, 0, BUDGET_KEY_MS + 1));
+}
+
+// ---- filter and search ----------------------------------------------------
+
+#[test]
+fn a_filter_narrows_every_list_and_a_selection_follows_what_shows() {
+    let mut m = fixture();
+    handle_key(&mut m, key('/'));
+    typed(&mut m, "email");
+    enter(&mut m);
+    let s = screen(&m);
+    assert!(s.contains("Email template"), "{s}");
+    assert!(!s.contains("Reset passwords"), "{s}");
+    handle_key(&mut m, press(KeyCode::Enter));
+    let (title, _, _) = m.popup.take().expect("the row that shows");
+    assert!(title.starts_with("t-1a2b3/i-1"), "{title}");
+    handle_key(&mut m, press(KeyCode::Esc));
+    assert!(screen(&m).contains("Reset passwords"));
+}
+
+/// A check-all under a filter checks what shows, not what it hides.
+#[test]
+fn check_all_under_a_filter_checks_what_shows() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('/'));
+    typed(&mut m, "0002");
+    enter(&mut m);
+    handle_key(&mut m, key('a'));
+    assert_eq!(act::checked_targets(&m), ["OW-WAR-0002"]);
+}
+
+#[test]
+fn search_in_live_shows_the_matching_lines_and_says_when_there_are_none() {
+    let mut m = fixture();
+    m.live.text = "compiling\nerror: no such file\nrunning tests\n".to_owned();
+    m.watch_panel = Panel::Live;
+    handle_key(&mut m, key('/'));
+    typed(&mut m, "error");
+    enter(&mut m);
+    let s = screen(&m);
+    assert!(s.contains("error: no such file"), "{s}");
+    assert!(!s.contains("running tests"), "{s}");
+    assert!(s.contains("1 line(s) match error"), "{s}");
+    handle_key(&mut m, key('/'));
+    typed(&mut m, "absent");
+    enter(&mut m);
+    assert!(screen(&m).contains("nothing in the transcript matches absent"));
+}
+
 // ---- the command lines ----------------------------------------------------
 
 /// Every command line the app builds is one the real CLI accepts.
