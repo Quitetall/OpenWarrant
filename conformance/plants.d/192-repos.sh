@@ -90,7 +90,7 @@ if [[ $RP_READ_RC -eq 0 && $RP_PRIME_RC -eq 0 && $RP_STATUS_RC -eq 0 ]] \
     && grep -q 'The physics feature' <<<"$RP_PRIME"; then
     rp_ok "a read comes through the pin" "the clause alone, from the commit, not the checkout"
 else
-    rp_fail "a read comes through the pin" "status $RP_STATUS_RC read $RP_READ_RC prime $RP_PRIME_RC: $(head -3 <<<"$RP_READ" | tr '\n' '|')"
+    rp_fail "a read comes through the pin" "status $RP_STATUS_RC read $RP_READ_RC prime $RP_PRIME_RC: $(tr "\n" "|" <<<"$RP_STATUS$RP_READ$RP_PRIME")"
 fi
 
 RP_CFG=$(cat "$RP_TMP/wmd/openwarrant.toml")

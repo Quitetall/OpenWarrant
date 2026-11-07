@@ -935,6 +935,15 @@ enum DailyCommand {
         /// With --pr: post the summary as a comment on the PR through `gh`.
         #[arg(long, requires = "pr")]
         comment: bool,
+        /// Run each interface clause's `check` here, for this repository's
+        /// interfaces and those of the repositories it pins. A clause with
+        /// none, or one not decided, reads UNKNOWN.
+        #[arg(long, conflicts_with_all = ["alias", "generated", "changed", "pr", "floor"])]
+        clauses: bool,
+        /// With --clauses: say this repository conforms to those interfaces
+        /// as they stand, in docs/interfaces.lock, unless a clause failed.
+        #[arg(long, requires = "clauses")]
+        record: bool,
         /// The CI floor (docs/SCORE.md): refuse when the working tree's
         /// score level is below <REV>'s. With --pr, the base's
         /// `[score] floor = true` turns it on instead.
@@ -3857,6 +3866,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if let Some((_, v)) = check::single_actor_standing(&repository) {
                             value["independence"] = v;
                         }
+                        if let Some(line) = repos::status_line(&repository.root) {
+                            value["repos"] = serde_json::json!(line);
+                        }
+                        if let Some(line) = interfaces::drift_line(&repository) {
+                            value["interfaces"] = serde_json::json!(line);
+                        }
                         output::emit(mode, "status", &text, value);
                     }
                     // A few lines, not the projection: an agent reads every
@@ -3874,6 +3889,15 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;
                         println!("{text}");
+                        for line in [
+                            repos::status_line(&repository.root),
+                            interfaces::drift_line(&repository),
+                        ]
+                        .into_iter()
+                        .flatten()
+                        {
+                            println!("{line}");
+                        }
                         let adapted = interop::adapters::load(&repository);
                         if !adapted.is_empty() {
                             print!("{}", interop::adapters::status(&adapted).0);
@@ -4166,6 +4190,39 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             Ok(output::exit_code(&report))
         }
         DailyCommand::Check {
+            clauses: true,
+            record,
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let (mut report, runs) = interfaces::run_clauses(&repository);
+            if record && interfaces::any_failed(&report) {
+                report.note("a clause failed, so nothing was recorded".to_owned());
+            } else if record {
+                match interfaces::record_baseline(&repository) {
+                    Ok(baseline) => report.push(diagnostic::Diagnostic::pass(
+                        "interface.recorded",
+                        format!(
+                            "{} interface(s) recorded in {}",
+                            baseline.len(),
+                            interfaces::BASELINE
+                        ),
+                    )),
+                    Err(why) => report.push(diagnostic::Diagnostic::unknown(
+                        repos::UNKNOWN_RULE,
+                        interfaces::BASELINE.to_owned(),
+                        why,
+                    )),
+                }
+            }
+            Ok(output::finish(
+                mode,
+                "check",
+                &report,
+                Some(serde_json::json!({"schema": "oh.war/clause-run/v1", "clauses": runs})),
+            ))
+        }
+        DailyCommand::Check {
             alias,
             generated,
             changed,
@@ -4274,6 +4331,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     )),
                 }
                 interop::adapters::check(&repository, None, &mut report);
+                // W6: open clauses counted, late ones flagged, [repos] read.
+                interfaces::check(&repository, chrono::Utc::now().date_naive(), &mut report);
                 // OW-WAR-0148 M14: a [preset], [roles] or [notify] table that
                 // does not read is refused by key; an absent one says nothing.
                 if let Err(e) = preset::Policy::read(&repository.root) {

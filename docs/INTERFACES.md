@@ -125,6 +125,42 @@ a bump. An explicit `war start` still works: nothing stops ordinary work.
 | Open, tbd, or done upstream only | no | warns and closes | refused, nothing written |
 | UNKNOWN | no | warns and closes | UNKNOWN, stays open |
 
+## Keeping an interface honest
+
+`war check` counts open clauses across the interfaces this repository reaches, its
+own and those at its pins, and flags any past its `due` date. `--verbose` shows the
+count. It's a warning, never a failure.
+
+`war check --clauses` runs each clause's `check` here, the same command on both
+sides. A clause with no `check`, or a `tbd` one, reads UNKNOWN: nothing was
+established, and nothing failed. Keep it for CI, because UNKNOWN exits 2.
+
+Name a clause as a dependency the same way as an item, and a `tbd` clause holds the
+work out of `ready` until it's agreed and pinned:
+
+```sh
+war create "Reuse handles" --depends-on hpr:CL-handle
+```
+
+`held: hpr:CL-handle: tbd (owner hpr, due 2026-11-20)`. A `tbr` clause is decided,
+so it doesn't hold anything.
+
+Each side records what it conforms to, as a digest of the interface revision:
+
+```sh
+war check --clauses --record     # writes docs/interfaces.lock; refused if a clause failed
+```
+
+Commit that file. `war status` then shows drift in one line, and stays quiet about
+upstream until the pin moves:
+
+```
+Interfaces: drift: hpr:docs/records/physics.md is 1.1.0 (9e1f...), this side conforms to 1.0.0 (41ab...)
+```
+
+A clause's `check` from a pinned repository runs on this machine, like any code the
+pin brings in, and only when you ask for `--clauses`.
+
 ## What's next
 
 Link a GitHub issue per feature, with a sub-issue in each repository, for what

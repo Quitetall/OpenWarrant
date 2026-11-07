@@ -435,3 +435,107 @@ fn a_tbd_clause_holds_work_until_it_is_agreed_and_pinned() {
     t.bump();
     assert!(ready(&t.wmd).contains(&id), "{}", ready(&t.wmd));
 }
+
+// ---- interfaces that act ---------------------------------------------------
+
+#[test]
+fn check_counts_what_is_open_and_flags_what_is_late() {
+    let t = two();
+    let late = INTERFACE.replace("due: 2026-11-20", "due: 2020-01-01");
+    std::fs::write(t.hpr.join(DOC), late).unwrap();
+    let out = run(&t.hpr, "o", &["--verbose", "check"]);
+    let said = text(&out);
+    assert!(said.contains("1 tbd, 0 tbr"), "{said}");
+    assert!(said.contains("interface.overdue"), "{said}");
+    // On time, it is not flagged.
+    std::fs::write(
+        t.hpr.join(DOC),
+        INTERFACE.replace("due: 2026-11-20", "due: 2999-01-01"),
+    )
+    .unwrap();
+    let said = text(&run(&t.hpr, "o", &["--verbose", "check"]));
+    assert!(!said.contains("interface.overdue"), "{said}");
+    // The other side counts through its pin.
+    let said = text(&run(&t.wmd, "o", &["--verbose", "check"]));
+    assert!(said.contains("1 tbd, 0 tbr"), "{said}");
+}
+
+#[test]
+fn a_bad_repos_table_is_refused_by_check_and_breaks_no_read() {
+    let t = two();
+    t.config("[repos.hpr]\nnope = 1\n");
+    let out = run(&t.wmd, "o", &["check"]);
+    assert!(!out.status.success(), "{}", text(&out));
+    assert!(text(&out).contains("repos.config"), "{}", text(&out));
+    assert!(run(&t.wmd, "o", &["view", "prime"]).status.success());
+}
+
+#[test]
+fn a_clause_runs_and_one_without_a_check_is_unknown() {
+    let t = two();
+    let v = json(&t.wmd, "o", &["check", "--clauses"]);
+    let runs = v["result"]["clauses"].as_array().unwrap();
+    let of = |c: &str| {
+        runs.iter()
+            .find(|r| r["clause"] == c)
+            .unwrap_or_else(|| panic!("{c}: {v}"))["result"]
+            .as_str()
+            .unwrap()
+            .to_owned()
+    };
+    assert_eq!(of("hpr:CL-step"), "PASS");
+    assert_eq!(of("hpr:CL-handle"), "UNKNOWN");
+    assert_eq!(v["exit_code"], 2, "{v}");
+
+    // A check that fails is a failure, never UNKNOWN.
+    std::fs::write(
+        t.hpr.join(DOC),
+        INTERFACE.replace("check: true", "check: false"),
+    )
+    .unwrap();
+    let v = json(&t.hpr, "o", &["check", "--clauses"]);
+    let runs = v["result"]["clauses"].as_array().unwrap();
+    assert_eq!(runs[0]["result"], "FAIL", "{v}");
+    // And a failure records no baseline.
+    let v = json(&t.hpr, "o", &["check", "--clauses", "--record"]);
+    assert_ne!(v["exit_code"], 0, "{v}");
+    assert!(!t.hpr.join("docs/interfaces.lock").exists());
+}
+
+#[test]
+fn drift_is_one_line_in_status_until_it_is_conformed_to() {
+    let t = two();
+    let line = |root: &Path| {
+        text(&run(root, "o", &["status"]))
+            .lines()
+            .find(|l| l.starts_with("Interfaces: "))
+            .map(str::to_owned)
+    };
+    assert!(
+        line(&t.wmd).unwrap().contains("no baseline"),
+        "{:?}",
+        line(&t.wmd)
+    );
+    let _ = json(&t.wmd, "o", &["check", "--clauses", "--record"]);
+    assert_eq!(line(&t.wmd).as_deref(), Some("Interfaces: 1 conform"));
+    git(&t.wmd, &["add", "-A"]);
+    git(&t.wmd, &["commit", "-qm", "conform"]);
+
+    // A new revision upstream is no drift here until the pin moves.
+    std::fs::write(
+        t.hpr.join(DOC),
+        INTERFACE.replace("version: 1.0.0", "version: 1.1.0"),
+    )
+    .unwrap();
+    t.push_and_fetch();
+    assert_eq!(line(&t.wmd).as_deref(), Some("Interfaces: 1 conform"));
+    t.bump();
+    let drift = line(&t.wmd).unwrap();
+    assert!(drift.starts_with("Interfaces: drift: hpr:"), "{drift}");
+    assert!(
+        drift.contains("1.1.0") && drift.contains("1.0.0"),
+        "{drift}"
+    );
+    let _ = json(&t.wmd, "o", &["check", "--clauses", "--record"]);
+    assert_eq!(line(&t.wmd).as_deref(), Some("Interfaces: 1 conform"));
+}
