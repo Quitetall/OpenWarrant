@@ -268,21 +268,40 @@ pub fn prompt_agent(target: &str, text: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Create a new terminal tab in Herdr for an isolated task or worktree.
-pub fn create_tab(cwd: &str, label: &str) -> Result<String, String> {
+/// Create a tab for an isolated task or worktree. Returns its root pane, the
+/// shell `agent.start` runs in.
+pub fn create_tab(
+    cwd: &str,
+    label: &str,
+    env: &[(&str, &str)],
+) -> Result<String, String> {
+    let env: serde_json::Map<String, serde_json::Value> = env
+        .iter()
+        .map(|(k, v)| ((*k).to_owned(), serde_json::json!(v)))
+        .collect();
     let result = call_herdr(
         "tab.create",
-        serde_json::json!({
-            "cwd": cwd,
-            "label": label,
-            "focus": true
-        }),
+        serde_json::json!({"cwd": cwd, "label": label, "env": env, "focus": false}),
     )?;
-    Ok(result
-        .get("tab_id")
-        .and_then(|t| t.as_str())
-        .unwrap_or_default()
-        .to_owned())
+    root_pane_in(&result)
+}
+
+fn root_pane_in(result: &serde_json::Value) -> Result<String, String> {
+    result
+        .get("root_pane")
+        .and_then(|p| p.get("pane_id"))
+        .and_then(serde_json::Value::as_str)
+        .map(str::to_owned)
+        .ok_or_else(|| "tab.create answered with no root pane".to_owned())
+}
+
+/// Start an agent of `kind` in a shell pane. Herdr waits until it is up.
+pub fn start_agent(name: &str, kind: &str, pane: &str, args: &[String]) -> Result<(), String> {
+    call_herdr(
+        "agent.start",
+        serde_json::json!({"name": name, "kind": kind, "pane_id": pane, "args": args}),
+    )?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -351,6 +370,14 @@ mod tests {
         let answer = serde_json::json!({"agents": [{"pane_id": 7}]});
         assert!(agents_in(&answer).is_err());
         assert!(agents_in(&serde_json::json!({})).is_err());
+    }
+
+    #[test]
+    fn a_new_tab_answers_with_its_root_pane() {
+        let answer = serde_json::json!({"type": "tab_created", "tab": {"tab_id": "w1:t2"},
+            "root_pane": {"pane_id": "w1:p9"}});
+        assert_eq!(root_pane_in(&answer).as_deref(), Ok("w1:p9"));
+        assert!(root_pane_in(&serde_json::json!({"tab": {}})).is_err());
     }
 
     #[test]

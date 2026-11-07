@@ -98,16 +98,8 @@ pub fn key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
         }
         KeyCode::Char(']') => m.agent_sel = (m.agent_sel + 1) % m.live.agents.len().max(1),
         KeyCode::Enter => detail(m),
-        KeyCode::Char('d') => {
-            m.message =
-                "dispatch from here is unavailable in this build: run `war start --worktree <id>`"
-                    .to_owned();
-        }
-        KeyCode::Char('a') => {
-            m.message =
-                "answering from here is unavailable in this build: the bottom line is the command"
-                    .to_owned();
-        }
+        KeyCode::Char('d') => dispatch(m),
+        KeyCode::Char('a') => answer(m),
         KeyCode::Char('c') => {
             return Some(Effect::Capture {
                 title: "commit message (`war admin commit --write`)".to_owned(),
@@ -117,6 +109,57 @@ pub fn key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
         _ => {}
     }
     None
+}
+
+/// `d`: the highlighted work, if it can start, in Act's dispatch form.
+fn dispatch(m: &mut Model) {
+    let id = visible_work(m)
+        .get(m.selected_in(Panel::Work))
+        .map(|w| w.id.clone());
+    let at = id
+        .as_ref()
+        .and_then(|id| m.snap.ready.iter().position(|r| &r.id == id));
+    match (m.watch_panel == Panel::Work, at) {
+        (true, Some(at)) => {
+            m.mode = super::model::Mode::Act;
+            m.select_in(Panel::Dispatch, at);
+            super::act::open_dispatch(m);
+        }
+        (true, None) => {
+            m.message = format!(
+                "{} cannot start now; Act lists what can",
+                id.unwrap_or_else(|| "this".to_owned())
+            );
+        }
+        _ => {
+            m.mode = super::model::Mode::Act;
+            m.act_panel = Panel::Dispatch;
+        }
+    }
+}
+
+/// `a`: answer a question, or leave a note on work or a claim.
+fn answer(m: &mut Model) {
+    let at = m.selected_in(m.watch_panel);
+    match m.watch_panel {
+        Panel::Work => {
+            if let Some(id) = visible_work(m).get(at).map(|w| w.id.clone()) {
+                super::act::open_note(m, id);
+            }
+        }
+        Panel::Claims => {
+            if let Some(target) = m.snap.claims.get(at).map(|c| c.target.clone()) {
+                super::act::open_note(m, target);
+            }
+        }
+        _ => {
+            m.mode = super::model::Mode::Act;
+            if m.watch_panel == Panel::Questions {
+                m.select_in(Panel::Answer, at);
+            }
+            super::act::open_answer(m);
+        }
+    }
 }
 
 fn step(panel: Panel, by: isize) -> Panel {

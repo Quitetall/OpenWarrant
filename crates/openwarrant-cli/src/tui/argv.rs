@@ -46,6 +46,70 @@ pub fn record_gate(alias: &str, gate: &str) -> Vec<String> {
     words(&["war", "evidence", "record", alias, "--gate", gate])
 }
 
+/// `war create <title> --item ...`, optionally through the configured drafter.
+#[must_use]
+pub fn create(title: &str, items: &[String], draft: bool) -> Vec<String> {
+    let mut argv = words(&["create", title]);
+    for item in items {
+        argv.push("--item".to_owned());
+        argv.push(item.clone());
+    }
+    if draft {
+        argv.push("--draft".to_owned());
+    }
+    argv
+}
+
+/// `war start <node> --worktree`: claim, worktree, session. `print` stops
+/// before the session, for a launcher that starts it some other way.
+#[must_use]
+pub fn start(node: &str, actor: &str, paths: &[String], print: bool) -> Vec<String> {
+    let mut argv = words(&["start", node, "--worktree", "--as", actor]);
+    if print {
+        argv.push("--print".to_owned());
+    }
+    if !paths.is_empty() {
+        argv.push("--paths".to_owned());
+        argv.extend(paths.iter().cloned());
+    }
+    argv
+}
+
+/// `war admin claim <node>`: the work stays in this checkout.
+#[must_use]
+pub fn claim_here(node: &str, actor: &str, paths: &[String]) -> Vec<String> {
+    let mut argv = words(&["admin", "claim", node, "--as", actor]);
+    if !paths.is_empty() {
+        argv.push("--paths".to_owned());
+        argv.extend(paths.iter().cloned());
+    }
+    argv
+}
+
+/// `war plan answer <alias> <id> <answer> --as <who>`: a human's act.
+#[must_use]
+pub fn answer(alias: &str, id: &str, text: &str, who: &str) -> Vec<String> {
+    words(&["plan", "answer", alias, id, text, "--as", who])
+}
+
+/// `war note <target> <text>`.
+#[must_use]
+pub fn note(target: &str, text: &str) -> Vec<String> {
+    words(&["note", target, text])
+}
+
+/// `war plan interview <alias>`: read-only.
+#[must_use]
+pub fn interview(alias: &str) -> Vec<String> {
+    words(&["plan", "interview", alias])
+}
+
+/// `war admin diff <alias>`: what changed since the committed compilation.
+#[must_use]
+pub fn diff(alias: &str) -> Vec<String> {
+    words(&["admin", "diff", alias])
+}
+
 pub(super) fn words(args: &[&str]) -> Vec<String> {
     args.iter().map(|a| (*a).to_owned()).collect()
 }
@@ -69,6 +133,15 @@ pub fn table() -> Vec<Vec<String>> {
         init(),
         roadmap_edit(),
         record_gate("OW-WAR-0001", "ops.check@1.0.0")[1..].to_vec(),
+        create("Reset passwords", &["one".to_owned(), "two".to_owned()], false),
+        create("Reset passwords", &[], true),
+        start("t-1/i-1", "claude", &[], false),
+        start("t-1/i-1", "claude", &["src/**".to_owned(), "docs/**".to_owned()], true),
+        claim_here("t-1/i-1", "claude", &["src/**".to_owned()]),
+        answer("OW-WAR-0001", "Q-001", "the fast one", "Owner"),
+        note("t-1", "a note"),
+        interview("OW-WAR-0001"),
+        diff("OW-WAR-0001"),
     ]
 }
 

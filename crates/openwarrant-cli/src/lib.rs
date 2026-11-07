@@ -805,6 +805,10 @@ enum DailyCommand {
         /// With `--worktree`: the commit the worktree starts from (default HEAD).
         #[arg(long, value_name = "REV", requires = "worktree")]
         base: Option<String>,
+        /// With `--worktree`: declared write paths for the claim; refused when
+        /// they overlap a live claim's. Default: what the Warrant declares.
+        #[arg(long, value_name = "PATHS", num_args = 1.., requires = "worktree")]
+        paths: Vec<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -3989,6 +3993,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             worktree,
             print,
             base,
+            paths,
             actor,
         } => {
             let id = (!id.is_empty()).then(|| id.join(" "));
@@ -4002,7 +4007,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     return Ok(ticket_answer(mode, "start", &refusal));
                 };
                 let repository = ctx.open_repo()?;
-                let opts = go::start::Options { actor, print, base };
+                let opts = go::start::Options {
+                    actor,
+                    print,
+                    base,
+                    paths,
+                };
                 let (report, result, human) = go::start::run(&repository, &id, &opts)?;
                 return Ok(go_answer(mode, "start", &report, result, &human));
             }

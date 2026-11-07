@@ -219,6 +219,18 @@ pub struct ReadyRow {
     pub critical: bool,
 }
 
+/// Something that can run a task, from `[go]`. No list is built in.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ExecutorRow {
+    pub name: String,
+    /// Why it cannot run one chosen task, when it cannot.
+    pub unavailable: Option<String>,
+    /// Herdr's `--kind` for it, when Herdr knows the agent.
+    pub herdr_kind: Option<String>,
+    /// The harness needs a terminal, so a detached start would die.
+    pub needs_terminal: bool,
+}
+
 /// Progress as counts, each `None` when its source could not be read. Never
 /// a percentage: a count is what the records hold, and a percentage of
 /// unequal Warrants would be a number nobody recorded.
@@ -259,6 +271,12 @@ pub struct Snapshot {
     /// Every checkout of this clone, for telling which agents work here.
     pub worktrees: Option<Vec<String>>,
     pub usage: super::usage::Usage,
+    /// `[go]`'s executors.
+    pub executors: Vec<ExecutorRow>,
+    /// What `[plan] drafter_argv` runs, when it is set.
+    pub drafter: Option<String>,
+    /// The one human the register names, for `war plan answer --as`.
+    pub human: Option<String>,
     /// Sources that could not be read, each said once.
     pub faults: Vec<String>,
     /// The newest journal events, for the panel without Herdr.
@@ -297,6 +315,84 @@ impl Default for Live {
     }
 }
 
+/// How a dispatched task starts.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Launcher {
+    /// A Herdr tab and `agent.start`.
+    Herdr { kind: String },
+    /// `war start --worktree` in this terminal, until it exits.
+    Terminal,
+    /// `war start --worktree` with no terminal, logging to a file.
+    Detached,
+}
+
+impl Launcher {
+    #[must_use]
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::Herdr { .. } => "a Herdr tab",
+            Self::Terminal => "this terminal, until the session ends",
+            Self::Detached => "detached, logging to a file",
+        }
+    }
+}
+
+/// A task on its way to an agent: claim, worktree, launch.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Dispatch {
+    pub node: String,
+    pub actor: String,
+    pub paths: Vec<String>,
+    pub launcher: Launcher,
+}
+
+/// A form over Act. It takes every key until it is done or `Esc`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Form {
+    Create {
+        title: String,
+        /// Separated by `;`.
+        items: String,
+        /// On the items line, not the title.
+        on_items: bool,
+        draft: bool,
+    },
+    Dispatch {
+        node: String,
+        title: String,
+        step: DispatchStep,
+        executor: usize,
+        scope: String,
+        worktree: bool,
+        launcher: usize,
+    },
+    Answer {
+        warrant: String,
+        id: String,
+        question: String,
+        recommended: String,
+        text: String,
+        who: String,
+        on_who: bool,
+    },
+    Note {
+        target: String,
+        text: String,
+        /// A Herdr agent in the holder's workspace, which can be told now.
+        pane: Option<String>,
+        now: bool,
+    },
+}
+
+/// Where a dispatch form stands.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DispatchStep {
+    Executor,
+    Scope,
+    Worktree,
+    Launch,
+}
+
 /// What a keypress asks of the terminal or the background threads. A key
 /// handler never runs anything, so every action is a value a test can read.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -313,6 +409,16 @@ pub enum Effect {
     },
     /// A child off the main thread; its output lands in a popup.
     Capture { title: String, argv: Vec<String> },
+    /// A child off the main thread, its output and `after` in a popup, and
+    /// `prompt`, a pane and text, sent there when it succeeded.
+    Say {
+        title: String,
+        argv: Vec<String>,
+        after: String,
+        prompt: Option<(String, String)>,
+    },
+    /// Claim, worktree, launch.
+    Dispatch(Dispatch),
     /// Switch the whole app to another repository.
     Open(Utf8PathBuf),
     /// Make a directory and run `war init` in it.
@@ -363,6 +469,8 @@ pub struct Model {
     pub reading: bool,
     /// The last thing the app has to say; cleared by the next key.
     pub message: String,
+    /// The form open over Act.
+    pub form: Option<Form>,
     /// `n` in Repos: the directory being typed.
     pub new_dir: Option<String>,
     pub repos: Repos,
@@ -407,6 +515,7 @@ impl Model {
             doc_index: 0,
             reading: false,
             message: String::new(),
+            form: None,
             new_dir: None,
             repos: Repos::default(),
             binary,

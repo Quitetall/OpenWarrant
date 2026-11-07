@@ -22,7 +22,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use super::herdr_adapter::{self, Focus};
 use super::model::{
-    ClaimRow, Collision, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
+    ClaimRow, Collision, Dispatch, ExecutorRow, Launcher, Live, NoticeRow, PhaseRow, Progress, QuestionItem, ReadyRow, Row,
     Snapshot, View, WorkRow,
 };
 use super::records;
@@ -130,6 +130,48 @@ impl Reader {
         });
     }
 
+    /// A child off the main thread, then `after`, then `prompt` to a pane if
+    /// the child succeeded.
+    pub fn say(
+        &self,
+        root: Utf8PathBuf,
+        title: String,
+        argv: Vec<String>,
+        after: String,
+        prompt: Option<(String, String)>,
+    ) {
+        let tx = self.tx.clone();
+        spawn_named("child", move || {
+            let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+            let mut text = super::run_child_captured(&root, &args);
+            if text.trim_end().ends_with("[exit 0]") {
+                if let Some((pane, line)) = prompt {
+                    match crate::herdr::prompt_agent(&pane, &line) {
+                        Ok(()) => text.push_str(&format!("\n\nDelivered to {pane} now.")),
+                        Err(why) => text.push_str(&format!(
+                            "\n\nNot delivered to {pane}: {why}\n\n{after}"
+                        )),
+                    }
+                } else {
+                    text.push_str(&format!("\n\n{after}"));
+                }
+            }
+            let _ = tx.send(Update::Child { title, text });
+        });
+    }
+
+    /// Claim, worktree and launch, off the main thread: `war start
+    /// --worktree --print` does the first two and says what to run, and the
+    /// launcher runs it. A refusal is the command's own.
+    pub fn dispatch(&self, root: Utf8PathBuf, plan: Dispatch) {
+        let tx = self.tx.clone();
+        spawn_named("dispatch", move || {
+            let title = format!("dispatch {}", plan.node);
+            let text = launch(&root, &plan).unwrap_or_else(|why| why);
+            let _ = tx.send(Update::Child { title, text });
+        });
+    }
+
     /// Read each repository's facts, one after another, off the main thread.
     pub fn read_repos(&mut self, rows: Vec<crate::projects::Row>) {
         self.repo_generation += 1;
@@ -155,6 +197,84 @@ impl Reader {
                 }
             }
         });
+    }
+}
+
+/// What a printed `war start` answered with.
+#[derive(Debug, PartialEq, Eq)]
+struct Started {
+    worktree: String,
+    command: Vec<String>,
+    actor: String,
+    claim: Option<String>,
+}
+
+fn started_in(envelope: &str) -> Result<Started, String> {
+    let v: serde_json::Value =
+        serde_json::from_str(envelope).map_err(|_| envelope.trim().to_owned())?;
+    let r = &v["result"];
+    let refused = || {
+        v["diagnostics"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter(|d| d["severity"] == "error")
+            .map(|d| format!("{}: {}", d["rule"].as_str().unwrap_or("?"), d["message"]))
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    Ok(Started {
+        worktree: r["worktree"].as_str().ok_or_else(refused)?.to_owned(),
+        command: r["command"]
+            .as_array()
+            .into_iter()
+            .flatten()
+            .filter_map(|c| c.as_str().map(str::to_owned))
+            .collect(),
+        actor: r["actor"].as_str().unwrap_or_default().to_owned(),
+        claim: r["claim_id"].as_str().map(str::to_owned),
+    })
+}
+
+fn launch(root: &Utf8Path, plan: &Dispatch) -> Result<String, String> {
+    let mut argv = vec!["--json".to_owned()];
+    argv.extend(super::argv::start(&plan.node, &plan.actor, &plan.paths, true));
+    let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+    let out = super::run_child_output(root, &args)?;
+    let started = started_in(&out)?;
+    let worktree = &started.worktree;
+    let done = format!("claimed {} as {}\nworktree {worktree}", plan.node, started.actor);
+    match &plan.launcher {
+        Launcher::Herdr { kind } => {
+            let Some(args) = started.command.get(1..) else {
+                return Err(format!("{done}\n\nno harness is configured in [go]"));
+            };
+            let mut env = vec![
+                ("OPENWARRANT_ACTOR", started.actor.as_str()),
+                ("WAR_GO_NODE", plan.node.as_str()),
+            ];
+            if let Some(id) = &started.claim {
+                env.push(("OPENWARRANT_CLAIM_ID", id));
+            }
+            let pane = crate::herdr::create_tab(worktree, &plan.node, &env)
+                .map_err(|why| format!("{done}\n\nHerdr could not open a tab: {why}"))?;
+            let name = crate::go::git::slug(&plan.node);
+            crate::herdr::start_agent(&name, kind, &pane, args)
+                .map_err(|why| format!("{done}\n\nHerdr could not start it in {pane}: {why}"))?;
+            Ok(format!("{done}\nstarted {kind} in Herdr pane {pane}"))
+        }
+        Launcher::Detached => {
+            let log = Utf8Path::new(worktree).join(".openwarrant/start.log");
+            let argv = super::argv::start(&plan.node, &plan.actor, &plan.paths, false);
+            let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+            let pid = super::run_child_detached(root, &args, &log)?;
+            Ok(format!(
+                "{done}\nstarted detached, pid {pid}\nlog {log}\n\nIf the harness needs a \
+                 terminal it stops at once; the log says so, and the claim stands."
+            ))
+        }
+        // The event loop hands this one the terminal; it never comes here.
+        Launcher::Terminal => Ok(done),
     }
 }
 
@@ -492,6 +612,15 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
     snap.notices = notices;
     snap.worktrees = worktrees;
     snap.usage = usage;
+    snap.drafter = repo.config.plan.drafter_argv.first().cloned();
+    snap.human = only_human(&repo.root);
+    snap.executors = match crate::go::policy::load(&repo.root) {
+        Ok(policy) => executor_rows(&policy),
+        Err(d) => {
+            snap.faults.push(format!("[go]: {}", d.message));
+            Vec::new()
+        }
+    };
     for (view, rows) in [
         (View::Tickets, tickets),
         (View::Frontier, frontier),
@@ -505,6 +634,58 @@ pub fn read(root: &Utf8Path, binary: &Row) -> Snapshot {
         snap.views.insert(view, rows);
     }
     snap
+}
+
+/// `[go]`'s executors. `war start` runs the local harness; an external
+/// executor is run by `war evidence go`, for what its route sends it.
+fn executor_rows(policy: &crate::go::policy::Policy) -> Vec<ExecutorRow> {
+    use crate::go::policy::Harness;
+    let program = policy.start_argv.first();
+    let word = match policy.harness {
+        Harness::Claude => "claude".to_owned(),
+        Harness::Generic => program.map_or_else(|| "harness".to_owned(), Clone::clone),
+    };
+    let mut rows = vec![ExecutorRow {
+        unavailable: program.is_none().then(|| {
+            "no harness for a session: set [go] harness or start_argv".to_owned()
+        }),
+        herdr_kind: program
+            .and_then(|p| Utf8Path::new(p).file_name())
+            .filter(|n| HERDR_KINDS.contains(n))
+            .map(str::to_owned),
+        needs_terminal: policy.harness == Harness::Claude,
+        name: word,
+    }];
+    rows.extend(policy.executors.keys().map(|name| ExecutorRow {
+        name: name.clone(),
+        unavailable: Some("runs under `war evidence go`, by its [go.route]".to_owned()),
+        ..ExecutorRow::default()
+    }));
+    rows
+}
+
+/// The agents `herdr agent start --kind` takes.
+const HERDR_KINDS: &[&str] = &[
+    "pi", "claude", "codex", "gemini", "cursor", "devin", "agy", "cline", "omp", "mastracode",
+    "opencode", "copilot", "kimi", "kiro", "droid", "amp", "grok", "hermes", "kilo", "qodercli",
+    "qwen", "letta", "maki", "muse",
+];
+
+/// The human the register names, when there is exactly one, so an answer's
+/// `--as` starts filled in. The register, not this, decides who may answer.
+fn only_human(root: &Utf8Path) -> Option<String> {
+    let text = std::fs::read_to_string(root.join("docs/authority/roles.toml")).ok()?;
+    let doc: toml::Table = toml::from_str(&text).ok()?;
+    let humans: BTreeSet<&str> = doc
+        .get("assignment")?
+        .as_array()?
+        .iter()
+        .filter(|a| a.get("actor_kind").and_then(toml::Value::as_str) == Some("human"))
+        .filter_map(|a| a.get("actor").and_then(toml::Value::as_str))
+        .collect();
+    let mut humans = humans.into_iter();
+    let first = humans.next()?;
+    humans.next().is_none().then(|| first.to_owned())
 }
 
 /// Each phase's members as counts. A member is done when its record says so:
@@ -702,6 +883,25 @@ mod tests {
             _ => None,
         };
         assert_eq!(member_counts(&members, answers), (1, 1));
+    }
+
+    #[test]
+    fn a_printed_start_says_where_and_what_to_run() {
+        let ok = r#"{"result":{"worktree":"/w/t","command":["claude","brief"],"actor":"a","claim_id":"c"}}"#;
+        let s = started_in(ok).expect("started");
+        assert_eq!(s.worktree, "/w/t");
+        assert_eq!(s.command, ["claude", "brief"]);
+        assert_eq!(s.claim.as_deref(), Some("c"));
+    }
+
+    /// Refusal: a refused start is the command's own words, and nothing
+    /// launches.
+    #[test]
+    fn a_refused_start_launches_nothing() {
+        let refused = r#"{"result":null,"diagnostics":[{"severity":"error","rule":"work.scope-conflict","message":"src overlaps"}]}"#;
+        let why = started_in(refused).expect_err("refused");
+        assert!(why.contains("work.scope-conflict"), "{why}");
+        assert!(started_in("not json").is_err());
     }
 
     fn claim(paths: &[&str], actor: &str, since: u64) -> crate::ticket::claim::Claim {

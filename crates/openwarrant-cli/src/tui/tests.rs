@@ -2,7 +2,8 @@
 //! The app driven as a person drives it: keys into `handle_key`, a frame out
 //! of `draw`, over a fixture no file stands behind.
 
-use super::model::{ClaimRow, Collision, NoticeRow, PhaseRow, QuestionItem, ReadyRow, Row, WorkRow};
+use super::model::{ClaimRow, Collision, NoticeRow, Panel, PhaseRow, QuestionItem, ReadyRow, Row, WorkRow};
+use super::model::Form;
 use super::*;
 use crate::diagnostic::Diagnostic;
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
@@ -437,14 +438,287 @@ fn x_runs_a_remedy_off_the_main_thread_and_never_signs() {
     );
 }
 
-/// What does not work yet says so, and runs nothing.
+// ---- Act ------------------------------------------------------------------
+
+fn typed(m: &mut Model, text: &str) {
+    for c in text.chars() {
+        handle_key(m, key(c));
+    }
+}
+
+fn enter(m: &mut Model) -> Option<Effect> {
+    handle_key(m, press(KeyCode::Enter))
+}
+
+fn with_executors(m: &mut Model) {
+    m.snap.executors = vec![
+        model::ExecutorRow {
+            name: "claude".to_owned(),
+            herdr_kind: Some("claude".to_owned()),
+            needs_terminal: true,
+            ..model::ExecutorRow::default()
+        },
+        model::ExecutorRow {
+            name: "remote".to_owned(),
+            unavailable: Some("runs under `war evidence go`".to_owned()),
+            ..model::ExecutorRow::default()
+        },
+    ];
+}
+
 #[test]
-fn an_action_that_does_not_work_yet_reads_as_unavailable() {
+fn create_runs_war_create_with_what_was_typed() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('c'));
+    // A form takes every key: `q` is a letter here, not quit.
+    typed(&mut m, "quick fix");
+    assert_eq!(enter(&mut m), None);
+    typed(&mut m, "one; two");
+    let Some(Effect::Capture { argv, .. }) = enter(&mut m) else {
+        panic!("create is a child off the main thread");
+    };
+    assert_eq!(
+        argv,
+        argv::create("quick fix", &["one".to_owned(), "two".to_owned()], false)
+    );
+    argv::parses(&argv).expect("it parses");
+    assert!(m.form.is_none());
+}
+
+/// Refusal: no title runs nothing, and the drafter is no option unless one
+/// is configured, and then it says it is a configured process.
+#[test]
+fn create_needs_a_title_and_offers_a_drafter_only_when_configured() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('c'));
+    assert_eq!(enter(&mut m), None);
+    assert!(m.message.contains("title"), "{}", m.message);
+    assert!(!screen(&m).contains("drafter"));
+    handle_key(&mut m, press(KeyCode::Tab));
+    assert!(matches!(m.form, Some(Form::Create { draft: false, .. })));
+    m.snap.drafter = Some("my-model".to_owned());
+    assert!(screen(&m).contains("configured process `my-model`"));
+    handle_key(&mut m, press(KeyCode::Tab));
+    assert!(matches!(m.form, Some(Form::Create { draft: true, .. })));
+}
+
+#[test]
+fn esc_leaves_a_form_with_nothing_done() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('c'));
+    typed(&mut m, "half");
+    assert_eq!(handle_key(&mut m, press(KeyCode::Esc)), None);
+    assert!(m.form.is_none());
+}
+
+#[test]
+fn dispatch_goes_task_executor_scope_worktree_launch() {
+    let mut m = fixture();
+    with_executors(&mut m);
+    m.live.herdr = model::Herdr::Connected {
+        version: "0.9.5".to_owned(),
+    };
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('d'));
+    assert!(screen(&m).contains("Executor, from [go]"));
+    enter(&mut m);
+    typed(&mut m, "src/** docs/**");
+    enter(&mut m);
+    enter(&mut m);
+    assert!(screen(&m).contains("a Herdr tab"));
+    let effect = enter(&mut m);
+    assert_eq!(
+        effect,
+        Some(Effect::Dispatch(model::Dispatch {
+            node: "t-1a2b3/i-2".to_owned(),
+            actor: "claude".to_owned(),
+            paths: vec!["src/**".to_owned(), "docs/**".to_owned()],
+            launcher: model::Launcher::Herdr {
+                kind: "claude".to_owned()
+            },
+        }))
+    );
+}
+
+/// Without Herdr everything still dispatches, and a harness that needs a
+/// terminal is offered one first, since a detached start of it dies.
+#[test]
+fn dispatch_without_herdr_uses_the_terminal_first_when_the_harness_needs_one() {
+    let mut m = fixture();
+    with_executors(&mut m);
+    let claude = m.snap.executors[0].clone();
+    assert_eq!(
+        act::launchers(&m, &claude),
+        [model::Launcher::Terminal, model::Launcher::Detached]
+    );
+    let plain = model::ExecutorRow::default();
+    assert_eq!(act::launchers(&m, &plain)[0], model::Launcher::Detached);
+}
+
+/// Refusal: an executor that cannot run one chosen task cannot be chosen.
+#[test]
+fn an_unavailable_executor_goes_no_further() {
+    let mut m = fixture();
+    with_executors(&mut m);
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('d'));
+    handle_key(&mut m, key('j'));
+    assert_eq!(enter(&mut m), None);
+    assert!(m.message.contains("unavailable"), "{}", m.message);
+    assert!(matches!(
+        m.form,
+        Some(Form::Dispatch {
+            step: model::DispatchStep::Executor,
+            ..
+        })
+    ));
+}
+
+#[test]
+fn staying_in_this_checkout_claims_and_starts_nothing() {
+    let mut m = fixture();
+    with_executors(&mut m);
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('d'));
+    enter(&mut m);
+    enter(&mut m);
+    handle_key(&mut m, key(' '));
+    let Some(Effect::Say { argv, after, .. }) = enter(&mut m) else {
+        panic!("a claim is a child off the main thread");
+    };
+    assert_eq!(argv, argv::claim_here("t-1a2b3/i-2", "claude", &[]));
+    assert!(after.contains("Nothing was started"), "{after}");
+}
+
+/// Refusal: `d` with nothing ready, or on work that cannot start, says so.
+#[test]
+fn dispatch_says_when_nothing_can_start() {
     let mut m = fixture();
     assert_eq!(handle_key(&mut m, key('d')), None);
-    assert!(m.message.contains("unavailable"), "{}", m.message);
-    assert_eq!(handle_key(&mut m, key('a')), None);
-    assert!(m.message.contains("unavailable"), "{}", m.message);
+    assert!(m.message.contains("cannot start now"), "{}", m.message);
+    assert_eq!(m.mode, Mode::Watch);
+    m.snap.ready.clear();
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('d'));
+    assert!(m.form.is_none());
+    assert!(m.message.contains("nothing can start"), "{}", m.message);
+}
+
+#[test]
+fn an_answer_takes_the_recommendation_and_says_when_it_is_read() {
+    let mut m = fixture();
+    m.snap.human = Some("Owner".to_owned());
+    handle_key(&mut m, key('2'));
+    m.act_panel = Panel::Answer;
+    handle_key(&mut m, key('a'));
+    assert!(screen(&m).contains("next `war start`"));
+    enter(&mut m);
+    let Some(Effect::Say { argv, after, .. }) = enter(&mut m) else {
+        panic!("an answer is a child off the main thread");
+    };
+    assert_eq!(
+        argv,
+        argv::answer("OW-WAR-0001", "Q-001", "the fast one", "Owner")
+    );
+    argv::parses(&argv).expect("it parses");
+    assert!(after.contains("next `war start`"), "{after}");
+}
+
+/// Refusal: nobody named, nothing runs. The register decides, not the app.
+#[test]
+fn an_answer_needs_someone_to_give_it() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    m.act_panel = Panel::Answer;
+    handle_key(&mut m, key('a'));
+    enter(&mut m);
+    assert_eq!(enter(&mut m), None);
+    assert!(m.message.contains("human role"), "{}", m.message);
+}
+
+#[test]
+fn a_note_says_who_reads_it_and_when() {
+    let mut m = fixture();
+    handle_key(&mut m, key('a'));
+    typed(&mut m, "use the fast queue");
+    let Some(Effect::Say { argv, after, prompt, .. }) = enter(&mut m) else {
+        panic!("a note is a child off the main thread");
+    };
+    assert_eq!(argv, argv::note("t-1a2b3", "use the fast queue"));
+    argv::parses(&argv).expect("it parses");
+    assert!(after.contains("Nobody holds this"), "{after}");
+    assert_eq!(prompt, None, "no agent told unless asked");
+}
+
+/// With an agent in the holder's workspace, Herdr can deliver it now, and
+/// only when asked.
+#[test]
+fn a_note_goes_through_herdr_only_when_asked() {
+    let mut m = fixture();
+    m.live.agents = vec![serde_json::from_value(serde_json::json!({
+        "pane_id": "w1:p1", "cwd": "/work/wt-a",
+    }))
+    .expect("an agent")];
+    act::open_note(&mut m, "t-1a2b3/i-1".to_owned());
+    handle_key(&mut m, press(KeyCode::Tab));
+    typed(&mut m, "stop");
+    let Some(Effect::Say { after, prompt, .. }) = enter(&mut m) else {
+        panic!("a note");
+    };
+    assert_eq!(
+        prompt,
+        Some(("w1:p1".to_owned(), "A note on t-1a2b3/i-1: stop".to_owned()))
+    );
+    assert!(after.contains("next `war` command"), "{after}");
+}
+
+#[test]
+fn interview_is_a_read_and_says_so() {
+    let mut m = fixture();
+    handle_key(&mut m, key('2'));
+    m.act_panel = Panel::Answer;
+    let Some(Effect::Capture { title, argv }) = handle_key(&mut m, key('i')) else {
+        panic!("an interview is a read");
+    };
+    assert!(title.contains("read-only"), "{title}");
+    argv::parses(&argv).expect("it parses");
+}
+
+#[test]
+fn e_and_f_show_what_a_signature_rests_on() {
+    let mut m = fixture();
+    m.snap.views.insert(
+        View::Corpus,
+        vec![Row {
+            text: "OW-WAR-0001 draft".to_owned(),
+            ..Row::default()
+        }],
+    );
+    handle_key(&mut m, key('2'));
+    handle_key(&mut m, key('e'));
+    let (title, text, _) = m.popup.take().expect("a popup");
+    assert!(title.contains("OW-WAR-0001"), "{title}");
+    assert!(text.contains("ops.check@1.0.0"), "{text}");
+    assert_eq!(
+        handle_key(&mut m, key('f')),
+        Some(Effect::Capture {
+            title: "war admin diff OW-WAR-0001".to_owned(),
+            argv: argv::diff("OW-WAR-0001"),
+        })
+    );
+}
+
+/// Refusal: a target that is no Warrant has no diff to show.
+#[test]
+fn a_target_that_is_no_warrant_has_no_diff() {
+    let mut m = fixture();
+    m.snap.queue = vec![queue_row("2.0.0")];
+    handle_key(&mut m, key('2'));
+    assert_eq!(handle_key(&mut m, key('f')), None);
+    assert!(m.message.contains("not a Warrant"), "{}", m.message);
 }
 
 #[test]

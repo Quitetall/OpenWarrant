@@ -1,7 +1,7 @@
  1 Watch  2 Act  3 Records  p Repos
-┌ Create ──────────────────────────────────────────────────┐┌ Ready (dispatch unavailable in this build: the bottom line is the command) ────────────┐
-│unavailable in this build                                 ││t-1a2b3/i-2 Docs                                                                        │
-│Run `war create "what this work accomplishes"` in a shell.││                                                                                        │
+┌ Create ──────────────────────────────────────────────────┐┌ Dispatch — what can start now, critical path first; d dispatches ──────────────────────┐
+│c  a new item through `war create`                        ││t-1a2b3/i-2 Docs                                                                        │
+│                                                          ││                                                                                        │
 │                                                          ││                                                                                        │
 │                                                          ││                                                                                        │
 │                                                          ││                                                                                        │
@@ -20,7 +20,7 @@
 │                                                          ││                                                                                        │
 │                                                          ││                                                                                        │
 └──────────────────────────────────────────────────────────┘└────────────────────────────────────────────────────────────────────────────────────────┘
-┌ Answer (unavailable in this build: the bottom line is the command) ─────┐┌ Sign — 2 act(s); space checks, s signs checked, Enter signs row, v shows┐
+┌ Answer — a answers, i interviews (read-only) ───────────────────────────┐┌ Sign — 2 act(s); space checks, s signs, Enter signs row, v request, e ev┐
 │OW-WAR-0001/Q-001: Which queue?                                          ││[ ] authorize OW-WAR-0001                                                │
 │                                                                         ││[ ] authorize OW-WAR-0002                                                │
 │                                                                         ││                                                                         │

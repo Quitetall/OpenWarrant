@@ -79,14 +79,31 @@ Herdr is optional. Everything works without it, and the top line says which it i
 
 ## Act
 
-The panels, moved between with `h` and `l`. Sign is the one that opens.
+The panels, moved between with `h` and `l`. Sign is the one that opens. A form takes
+every key until `Enter` finishes it or `Esc` leaves it with nothing done.
 
-- **Create**: unavailable in this build; run `war create`.
-- **Dispatch**: what can start now, in scheduler order. Unavailable in this build;
-  the bottom line is the command.
-- **Answer**: open questions. Unavailable in this build; the bottom line is the
-  command.
-- **Sign**: see Queue.
+- **Create** (`c`): a title and items, through `war create`. When `[plan]
+  drafter_argv` is set, `Tab` asks that configured process to draft the items.
+- **Dispatch** (`d`): what can start now, critical path first. The form goes task,
+  executor, write scope, worktree, launch. Executors come from `[go]`: there is no
+  built-in list, and an external executor, which `war evidence go` runs by its route,
+  shows as unavailable for one chosen task. `war start --worktree --print --paths`
+  takes the claim and makes the worktree. A scope overlapping another worktree's is
+  allowed and shows in Watch as a collision, a merge matter; in one checkout it is
+  refused, `work.write-conflict`. It then launches through a Herdr tab (`tab.create`, then `agent.start`), this
+  terminal, or detached with a log at `.openwarrant/start.log` in the worktree. A
+  harness that needs a terminal, such as `claude`, is offered the terminal before
+  detached, because a detached start of it stops at once. Choosing this checkout claims
+  with `war admin claim` and starts nothing. The claim's actor is the executor's name.
+- **Answer** (`a`): `war plan answer`, as a human the register names; an empty answer
+  takes the recommendation. `i` shows `war plan interview`, read-only. There are no
+  multiple choices: a question has no options field.
+- **Notes**: `a` on Watch's Work or Claims is `war note`. Neither an answer nor a note
+  reaches a running agent by itself, and the form says when it will: its next `war`
+  command, or `war start`. With a Herdr agent in the holder's workspace, `Tab` delivers
+  a note as a prompt now.
+- **Sign**: see Queue. `e` shows the obligations and evidence behind the highlighted
+  act, and `f` its `war admin diff`.
 
 ## Queue
 
@@ -230,11 +247,15 @@ The list is read when you open it, not every second: `r` re-reads it.
 | `/` | filter this list; `Esc` clears |
 | `Enter` | open the row's detail; sign (Act, Help); run `war init` (Setup); open a repository |
 | `v` | show the request behind a signing row |
-| `space` `a` `n` | Sign panel: check row / all / none |
+| `space` `a` `n` | Sign panel: check row / all / none (these win over `a` above) |
 | `s` | Sign panel: sign the checked acts — more than one is a batch, one dialog |
 | `x` | run the row's auto remedy |
-| `c` | show the commit message `war admin commit --write` would use |
-| `d` | Help: documents on/off |
+| `c` | Act: create work; elsewhere: the commit message `war admin commit --write` would use |
+| `d` | Watch, Act: dispatch the highlighted task; Help: documents on/off |
+| `a` | Watch, Act: answer the highlighted question, or note on the highlighted work |
+| `i` | Act, Answer panel: `war plan interview`, read-only |
+| `e` | Act, Sign panel: the obligations and evidence of the highlighted act |
+| `f` | Act, Sign panel: `war admin diff` of the highlighted act |
 | `[` `]` | Records: previous/next view; a document: previous/next; Watch: previous/next agent |
 | `r` | re-read the records now |
 | `?` | this table |

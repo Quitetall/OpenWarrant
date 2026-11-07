@@ -14,6 +14,9 @@
 #   sends `null` where its schema allows it, the agents show, and an answer it
 #   cannot read says UNKNOWN instead of a shorter fleet.
 # - A real claim shows its holder and a renewal labelled as what it is.
+# - `war start --worktree --paths`, which Dispatch runs, claims the typed scope.
+#   Two worktrees may overlap, and Watch shows the collision; one checkout may
+#   not, and the claim is refused by name.
 # - Tokens a real `war evidence go` recorded are shown as recorded, a run that
 #   reported none is UNKNOWN and not zero, and an undated price table is refused.
 
@@ -192,5 +195,33 @@ else
     th_fail "an undated price table is refused" "$(grep -m1 TOKENS <<<"$TH_WATCH")"
 fi
 
+# Dispatch's command: scope, worktree and claim from one real `war start`.
+# Overlap across worktrees is a merge matter, so both are claimed and Watch
+# says so; overlap in one checkout is refused (`ticket::claim_scoped_at`).
+TH_A=$(th_war --json create "Scoped one" --item "a" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
+TH_B=$(th_war --json create "Scoped two" --item "b" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
+git -C "$TH_ROOT" add -A >/dev/null 2>&1
+git -C "$TH_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm scoped >/dev/null 2>&1
+TH_OUT=$(th_war --json start "$TH_A" --worktree --print --as one --paths 'src/**' 2>/dev/null); TH_STATUS=$?
+TH_WT=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["worktree"])' "$TH_OUT" 2>/dev/null)
+TH_OUT2=$(th_war --json start "$TH_B" --worktree --print --as two --paths 'src/a/**' 2>/dev/null); TH_STATUS2=$?
+TH_WATCH=$(th_war tui --render watch 2>&1)
+if [[ $TH_STATUS -eq 0 && -d "$TH_WT" && $TH_STATUS2 -eq 0 ]] && grep -q 'COLLISIONS 1' <<<"$TH_WATCH" \
+    && grep -q 'COLLISION$\|COLLISION ' <<<"$TH_WATCH" && grep -q 'one t-' <<<"$TH_WATCH" && grep -qF 'src/**' <<<"$TH_WATCH"; then
+    th_ok "two worktrees may overlap, shown" "both claimed; Watch reports the collision"
+else
+    th_fail "two worktrees may overlap, shown" "exit $TH_STATUS/$TH_STATUS2: $(grep -m1 COLLISIONS <<<"$TH_WATCH")"
+fi
+TH_C=$(th_war --json create "Scoped three" --item "c" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
+TH_D=$(th_war --json create "Scoped four" --item "d" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
+th_war admin claim "$TH_C" --as three --paths 'lib/**' >/dev/null 2>&1
+TH_OUT2=$(th_war admin claim "$TH_D" --as four --paths 'lib/a/**' 2>&1); TH_STATUS2=$?
+if [[ $TH_STATUS2 -ne 0 ]] && grep -q 'work.write-conflict' <<<"$TH_OUT2"; then
+    th_ok "one checkout may not overlap" "work.write-conflict"
+else
+    th_fail "one checkout may not overlap" "exit $TH_STATUS2: $(head -2 <<<"$TH_OUT2" | tr '\n' ' ')"
+fi
+
+git -C "$TH_ROOT" worktree prune >/dev/null 2>&1
 /usr/bin/rm -rf "$TH_TMP"
-unset TH_ONE TH_TMP TH_WAR TH_ROOT TH_TICKET TH_WATCH TH_OUT TH_STATUS TH_STUB TH_FAKE
+unset TH_A TH_B TH_C TH_D TH_OUT2 TH_STATUS2 TH_WT TH_ONE TH_TMP TH_WAR TH_ROOT TH_TICKET TH_WATCH TH_OUT TH_STATUS TH_STUB TH_FAKE

@@ -78,13 +78,21 @@ the option appears only when that is set, and is described as a configured proce
 
 **Dispatch** picks a task from the ready list, then an executor from `[go]` (there is no
 built-in model list), then a write scope, then a worktree, then claims with
-`claim_scoped_at` and launches. Two adapters:
+`claim_scoped_at`, through `war start --worktree --print --paths`, and launches. Three
+adapters:
 
-1. Herdr: `tab.create`, then `agent.start` in the tab's pane.
-2. Detached `war start --worktree`.
+1. Herdr: `tab.create`, then `agent.start` in the tab's root pane.
+2. Detached `war start --worktree`, logging to a file. `claude`'s session needs a
+   terminal, so it stops at once this way, and for such a harness the next adapter is
+   offered first.
+3. `war start --worktree` in this terminal, until the session ends.
 
-`claim_scoped_at` refuses an overlapping declared scope, by name, and the refusal is
-what the person sees.
+An executor in `[go.executors]` runs under `war evidence go`, by its route, not for one
+chosen task, and shows as unavailable here.
+
+`claim_scoped_at` refuses a declared scope that overlaps another in the same checkout, by
+name, and the refusal is what the person sees. Across worktrees an overlap is a merge
+matter: it is allowed, and Watch shows it as a collision.
 
 **Answer** is `war plan answer` for a stage's question and `war note` otherwise. Neither
 pushes anything to a running agent: the agent reads an answer at its next `war` call or

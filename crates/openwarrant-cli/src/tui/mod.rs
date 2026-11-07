@@ -399,6 +399,27 @@ fn perform(
             m.message = format!("running war {}…", argv.join(" "));
             reader.capture(m.root.clone(), title, argv);
         }
+        Effect::Say {
+            title,
+            argv,
+            after,
+            prompt,
+        } => {
+            m.message = format!("running war {}…", argv.join(" "));
+            reader.say(m.root.clone(), title, argv, after, prompt);
+        }
+        Effect::Dispatch(plan) => {
+            if plan.launcher == model::Launcher::Terminal {
+                let argv = argv::start(&plan.node, &plan.actor, &plan.paths, false);
+                let args: Vec<&str> = argv.iter().map(String::as_str).collect();
+                let code = run_child_inherit(terminal, &m.root, &args)?;
+                m.message = format!("war {} exited {code}", argv.join(" "));
+                reader.reload();
+            } else {
+                m.message = format!("dispatching {}…", plan.node);
+                reader.dispatch(m.root.clone(), plan);
+            }
+        }
         Effect::Open(root) => open_repo(m, reader, root),
         Effect::NewRepo(dir) => {
             if let Err(e) = std::fs::create_dir_all(&dir) {
@@ -449,6 +470,9 @@ fn handle_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
             _ => {}
         }
         return None;
+    }
+    if m.form.is_some() {
+        return act::form_key(m, k);
     }
     if m.filtering {
         match k.code {
@@ -610,6 +634,57 @@ fn expand_home(s: &str) -> String {
     }
 }
 
+/// A child's stdout, on a background thread, for a caller that reads it.
+fn run_child_output(root: &Utf8Path, args: &[&str]) -> Result<String, String> {
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    std::process::Command::new(exe)
+        .arg("--root")
+        .arg(root.as_str())
+        .args(args)
+        .current_dir(root)
+        .output()
+        .map(|o| String::from_utf8_lossy(&o.stdout).into_owned())
+        .map_err(|e| format!("could not run war {}: {e}", args.join(" ")))
+}
+
+/// A child that outlives the app: its own process group, no terminal, its
+/// output in `log`. Returns its pid.
+fn run_child_detached(root: &Utf8Path, args: &[&str], log: &Utf8Path) -> Result<u32, String> {
+    use std::process::Stdio;
+    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    let file = std::fs::File::create(log).map_err(|e| format!("{log}: {e}"))?;
+    let err = file.try_clone().map_err(|e| format!("{log}: {e}"))?;
+    std::process::Command::new(exe)
+        .arg("--root")
+        .arg(root.as_str())
+        .args(args)
+        .current_dir(root)
+        .stdin(Stdio::null())
+        .stdout(file)
+        .stderr(err)
+        .own_group()
+        .spawn()
+        .map(|c| c.id())
+        .map_err(|e| format!("could not run war {}: {e}", args.join(" ")))
+}
+
+/// A process group of its own, so the app's terminal signals miss a child
+/// that is meant to outlive it.
+trait OwnGroup {
+    fn own_group(&mut self) -> &mut Self;
+}
+
+impl OwnGroup for std::process::Command {
+    #[cfg(unix)]
+    fn own_group(&mut self) -> &mut Self {
+        std::os::unix::process::CommandExt::process_group(self, 0)
+    }
+    #[cfg(not(unix))]
+    fn own_group(&mut self) -> &mut Self {
+        self
+    }
+}
+
 /// A child whose output the app shows in a popup: `--show`, an auto remedy.
 /// Called on a background thread, never the one that draws.
 fn run_child_captured(root: &Utf8Path, args: &[&str]) -> String {
@@ -718,6 +793,9 @@ fn draw(f: &mut ratatui::Frame, m: &Model) {
                 .scroll((*scroll, 0)),
             area,
         );
+    }
+    if m.form.is_some() {
+        act::draw_form(f, m, centered(area, 76, 60));
     }
     if m.show_keys {
         let area = centered(area, 80, 80);
@@ -829,11 +907,15 @@ j k                     move (in a document: next/previous document)
 /                       filter this list (Esc clears)
 Enter                   open the row's detail; sign (Act, Help); run war init (Setup); open a repository
 v                       show the request behind a signing row
-space  a  n             Sign panel: check row / check all / check none
+space  a  n             Sign panel: check row / check all / check none (these win over a above)
 s                       Sign panel: sign the checked acts, one or a batch in one dialog
 x                       run the row's auto remedy (never a signing act)
-c                       show the commit message `war admin commit --write` would use
-d                       Help: documents on/off
+c                       Act: create work; elsewhere: the commit message `war admin commit --write` would use
+d                       Watch, Act: dispatch the highlighted task; Help: documents on/off
+a                       Watch, Act: answer the highlighted question, or note on the highlighted work
+i                       Act, Answer panel: `war plan interview`, read-only
+e                       Act, Sign panel: the obligations and evidence of the highlighted act
+f                       Act, Sign panel: `war admin diff` of the highlighted act
 [  ]                    Records: previous/next view; a document: previous/next; Watch: previous/next agent
 r                       re-read the records now (they also refresh on their own)
 ?                       this table
