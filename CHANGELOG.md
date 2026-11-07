@@ -15,8 +15,19 @@ Notable changes to OpenWarrant. Format loosely follows
   reaches the brief. An approval of a ticket with such a section goes stale
   once, because its statement now covers that text.
 
+### Changed
+
+- `war plan promote` adds a field in place and writes no document: a sign-off
+  item, so the work is an Order, or with `--test` a test, so it is a Warrant.
+  The id stays. Drafting a directory Warrant from a ticket, which is what it
+  did before, is `war plan new --from <ticket>`.
+
 ### Added
 
+- `war create --sign` makes an Order, one document like the other levels.
+- `war check`, `war status`, `war view show` take a single-file Warrant's alias,
+  and `war view next` lists open single-file and read-in-place work under
+  `elsewhere`.
 - `war plan types add interfaces` adds an `interface` document type: numbered
   clauses two sides build against, each saying how it's verified, with an open
   value declared `tbd` or `tbr`. `docs/INTERFACES.md` shows it.

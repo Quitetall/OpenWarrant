@@ -732,7 +732,7 @@ enum DailyCommand {
         /// Warrant's items implement them (OW-WAR-0148 M7). The records are
         /// validated as authored ones are, then written to one record atom
         /// under `docs/records/<area>/`; a refused proposal writes nothing.
-        #[arg(long, requires = "draft", conflicts_with_all = ["kind", "labels", "part_of", "implements", "issue", "issue_file", "tests"])]
+        #[arg(long, requires = "draft", conflicts_with_all = ["kind", "labels", "part_of", "implements", "issue", "issue_file", "tests", "sign"])]
         records: bool,
         /// With --records: the area under `docs/records/` the records land in.
         #[arg(long, value_name = "NAME", requires = "records")]
@@ -761,6 +761,11 @@ enum DailyCommand {
         /// passes.
         #[arg(long = "test", value_name = "COMMAND", conflicts_with = "legacy")]
         tests: Vec<String>,
+        /// Require a person's signature at the end, so the work is an Order:
+        /// a sign-off item with `min: signed` in the same one document. Any
+        /// agent may ask for this; only a person can give it (`war sign`).
+        #[arg(long, conflicts_with = "legacy")]
+        sign: bool,
         /// Make the Warrant from GitHub issue <N>, read once through
         /// `[intake] fetch_argv`; the Warrant records the link. With
         /// `[intake.writeback]` set, finishing it comments on and closes the issue.
@@ -1116,7 +1121,16 @@ enum PlanCommand {
     /// heading followed by the question it answers (OW-ADR-0022).
     New {
         /// The Warrant's title.
-        title: String,
+        #[arg(required_unless_present = "from")]
+        title: Option<String>,
+        /// Draft a directory Warrant from this ticket, carrying its
+        /// description and checklist, for a contract that needs authorize
+        /// and resolve. The ticket records `promoted_to` and stays workable.
+        #[arg(long, value_name = "TICKET", conflicts_with_all = ["title", "preset", "profile", "parent", "format_version"])]
+        from: Option<String>,
+        /// Who is acting, with `--from`.
+        #[arg(long = "as", value_name = "ACTOR", requires = "from")]
+        actor: Option<String>,
         /// The preset: `feature`, `fix` (delivery) or `decision`.
         #[arg(long)]
         preset: Option<String>,
@@ -1135,12 +1149,17 @@ enum PlanCommand {
         #[arg(long = "format", value_name = "VERSION", conflicts_with = "parent")]
         format_version: Option<String>,
     },
-    /// Draft a directory Warrant (delivery) from a light one, for when
-    /// someone wants sign-off. Opt-in: the authority layer starts here, not
-    /// before.
+    /// Add the field that raises an item's level, in place: no new document.
+    ///
+    /// Plain, a required signature, so it is an Order. With `--test`, a
+    /// trigger, so it is a Warrant. The id does not change.
     Promote {
         #[arg(value_name = "WARRANT")]
         ticket: String,
+        /// A test instead of a signature: a shell command `war done` runs.
+        /// Repeatable.
+        #[arg(long = "test", value_name = "COMMAND")]
+        tests: Vec<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -3057,6 +3076,42 @@ fn official_section(
     ))
 }
 
+/// `war status <alias>` and `war view show <alias>` of a single-file Warrant,
+/// read through [`work`]: what it is and the document itself. `None` when
+/// `alias` is a directory Warrant or no item, for the corpus path to answer.
+fn single_file_answer(
+    mode: output::Mode,
+    repository: &repo::Repository,
+    alias: &str,
+    command: &str,
+) -> Option<u8> {
+    if repository.warrant_dir(alias).is_ok() {
+        return None;
+    }
+    let work = work::Work::elsewhere(repository);
+    let item = work
+        .find(alias)
+        .filter(|i| i.encoding == work::Encoding::SingleFile)?;
+    let text = vfs::read_to_string(repository.root.join(&item.place)).ok()?;
+    let rendered = format!(
+        "{} ({}, {}): {}\n{}\n\n{text}",
+        item.id,
+        item.level.as_str(),
+        item.state,
+        item.title,
+        item.place
+    );
+    output::emit(
+        mode,
+        command,
+        &rendered,
+        serde_json::json!({"alias": item.id, "title": item.title, "level": item.level,
+            "state": item.state, "encoding": item.encoding, "place": item.place,
+            "view": "status", "rendered": rendered}),
+    );
+    Some(EXIT_OK)
+}
+
 /// A ticket act that may move the agent index (create, add, done, note,
 /// edit) refreshes its tickets' lines after an accepted outcome (t-ca38),
 /// and with `record_atoms` the lines of the record atoms `create --records`
@@ -3503,6 +3558,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             tools,
             commands,
             tests,
+            sign,
             issue,
             issue_file,
             implements,
@@ -3578,11 +3634,22 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 },
                 tests,
             };
-            let outcome = if legacy {
+            let mut outcome = if legacy {
                 ticket::create_legacy(&store, &args)?
             } else {
                 ticket::create(&store, &args)?
             };
+            if sign
+                && !outcome.is_refused()
+                && let Some(id) = outcome.result["id"].as_str().map(str::to_owned)
+            {
+                let raised = ticket::parts::promote(&store, &id, &[])?;
+                if raised.is_refused() {
+                    return Ok(ticket_answer(mode, "create", &raised));
+                }
+                outcome.human = format!("{}\n{}", outcome.human, raised.human);
+                outcome.result["level"] = raised.result["level"].clone();
+            }
             refresh_index_after(&repository, &outcome, false);
             Ok(ticket_answer(mode, "create", &outcome))
         }
@@ -3724,6 +3791,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             match alias {
                 Some(alias) => {
+                    if let Some(code) = single_file_answer(mode, &repository, &alias, "status") {
+                        return Ok(code);
+                    }
                     let mut rendered = show::run(&repository, &alias, "status")?;
                     // OW-WAR-0137, OBL-004: who acted, from the records.
                     let review = status::review_of(&repository, &repository.warrant_dir(&alias)?)?;
@@ -4170,6 +4240,16 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 interop::adapters::check(&repository, Some(a), &mut report);
                 return Ok(output::finish(mode, "check", &report, None));
             }
+            // W1.1: a single-file Warrant is checked as the document it is,
+            // with or without a directory corpus around it.
+            if let Some(source) = alias
+                .as_deref()
+                .and_then(|a| work::document_of(&repository, a))
+            {
+                let mut report = diagnostic::Report::default();
+                format_doc::check_one(&repository, &source, &mut report);
+                return Ok(output::finish(mode, "check", &report, None));
+            }
             // One-shot and read-only: the tree does not move under it (t-eca6).
             gate_cmd::source::remember_tree_reads();
             let mut report = check::run(&repository, alias.as_deref(), generated)?;
@@ -4562,13 +4642,24 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         }
         PlanCommand::Promote {
             ticket: target,
+            tests,
             actor,
+        } => {
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::parts::promote(&store, &target, &tests)?;
+            refresh_index_after(&repository, &outcome, false);
+            Ok(ticket_answer(mode, "promote", &outcome))
+        }
+        PlanCommand::New {
+            from: Some(ticket),
+            actor,
+            ..
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             Ok(ticket_answer(
                 mode,
-                "promote",
-                &ticket::promote(&repository, &store, &target)?,
+                "new",
+                &ticket::draft_from(&repository, &store, &ticket)?,
             ))
         }
         PlanCommand::New {
@@ -4577,7 +4668,9 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             profile,
             parent,
             format_version,
+            ..
         } => {
+            let title = title.unwrap_or_default();
             // OW-WAR-0140: a profile is a name the repository's registry
             // resolves — the two core ones and every `profiles/<name>.toml`.
             let repository = ctx.open_repo()?;
@@ -6319,6 +6412,9 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
         }
         ViewCommand::Show { alias, view } => {
             let repository = ctx.open_repo()?;
+            if let Some(code) = single_file_answer(mode, &repository, &alias, "show") {
+                return Ok(code);
+            }
             let mut rendered = show::run(&repository, &alias, &view)?;
             // OW-WAR-0137, OBL-004: the two views a reader opens to ask "who
             // reviewed this?" end with who acted, from the records. Here rather

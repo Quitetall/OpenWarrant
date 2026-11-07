@@ -139,6 +139,54 @@ pub struct Next {
     /// none, so the envelope is the bytes it always was.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub blocked: Vec<crate::go::BlockedNode>,
+    /// W1.1: open work neither list above reaches, from [`crate::work`]: a
+    /// single-file Warrant, or one read in place. Absent when there is none.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub elsewhere: Vec<Elsewhere>,
+}
+
+/// One open item outside the ticket loop and the Warrant acts.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Elsewhere {
+    pub id: String,
+    pub title: String,
+    pub level: crate::work::Level,
+    pub state: String,
+    pub place: String,
+    /// What to read first.
+    pub command: String,
+}
+
+impl Elsewhere {
+    fn of(item: &crate::work::Item) -> Self {
+        Self {
+            id: item.id.clone(),
+            title: item.title.clone(),
+            level: item.level,
+            state: item.state.clone(),
+            place: item.place.clone(),
+            command: format!("war status {}", item.id),
+        }
+    }
+}
+
+/// The open items no other list here shows.
+fn elsewhere_items(repo: &Repository, next: &mut Next) {
+    let work = crate::work::Work::elsewhere(repo);
+    next.elsewhere = work
+        .items()
+        .iter()
+        .filter(|i| !i.is_done())
+        .map(Elsewhere::of)
+        .collect();
+    if let Some(why) = work.unread(crate::work::Source::Others) {
+        next.findings.push(Finding {
+            rule: "next.work-unreadable".to_owned(),
+            severity: "unknown".to_owned(),
+            file: None,
+            message: format!("work outside the ticket store is UNKNOWN: {why}"),
+        });
+    }
 }
 
 /// A finding carried into `war view next`, in the envelope diagnostic's shape.
@@ -405,6 +453,7 @@ pub fn derive(
         findings: Vec::new(),
         release: None,
         blocked: Vec::new(),
+        elsewhere: Vec::new(),
     }
 }
 
@@ -593,6 +642,7 @@ fn judged(
             !next.blocked.iter().any(|b| b.node == id)
         });
     }
+    elsewhere_items(repo, &mut next);
     if next.actions.is_empty() && next.ready.is_empty() {
         // M9: an empty list is said as what it means for ordinary work. A
         // ticket store that could not be read counts as tracked: "nothing
@@ -605,7 +655,7 @@ fn judged(
                 && w.rung != openwarrant_core::status::WarrantRung::Resolved
         });
         next.idle = Some(
-            if open_ticket || open_warrant {
+            if open_ticket || open_warrant || !next.elsewhere.is_empty() {
                 IDLE_TRACKED
             } else {
                 IDLE_UNTRACKED
@@ -928,6 +978,19 @@ pub fn render(n: &Next) -> String {
     if let Some(r) = &n.release {
         s.push_str(&format!("{:>6} {r}\n", ""));
     }
+    for e in &n.elsewhere {
+        s.push_str(&format!(
+            "{:<6} {:<12} {:<10} {}\n{:>6} {}: {} ({})\n",
+            "open",
+            e.id,
+            e.state,
+            e.command,
+            "",
+            e.level.as_str(),
+            e.title,
+            e.place
+        ));
+    }
     if let Some(lines) = idle_lines(n) {
         for l in lines {
             s.push_str(&l);
@@ -1023,6 +1086,7 @@ mod tests {
             findings: Vec::new(),
             release: None,
             blocked: Vec::new(),
+            elsewhere: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &report);
         let offered: Vec<&str> = next.actions.iter().map(|a| a.command.as_str()).collect();
@@ -1053,6 +1117,7 @@ mod tests {
             findings: Vec::new(),
             release: None,
             blocked: Vec::new(),
+            elsewhere: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &crate::diagnostic::Report::default());
         assert!(next.actions.is_empty());
@@ -1174,6 +1239,7 @@ mod tests {
             findings: Vec::new(),
             release: None,
             blocked: Vec::new(),
+            elsewhere: Vec::new(),
         };
         let out = render(&next);
         let claim = out
@@ -1205,6 +1271,7 @@ mod tests {
             findings: Vec::new(),
             release: None,
             blocked: Vec::new(),
+            elsewhere: Vec::new(),
         };
         let out = render(&next);
         // M9: the first line is permission, the second the reason, the third
@@ -1245,6 +1312,7 @@ mod tests {
             findings: Vec::new(),
             release: None,
             blocked: Vec::new(),
+            elsewhere: Vec::new(),
         };
         order(&mut next);
         assert_eq!(next.actions[0].actor, Actor::Agent);

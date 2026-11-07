@@ -451,17 +451,36 @@ if [[ "$TK_NOAUTH" == ok* && $TK_SIGS -eq $TK_SIGS0 ]]; then
 else
     tk_fail "war mcp: still no authority tool" "$TK_NOAUTH; signed files $TK_SIGS0 -> $TK_SIGS"
 fi
+# Promotion adds a field in place: the same id, the same one document, no new
+# file anywhere under docs/warrants. Asked twice, it is refused.
+TK_WN=$(find "$PLANT_ROOT/docs/warrants" -mindepth 1 -maxdepth 1 | wc -l)
 TK_P=$(tkj promote "$TK")
 TK_W=$(tk_field "$TK_P" 'v["result"]["warrant"]')
+TK_LVL=$(tk_field "$TK_P" 'v["result"]["level"]')
 TK_ERR=$(tkw promote "$TK" 2>&1 >/dev/null); TK_S=$?
+TK_WN2=$(find "$PLANT_ROOT/docs/warrants" -mindepth 1 -maxdepth 1 | wc -l)
+if [[ "$TK_W" == "$TK" && "$TK_LVL" == order && $TK_WN -eq $TK_WN2 && $TK_S -eq 2 ]] \
+    && grep -q '^min: signed$' "$PLANT_ROOT/docs/tickets/$TK.md" \
+    && ! grep -q '^promoted_to:' "$PLANT_ROOT/docs/tickets/$TK.md" \
+    && grep -q 'ticket.already-promoted' <<<"$TK_ERR"; then
+    tk_ok "promote adds a field in place" "$TK is an Order, same id, no new document; twice refused"
+else
+    tk_fail "promote adds a field in place" "warrant=$TK_W level=$TK_LVL docs $TK_WN->$TK_WN2 exit=$TK_S: $TK_ERR"
+fi
+# What promotion used to do is `plan new --from`: a directory Warrant carrying
+# the ticket, a draft awaiting its human, and refused the second time.
+TK_F=$(tkw create "Needs a contract" -i "one" 2>/dev/null | awk 'NR==1{print $1}')
+TK_P=$(tkj new --from "$TK_F")
+TK_W=$(tk_field "$TK_P" 'v["result"]["warrant"]')
+TK_ERR=$(tkw new --from "$TK_F" 2>&1 >/dev/null); TK_S=$?
 if [[ "$TK_W" =~ ^TK-WAR-[0-9]{4}$ && -f "$PLANT_ROOT/docs/warrants/$TK_W/manifest.toml" && $TK_S -eq 2 ]] \
-    && grep -q "^promoted_to: $TK_W\$" "$PLANT_ROOT/docs/tickets/$TK.md" \
-    && grep -q "From ticket \[$TK\]" "$PLANT_ROOT/docs/warrants/$TK_W/atoms/10-intent.md" \
+    && grep -q "^promoted_to: $TK_W\$" "$PLANT_ROOT/docs/tickets/$TK_F.md" \
+    && grep -q "From ticket \[$TK_F\]" "$PLANT_ROOT/docs/warrants/$TK_W/atoms/10-intent.md" \
     && grep -q 'ticket.already-promoted' <<<"$TK_ERR" \
     && ! grep -q "^authorization" <(ls "$PLANT_ROOT/docs/warrants/$TK_W"); then
-    tk_ok "promote drafts a Warrant, opt-in" "$TK → $TK_W, a draft awaiting its human; twice refused"
+    tk_ok "plan new --from drafts a Warrant" "$TK_F → $TK_W, a draft awaiting its human; twice refused"
 else
-    tk_fail "promote drafts a Warrant, opt-in" "warrant=$TK_W exit=$TK_S: $TK_ERR"
+    tk_fail "plan new --from drafts a Warrant" "warrant=$TK_W exit=$TK_S: $TK_ERR"
 fi
 TK_N=$(ls "$PLANT_ROOT/docs/tickets" | wc -l)
 TK_ERR=$(tkw create "Drafted work" --draft 2>&1 >/dev/null); TK_S=$?

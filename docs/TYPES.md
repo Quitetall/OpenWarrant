@@ -553,7 +553,7 @@ byte: nothing is migrated, and no signed digest moves.
 | encoding | where | its type | written by |
 |---|---|---|---|
 | light | `docs/tickets/<t-id>/`: a manifest, an intent and a checklist | the working form (`profiles/ticket.toml`); its own `type` (bug, feature, ...) beside | `war create`, `war admin import` |
-| directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war plan new`, `war plan --apply`, `war plan promote` |
+| directory | `docs/warrants/<alias>/`: a manifest and the atoms its profile requires | its profile: `delivery`, `decision`, ... | `war plan new`, `war plan --apply`, `war plan new --from` |
 | read in place | an OpenSpec change or a Spec Kit feature an `[[adapters]]` entry names | `openspec`, `speckit` | the tool that owns the folder; `war` never writes it |
 
 There is no third file format. The light encoding is already the small

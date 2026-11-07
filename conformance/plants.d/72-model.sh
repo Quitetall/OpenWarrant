@@ -35,9 +35,9 @@ md_war()     { "$MD_WAR" --root "$MD_ROOT" "$@"; }
 MD_T=$(md_war create "Plant ticket" -i first -i second 2>/dev/null | awk 'NR==1{print $1}')
 MD_I1=$(sed -n 's/^- \[ \] first (\(i-[0-9a-f]*\))$/\1/p' "$MD_ROOT/docs/tickets/$MD_T.md" 2>/dev/null)
 md_war add "$MD_T" third --after "$MD_I1" >/dev/null 2>&1
-md_war promote "$MD_T" >/dev/null 2>&1
+md_war new --from "$MD_T" >/dev/null 2>&1
 MD_L=$(md_war create --legacy "Plant legacy ticket" -i only 2>/dev/null | awk 'NR==1{print $1}')
-md_war promote "$MD_L" >/dev/null 2>&1
+md_war new --from "$MD_L" >/dev/null 2>&1
 md_war ask MD-WAR-0001 STAGE-001 "Which way?" >/dev/null 2>&1
 MD_U1=$(sed -n 's/^uuid = "\(.*\)"/\1/p' "$MD_ROOT/docs/warrants/MD-WAR-0001/manifest.toml")
 cat >> "$MD_ROOT/docs/warrants/MD-WAR-0002/manifest.toml" <<EOF

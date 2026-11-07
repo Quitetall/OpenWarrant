@@ -117,7 +117,7 @@ fn the_model_names_records_relations_and_is_deterministic() {
             .status
             .success()
     );
-    assert!(war(&root, &["promote", &ticket]).status.success());
+    assert!(war(&root, &["new", "--from", &ticket]).status.success());
 
     let (bytes, m) = model(&root);
     assert_eq!(m["schema"], "oh.war/model/v1");

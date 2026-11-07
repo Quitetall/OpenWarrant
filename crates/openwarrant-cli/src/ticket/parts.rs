@@ -78,6 +78,84 @@ pub(super) fn refuse_tests(tests: &[String]) -> Option<Outcome> {
     None
 }
 
+/// The item a promotion adds: what a person signs off at the end.
+pub const SIGN_OFF_ITEM: &str = "Signed off by a person";
+
+/// `war plan promote <id>`: raise an item's level by adding the field that
+/// makes it, in place (t-3c16c, the lean model). Plain, a required signature:
+/// a milestone with `min: signed`, so it is an Order. With `tests`, a trigger,
+/// so it is a Warrant. No document is written and the id does not change; an
+/// item already at the level it asks for is refused, not added to.
+pub fn promote(store: &Store, query: &str, tests: &[String]) -> Result<Outcome, RepoError> {
+    let (tickets, _) = store.load_all()?;
+    let index = match super::resolve(&tickets, query) {
+        Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
+        Err(d) => return Ok(Outcome::from_diagnostic(d)),
+    };
+    let t = &tickets[index];
+    let record = store.rel(if t.format { &t.intent_path } else { &t.dir });
+    if let Some(w) = &t.manifest.promoted_to {
+        return Ok(Outcome::refused(
+            "ticket.already-promoted",
+            record,
+            format!(
+                "{} was promoted into {w} already; work the contract there",
+                t.id()
+            ),
+        ));
+    }
+    let id = t.id().to_owned();
+    let before = crate::work::ticket_level(store, t);
+    if tests.is_empty() && before == crate::work::Level::Order {
+        return Ok(Outcome::refused(
+            "ticket.already-promoted",
+            record,
+            format!("{id} already needs a person's signature"),
+        ));
+    }
+    let args = if tests.is_empty() {
+        PartsArgs {
+            milestone: Some(SIGN_OFF_ITEM.to_owned()),
+            min: Some(Level::Signed.as_str().to_owned()),
+            ..PartsArgs::default()
+        }
+    } else {
+        PartsArgs {
+            tests: tests.to_vec(),
+            ..PartsArgs::default()
+        }
+    };
+    let added = add(store, &id, None, &[], &args, None)?;
+    if added.is_refused() {
+        return Ok(added);
+    }
+    let (reread, _) = store.load_all()?;
+    let Some(t) = reread.iter().find(|t| t.id() == id) else {
+        return Err(RepoError::Message(format!(
+            "{id} could not be read back after its promotion"
+        )));
+    };
+    let level = crate::work::ticket_level(store, t);
+    store.journal(
+        t,
+        super::event::PROMOTED,
+        &serde_json::json!({"warrant": id, "level": level, "parts": added.result["parts"]}),
+    )?;
+    let then = if tests.is_empty() {
+        format!(
+            "a person signs it off at the end: `war sign {id}/{} --ssh-sign`",
+            added.result["item"].as_str().unwrap_or("<item>")
+        )
+    } else {
+        "`war done` finishes it only when its test passes".to_owned()
+    };
+    Ok(Outcome::ok(
+        format!("{id} is now {} level, in place: {then}", level.as_str()),
+        serde_json::json!({"schema": "oh.war/ticket-promoted/v1", "ticket": id, "warrant": id,
+            "dir": record, "level": level, "parts": added.result["parts"]}),
+    ))
+}
+
 /// `war plan add <ticket|item> [text] --test/--kpi/--milestone/--min`: the parts
 /// written to the checks atom, and the item (when there is text or a
 /// milestone) to the checklist through `war plan add`'s own path.

@@ -143,7 +143,7 @@ not do:
   profile (`WorkingFormProfile`), so nothing that reads the contract corpus
   ever reads a two-atom record.
 - The way into the contract is promotion into the core profile it extends
-  (`war promote`), which then requires every core role, exactly as `war new`.
+  (`war plan new --from`), which then requires every core role, exactly as `war new`.
   The working form loosens nothing a signature, verification or resolution
   reads.
 - The registry refuses a working form that names no core role, a core role the
@@ -195,7 +195,7 @@ What was once chosen by the profile's name is data too:
 | `satisfied_outcome` | `delivered` for `delivery`, none otherwise | the `profile_outcome` `war sign` drafts for `satisfied` |
 | `falsifiable_claims` | `false` | §56.3: whether `falsified` may be recorded |
 | `standing_coverage` | `true` for `delivery`, `false` otherwise | whether a standing class may name the profile |
-| `extends` | — | the profile `war promote` turns a working record into |
+| `extends` | — | the profile `war plan new --from` turns a working record into |
 
 `satisfied_outcome` and `falsifiable_claims` need `resolution`;
 `standing_coverage` needs `authorization`.
