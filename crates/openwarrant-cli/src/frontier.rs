@@ -71,7 +71,7 @@ pub struct Frontier {
     pub claimed: usize,
     pub done: usize,
     pub blocked: usize,
-    /// Open single-file Warrants and Orders: `war view frontier` lists them,
+    /// Open single-file Warrants and Orders: `war plan frontier` lists them,
     /// and no reader that dispatches a stage sees them, since no stage of
     /// theirs can be dispatched.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

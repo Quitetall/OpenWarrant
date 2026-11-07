@@ -447,7 +447,7 @@ impl Work {
     }
 }
 
-/// The block `war status --verbose` and `war view frontier` print for
+/// The block `war status --verbose` and `war plan frontier` print for
 /// [`Work::documents`]; nothing when there are none.
 #[must_use]
 pub fn render_documents(items: &[Item]) -> String {
