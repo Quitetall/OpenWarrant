@@ -28607,7 +28607,7 @@ failure, rebuilt.
 | D-003 | The Projects pane, switching, the binary line | `crates/openwarrant-cli/src/tui/mod.rs` | drift |
 | D-004 | docs/TUI.md: the hub | `docs/TUI.md` | drift |
 | D-005 | README.md: war from anywhere | `README.md` | drift |
-| D-006 | The hub plants | `conformance/plants.d/71-hub.sh` | verified |
+| D-006 | The hub plants | `conformance/plants.d/71-hub.sh` | drift |
 
 ### OW-WAR-0116 — war ui: the web UI, one of the primary ways to use war, with the progress overview on the canonical roadmap
 
