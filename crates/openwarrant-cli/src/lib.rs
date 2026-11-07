@@ -59,6 +59,7 @@ pub mod inbox;
 pub mod init;
 pub mod install;
 pub mod instructions;
+pub mod interfaces;
 pub mod interop;
 pub mod interview;
 pub mod invalidation;
@@ -95,6 +96,7 @@ pub mod release_cmd;
 pub mod remedy;
 pub mod render_cmd;
 pub mod repo;
+pub mod repos;
 pub mod resolution_cmd;
 pub mod resolve;
 pub mod roadmap_cmd;
@@ -756,6 +758,8 @@ enum DailyCommand {
         /// A command this work may run; repeat for more.
         #[arg(long = "command", value_name = "CMD", conflicts_with = "legacy")]
         commands: Vec<String>,
+        #[command(flatten)]
+        across: Box<AcrossArgs>,
         /// A test: a shell command whose exit code decides pass or fail.
         /// Repeatable. `war done` runs it and finishes the work only when it
         /// passes.
@@ -928,12 +932,44 @@ enum DailyCommand {
         /// With --pr: post the summary as a comment on the PR through `gh`.
         #[arg(long, requires = "pr")]
         comment: bool,
+        /// Run each interface clause's `check` here, for this repository's
+        /// interfaces and those of the repositories it pins. A clause with
+        /// none, or one not decided, reads UNKNOWN.
+        #[arg(long, conflicts_with_all = ["alias", "generated", "changed", "pr", "floor"])]
+        clauses: bool,
+        /// With --clauses: say this repository conforms to those interfaces
+        /// as they stand, in docs/interfaces.lock, unless a clause failed.
+        #[arg(long, requires = "clauses")]
+        record: bool,
         /// The CI floor (docs/SCORE.md): refuse when the working tree's
         /// score level is below <REV>'s. With --pr, the base's
         /// `[score] floor = true` turns it on instead.
         #[arg(long, value_name = "REV", conflicts_with_all = ["alias", "generated", "pr", "changed"])]
         floor: Option<String>,
     },
+}
+
+/// What `war create` adds for work across repositories (t-3c16c W6).
+#[derive(Debug, Clone, clap::Args)]
+struct AcrossArgs {
+    /// What this work waits on: an item or clause here, or in a named
+    /// repository (`hpr:t-abc`, `hpr:CL-step`); repeat for more. It stays out of
+    /// `war view ready` until the pin holds it.
+    #[arg(long = "depends-on", value_name = "TARGET", conflicts_with = "legacy")]
+    depends_on: Vec<String>,
+    /// With `--type change-request`: `breaking` (both parties sign) or
+    /// `compatible` (a trigger closes it).
+    #[arg(
+        long,
+        value_name = "CLASS",
+        requires = "clauses",
+        conflicts_with = "legacy"
+    )]
+    change: Option<String>,
+    /// With `--change`: a clause it changes, here or `hpr:CL-step`; repeat
+    /// for more.
+    #[arg(long = "clause", value_name = "ID", requires = "change")]
+    clauses: Vec<String>,
 }
 
 /// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): a Format
@@ -3096,6 +3132,99 @@ fn answer_at(at: Option<&str>) -> Result<(), repo::RepoError> {
     Ok(())
 }
 
+/// `war context <name>:<rest>`: the same answer, from `name` at its pin, or
+/// UNKNOWN. An id that names nothing there is refused, never searched for.
+fn pinned_context(
+    mode: output::Mode,
+    repository: &repo::Repository,
+    name: &str,
+    rest: &str,
+    mut opts: context::Options,
+    at: Option<(String, u64)>,
+) -> u8 {
+    let target = format!("{name}:{rest}");
+    let located = match repos::locate(&repository.root, name) {
+        Ok(l) => l,
+        Err(why) => {
+            let outcome = ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why);
+            return ticket_answer(mode, "context", &outcome);
+        }
+    };
+    let line = repos::read_line(&located);
+    opts.exact = true;
+    let also = rest.split('#').next().filter(|p| p.contains('/'));
+    let commit = located.pin.commit.clone();
+    if matches!(mode, output::Mode::Human) {
+        println!("{line}");
+    } else {
+        repos::note_read(line);
+    }
+    let answered = repos::read_at(&located, &commit, also, |other| {
+        let corpus = corpus::Corpus::new(other);
+        let target = context::relative_target(other, rest);
+        context::answer(mode, &corpus, &target, &opts, at)
+    });
+    match answered {
+        Ok(Ok(code)) => code,
+        Ok(Err(e)) => {
+            let outcome =
+                ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), e.to_string());
+            ticket_answer(mode, "context", &outcome)
+        }
+        Err(why) => {
+            let outcome = ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why);
+            ticket_answer(mode, "context", &outcome)
+        }
+    }
+}
+
+/// `war view prime <target>` when `target` names another repository: the
+/// answer, or `None` for a target of this one.
+pub(crate) fn pinned_target(
+    repository: &repo::Repository,
+    target: &str,
+) -> Option<ticket::Outcome> {
+    match repos::classify(&repository.root, target) {
+        repos::Target::Local => None,
+        repos::Target::Undeclared(name) => Some(ticket::Outcome::unknown(
+            repos::UNKNOWN_RULE,
+            target,
+            format!("{name} is not declared in [repos]"),
+        )),
+        repos::Target::Named(name, rest) => Some(pinned_prime(repository, name, rest)),
+    }
+}
+
+/// `war view prime <name>:<rest>`: that repository's item at its pin, or
+/// UNKNOWN. What the pin does not hold may exist upstream, so it is not said
+/// to be missing, only not here.
+fn pinned_prime(repository: &repo::Repository, name: &str, rest: &str) -> ticket::Outcome {
+    let target = format!("{name}:{rest}");
+    let read = repos::through_pin(&repository.root, name, None, |other| {
+        ticket::Store::open(other, None)
+            .and_then(|store| ticket::prime(other, &store, Some(rest)))
+            .map_err(|e| e.to_string())
+    });
+    match read {
+        Ok((located, Ok(mut outcome))) => {
+            let line = repos::read_line(&located);
+            if outcome.is_refused() {
+                return ticket::Outcome::unknown(
+                    repos::UNKNOWN_RULE,
+                    target.as_str(),
+                    format!("{line}: no {rest} there"),
+                );
+            }
+            outcome.human = format!("{line}\n\n{}", outcome.human);
+            outcome.report.note(line);
+            outcome
+        }
+        Ok((_, Err(why))) | Err(why) => {
+            ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why)
+        }
+    }
+}
+
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
     match mode {
         output::Mode::Human => {
@@ -3502,13 +3631,38 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             paths,
             tools,
             commands,
+            across,
             tests,
             issue,
             issue_file,
             implements,
             actor,
         } => {
+            let AcrossArgs {
+                depends_on,
+                change,
+                clauses,
+            } = *across;
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            // W6: a change request says what it is before anything is written.
+            let (mut items, mut tests) = (items, tests);
+            let kind = if change.is_some() {
+                Some(ticket::change::TYPE.to_owned())
+            } else {
+                kind
+            };
+            if kind.as_deref() == Some(ticket::change::TYPE) {
+                match ticket::change::prepare(&repository, change.as_deref(), &clauses, &tests) {
+                    Ok(prepared) => {
+                        items.extend(prepared.items);
+                        tests.extend(prepared.tests);
+                    }
+                    Err((rule, why)) => {
+                        let refusal = ticket::Outcome::refused(rule, String::new(), why);
+                        return Ok(ticket_answer(mode, "create", &refusal));
+                    }
+                }
+            }
             // OW-WAR-0148 M5: the issue is read once, before anything is
             // written; a refusal of the read is the command's refusal.
             let issue = match (issue, issue_file) {
@@ -3550,7 +3704,6 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 refresh_index_after(&repository, &outcome, true);
                 return Ok(ticket_answer(mode, "create", &outcome));
             }
-            let mut items = items;
             match ticket::implementing_items(&repository, &implements)? {
                 Ok(more) => items.extend(more),
                 Err(refusal) => return Ok(ticket_answer(mode, "create", &refusal)),
@@ -3575,6 +3728,9 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     paths,
                     tools,
                     commands,
+                    depends_on,
+                    change,
+                    clauses,
                 },
                 tests,
             };
@@ -3772,6 +3928,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if let Some((_, v)) = check::single_actor_standing(&repository) {
                             value["independence"] = v;
                         }
+                        if let Some(line) = repos::status_line(&repository.root) {
+                            value["repos"] = serde_json::json!(line);
+                        }
+                        if let Some(line) = interfaces::drift_line(&repository) {
+                            value["interfaces"] = serde_json::json!(line);
+                        }
                         output::emit(mode, "status", &text, value);
                     }
                     // A few lines, not the projection: an agent reads every
@@ -3789,6 +3951,15 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;
                         println!("{text}");
+                        for line in [
+                            repos::status_line(&repository.root),
+                            interfaces::drift_line(&repository),
+                        ]
+                        .into_iter()
+                        .flatten()
+                        {
+                            println!("{line}");
+                        }
                         let adapted = interop::adapters::load(&repository);
                         if !adapted.is_empty() {
                             print!("{}", interop::adapters::status(&adapted).0);
@@ -4081,6 +4252,39 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             Ok(output::exit_code(&report))
         }
         DailyCommand::Check {
+            clauses: true,
+            record,
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let (mut report, runs) = interfaces::run_clauses(&repository);
+            if record && interfaces::any_failed(&report) {
+                report.note("a clause failed, so nothing was recorded".to_owned());
+            } else if record {
+                match interfaces::record_baseline(&repository) {
+                    Ok(baseline) => report.push(diagnostic::Diagnostic::pass(
+                        "interface.recorded",
+                        format!(
+                            "{} interface(s) recorded in {}",
+                            baseline.len(),
+                            interfaces::BASELINE
+                        ),
+                    )),
+                    Err(why) => report.push(diagnostic::Diagnostic::unknown(
+                        repos::UNKNOWN_RULE,
+                        interfaces::BASELINE.to_owned(),
+                        why,
+                    )),
+                }
+            }
+            Ok(output::finish(
+                mode,
+                "check",
+                &report,
+                Some(serde_json::json!({"schema": "oh.war/clause-run/v1", "clauses": runs})),
+            ))
+        }
+        DailyCommand::Check {
             alias,
             generated,
             changed,
@@ -4189,6 +4393,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     )),
                 }
                 interop::adapters::check(&repository, None, &mut report);
+                // W6: open clauses counted, late ones flagged, [repos] read.
+                interfaces::check(&repository, chrono::Utc::now().date_naive(), &mut report);
                 // OW-WAR-0148 M14: a [preset], [roles] or [notify] table that
                 // does not read is refused by key; an absent one says nothing.
                 if let Err(e) = preset::Policy::read(&repository.root) {
@@ -4683,11 +4889,25 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let repository = ctx.open_repo()?;
             gate_cmd::source::remember_tree_reads();
             let corpus = corpus::Corpus::new(&repository);
+            // W6: `hpr:CL-step` is no record here; what it reaches still is.
+            let foreign = !matches!(
+                repos::classify(&repository.root, &record),
+                repos::Target::Local
+            );
+            let (reached, unread) = ticket::change::across(&repository, &record);
+            if foreign {
+                let value = serde_json::json!({"across": reached, "unread": unread});
+                let human = ticket::change::render(&reached, &unread);
+                output::emit(mode, "impact", human.trim_end(), value);
+                return Ok(EXIT_OK);
+            }
             let (report, impact) = impact::build(&corpus, &record)?;
+            let across = ticket::change::render(&reached, &unread);
             match mode {
                 output::Mode::Human => {
                     if let Some(i) = &impact {
                         print!("{}", impact::render(i));
+                        print!("{across}");
                     }
                     for d in report
                         .diagnostics
@@ -4701,12 +4921,17 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     }
                     Ok(output::exit_code(&report))
                 }
-                output::Mode::Json => Ok(output::finish(
-                    mode,
-                    "impact",
-                    &report,
-                    impact.as_ref().map(output::value),
-                )),
+                output::Mode::Json => {
+                    // Additive, and outside `oh.war/impact/v1`: what reaches
+                    // another repository is not a record of this model.
+                    let value = impact.as_ref().map(|i| {
+                        let mut v = output::value(i);
+                        v["across"] = serde_json::json!(reached);
+                        v["unread"] = serde_json::json!(unread);
+                        v
+                    });
+                    Ok(output::finish(mode, "impact", &report, value))
+                }
             }
         }
         PlanCommand::Spec { command } => {
@@ -6415,6 +6640,13 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 }
                 return Ok(ticket_answer(mode, "prime", &outcome));
             }
+            // W6: `hpr:t-abc` is that repository's item, at its pin.
+            if let Some(outcome) = target
+                .as_deref()
+                .and_then(|t| pinned_target(&repository, t))
+            {
+                return Ok(ticket_answer(mode, "prime", &outcome));
+            }
             let mut outcome = ticket::prime(&repository, &store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it
             // follows is newer than this binary (a WARN, on stderr in
@@ -6500,7 +6732,22 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             if full {
                 opts.budget = None;
             }
-            let target = context::relative_target(&repository, &target.unwrap_or_default());
+            let target = target.unwrap_or_default();
+            // W6: `hpr:CL-step` reads through the pin, from the other
+            // repository's objects at that commit.
+            match repos::classify(&repository.root, &target) {
+                repos::Target::Local => {}
+                repos::Target::Undeclared(name) => {
+                    let why = format!("{name} is not declared in [repos]");
+                    let outcome =
+                        ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why);
+                    return Ok(ticket_answer(mode, "context", &outcome));
+                }
+                repos::Target::Named(name, rest) => {
+                    return Ok(pinned_context(mode, &repository, name, rest, opts, at));
+                }
+            }
+            let target = context::relative_target(&repository, &target);
             Ok(context::answer(mode, &corpus, &target, &opts, at)?)
         }
         ViewCommand::Tickets {

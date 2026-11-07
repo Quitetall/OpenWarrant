@@ -537,7 +537,7 @@ pub fn degrade(
         }
     } else if over {
         ("records", wide(graph, target))
-    } else if id_shaped(target) {
+    } else if id_shaped(target) || opts.exact {
         return Err(refused);
     } else {
         let is_path = target.contains('/')

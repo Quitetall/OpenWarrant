@@ -209,6 +209,15 @@ pub fn minimum(
         .definition
         .ticks
         .minimum(t.manifest.kind.as_deref(), milestone);
+    // W6: what a change request's class asks of it.
+    let class = match super::change::class_of(t) {
+        Some(super::change::Class::Breaking) => Level::Signed,
+        Some(super::change::Class::Compatible) => Level::Observed,
+        None => Level::Claimed,
+    };
+    if class > level && class > store.tick_floor {
+        return (class, MinimumSource::Change);
+    }
     // OW-WAR-0148 M14: the repo preset's floor, when it is higher.
     if store.tick_floor > level {
         return (store.tick_floor, MinimumSource::Preset);

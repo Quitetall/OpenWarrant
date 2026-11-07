@@ -340,6 +340,10 @@ pub fn run(
     // no claim to keep it beside.
     let changes = if crate::ticket::is_ticket_ref(&node) {
         let (ticket, _) = openwarrant_core::ticket::split_record_id(&node);
+        let worked = store
+            .load_all()
+            .ok()
+            .and_then(|(tickets, _)| tickets.into_iter().find(|t| t.id() == ticket));
         crate::ticket::live::started(
             &store,
             &wt_repo.root,
@@ -347,10 +351,15 @@ pub fn run(
             &given.packet,
             &given.text,
             &given.reach,
-            store.load_all().ok().and_then(|(tickets, _)| {
-                let t = tickets.into_iter().find(|t| t.id() == ticket)?;
-                crate::go::packet::read_allowed(&t).ok()
-            }),
+            crate::ticket::live::Declares {
+                allowed: worked
+                    .as_ref()
+                    .and_then(|t| crate::go::packet::read_allowed(t).ok()),
+                pinned: worked
+                    .as_ref()
+                    .map(|t| crate::ticket::depends::watches(&store, t))
+                    .unwrap_or_default(),
+            },
         )
         .unwrap_or_else(|e| {
             report.push(Diagnostic::warn(
