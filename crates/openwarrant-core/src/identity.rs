@@ -118,7 +118,7 @@ impl FromStr for WarUuid {
 pub struct LocalAlias(String);
 
 impl LocalAlias {
-    /// Parse an alias of the form `<NAMESPACE>-WAR-<NNNN>`.
+    /// Parse an alias of the form `<NAMESPACE>-WAR-<NNNN>`, or a hash id.
     ///
     /// Surrounding whitespace is **trimmed, not rejected**, matching
     /// [`crate::Namespace::parse`]. The stored value is the trimmed form, so an
@@ -133,6 +133,12 @@ impl LocalAlias {
         let malformed = || IdentityError::AliasMalformed {
             alias: alias.to_owned(),
         };
+        // A work order's hash id (`w-3c16c`, docs/design/one-format.md):
+        // the merge-safe identity of a master in `docs/work/`. It belongs to
+        // no namespace and carries no ordinal; a number is a display ordinal.
+        if crate::ticket::is_work_id(alias) {
+            return Ok(Self(alias.to_owned()));
+        }
 
         // Split from the RIGHT: a namespace may legitimately contain a hyphen
         // (`OPEN-HUMAN-WAR-0001`), so splitting from the left would truncate it.
@@ -159,6 +165,9 @@ impl LocalAlias {
     /// how two warrants come to share an ordinal.
     pub fn parse_in(raw: &str, namespace: &str) -> Result<Self, IdentityError> {
         let alias = Self::parse(raw)?;
+        if alias.is_hash_id() {
+            return Ok(alias);
+        }
         let found = alias.namespace();
         if found != namespace {
             return Err(IdentityError::AliasNamespaceMismatch {
@@ -170,9 +179,18 @@ impl LocalAlias {
         Ok(alias)
     }
 
-    /// The namespace segment, e.g. `OW` in `OW-WAR-0001`.
+    /// Whether it is a hash id (`w-<hex>`), not `<NAMESPACE>-WAR-<NNNN>`.
+    #[must_use]
+    pub fn is_hash_id(&self) -> bool {
+        crate::ticket::is_work_id(&self.0)
+    }
+
+    /// The namespace segment, e.g. `OW` in `OW-WAR-0001`; empty for a hash id.
     #[must_use]
     pub fn namespace(&self) -> &str {
+        if self.is_hash_id() {
+            return "";
+        }
         self.0
             .rsplit_once("-WAR-")
             .map(|(ns, _)| ns)
@@ -224,6 +242,17 @@ impl schemars::JsonSchema for WarUuid {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_work_hash_id_is_an_alias_in_no_namespace() {
+        let a = LocalAlias::parse_in("w-3c16c", "OW").expect("a hash id");
+        assert!(a.is_hash_id() && a.namespace().is_empty() && a.ordinal().is_none());
+        assert!(
+            LocalAlias::parse("t-3c16c").is_err(),
+            "a ticket id is not a Warrant alias"
+        );
+        assert!(LocalAlias::parse("w-").is_err());
+    }
 
     #[test]
     fn minted_identity_is_v7() {

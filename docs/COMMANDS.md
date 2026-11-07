@@ -106,7 +106,8 @@ so it stays there. Its top-level spelling is what retires.
 | Append a dated note to a Warrant: context for whoever comes next | `war plan note` | `war note` | daily | group; `war note` retiring |
 | Change a Warrant's type, labels, epic or priority | `war plan edit` | `war edit` | often | group; `war edit` retiring |
 | Resume an intake or Warrant interview: unanswered blockers, ranked and counted. Read-only; answers and authorization remain separate acts | `war plan interview` | `war interview` | often | group; `war interview` retiring |
-| Create a draft Warrant (§71.2) from a preset: typed atoms, each heading followed by the question it answers (OW-ADR-0022) | `war plan new` | `war new` | daily | group; `war new` retiring |
+| Create a draft Warrant (§71.2): a master in docs/work/ by default; from a preset, typed atoms, each heading followed by the question it answers (OW-ADR-0022) | `war plan new` | `war new` | daily | group; `war new` retiring |
+| Move a single-file Warrant into its directory beside its state, byte for byte: same id, same contract (docs/design/one-format.md) | `war plan expand` | `war expand` | rare | group; `war expand` retiring |
 | Add the field that raises an item's level, in place: no new document | `war plan promote` | `war promote` | daily | group; `war promote` retiring |
 | Render a declared projection of records (OW-WAR-0148 M6): one set of records, many documents. `prd`, `architecture`, `test-plan` and `agent-packet` ship as document types (profiles/*.toml, `form = "document"`); a program declares its own. Prints the rendering (Markdown or JSON) and writes nothing; `--json` returns it as `oh.war/projection/v1`, every line traced to the record id and revision it came from. `war admin compile` writes the projections of the documents an area declares in `docs/records/<area>/documents.toml` | `war plan render` | `war render` | often | group; `war render` retiring |
 | What a change to one record affects (OW-WAR-0148 M3): the records that reach it through incoming relations, transitively; the Warrants, tickets and record atoms that hold or name them; the obligations that evaluate them, with verdicts bound to the revision they judged (a verdict on an older revision stays recorded and reads stale); the roadmap phases and generated views they feed. Read-only | `war plan impact` | `war impact` | daily | group; `war impact` retiring |
@@ -259,6 +260,7 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
 |---|---|---|
 | `war plan "<sentence>"`, `--proposal`, `--apply`, `--records` | the same | `plan.request`, `plan.validate`, `plan.interview`, `plan.apply` |
 | `war plan new` | `war new` | `new` |
+| `war plan expand` | `war expand` | `expand` |
 | `war plan promote` | `war promote` | `promote` |
 | `war plan render` | `war render` | `render` |
 | `war plan impact` | `war impact` | `impact` |

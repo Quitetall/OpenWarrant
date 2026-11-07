@@ -50,6 +50,7 @@ paths = [
     "crates/openwarrant-cli/src/main.rs",
     "crates/openwarrant-cli/src/lib.rs",
     "crates/openwarrant-cli/src/repo.rs",
+    "crates/openwarrant-cli/src/subject.rs",
     "crates/openwarrant-cli/src/diagnostic.rs",
     "crates/openwarrant-cli/src/vfs.rs",
     "crates/openwarrant-cli/src/corpus.rs",

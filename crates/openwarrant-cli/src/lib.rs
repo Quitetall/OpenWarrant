@@ -126,6 +126,7 @@ pub mod standing_cmd;
 pub mod states;
 pub mod status;
 pub mod status_brief;
+pub mod subject;
 pub mod surface;
 pub mod telemetry;
 pub mod ticket;
@@ -539,6 +540,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "note",
             "edit",
             "new",
+            "expand",
             "interview",
             "promote",
             "render",
@@ -1242,8 +1244,9 @@ enum PlanCommand {
         /// Warrant alias or the intake key a drafting request reported.
         target: String,
     },
-    /// Create a draft Warrant (§71.2) from a preset: typed atoms, each
-    /// heading followed by the question it answers (OW-ADR-0022).
+    /// Create a draft Warrant (§71.2): a master in docs/work/ by default;
+    /// from a preset, typed atoms, each heading followed by the question it
+    /// answers (OW-ADR-0022).
     New {
         /// The Warrant's title.
         #[arg(required_unless_present = "from")]
@@ -1268,11 +1271,21 @@ enum PlanCommand {
         /// authorized revision is refused and nothing is created.
         #[arg(long, value_name = "ALIAS")]
         parent: Option<String>,
-        /// Write a Format 1.0 single-file Warrant, `<alias>.md`, instead of a
-        /// manifest and atoms (docs/format/FORMAT-1.0.md §4.1). The only
-        /// value is `1.0`. Without it nothing changes.
+        /// The layout. Without it, `war plan new <title>` writes a master,
+        /// `docs/work/<id>/<id>-<slug>.md`, with a hash id
+        /// (docs/design/one-format.md); `--preset`, `--parent` or the old
+        /// spelling `war new` write the legacy directory. `1.0` writes a
+        /// single-file Warrant, `docs/warrants/<alias>.md` (FORMAT-1.0 §4.1);
+        /// `legacy` a manifest and atoms.
         #[arg(long = "format", value_name = "VERSION", conflicts_with = "parent")]
         format_version: Option<String>,
+    },
+    /// Move a single-file Warrant, `<root>/<id>.md`, into its directory,
+    /// `<root>/<id>/<id>-<slug>.md`, beside its state. Same id, same bytes,
+    /// so every signature over it stands (docs/design/one-format.md).
+    Expand {
+        #[arg(value_name = "ID")]
+        id: String,
     },
     /// Add the field that raises an item's level, in place: no new document.
     ///
@@ -4790,7 +4803,19 @@ fn run_plan(ctx: &Ctx, args: PlanArgs) -> Result<u8, Box<dyn std::error::Error>>
         records,
         area,
     } = args;
-    if let Some(command) = command {
+    if let Some(mut command) = command {
+        // The current spelling writes a master by default; the old one,
+        // `war new`, keeps its bytes (crate::surface).
+        if let PlanCommand::New {
+            from: None,
+            preset: None,
+            parent: None,
+            format_version: format_version @ None,
+            ..
+        } = &mut command
+        {
+            *format_version = Some("master".to_owned());
+        }
         return run_plan_member(ctx, command);
     }
     let repository = ctx.open_repo()?;
@@ -5154,6 +5179,41 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             let profile: Option<Profile> = profile
                 .map(|p| repository.profiles.resolve(&p))
                 .transpose()?;
+            let format_version = format_version.filter(|v| v != "legacy");
+            if format_version.as_deref() == Some("master") {
+                let delivery = match &profile {
+                    None => preset
+                        .as_deref()
+                        .and_then(new::preset_profile)
+                        .is_none_or(|p| p.to_string() != "decision"),
+                    Some(p) if matches!(p.to_string().as_str(), "delivery" | "decision") => {
+                        p.to_string() == "delivery"
+                    }
+                    Some(p) => {
+                        let mut report = diagnostic::Report::default();
+                        report.push(diagnostic::Diagnostic::error(
+                            "new.format-profile",
+                            p.to_string(),
+                            format!("a master is `delivery` or `decision`; `{p}` has no built-in Format 1.0 profile. `--format legacy` writes it as a manifest and atoms"),
+                        ));
+                        output::finish(mode, "new", &report, None);
+                        return Ok(EXIT_DIAGNOSTIC);
+                    }
+                };
+                let (id, path) = subject::create_master(&repository, &title, delivery)?;
+                let rel = repository.relative(&path);
+                let profile = if delivery { "delivery" } else { "decision" };
+                output::emit(
+                    mode,
+                    "new",
+                    &format!(
+                        "created {rel} ({}, profile {profile})\nanswer each section, then run `war check`",
+                        openwarrant_core::format::VERSION
+                    ),
+                    serde_json::json!({"alias": id, "path": rel, "profile": profile, "format": openwarrant_core::format::VERSION, "layout": "master"}),
+                );
+                return Ok(EXIT_OK);
+            }
             // FORMAT-1.0 §4.1: `--format 1.0` writes one file instead.
             if let Some(version) = format_version {
                 if version != "1.0" {
@@ -5246,6 +5306,23 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     }
                 ),
                 data,
+            );
+            Ok(EXIT_OK)
+        }
+        PlanCommand::Expand { id } => {
+            let repository = ctx.open_repo()?;
+            let done = subject::expand(&repository, &id)?;
+            let (from, to) = (
+                repository.relative(&done.from),
+                repository.relative(&done.to),
+            );
+            output::emit(
+                mode,
+                "expand",
+                &format!(
+                    "moved {from} to {to}: same id, same bytes; every signature over it stands"
+                ),
+                serde_json::json!({"id": done.alias, "from": from, "to": to}),
             );
             Ok(EXIT_OK)
         }

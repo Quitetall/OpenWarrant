@@ -25,6 +25,19 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- The formal path reads a single-file Warrant: authorize, evidence record,
+  verify, resolve, compile, check, status and pins take `docs/warrants/<alias>.md`,
+  with its state in `docs/warrants/<alias>/`. Its contract digest covers the
+  document's exact bytes, so an edit after authorization lapses it
+  (docs/design/one-format.md).
+- `war plan new <title>` writes a master, `docs/work/<id>/<id>-<slug>.md`,
+  with a merge-safe hash id (`w-<hex>`). The slug is cosmetic: the item is found
+  by id and renaming the file moves no digest. `--format legacy`, `--preset`,
+  `--parent` and the old spelling `war new` still write a manifest and atoms;
+  `--format 1.0` still writes `docs/warrants/<alias>.md`.
+- `war plan expand <id>` moves `docs/warrants/<id>.md` into its directory
+  beside its state, byte for byte: the same id and contract, so its signatures
+  stand.
 - `war done` journals the work session's usage as one `work.usage` event, read from
   the harness's own local record: Claude Code's transcript
   (`CLAUDE_CODE_SESSION_ID`) or Codex's rollout (`CODEX_THREAD_ID`). Only usage
