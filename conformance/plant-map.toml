@@ -265,7 +265,15 @@ paths = [
     "crates/openwarrant-cli/src/intake.rs", "crates/openwarrant-cli/src/questions.rs",
     "conformance/fixtures/drafter/**", "conformance/fixtures/proposals/**", "tools/drafting/**",
 ]
-plants = ["54-intake.sh", "71-plan.sh", "80-plan-records.sh", "87-eval.sh", "91-questions.sh", "00-corpus.sh"]
+plants = [
+    "54-intake.sh", "71-plan.sh", "80-plan-records.sh", "87-eval.sh", "91-questions.sh", "00-corpus.sh",
+    "250-questions-ladder.sh", "52-hotline-defaults.sh",
+]
+
+[[rule]]
+name = "questions find their answerer"
+paths = ["crates/openwarrant-cli/src/hotline.rs"]
+plants = ["250-questions-ladder.sh", "91-questions.sh", "52-hotline-defaults.sh", "54-intake.sh", "188-live-updates.sh"]
 
 [[rule]]
 name = "standing authorization"

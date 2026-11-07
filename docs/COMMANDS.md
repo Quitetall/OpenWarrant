@@ -104,6 +104,8 @@ so it stays there. Its top-level spelling is what retires.
 | Refresh the release notice | `war __release-check` | none | machine | kept: started by `war` itself |
 | Add an item to a Warrant, or a test, KPI or milestone | `war plan add` | `war add` | daily | group; `war add` retiring |
 | Append a dated note to a Warrant: context for whoever comes next | `war plan note` | `war note` | daily | group; `war note` retiring |
+| Ask a question of whoever holds the parent work (OW-ADR-0034) | `war plan note <id> --ask "<question>"` | `war note <id> --ask "<question>"`, `war plan ask`, `war ask` | often | group; `war note`, `war ask` retiring |
+| Answer a question: any actor but the asker below an Order; a person on an Order or `--needs-human` (OW-ADR-0034) | `war plan note <id> --answer <q> "<answer>"` | `war note <id> --answer <q> "<answer>"`, `war plan answer`, `war answer` | often | group; `war note`, `war answer` retiring |
 | Change a Warrant's type, labels, epic or priority | `war plan edit` | `war edit` | often | group; `war edit` retiring |
 | Resume an intake or Warrant interview: unanswered blockers, ranked and counted. Read-only; answers and authorization remain separate acts | `war plan interview` | `war interview` | often | group; `war interview` retiring |
 | Create a draft Warrant (§71.2): a master in docs/work/ by default; from a preset, typed atoms, each heading followed by the question it answers (OW-ADR-0022) | `war plan new` | `war new` | daily | group; `war new` retiring |
@@ -121,8 +123,8 @@ so it stays there. Its top-level spelling is what retires.
 | The stages that can start now (OW-WAR-0068): open, unblocked by their milestone's `depends_on`, and not yet dispatched. Derived from the same records a resolution reads; never a status claim | `war plan frontier` | `war frontier` | daily | group; `war frontier` retiring |
 | Estimates learned from the journal (claim to done, by type and label), the order ready work starts in, and the critical path (OW-WAR-0148 M15) | `war plan estimate` | `war estimate` | often | group; `war estimate` retiring |
 | Every question across the corpus, blocking and open first, each with the command that answers it (OW-WAR-0069) | `war plan questions` | `war questions` | often | group; `war questions` retiring |
-| Ask the human a question that blocks a stage (OW-WAR-0069). An agent asks; only a human answers. Neither act authorizes anything | `war plan ask` | `war ask` | often | group; `war ask` retiring |
-| Answer a question an agent asked (OW-WAR-0069). Refused for an agent-kind actor by the register, and nothing is written | `war plan answer` | `war answer` | often | group; `war answer` retiring |
+| Ask a question that blocks a stage (OW-WAR-0069). Anyone asks; `war plan note --ask` is the short form. Neither act authorizes anything | `war plan ask` | `war ask` | often | group; `war ask` retiring |
+| Answer a question (OW-WAR-0069, OW-ADR-0034): who may answer follows the ladder, and a refusal writes nothing | `war plan answer` | `war answer` | often | group; `war answer` retiring |
 | The answers a stage's performer should read before it starts | `war plan answers` | `war answers` | often | group; `war answers` retiring |
 | §28.4 authorization. Emits a request; ingests a human's signature | `war sign authorize` | `war authorize` | often | group; `war authorize` retiring |
 | Resolve a Warrant: emit the request, evaluate it, or ingest a signature | `war sign resolve` | `war resolve` | daily | group; `war resolve` retiring |
@@ -213,7 +215,7 @@ runs plus the two it needs between them. The CLI's folds are arguments:
 | `war_status` | `war status` | `next` (`war_next`), `ready` (`war_ready`), `target` with `view` (`war_show`) |
 | `war_check` | `war check` | |
 | `war_context` | `war view context` | |
-| `war_note` | `war plan note` | |
+| `war_note` | `war plan note` | `ask`, `blocking`, `needs_human`; `answer` with `text` |
 
 `war admin mcp --all`, or `[mcp] tools = "all"` in `openwarrant.toml`,
 serves the whole table (42 tools), so nothing an MCP client had is gone.

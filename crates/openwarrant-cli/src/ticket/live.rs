@@ -1106,10 +1106,21 @@ pub fn take_line() -> Option<String> {
         return None;
     }
     let root = asking.root.as_deref();
-    if notice_files(&dir_of(&layout_at(root)?)).is_empty() {
-        return None;
+    let layout = layout_at(root)?;
+    let files = notice_files(&dir_of(&layout));
+    // Questions and answers (crate::hotline) share the directory; another
+    // clone's are read only while a claim here could be waiting on one.
+    let heard = (files.iter().any(|f| crate::hotline::is_notice(f))
+        || !notice_files(&layout.shared_claims_dir().join(GIVEN)).is_empty())
+    .then(|| crate::hotline::take_line(root, asking.actor.as_deref()))
+    .flatten();
+    let changed = (!files.is_empty())
+        .then(|| deliver(&open_store(root, asking.actor.as_deref())?))
+        .flatten();
+    match (changed, heard) {
+        (Some(a), Some(b)) => Some(format!("{a}\n{b}")),
+        (a, b) => a.or(b),
     }
-    deliver(&open_store(root, asking.actor.as_deref())?)
 }
 
 /// A long-running server serves one repository: every envelope it builds

@@ -162,6 +162,8 @@ pub fn run(
         .unwrap_or_default();
     let here = Store::open(repo, opts.actor.as_deref())?;
     let actor = here.actor.clone();
+    // OW-ADR-0034: whoever dispatches is asked the session's questions.
+    let dispatcher = Store::open(repo, None).map_or_else(|_| actor.clone(), |s| s.actor);
     // What the id names, read here; the claim is taken in the worktree.
     let (tickets, _) = here.load_all()?;
     let (node, warrant_dir, allowed_here, title) = if crate::ticket::is_ticket_ref(id) {
@@ -409,6 +411,7 @@ pub fn run(
             if let Some(id) = &claim_id {
                 settings["env"]["OPENWARRANT_CLAIM_ID"] = serde_json::json!(id);
             }
+            settings["env"][crate::hotline::DISPATCHER_ENV] = serde_json::json!(dispatcher);
             let body = serde_json::to_string_pretty(&settings).unwrap_or_default() + "\n";
             let _ = std::fs::create_dir_all(wt_root.join(".claude"));
             std::fs::write(&settings_path, &body).map_err(|source| RepoError::Io {
@@ -524,6 +527,7 @@ pub fn run(
             .args(&argv[1..])
             .current_dir(&wt_root)
             .env("OPENWARRANT_ACTOR", &actor)
+            .env(crate::hotline::DISPATCHER_ENV, &dispatcher)
             .env("WAR_GO_NODE", &node);
         if let Some(id) = &claim_id {
             command.env("OPENWARRANT_CLAIM_ID", id);

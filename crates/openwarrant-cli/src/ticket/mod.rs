@@ -3580,6 +3580,9 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         answer.result["changed"] =
             serde_json::to_value(&changes).map_err(|e| RepoError::Message(e.to_string()))?;
     }
+    answer
+        .human
+        .push_str(&crate::hotline::start_line(store, id));
     if workspace != store.root {
         answer.human.push_str(&format!("\nworkspace: {workspace}"));
     }

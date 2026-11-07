@@ -86,9 +86,13 @@ pub fn claim_here(node: &str, actor: &str, paths: &[String]) -> Vec<String> {
     argv
 }
 
-/// `war plan answer <alias> <id> <answer> --as <who>`: a human's act.
+/// `war plan answer <alias> <id> <answer> [--as <who>]`: who may answer
+/// follows the ladder (OW-ADR-0034); with nobody named, whoever runs it.
 #[must_use]
 pub fn answer(alias: &str, id: &str, text: &str, who: &str) -> Vec<String> {
+    if who.is_empty() {
+        return words(&["plan", "answer", alias, id, text]);
+    }
     words(&["plan", "answer", alias, id, text, "--as", who])
 }
 

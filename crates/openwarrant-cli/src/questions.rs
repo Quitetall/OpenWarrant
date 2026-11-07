@@ -7,10 +7,11 @@
 //! in a file the owner can answer from anywhere, so one person can clear the
 //! blocking questions of many concurrent agents in one pass.
 //!
-//! The asymmetry is the point, and it is the same one §27.2 draws everywhere
-//! else. Asking is an agent's act and costs nothing. Answering is the human's,
-//! checked through `docs/authority/roles.toml` by actor kind, so an agent that
-//! answers its own question is refused by name and writes nothing.
+//! Asking is anyone's act and costs nothing. Who may answer follows the
+//! ladder (OW-ADR-0034, [`crate::hotline`]): on a Ticket or a Warrant any
+//! actor but the asker, on an Order (or `--needs-human`) a person, as §27.2
+//! draws it everywhere else. The asker answering its own question is refused
+//! by name and writes nothing.
 //!
 //! A question is `questions/Q-nnn.toml` beside the Warrant's other records,
 //! with a `question.asked` journal event; an answer appends to the same file
@@ -28,7 +29,6 @@
 use std::fmt::Write as _;
 
 use camino::{Utf8Path, Utf8PathBuf};
-use openwarrant_core::authority::ActorKind;
 use serde::{Deserialize, Serialize};
 
 use crate::diagnostic::{Diagnostic, Report};
@@ -66,6 +66,13 @@ pub struct Question {
     /// once it is answered. Empty on a Warrant's question.
     #[serde(default, skip_serializing_if = "String::is_empty")]
     pub redraft: String,
+    /// Asked with `--needs-human`: only a person answers it, at any level.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub needs_human: bool,
+    /// Whom asking reached ([`crate::hotline::party`]): an actor's name,
+    /// `person` or `anyone`. Empty on a question asked before it existed.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub ask_of: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -73,6 +80,10 @@ pub struct Answer {
     pub answered_by: String,
     pub answered_at: String,
     pub answer: String,
+    /// `agent` or `person`: what the answerer was taken to be
+    /// ([`crate::hotline::answerer`]). Empty on an answer from before.
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub kind: String,
 }
 
 impl Question {
@@ -95,22 +106,49 @@ pub struct QuestionList {
 /// before there is a Warrant.
 pub const INTAKE_STAGE: &str = "intake";
 
-/// Where `alias`'s questions live: under the Warrant, or — for an intake key
-/// with a directory under `docs/intake/` — there.
+/// Where a ticket's (or a ticket item's) questions live: one directory per
+/// ticket, outside the ticket store, so no ticket encoding has to hold them.
+pub const ITEM_DIR: &str = "docs/questions";
+
+/// A ticket id that is safe as one path component.
+fn item_key(alias: &str) -> bool {
+    crate::ticket::is_ticket_ref(alias)
+        && alias.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+}
+
+/// Where `alias`'s questions live: under the Warrant; for an intake key with
+/// a directory under `docs/intake/`, there; for a ticket, under [`ITEM_DIR`].
 fn dir_of(repo: &Repository, alias: &str) -> Result<Utf8PathBuf, RepoError> {
     if let Some(dir) = crate::plan::intake::existing_dir(repo, alias) {
         return Ok(dir.join(DIR));
     }
+    if item_key(alias) {
+        return Ok(repo.root.join(ITEM_DIR).join(alias));
+    }
     Ok(repo.warrant_dir(alias)?.join(DIR))
 }
 
-/// The record `war plan answer` writes to: the Warrant's directory, or the
-/// intake directory. Only a Warrant has a journal.
-fn owner_dir(repo: &Repository, alias: &str) -> Result<(Utf8PathBuf, bool), RepoError> {
-    if let Some(dir) = crate::plan::intake::existing_dir(repo, alias) {
-        return Ok((dir, false));
+/// The Warrant directory whose journal records `alias`'s questions; `None`
+/// for an intake key or a ticket, whose question records stand alone.
+fn journal_dir(repo: &Repository, alias: &str) -> Option<Utf8PathBuf> {
+    if crate::plan::intake::existing_dir(repo, alias).is_some() || item_key(alias) {
+        return None;
     }
-    Ok((repo.warrant_dir(alias)?, true))
+    repo.warrant_dir(alias).ok()
+}
+
+/// Every ticket that has a question directory.
+fn item_keys(repo: &Repository) -> Vec<String> {
+    let Ok(entries) = std::fs::read_dir(repo.root.join(ITEM_DIR)) else {
+        return Vec::new();
+    };
+    let mut keys: Vec<String> = entries
+        .flatten()
+        .filter_map(|e| e.file_name().into_string().ok())
+        .filter(|k| item_key(k))
+        .collect();
+    keys.sort();
+    keys
 }
 
 fn path_of(dir: &Utf8Path, id: &str) -> Utf8PathBuf {
@@ -242,7 +280,7 @@ fn write_question(path: &Utf8Path, q: &Question, create_new: bool) -> Result<(),
     let body = toml::to_string_pretty(q)
         .map_err(|e| RepoError::Message(format!("could not render {}: {e}", q.id)))?;
     let header = format!(
-        "# {SCHEMA}. Asked by an agent, answered by a human (§27.2). An answer\n\
+        "# {SCHEMA}. Who may answer follows the ladder (OW-ADR-0034). An answer\n\
          # informs the work; it is never a disposition, a judgment, or an\n\
          # authorization, and `answered_by` is an attribution, not a proof: a\n\
          # signature binds an ACT, and an answer is not one. `war questions\n\
@@ -285,159 +323,246 @@ fn asked_payload(stage: &str, id: &str, blocking: bool) -> String {
     serde_json::json!({ "stage": stage, "question": id, "blocking": blocking }).to_string()
 }
 
-/// `war plan ask <alias> <stage> "<question>"`: the agent's half.
-pub fn ask(
-    repo: &Repository,
-    alias: &str,
-    stage: &str,
-    question: &str,
-    recommended: &str,
-    blocking: bool,
-) -> Result<Report, RepoError> {
+/// What `war note <id> --ask` and `war plan ask` were given.
+#[derive(Debug, Clone, Copy, Default)]
+pub struct Asking<'a> {
+    /// A Warrant's stage, a ticket's item, or empty for the whole ticket.
+    pub stage: &'a str,
+    pub question: &'a str,
+    pub recommended: &'a str,
+    pub blocking: bool,
+    pub needs_human: bool,
+    /// `--as`: who asks.
+    pub actor: Option<&'a str>,
+}
+
+/// Whether a ticket `alias` exists and holds `stage` (empty, or one of its
+/// items); `None` when the ticket store cannot be read.
+fn ticket_holds(repo: &Repository, alias: &str, stage: &str) -> Option<bool> {
+    let store = crate::ticket::Store::open(repo, None).ok()?;
+    let (tickets, _) = store.load_all().ok()?;
+    Some(tickets.iter().any(|t| {
+        t.id() == alias && (stage.is_empty() || stage == alias || t.checklist.ids().contains(stage))
+    }))
+}
+
+/// `war note <id> --ask "<question>"` (and `war plan ask`): anyone's half.
+/// The question is asked of a party ([`crate::hotline::party`]), who hears it.
+pub fn ask(repo: &Repository, alias: &str, a: &Asking) -> Result<Report, RepoError> {
     let mut report = Report::default();
-    if question.trim().is_empty() {
+    let stage = if a.stage == alias { "" } else { a.stage };
+    if a.question.trim().is_empty() {
         return Err(RepoError::Message(
             "question.empty: a question with no text cannot be answered".to_owned(),
         ));
     }
-    if !stage_exists(repo, alias, stage)? {
+    if item_key(alias) {
+        match ticket_holds(repo, alias, stage) {
+            Some(true) => {}
+            Some(false) => {
+                return Err(RepoError::Message(format!(
+                    "question.unknown-stage: no ticket {alias}{}, so nothing would find this \
+                     question",
+                    if stage.is_empty() {
+                        String::new()
+                    } else {
+                        format!(" with item {stage}")
+                    }
+                )));
+            }
+            None => {
+                return Err(RepoError::Message(
+                    "question.unknown-stage: the ticket store cannot be read".to_owned(),
+                ));
+            }
+        }
+    } else if !stage_exists(repo, alias, stage)? {
         return Err(RepoError::Message(format!(
             "question.unknown-stage: {alias} declares no stage {stage:?}, so nothing would find \
              this question. Ask against a stage in its milestones atom"
         )));
     }
-    let dir = repo.warrant_dir(alias)?;
+    let journal = journal_dir(repo, alias);
+    let dir = dir_of(repo, alias)?;
     let existing = load(repo, alias)?;
+    let asker = crate::hotline::asker(repo, a.actor);
+    let asked_by = asker.uri();
+    let (question, recommended) = (a.question.trim(), a.recommended.trim());
     // OW-WAR-0130 (§67.4), before the first write: the same question, asked
-    // by the same agent against the same stage, is a retry. Its journal key
+    // by the same actor against the same stage, is a retry. Its journal key
     // names the question already on file; held by the same actor it replays
     // and writes nothing, held by another it is a conflict and writes nothing.
-    let asked_by = format!("agent://{}", repo.performer());
     if let Some(prior) = existing.iter().find(|q| {
         q.stage == stage
-            && q.question == question.trim()
-            && q.blocking == blocking
-            && q.recommended == recommended.trim()
+            && q.question == question
+            && q.blocking == a.blocking
+            && q.recommended == recommended
             && q.asked_by == asked_by
     }) {
-        let payload = asked_payload(stage, &prior.id, blocking);
-        match crate::journal_cmd::already_recorded(&dir, EVENT_ASKED, &payload, &asked_by)? {
-            crate::journal_cmd::Prior::Conflict { recorded_by } => {
+        if let Some(jdir) = &journal {
+            let payload = asked_payload(stage, &prior.id, a.blocking);
+            if let crate::journal_cmd::Prior::Conflict { recorded_by } =
+                crate::journal_cmd::already_recorded(jdir, EVENT_ASKED, &payload, &asked_by)?
+            {
                 report.push(crate::journal_cmd::conflict(
-                    repo.relative(&dir.join(crate::journal_cmd::FILE)),
+                    repo.relative(&jdir.join(crate::journal_cmd::FILE)),
                     EVENT_ASKED,
                     &recorded_by,
                     &asked_by,
                 ));
                 return Ok(report);
             }
-            crate::journal_cmd::Prior::Equivalent { .. } | crate::journal_cmd::Prior::Fresh => {
-                report.push(Diagnostic::pass(
-                    "question.replayed",
-                    format!(
-                        "{alias}/{} already asks this against {stage}{} → {}; an equivalent \
-                         retry replays and writes nothing",
-                        prior.id,
-                        match &prior.answer {
-                            Some(a) => format!(", answered by {}", a.answered_by),
-                            None => " and awaits an answer".to_owned(),
-                        },
-                        repo.relative(&path_of(&dir.join(DIR), &prior.id))
-                    ),
-                ));
-                return Ok(report);
-            }
         }
+        report.push(Diagnostic::pass(
+            "question.replayed",
+            format!(
+                "{alias}/{} already asks this{} → {}; an equivalent retry replays and writes \
+                 nothing",
+                prior.id,
+                match &prior.answer {
+                    Some(a) => format!(", answered by {}", a.answered_by),
+                    None => " and awaits an answer".to_owned(),
+                },
+                repo.relative(&path_of(&dir, &prior.id))
+            ),
+        ));
+        return Ok(report);
     }
-    let q = Question {
+    let mut q = Question {
         schema: SCHEMA.to_owned(),
         id: next_id(&existing),
         warrant: alias.to_owned(),
         stage: stage.to_owned(),
         asked_by,
         asked_at: crate::gate_cmd::receipt::now_rfc3339_public(),
-        question: question.trim().to_owned(),
-        blocking,
-        recommended: recommended.trim().to_owned(),
+        question: question.to_owned(),
+        blocking: a.blocking,
+        recommended: recommended.to_owned(),
         answer: None,
         redraft: String::new(),
+        needs_human: a.needs_human,
+        ask_of: String::new(),
     };
-    let path = path_of(&dir.join(DIR), &q.id);
+    let person = crate::hotline::needs_person(repo, &q);
+    let (party, why) = crate::hotline::party(repo, alias, &asker.name, person.is_some());
+    q.ask_of.clone_from(&party);
+    let path = path_of(&dir, &q.id);
     write_question(&path, &q, true)?;
-    if let Some(uuid) = repo
-        .load_warrant(&dir)?
-        .validated
-        .as_ref()
-        .map(|v| v.uuid.to_string())
+    if let Some(jdir) = &journal
+        && let Some(uuid) = repo
+            .load_warrant(jdir)?
+            .validated
+            .as_ref()
+            .map(|v| v.uuid.to_string())
     {
         crate::journal_cmd::record(
-            &dir,
+            jdir,
             &uuid,
             EVENT_ASKED,
             &q.asked_by,
-            &asked_payload(stage, &q.id, blocking),
+            &asked_payload(stage, &q.id, a.blocking),
         )?;
+    }
+    if let Ok(store) = crate::ticket::Store::open(repo, a.actor)
+        && let Err(e) = crate::hotline::post(
+            &store,
+            crate::hotline::Posted {
+                schema: String::new(),
+                id: String::new(),
+                kind: "asked".to_owned(),
+                to: party.clone(),
+                from: asker.name.clone(),
+                item: alias.to_owned(),
+                question: q.id.clone(),
+                text: q.question.clone(),
+                answer: String::new(),
+                root: repo.root.to_string(),
+                at: q.asked_at.clone(),
+            },
+        )
+    {
+        report.push(Diagnostic::warn(
+            "notices.unavailable",
+            alias.to_owned(),
+            format!("the question is recorded, but its notice was not posted: {e}"),
+        ));
     }
     report.push(Diagnostic::pass(
         "question.asked",
         format!(
-            "{alias}/{} asked against {stage}{} → {}",
+            "{alias} {}{} asked of {party} ({why}{}) → {}",
             q.id,
-            if blocking { " (blocking)" } else { "" },
+            if a.blocking { " (blocking)" } else { "" },
+            person
+                .map(|p| format!("; a person answers: {p}"))
+                .unwrap_or_default(),
             repo.relative(&path)
         ),
     ));
     report.note(format!(
-        "A human answers it: `war plan answer {alias} {} \"<answer>\" --as <actor>`. \
-         Nothing here authorizes anything.",
-        q.id
+        "Answer: `{}`. Nothing here authorizes anything.",
+        crate::hotline::answer_command(alias, &q.id)
     ));
     Ok(report)
 }
 
-/// `war plan answer <alias> <id> "<answer>" --as <actor>`: the human's half.
+/// `war note <id> --answer Q-nnn "<answer>"` (and `war plan answer`): who may
+/// answer follows the ladder ([`crate::hotline`]).
 pub fn answer(
     repo: &Repository,
     alias: &str,
     id: &str,
     answer_text: &str,
-    actor: &str,
+    actor: Option<&str>,
+) -> Result<Report, RepoError> {
+    let mut report = Report::default();
+    if answer_text.trim().is_empty() {
+        report.push(Diagnostic::error(
+            "question.empty-answer",
+            format!("{alias}/{id}"),
+            "an answer with no text is not an answer".to_owned(),
+        ));
+        return Ok(report);
+    }
+    let who = match crate::hotline::answerer(repo, actor) {
+        Ok(who) => who,
+        Err((rule, message)) => {
+            report.push(Diagnostic::error(&rule, format!("{alias}/{id}"), message));
+            return Ok(report);
+        }
+    };
+    // A question asked in another worktree of this clone is answered where
+    // it was asked: its notice names the checkout that holds the record.
+    let here = load(repo, alias)?.iter().any(|q| q.id == id);
+    if !here
+        && let Ok(store) = crate::ticket::Store::open(repo, actor)
+        && let Some(p) = crate::hotline::find(&store, alias, id)
+        && p.root != repo.root.as_str()
+        && let Ok(there) = Repository::discover(Some(Utf8PathBuf::from(&p.root)))
+    {
+        return answer_as(&there, alias, id, answer_text, &who, actor);
+    }
+    answer_as(repo, alias, id, answer_text, &who, actor)
+}
+
+fn answer_as(
+    repo: &Repository,
+    alias: &str,
+    id: &str,
+    answer_text: &str,
+    who: &crate::hotline::Who,
+    actor: Option<&str>,
 ) -> Result<Report, RepoError> {
     let mut report = Report::default();
     let mut refuse = |rule: &str, message: String| {
         report.push(Diagnostic::error(rule, format!("{alias}/{id}"), message));
     };
-    if answer_text.trim().is_empty() {
-        refuse(
-            "question.empty-answer",
-            "an answer with no text is not an answer".to_owned(),
-        );
-        return Ok(report);
-    }
-    let register = repo.load_authority_register()?;
-    let Some(assignment) = register.actor(actor) else {
-        refuse(
-            "question.unknown-actor",
-            format!("{actor:?} holds no role assignment in docs/authority/roles.toml"),
-        );
-        return Ok(report);
-    };
-    // The whole asymmetry, in one check. An agent may ask anything and answer
-    // nothing: an agent that answers its own question has closed the loop it
-    // opened, which is the same defect as verifying its own work (§46).
-    if assignment.actor_kind == ActorKind::Agent {
-        refuse(
-            "question.agent",
-            format!("{actor:?} is an agent. An agent asks; a human answers. Nothing was written"),
-        );
-        return Ok(report);
-    }
-    let (dir, is_warrant) = owner_dir(repo, alias)?;
+    let dir = dir_of(repo, alias)?;
     let existing = load(repo, alias)?;
     let Some(mut q) = existing.iter().find(|q| q.id == id).cloned() else {
         refuse(
             "question.unknown",
-            format!("no question {id} under {}", repo.relative(&dir.join(DIR))),
+            format!("no question {id} under {}", repo.relative(&dir)),
         );
         return Ok(report);
     };
@@ -451,38 +576,98 @@ pub fn answer(
         );
         return Ok(report);
     }
+    // The ladder: an Order, signed text, an intake question or
+    // `--needs-human` waits on a person (§27.2); below that, any actor.
+    if who.kind == crate::hotline::Kind::Agent
+        && let Some(why) = crate::hotline::needs_person(repo, &q)
+    {
+        refuse(
+            "question.agent",
+            format!(
+                "{:?} is an agent and {why}: a person answers it. Nothing was written",
+                who.name
+            ),
+        );
+        return Ok(report);
+    }
+    // Whoever asked has closed the loop it opened if it answers: the same
+    // defect as verifying its own work (§46).
+    let asker = crate::hotline::bare(&q.asked_by).to_owned();
+    if asker == who.name {
+        refuse(
+            "question.own",
+            format!(
+                "{:?} asked {id}; another actor answers it. Nothing was written",
+                who.name
+            ),
+        );
+        return Ok(report);
+    }
     q.answer = Some(Answer {
-        answered_by: format!("person://{actor}"),
+        answered_by: who.uri(),
         answered_at: crate::gate_cmd::receipt::now_rfc3339_public(),
         answer: answer_text.trim().to_owned(),
+        kind: who.kind.word().to_owned(),
     });
-    let path = path_of(&dir.join(DIR), &q.id);
+    let path = path_of(&dir, &q.id);
     write_question(&path, &q, false)?;
-    if !is_warrant {
+    if !q.redraft.is_empty() {
         report.push(Diagnostic::pass(
             "question.answered",
-            format!("{alias}/{id} answered by {actor}; nothing is drafted until the input is"),
+            format!(
+                "{alias}/{id} answered by {}; nothing is drafted until the input is",
+                who.name
+            ),
         ));
         report.note(format!("Draft it again with its answers: `{}`", q.redraft));
         return Ok(report);
     }
-    if let Some(uuid) = repo
-        .load_warrant(&dir)?
-        .validated
-        .as_ref()
-        .map(|v| v.uuid.to_string())
+    if let Some(jdir) = journal_dir(repo, alias)
+        && let Some(uuid) = repo
+            .load_warrant(&jdir)?
+            .validated
+            .as_ref()
+            .map(|v| v.uuid.to_string())
     {
         crate::journal_cmd::record(
-            &dir,
+            &jdir,
             &uuid,
             EVENT_ANSWERED,
-            &format!("person://{actor}"),
+            &who.uri(),
             &serde_json::json!({ "stage": q.stage, "question": q.id }).to_string(),
         )?;
     }
+    if let Ok(store) = crate::ticket::Store::open(repo, actor)
+        && let Err(e) = crate::hotline::post(
+            &store,
+            crate::hotline::Posted {
+                schema: String::new(),
+                id: String::new(),
+                kind: "answered".to_owned(),
+                to: asker.clone(),
+                from: who.name.clone(),
+                item: alias.to_owned(),
+                question: q.id.clone(),
+                text: q.question.clone(),
+                answer: answer_text.trim().to_owned(),
+                root: repo.root.to_string(),
+                at: crate::gate_cmd::receipt::now_rfc3339_public(),
+            },
+        )
+    {
+        report.push(Diagnostic::warn(
+            "notices.unavailable",
+            alias.to_owned(),
+            format!("the answer is recorded, but its notice was not posted: {e}"),
+        ));
+    }
     report.push(Diagnostic::pass(
         "question.answered",
-        format!("{alias}/{id} answered by {actor}; {} knows", q.stage),
+        format!(
+            "{alias}/{id} answered by {} ({}); {asker} is told",
+            who.name,
+            who.kind.word()
+        ),
     ));
     Ok(report)
 }
@@ -501,6 +686,7 @@ pub fn list(
             .iter()
             .filter_map(|d| d.file_name().map(ToOwned::to_owned))
             .chain(crate::plan::intake::keys(repo))
+            .chain(item_keys(repo))
             .collect(),
     };
     let mut questions = Vec::new();
@@ -598,6 +784,8 @@ pub fn record_intake(
         recommended: String::new(),
         answer: None,
         redraft: redraft.to_owned(),
+        needs_human: false,
+        ask_of: crate::hotline::PERSON.to_owned(),
     };
     write_question(&path, &q, true)?;
     Ok(path)
@@ -652,8 +840,8 @@ pub fn render(list: &QuestionList) -> String {
             None => {
                 let _ = writeln!(
                     out,
-                    "            war plan answer {} {} \"<answer>\" --as <actor>",
-                    q.warrant, q.id
+                    "            {}",
+                    crate::hotline::answer_command(&q.warrant, &q.id)
                 );
             }
         }
@@ -683,8 +871,11 @@ mod tests {
                 answered_by: "person://brian".to_owned(),
                 answered_at: "2026-09-12T00:01:00Z".to_owned(),
                 answer: "y".to_owned(),
+                kind: String::new(),
             }),
             redraft: String::new(),
+            needs_human: false,
+            ask_of: String::new(),
         }
     }
 

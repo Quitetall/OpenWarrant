@@ -84,7 +84,7 @@ q_cleanup
 
 # Positive: bring an open question; committed ones may all be answered.
 # The listing still puts blocking questions first and gives an answer command.
-plant_cmd "open questions list blocking first" "BLOCKING" "war plan answer" 0 \
+plant_cmd "open questions list blocking first" "BLOCKING" "war plan note" 0 \
     "\"$WAR\" ask \"$Q_ALIAS\" STAGE-001 \"Planted: open listing?\" --blocking >/dev/null 2>&1 || exit 9" questions --open
 q_cleanup
 # And the watcher raises them beside the pending signatures.
