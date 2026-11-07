@@ -121,7 +121,8 @@ fn prefix(target: &str) -> Option<(&str, &str)> {
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '_');
     let rest_shaped =
         !rest.is_empty() && !rest.starts_with("//") && !rest.contains(char::is_whitespace);
-    (shaped && rest_shaped && !RESERVED.contains(&name)).then_some((name, rest))
+    let taken = RESERVED.contains(&name) || crate::warrants::READ_IN_PLACE_KINDS.contains(&name);
+    (shaped && rest_shaped && !taken).then_some((name, rest))
 }
 
 /// Which repository `target` means, in the repository at `root`.
@@ -664,5 +665,18 @@ mod tests {
         )
         .unwrap();
         assert_eq!(declared(root).unwrap()["hpr"].path.as_deref(), Some("v/h"));
+    }
+}
+
+#[cfg(test)]
+mod prefix_tests {
+    use super::*;
+
+    #[test]
+    fn a_read_in_place_id_is_no_repository() {
+        for id in crate::warrants::READ_IN_PLACE_KINDS {
+            assert_eq!(prefix(&format!("{id}:auth#session-expiry")), None, "{id}");
+        }
+        assert_eq!(prefix("hpr:CL-step"), Some(("hpr", "CL-step")));
     }
 }
