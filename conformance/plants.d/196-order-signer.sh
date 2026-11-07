@@ -200,6 +200,47 @@ else
     os_fail "nothing offers to dispatch them" "$(head -3 "$OS_T/out" | tr '\n' '|')"
 fi
 
+# ---- --check on a ticket: its test applies to every item, one added since included ------------
+OS_H=$(os_create "A ticket tested as a whole" --item first)
+os_as owner plan add "$OS_H" --test 'test -e passes'
+os_as owner plan add "$OS_H" "added after the test"
+/usr/bin/rm -f "$OS_ROOT/passes"
+os_as agent start "$OS_H"
+os_as agent done "$OS_H" --check; OS_RC=$?
+OS_ERR=$(cat "$OS_T/err")
+if [[ $OS_RC == 2 && $OS_ERR == *fail* && $OS_ERR != *ticket.check-nothing* && $(os_open "$OS_H") == 2 ]]; then
+    os_ok "--check runs a ticket's test" "it fails: exit 2, nothing ticked, not check-nothing"
+else
+    os_fail "--check runs a ticket's test" "exit $OS_RC: $OS_ERR"
+fi
+: >"$OS_ROOT/passes"
+os_as agent done "$OS_H" --check; OS_RC=$?
+os_as owner --json view show "$OS_H"
+OS_ALL=$(os_py '[i["done"] for i in v["result"]["items"]]')
+OS_SEEN=$(grep -c '\[observed\]' "$OS_ROOT/docs/tickets/$OS_H.md")
+if [[ $OS_RC == 0 && $OS_ALL == "[True, True]" && $OS_SEEN == 2 ]]; then
+    os_ok "--check ticks every item observed" "$OS_H/both, the one added since included"
+else
+    os_fail "--check ticks every item observed" "exit $OS_RC, $OS_ALL: $(cut -c1-200 "$OS_T/err")"
+fi
+OS_I=$(os_create "A ticket with no test" --item only)
+os_as agent start "$OS_I"
+os_as agent done "$OS_I" --check; OS_RC=$?
+if [[ $OS_RC == 2 ]] && grep -qF 'ticket.check-nothing' "$OS_T/err"; then
+    os_ok "--check with no test is refused" "ticket.check-nothing still stands"
+else
+    os_fail "--check with no test is refused" "exit $OS_RC: $(cut -c1-200 "$OS_T/err")"
+fi
+
+# ---- war create names the document ---------------------------------------------------------
+os_as owner create "A named document"
+OS_MADE=$(sed -n 's/^created //p' "$OS_T/out")
+if [[ $OS_MADE == docs/tickets/t-*.md && -f "$OS_ROOT/$OS_MADE" ]]; then
+    os_ok "create prints the document's path" "$OS_MADE exists"
+else
+    os_fail "create prints the document's path" "[$OS_MADE]"
+fi
+
 # ---- war_create over MCP asks for the same ---------------------------------------------------
 OS_TX="$OS_T/tx"
 {

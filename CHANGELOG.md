@@ -18,6 +18,16 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- `war done <ticket> --check` was refused with `ticket.check-nothing` when the
+  ticket's test came from `war plan add <ticket> --test`. As docs/TYPES.md says,
+  that test applies to every item, one added later included.
+
+- `war create` printed `created docs/tickets/t-xxxx/` for a document at
+  `docs/tickets/t-xxxx.md`. It prints the document's path.
+
+- The AGENTS.md `war init` writes teaches the six commands and the three levels,
+  and no longer `war note`, `war add` or `war claim`.
+
 - A finished Order never reached its signer. `war done` on one with a signature
   item was refused and ticked nothing, and no list named it. It now ticks the
   agent's items, runs any test, records the note, leaves the signature open and

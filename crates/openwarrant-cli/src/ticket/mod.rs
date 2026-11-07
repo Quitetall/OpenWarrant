@@ -2013,8 +2013,12 @@ fn create_with_encoding(
         }
         Some(added.result["parts"].clone())
     };
-    let rel = store.rel(&dir);
-    let mut human = format!("{id}  {title}\ncreated {rel}/");
+    let rel = if legacy {
+        format!("{}/", store.rel(&dir))
+    } else {
+        store.rel(&source)
+    };
+    let mut human = format!("{id}  {title}\ncreated {rel}");
     if let Some(issue) = &args.issue {
         human.push_str(&format!(
             "\nfrom GitHub issue #{}{}",
@@ -4931,8 +4935,19 @@ fn finish_ticket(
         How::Ran(round) => Some(round),
         How::Claimed | How::Check => None,
     };
+    // A ticket's test is written as the items it evaluates, so `--check` on
+    // the ticket starts from one of them: docs/TYPES.md has it apply to every
+    // item, and that round backs an item added since. The rest run below.
+    let checked_first: Option<&String> = (checking && t.format)
+        .then(|| {
+            open.iter()
+                .chain(&for_a_person)
+                .find(|id| ladder::decides(&checks, Some(id.as_str())))
+        })
+        .flatten();
     if checking {
-        match ladder::check_for_tick(store, &t, None, &checks, &what)? {
+        let first = checked_first.map(String::as_str);
+        match ladder::check_for_tick(store, &t, first, &checks, &what)? {
             Ok(round) => whole_round = Some(round),
             Err(refusal) => return Ok(*refusal),
         }
@@ -4946,7 +4961,7 @@ fn finish_ticket(
     let mut ticks_of: Vec<(String, Option<ladder::CheckRound>)> = Vec::new();
     for id in &open {
         let mut round = whole_round.clone();
-        if t.format && judged_here {
+        if t.format && judged_here && checked_first != Some(id) {
             match checks::on_done(store, &t, Some(id), checking)? {
                 None => {}
                 Some(Ok(r)) => round = Some(r),
