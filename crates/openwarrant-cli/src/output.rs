@@ -403,6 +403,7 @@ fn envelope_with_status(
     // W3: an owed notice rides in `notes`, where a reader of the JSON sees it.
     let mut notes = report.notes.clone();
     notes.extend(crate::ticket::live::take_line());
+    notes.extend(crate::repos::take_read());
     let e = Envelope {
         schema: SCHEMA,
         command,

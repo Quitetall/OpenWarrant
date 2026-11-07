@@ -95,6 +95,7 @@ pub mod release_cmd;
 pub mod remedy;
 pub mod render_cmd;
 pub mod repo;
+pub mod repos;
 pub mod resolution_cmd;
 pub mod resolve;
 pub mod roadmap_cmd;
@@ -3094,6 +3095,82 @@ fn answer_at(at: Option<&str>) -> Result<(), repo::RepoError> {
         })?;
     ticket::answer_at(secs);
     Ok(())
+}
+
+/// `war context <name>:<rest>`: the same answer, from `name` at its pin, or
+/// UNKNOWN. An id that names nothing there is refused, never searched for.
+fn pinned_context(
+    mode: output::Mode,
+    repository: &repo::Repository,
+    name: &str,
+    rest: &str,
+    mut opts: context::Options,
+    at: Option<(String, u64)>,
+) -> u8 {
+    let target = format!("{name}:{rest}");
+    let located = match repos::locate(&repository.root, name) {
+        Ok(l) => l,
+        Err(why) => {
+            let outcome = ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why);
+            return ticket_answer(mode, "context", &outcome);
+        }
+    };
+    let line = repos::read_line(&located);
+    opts.exact = true;
+    let also = rest.split('#').next().filter(|p| p.contains('/'));
+    let commit = located.pin.commit.clone();
+    if matches!(mode, output::Mode::Human) {
+        println!("{line}");
+    } else {
+        repos::note_read(line);
+    }
+    let answered = repos::read_at(&located, &commit, also, |other| {
+        let corpus = corpus::Corpus::new(other);
+        let target = context::relative_target(other, rest);
+        context::answer(mode, &corpus, &target, &opts, at)
+    });
+    match answered {
+        Ok(Ok(code)) => code,
+        Ok(Err(e)) => {
+            let outcome =
+                ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), e.to_string());
+            ticket_answer(mode, "context", &outcome)
+        }
+        Err(why) => {
+            let outcome = ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why);
+            ticket_answer(mode, "context", &outcome)
+        }
+    }
+}
+
+/// `war view prime <name>:<rest>`: that repository's item at its pin, or
+/// UNKNOWN. What the pin does not hold may exist upstream, so it is not said
+/// to be missing, only not here.
+fn pinned_prime(repository: &repo::Repository, name: &str, rest: &str) -> ticket::Outcome {
+    let target = format!("{name}:{rest}");
+    let read = repos::through_pin(&repository.root, name, None, |other| {
+        ticket::Store::open(other, None)
+            .and_then(|store| ticket::prime(other, &store, Some(rest)))
+            .map_err(|e| e.to_string())
+    });
+    match read {
+        Ok((located, Ok(mut outcome))) => {
+            let line = repos::read_line(&located);
+            if outcome.is_refused() {
+                return ticket::Outcome::unknown(
+                    repos::UNKNOWN_RULE,
+                    target.as_str(),
+                    format!("{line}: no {rest} there"),
+                );
+            }
+            outcome.human = format!("{line}\n\n{}", outcome.human);
+            outcome.report.note(line);
+            outcome
+        }
+        Ok((_, Err(why))) | Err(why) => {
+            ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why)
+        }
+    }
 }
 
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
@@ -6415,6 +6492,26 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 }
                 return Ok(ticket_answer(mode, "prime", &outcome));
             }
+            // W6: `hpr:t-abc` is that repository's item, at its pin.
+            let classified = target.as_deref().map_or(repos::Target::Local, |t| {
+                repos::classify(&repository.root, t)
+            });
+            match classified {
+                repos::Target::Local => {}
+                repos::Target::Undeclared(name) => {
+                    let why = format!("{name} is not declared in [repos]");
+                    let outcome = ticket::Outcome::unknown(
+                        repos::UNKNOWN_RULE,
+                        target.as_deref().unwrap_or_default(),
+                        why,
+                    );
+                    return Ok(ticket_answer(mode, "prime", &outcome));
+                }
+                repos::Target::Named(name, rest) => {
+                    let outcome = pinned_prime(&repository, name, rest);
+                    return Ok(ticket_answer(mode, "prime", &outcome));
+                }
+            }
             let mut outcome = ticket::prime(&repository, &store, target.as_deref())?;
             // M9: the first thing an agent runs says when the text it
             // follows is newer than this binary (a WARN, on stderr in
@@ -6500,7 +6597,22 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             if full {
                 opts.budget = None;
             }
-            let target = context::relative_target(&repository, &target.unwrap_or_default());
+            let target = target.unwrap_or_default();
+            // W6: `hpr:CL-step` reads through the pin, from the other
+            // repository's objects at that commit.
+            match repos::classify(&repository.root, &target) {
+                repos::Target::Local => {}
+                repos::Target::Undeclared(name) => {
+                    let why = format!("{name} is not declared in [repos]");
+                    let outcome =
+                        ticket::Outcome::unknown(repos::UNKNOWN_RULE, target.as_str(), why);
+                    return Ok(ticket_answer(mode, "context", &outcome));
+                }
+                repos::Target::Named(name, rest) => {
+                    return Ok(pinned_context(mode, &repository, name, rest, opts, at));
+                }
+            }
+            let target = context::relative_target(&repository, &target);
             Ok(context::answer(mode, &corpus, &target, &opts, at)?)
         }
         ViewCommand::Tickets {

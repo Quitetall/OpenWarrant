@@ -72,8 +72,35 @@ when you have several.
 Run a clause's `check` in both repositories' CI. The lower layer ships first, and
 the other side moves its pin in a ticket of its own, with that test as its trigger.
 
+## Across repositories
+
+Name the other repository in `openwarrant.toml`, once on the side that depends on
+it. A submodule says its own commit:
+
+```toml
+[repos.hpr]
+path = "vendor/hpr"
+url = "https://example.com/hpr.git"
+```
+
+A sibling checkout adds `pin = "<commit>"`; a Cargo git dependency has its commit
+in `Cargo.lock`, found by `url`. The commit is what this repository has committed,
+never a working tree, so one commit reads one way. `war status` shows it.
+
+WMD then reads HPR through the pin, from HPR's git objects at that commit:
+
+```sh
+war context hpr:CL-step          # one clause
+war context hpr:t-abc            # one item
+war view prime hpr:t-abc         # one item in full
+```
+
+Nothing here touches the network or edits the other side. A repository that isn't
+declared or isn't on this machine, or a commit it doesn't hold, reads UNKNOWN. An
+id the pin doesn't hold is refused, never searched for. Local commands carry on.
+
 ## What's next
 
-Reading another repository's clauses and tickets by name, and showing work as
-*done upstream, not pinned here*, are W6 of the lean programme. Until then, link a
-GitHub issue per feature, with a sub-issue in each repository.
+Showing work as *done upstream, not pinned here* is W6 of the lean programme,
+still landing. Until then, link a GitHub issue per feature, with a sub-issue in
+each repository.

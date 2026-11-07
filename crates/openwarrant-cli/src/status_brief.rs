@@ -38,6 +38,8 @@ pub struct Brief {
     pub blocking_questions: Option<usize>,
     /// Why each `?` is one.
     pub unknown: Vec<String>,
+    /// The repositories this one reads through a pin, in one line.
+    pub repos: Option<String>,
 }
 
 /// A count, or `?`.
@@ -66,6 +68,7 @@ impl Brief {
             Err(e) => brief.unknown.push(format!("warrants: {e}")),
         }
         brief.read_tickets(repo);
+        brief.repos = crate::repos::status_line(&repo.root);
         // The board reads an unreadable frontier as no stages, which a count
         // must not repeat.
         let frontier = match corpus.frontier() {
@@ -166,6 +169,9 @@ impl Brief {
             "Blocking questions: {}",
             figure(self.blocking_questions)
         );
+        if let Some(repos) = &self.repos {
+            let _ = writeln!(out, "{repos}");
+        }
         out.push_str("`war status --verbose` shows everything.\n");
         out
     }
