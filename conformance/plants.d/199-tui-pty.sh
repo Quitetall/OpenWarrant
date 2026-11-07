@@ -314,7 +314,7 @@ open(R + "/docs/authority/roles.toml", "w").write("""[[assignment]]
 actor = "Plant Owner"
 actor_kind = "human"
 roles = ["authorizer", "resolver"]
-assigned_by = "conformance/plants.d/196-tui-pty.sh"
+assigned_by = "conformance/plants.d/199-tui-pty.sh"
 effective_time = "2026-01-01T00:00:00Z"
 note = "Exists only while this plant runs."
 """)
