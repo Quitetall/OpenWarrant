@@ -146,6 +146,7 @@ pub fn run(
     let all = sign::pending_for(repo, opts)?;
 
     // 1. Choose.
+    let mut left_out: Vec<String> = Vec::new();
     let mut chosen: Vec<&Pending> = Vec::new();
     if targets.is_empty() {
         chosen.extend(all.iter());
@@ -159,6 +160,12 @@ pub fn run(
                     format!("{t} is named twice; a batch lists each act once"),
                 ));
                 return Ok(report);
+            }
+            if crate::ticket::is_ticket_ref(t) {
+                left_out.push(format!(
+                    "{t} — a sign-off signs alone: `war sign {t} --ssh-sign`"
+                ));
+                continue;
             }
             match sign::select(&all, t) {
                 Some(p) => chosen.push(p),
@@ -178,7 +185,6 @@ pub fn run(
     let now = crate::gate_cmd::receipt::now_rfc3339_public();
     let mut signer: Option<(String, &'static str)> = None;
     let mut drafted: Vec<Drafted> = Vec::new();
-    let mut left_out: Vec<String> = Vec::new();
     for p in chosen {
         if matches!(p, Pending::Accept { .. }) {
             left_out.push(format!(

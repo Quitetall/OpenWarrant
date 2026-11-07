@@ -6,7 +6,38 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `war status --json` (`single_file`), `war status --verbose` and `war plan
+  frontier` list single-file Warrants and Orders.
+
+- The MCP tool `war_create` takes `sign`, as `war create --sign` does.
+
+- `-I` is the short form of `--interactive` on all six commands. `-i` stays
+  `--item` on `create`.
+
 ### Fixed
+
+- `war done <ticket> --check` was refused with `ticket.check-nothing` when the
+  ticket's test came from `war plan add <ticket> --test`. As docs/TYPES.md says,
+  that test applies to every item, one added later included.
+
+- `war create` printed `created docs/tickets/t-xxxx/` for a document at
+  `docs/tickets/t-xxxx.md`. It prints the document's path.
+
+- The AGENTS.md `war init` writes teaches the six commands and the three levels,
+  and no longer `war note`, `war add` or `war claim`.
+
+- A finished Order never reached its signer. `war done` on one with a signature
+  item was refused and ticked nothing, and no list named it. It now ticks the
+  agent's items, runs any test, records the note, leaves the signature open and
+  exits 0, saying `t-x waits on a person: \`war sign t-x/i-y --ssh-sign\``.
+  `ticket_state` reads `awaiting_signature`. `war sign --list`, `war status`,
+  `war view next` and the signing queue name it, and the signature closes it. A
+  failing test queues nothing, and an agent still cannot tick the signature.
+
+- `war plan add` on an Order put the new item under the signature milestone,
+  which made an agent's work a person's. It now goes with the other items.
 
 - A note from Mission Control on work held in a worktree was written in the app's own
   checkout, on another branch, and the holder never read it, while the form promised

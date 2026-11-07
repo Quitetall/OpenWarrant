@@ -366,6 +366,18 @@ impl Work {
         &self.items
     }
 
+    /// The Warrants and Orders kept as one document, wherever it is: what the
+    /// corpus projection, which reads Warrant directories, leaves out. An item
+    /// whose level could not be read may be one, so it is listed.
+    #[must_use]
+    pub fn documents(&self) -> Vec<Item> {
+        self.items
+            .iter()
+            .filter(|i| i.encoding == Encoding::SingleFile && i.level != Level::Ticket)
+            .cloned()
+            .collect()
+    }
+
     /// The items outside the ticket store.
     pub fn others(&self) -> impl Iterator<Item = &Item> {
         self.items.iter().skip(self.tickets.len())
@@ -433,6 +445,28 @@ impl Work {
     pub fn types(&self) -> &[String] {
         &self.types
     }
+}
+
+/// The block `war status --verbose` and `war plan frontier` print for
+/// [`Work::documents`]; nothing when there are none.
+#[must_use]
+pub fn render_documents(items: &[Item]) -> String {
+    use std::fmt::Write as _;
+    let mut out = String::new();
+    if !items.is_empty() {
+        out.push_str("\nSingle-file Warrants and Orders\n");
+    }
+    for i in items {
+        let _ = writeln!(
+            out,
+            "  {:<12} {:<8} {:<12} {}",
+            i.id,
+            i.level.as_str(),
+            i.state,
+            i.title
+        );
+    }
+    out
 }
 
 fn ticket_item(store: &Store, t: &Ticket, claims: &Claims) -> Item {

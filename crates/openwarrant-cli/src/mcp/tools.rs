@@ -69,6 +69,10 @@ pub struct CreateParams {
     /// runs them and finishes the work only when they pass.
     #[serde(default)]
     pub tests: Vec<String>,
+    /// Require a person's signature at the end, so the work is an Order.
+    /// Any agent may ask for this; only a person can give it (`war sign`).
+    #[serde(default)]
+    pub sign: bool,
     /// Who is acting; defaults to the configured performer, named for its worktree in a linked one.
     #[serde(default)]
     pub actor: Option<String>,
@@ -877,10 +881,15 @@ impl WarServer {
     fn war_sign_list(&self, Parameters(_p): Parameters<NoParams>) -> ToolResult {
         value_of(
             "sign.list",
-            crate::sign::list(&self.repo).map(|pending| {
-                let lines: Vec<String> = pending.iter().map(crate::sign::line).collect();
-                serde_json::json!({"pending": lines, "count": lines.len(),
-                    "how": "a human runs `war sign <target> --ssh-sign` at a terminal"})
+            crate::sign::list(&self.repo).and_then(|pending| {
+                let offs = crate::ticket::acts::awaiting_in(&self.repo)?;
+                let lines: Vec<String> = pending
+                    .iter()
+                    .map(crate::sign::line)
+                    .chain(offs.iter().map(crate::ticket::acts::SignOff::line))
+                    .collect();
+                Ok(serde_json::json!({"pending": lines, "count": lines.len(),
+                    "how": "a human runs `war sign <target> --ssh-sign` at a terminal"}))
             }),
             "pending acts listed",
         )
@@ -1391,7 +1400,7 @@ impl WarServer {
 
     #[tool(
         name = "war_create",
-        description = "Create a Warrant (`war create`, a ticket): a title, optional checklist items, description and tests. Workable at once; nothing is signed. `war_done` runs its tests. Returns its id (t-...).",
+        description = "Create a Warrant (`war create`, a ticket): a title, optional checklist items, description and tests. Workable at once; nothing is signed. `war_done` runs its tests. `sign` asks for a person's signature at the end, which no tool here gives. Returns its id (t-...).",
         annotations(read_only_hint = false)
     )]
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
@@ -1416,7 +1425,12 @@ impl WarServer {
             tests: p.tests,
         };
         self.ticket("create", p.actor.as_deref(), |s| {
-            crate::ticket::create(s, &args)
+            let created = crate::ticket::create(s, &args)?;
+            if p.sign {
+                crate::ticket::parts::signed(s, created)
+            } else {
+                Ok(created)
+            }
         })
     }
 

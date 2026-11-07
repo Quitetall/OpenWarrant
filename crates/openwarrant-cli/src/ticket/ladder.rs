@@ -55,6 +55,8 @@ pub mod event {
     pub const TICK_VERIFIED: &str = "work.tick_verified";
     /// A human's signature over an item's tick, verified and recorded.
     pub const TICK_SIGNED: &str = "work.tick_signed";
+    /// `war done` did all an agent may on an Order: what is left is a person's.
+    pub const AWAITS_SIGNATURE: &str = "work.awaits_signature";
 }
 
 /// Where `war done --check` and `war evidence kpi run` leave each command's output,
@@ -170,6 +172,44 @@ pub fn level_fields(store: &Store, t: &Ticket) -> crate::work::Fields {
     fields_from(&checks, floor)
 }
 
+/// The open items only a person can tick, once `except` is ticked: empty
+/// unless every open item left is one. A line with no id is not one.
+#[must_use]
+pub fn left_for_a_person(store: &Store, t: &Ticket, except: Option<&str>) -> Vec<String> {
+    let checks = checks_of(t);
+    let left: Vec<_> = t
+        .checklist
+        .items
+        .iter()
+        .filter(|i| !i.done && (i.id.is_none() || i.id.as_deref() != except))
+        .collect();
+    let signature = |id: &String| minimum(store, t, &checks, Some(id)).0 >= Level::Signed;
+    if left.iter().all(|i| i.id.as_ref().is_some_and(signature)) {
+        left.iter().filter_map(|i| i.id.clone()).collect()
+    } else {
+        Vec::new()
+    }
+}
+
+/// The items of `t` that wait on a person: every open item is one only a
+/// person can tick, and `war done` handed each over. The journal is what says
+/// the second, because nothing else tells an Order just created from one whose
+/// agent finished; a failed trigger writes no such record, and an item reopened
+/// or added since takes the Order out of the queue until the next `war done`.
+#[must_use]
+pub fn awaiting_signature(store: &Store, t: &Ticket) -> Vec<String> {
+    let handed = crate::vfs::read_to_string(t.dir.join(crate::journal_cmd::FILE))
+        .is_ok_and(|text| text.contains(event::AWAITS_SIGNATURE));
+    if !handed {
+        return Vec::new();
+    }
+    let backing = backing(t);
+    left_for_a_person(store, t, None)
+        .into_iter()
+        .filter(|i| backing.handed.contains(i))
+        .collect()
+}
+
 /// Absence is optional; an existing source that cannot be read is UNKNOWN.
 fn read_checks(t: &Ticket) -> Result<Checks, String> {
     if t.format {
@@ -281,6 +321,7 @@ pub struct Backing {
     verified: BTreeMap<String, Verified>,
     refuted: BTreeMap<String, Verified>,
     signed: BTreeMap<String, SignedOff>,
+    handed: BTreeSet<String>,
     pub kpi_runs: Vec<KpiRun>,
 }
 
@@ -298,7 +339,11 @@ pub fn backing(t: &Ticket) -> Backing {
     let Ok(text) = crate::vfs::read_to_string(t.dir.join(crate::journal_cmd::FILE)) else {
         return out;
     };
-    if !(text.contains("level") || text.contains(".kpi_run") || text.contains(".tick_")) {
+    if !(text.contains("level")
+        || text.contains(".kpi_run")
+        || text.contains(".tick_")
+        || text.contains(event::AWAITS_SIGNATURE))
+    {
         return out;
     }
     let Ok(journal) = crate::journal_cmd::parse(&text) else {
@@ -369,6 +414,15 @@ pub fn backing(t: &Ticket) -> Backing {
                         digest,
                         at: e.occurred_at.clone(),
                     },
+                );
+            }
+            event::AWAITS_SIGNATURE => {
+                out.handed.extend(
+                    p["items"]
+                        .as_array()
+                        .into_iter()
+                        .flatten()
+                        .filter_map(|i| i.as_str().map(str::to_owned)),
                 );
             }
             event::KPI_RUN => {
