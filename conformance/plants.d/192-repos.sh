@@ -19,6 +19,10 @@ rp_git() { git -c user.email=plant@invalid -c user.name=plant -c protocol.file.a
 hpr() { OPENWARRANT_ACTOR=hpr-agent "$WAR" --root "$RP_TMP/hpr" "$@"; }
 wmd() { local who=$1; shift; OPENWARRANT_ACTOR=$who "$WAR" --root "$RP_TMP/wmd" "$@"; }
 rp_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
+# A ticket's state as `view tickets` reads it. `war done` hands an Order to a
+# person and exits 0, so "not closed" is read here, not from an exit code.
+rp_state() { local side=$1 id=$2; "$side" --json view tickets 2>/dev/null | python3 -c 'import json,sys
+print(next((t["state"] for t in json.load(sys.stdin)["result"]["tickets"] if t["id"]==sys.argv[1]), "missing"))' "$id"; }
 
 rp_git init -q --bare -b main "$RP_TMP/hpr.git" \
     || { printf 'PLANT SETUP FAILED: bare\n' >&2; exit 9; }
@@ -208,8 +212,9 @@ RP_BREAK=$(hpr --json create "Change what a step means" --change breaking --clau
 RP_REFUSED=$(hpr start "$RP_BREAK" 2>&1; hpr done "$RP_BREAK" 2>&1); RP_REFUSED_RC=$?
 RP_NO_CLASS=$(hpr create "Unclassed" --type change-request 2>&1); RP_NO_CLASS_RC=$?
 if grep -q "here: $RP_STEP (alice) reaches hpr:CL-step" <<<"$RP_IMPACT" && ! grep -q "$RP_MASS" <<<"$RP_IMPACT" \
-    && [[ $RP_REFUSED_RC -ne 0 && $RP_NO_CLASS_RC -ne 0 ]] \
-    && grep -q 'war sign' <<<"$RP_REFUSED" && grep -q 'change.class' <<<"$RP_NO_CLASS"; then
+    && [[ $RP_NO_CLASS_RC -ne 0 ]] && [[ "$(rp_state hpr "$RP_BREAK")" != done ]] \
+    && grep -q 'waits on a person' <<<"$RP_REFUSED" && grep -q 'war sign' <<<"$RP_REFUSED" \
+    && grep -q 'change.class' <<<"$RP_NO_CLASS"; then
     rp_ok "a breaking change waits on people" "impact names the claim; done names what they sign"
 else
     rp_fail "a breaking change waits on people" "$RP_REFUSED_RC $RP_NO_CLASS_RC $RP_IMPACT | $RP_REFUSED | $RP_NO_CLASS"

@@ -20,6 +20,10 @@ tw_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 tw_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 # No key is reachable from this: signing goes through tw_sign alone.
 tww() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_ACTOR=hpr-agent "$WAR" --root "$TW_ROOT" "$@"; }
+# The change request's state as `view tickets` reads it: `war done` hands an
+# Order to a person and exits 0, so "still open" is read here.
+tw_state() { tww --json view tickets 2>/dev/null | python3 -c 'import json,sys
+print(next((t["state"] for t in json.load(sys.stdin)["result"]["tickets"] if t["id"]==sys.argv[1]), "missing"))' "$TW_T"; }
 tw_sign() { local sock=$1 who=$2 what=$3; env -u SSH_AGENT_PID SSH_AUTH_SOCK="$sock" OPENWARRANT_ACTOR=hpr-agent "$WAR" --root "$TW_ROOT" sign "$what" --ssh-sign --as "$who" 2>&1; }
 tw_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
 
@@ -95,8 +99,8 @@ fi
 
 tww start "$TW_T" >/dev/null 2>&1
 TW_DONE=$(tww done "$TW_T" 2>&1); TW_DONE_RC=$?
-if [[ $TW_DONE_RC -ne 0 ]] && grep -q 'war sign' <<<"$TW_DONE"; then
-    tw_ok "an agent cannot close it" "refused; it names what a person signs"
+if [[ "$(tw_state)" != done ]] && grep -q 'waits on a person' <<<"$TW_DONE" && grep -q 'war sign' <<<"$TW_DONE"; then
+    tw_ok "an agent cannot close it" "handed to a person, still open; it names what they sign"
 else
     tw_fail "an agent cannot close it" "$TW_DONE_RC: $(head -c 300 <<<"$TW_DONE")"
 fi
@@ -113,7 +117,8 @@ fi
 
 TW_ONE=$(tw_sign "$TW_TMP/alice.sock" "Alice Owner" "$TW_T/$TW_I1"); TW_ONE_RC=$?
 TW_HALF=$(tww done "$TW_T" 2>&1); TW_HALF_RC=$?
-if [[ $TW_ONE_RC -eq 0 && $TW_HALF_RC -ne 0 ]] && grep -q 'signed off by Alice Owner' <<<"$TW_ONE"; then
+if [[ $TW_ONE_RC -eq 0 && "$(tw_state)" != done ]] && grep -q 'signed off by Alice Owner' <<<"$TW_ONE" \
+    && grep -q "war sign $TW_T/$TW_I2" <<<"$TW_HALF"; then
     tw_ok "one party is not enough" "Alice signed; the change stays open"
 else
     tw_fail "one party is not enough" "$TW_ONE_RC $TW_HALF_RC: $TW_ONE | $TW_HALF"
