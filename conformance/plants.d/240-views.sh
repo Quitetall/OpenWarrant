@@ -180,6 +180,7 @@ vw_git push -q -f "$VW_R" HEAD:refs/heads/main
 vw_publish >/dev/null
 vw_git checkout -q -f --detach "$(vw_tip)"
 vw_git rm -q docs/work/alpha.md
+mkdir -p "$VW_W/docs/work"
 printf '# Beta\n' > "$VW_W/docs/work/beta.md"
 vw_git add docs/work/beta.md && vw_git commit -qm "beta in, alpha out"
 vw_git push -q -f "$VW_R" HEAD:refs/heads/main
