@@ -107,6 +107,17 @@ optional typed records in one document. Its append-only journal lives beside
 it under `docs/tickets/t-xxxx/journal.jsonl`. A title is enough to start;
 `war plan add` adds items or checks to that same source.
 
+An explicitly migrated ordinary work order may also live in
+`docs/work/<id>/<id>-<slug>.md` with `profile: ticket`. Its alias and UUID stay
+unchanged, including older `*-WAR-*` aliases; its checks and journal live beside
+that source. The daily loop reads these masters and enforces their current checks.
+Migration is an explicit source change, never a side effect of `war done`.
+
+A legacy directory delivery Warrant still uses its Dispatch, Submission and resolution
+workflow. `war done` names that workflow instead of reporting an unknown ticket;
+`war sign resolve --dry-run <alias>` lists its remaining requirements. Preparing a
+legacy stage's worktree creates neither a claim nor a Dispatch.
+
 Legacy records keep their existing `manifest.toml`, intent and checklist atoms.
 `war create --legacy` selects that older layout explicitly. The tool reads
 both; no bulk migration or signed-history rewrite is required.

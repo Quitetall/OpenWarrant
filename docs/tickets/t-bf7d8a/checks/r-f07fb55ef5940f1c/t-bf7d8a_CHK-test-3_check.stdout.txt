@@ -1,0 +1,18 @@
+
+running 1 test
+test json_envelope::the_corpus_projection_is_the_result_payload_verbatim ... FAILED
+
+failures:
+
+---- json_envelope::the_corpus_projection_is_the_result_payload_verbatim stdout ----
+
+thread 'json_envelope::the_corpus_projection_is_the_result_payload_verbatim' (1960527) panicked at crates/openwarrant-cli/tests/json_envelope.rs:423:5:
+the envelope carries the committed projection; run war admin compile after staging source files
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    json_envelope::the_corpus_projection_is_the_result_payload_verbatim
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 516 filtered out; finished in 2.81s
+
