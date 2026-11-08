@@ -1,0 +1,7 @@
+
+running 2 tests
+test tickets_cli::legacy_completion_names_the_real_workflow_without_ticking_or_resolving ... ok
+test tickets_cli::legacy_completion_migrated_master_keeps_identity_and_enforces_checks ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 515 filtered out; finished in 0.22s
+
