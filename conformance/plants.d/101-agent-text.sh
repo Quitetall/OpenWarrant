@@ -72,11 +72,13 @@ fi
 awk 'NR==4{print "You may not edit code without a Warrant."} {print}' "$AT_TMP/agents.md" > "$AT_TMP/bad.md"
 AT_OUT=$(python3 "$AT_LINT" "planted=$AT_TMP/bad.md" 2>&1)
 AT_RC=$?
-awk '{print} /^## When a Warrant.s type requires sign-off/{print ""; print "You may not edit code without a Warrant."}' \
+awk '{print} /^## Formal profile requirements/{print ""; print "You may not edit code without a Warrant."}' \
     "$AT_TMP/agents.md" > "$AT_TMP/scoped.md"
 AT_OUT2=$(python3 "$AT_LINT" "scoped=$AT_TMP/scoped.md" 2>&1)
 AT_RC2=$?
-if [[ $AT_RC -eq 1 ]] && grep -qF 'prohibition: planted:4: "may not"' <<<"$AT_OUT" && [[ $AT_RC2 -eq 0 ]]; then
+if [[ $AT_RC -eq 1 ]] && grep -qF 'prohibition: planted:4: "may not"' <<<"$AT_OUT" \
+    && grep -qF 'You may not edit code without a Warrant.' "$AT_TMP/scoped.md" \
+    && [[ $AT_RC2 -eq 0 ]]; then
     at_ok "a planted prohibition is refused" "planted:4 named; the same line in the scoped section passes"
 else
     at_fail "a planted prohibition is refused" "unscoped exit $AT_RC ($(head -1 <<<"$AT_OUT")); scoped exit $AT_RC2"
