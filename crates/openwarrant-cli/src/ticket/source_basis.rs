@@ -43,6 +43,12 @@ fn file_hash(root: &Utf8Path, path: &Utf8Path, budget: &mut usize) -> Result<Str
 }
 
 fn contract_file(root: &Utf8Path, evidence: &Utf8Path) -> Option<Utf8PathBuf> {
+    if evidence
+        .parent()
+        .is_some_and(|p| p.ends_with(crate::subject::WORK_ROOT))
+    {
+        return super::format::document_of(evidence).filter(|p| p.starts_with(root));
+    }
     [
         evidence.join("ticket.md"),
         evidence.join("warrant.md"),

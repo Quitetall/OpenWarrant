@@ -383,6 +383,37 @@ fn the_corpus_projection_is_the_result_payload_verbatim() {
         .and_then(|o| o.remove("compliance"))
         .expect("war status --json carries the score");
     assert_eq!(score["schema"], "oh.war/score/v1");
+    // Live single-file work is another documented addition to the transport,
+    // not part of the directory corpus projection. Check each row against its
+    // authored document before comparing the projection exactly as before.
+    if let Some(documents) = v["result"].as_object_mut().unwrap().remove("single_file") {
+        let rows = documents.as_array().expect("single_file is an array");
+        assert!(!rows.is_empty(), "an empty addition is omitted");
+        for row in rows {
+            let path = repo_root().join(row["place"].as_str().expect("document path"));
+            let bytes = std::fs::read(path).expect("live document exists");
+            let document = openwarrant_core::format::parse(&bytes);
+            assert_eq!(row["id"], document.alias.expect("work identity"));
+            assert_eq!(row["title"], document.title.expect("authored title"));
+            assert_eq!(row["encoding"], "single_file");
+            assert!(matches!(
+                row["level"].as_str(),
+                Some("warrant" | "order" | "unknown")
+            ));
+            assert!(matches!(
+                row["state"].as_str(),
+                Some(
+                    "open"
+                        | "in_progress"
+                        | "done"
+                        | "draft"
+                        | "authorized"
+                        | "resolved"
+                        | "unknown"
+                )
+            ));
+        }
+    }
     let committed =
         std::fs::read_to_string(repo_root().join("docs/warrants/generated/CORPUS_STATUS.json"))
             .expect("committed projection");
