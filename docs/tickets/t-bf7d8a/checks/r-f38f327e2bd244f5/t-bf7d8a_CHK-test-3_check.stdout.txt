@@ -1,0 +1,6 @@
+
+running 1 test
+test json_envelope::the_corpus_projection_is_the_result_payload_verbatim ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 516 filtered out; finished in 3.43s
+

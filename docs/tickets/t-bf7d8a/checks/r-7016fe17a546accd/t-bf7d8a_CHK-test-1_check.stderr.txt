@@ -1,0 +1,2 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.29s
+     Running unittests src/lib.rs (/mnt/4tb/build/cargo/ow-formal-stage-done/debug/deps/openwarrant_cli-0d03887d29805592)
