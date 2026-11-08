@@ -1,6 +1,6 @@
 ---
 name: openwarrant
-description: "OpenWarrant shared workflow: tickets, Warrants and the war CLI. Use for explicit OpenWarrant work, or when a war skill needs the tracking or sign-off details. Ordinary coding needs none of it."
+description: "OpenWarrant shared workflow: Ticket, Warrant and Order levels, and the war CLI. Use for explicit OpenWarrant work, or when a war skill needs the tracking or sign-off details. Ordinary coding needs none of it."
 ---
 
 # OpenWarrant
@@ -54,7 +54,7 @@ repository's AGENTS.md for its own conventions.
 
 | When | Read |
 | --- | --- |
-| Tracking work as tickets | [tickets](references/tickets.md) |
+| Tracking daily work | [tickets](references/tickets.md) |
 | Remaining work, status, next steps | [progress](references/progress.md) |
 | Drafting or applying a proposal | [drafting](references/drafting.md) |
 | Historical RC.3 SDK documents and supplied records | [SDK artifacts](references/sdk-artifacts.md) |

@@ -61,7 +61,7 @@ pub struct CreateParams {
     pub kind: Option<String>,
     #[serde(default)]
     pub labels: Vec<String>,
-    /// Parent Warrant (an epic).
+    /// Parent work item (an epic).
     #[serde(default)]
     pub part_of: Option<String>,
     /// Paths or globs it may write.
@@ -71,7 +71,7 @@ pub struct CreateParams {
     pub tools: Vec<String>,
     #[serde(default)]
     pub commands: Vec<String>,
-    /// Items or Warrants it waits on; `repo:t-abc` in another repository.
+    /// Work or checklist IDs it waits on; `repo:t-abc` in another repository.
     #[serde(default)]
     pub depends_on: Vec<String>,
     /// Shell commands; `war_done` finishes only when they pass.
@@ -161,7 +161,7 @@ pub struct HeartbeatParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DoneParams {
-    /// A Warrant (all its items) or one item; omit for the one you hold.
+    /// Work ID or checklist entry; omit for the work you hold.
     #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
     #[serde(default)]
@@ -204,7 +204,7 @@ pub struct AddParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct NoteParams {
-    /// A Warrant or item.
+    /// Work ID or checklist entry.
     #[serde(alias = "ticket", alias = "id")]
     pub target: String,
     /// Markdown; with `answer`, the answer.
@@ -267,7 +267,7 @@ pub struct AliasParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct CheckParams {
-    /// One Warrant; omit for the corpus.
+    /// One work item; omit for the corpus.
     #[serde(default, alias = "alias")]
     pub target: Option<String>,
     /// Also drift-check generated files.
@@ -282,7 +282,7 @@ pub struct CheckParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct StatusParams {
-    /// One Warrant; omit for the corpus.
+    /// One work item; omit for the corpus.
     #[serde(default, alias = "alias", alias = "id")]
     pub target: Option<String>,
     /// Whose step is next, agent or person.
@@ -746,7 +746,7 @@ impl WarServer {
 
     #[tool(
         name = "war_check",
-        description = "Check the records of one Warrant or the corpus. Read-only.",
+        description = "Validate one work item's records or the corpus. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_check(&self, Parameters(p): Parameters<CheckParams>) -> ToolResult {
@@ -776,7 +776,7 @@ impl WarServer {
 
     #[tool(
         name = "war_status",
-        description = "Where the work stands, or one Warrant (`target`, `view`); `next`: whose step; `ready`: what can start. Read-only.",
+        description = "Read work state and level with target; next shows pending acts, ready shows available work. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_status(&self, Parameters(p): Parameters<StatusParams>) -> ToolResult {
@@ -1566,7 +1566,7 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a Warrant or item, or ask or answer a question.",
+        description = "Record a note, or ask or answer a question about work.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
