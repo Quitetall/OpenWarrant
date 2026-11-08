@@ -42,6 +42,7 @@ pub mod depends;
 pub mod enforce;
 pub mod format;
 pub mod ladder;
+mod legacy_completion;
 pub mod live;
 pub mod merge;
 pub mod parts;
@@ -641,6 +642,20 @@ impl Store {
         Ok(out)
     }
 
+    /// Master documents explicitly encoded as ordinary work orders. Formal
+    /// delivery documents remain in their own authorization/resolution workflow.
+    fn master_entries(&self) -> Result<Vec<Utf8PathBuf>, RepoError> {
+        let root = self.root.join(crate::subject::WORK_ROOT);
+        if root == self.dir || !crate::vfs::exists(&root) {
+            return Ok(Vec::new());
+        }
+        Ok(crate::vfs::read_dir_utf8(&root)
+            .map_err(io(format!("could not read {root}")))?
+            .into_iter()
+            .filter(|path| path.file_name().is_some_and(crate::subject::is_id))
+            .collect())
+    }
+
     /// Read one ticket. `Err` names what is wrong with it. `dir` is a
     /// directory ticket's directory or a Format 1.0 ticket's evidence
     /// directory (`<tickets>/<alias>`, which need not exist).
@@ -783,6 +798,15 @@ impl Store {
                 .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias)))
                 .collect(),
         };
+        // Master roots have their own listing and state paths. Do not put them
+        // in the ticket-directory cache, whose keys are relative to that root.
+        let masters = self.master_entries()?;
+        let master_documents = self.format_documents(&masters, &|_| true);
+        let read = read.into_iter().chain(
+            master_documents
+                .into_iter()
+                .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias))),
+        );
         let mut any_format = false;
         for one in read {
             match one {
@@ -793,6 +817,19 @@ impl Store {
                 Err(d) => faults.push(d),
             }
         }
+        let mut seen = BTreeSet::new();
+        let duplicates: BTreeSet<String> = tickets
+            .iter()
+            .filter_map(|t| (!seen.insert(t.id().to_owned())).then(|| t.id().to_owned()))
+            .collect();
+        for id in &duplicates {
+            faults.push(Diagnostic::error(
+                "format.document-duplicate",
+                id,
+                "multiple work documents claim this identity; none is worked",
+            ));
+        }
+        tickets.retain(|t| !duplicates.contains(t.id()));
         if any_format {
             // One order for both encodings: the directory's, which is the
             // ids'.
@@ -811,6 +848,9 @@ impl Store {
     /// query nor be one a match waits on, so resolving over the set gives
     /// what resolving over every ticket gives.
     pub fn load_for(&self, query: &str) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        if !self.master_entries()?.is_empty() {
+            return self.load_all();
+        }
         let query = query.trim();
         let prefix = match query.split_once('/') {
             Some((t, _)) => t,
@@ -1221,7 +1261,7 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
         let item = pick(&refs, i).map_err(|found| unknown("item", &found))?;
         return Ok(Target::Item(index, item.to_owned()));
     }
-    if query.starts_with("t-") {
+    if query.starts_with("t-") || tickets.iter().any(|t| t.id() == query) {
         return find_ticket(query).map(Target::Ticket);
     }
     if query.starts_with("i-") {
@@ -4456,7 +4496,14 @@ fn finish(
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
-        Err(d) => return Ok(Outcome::from_diagnostic(d)),
+        Err(d) => {
+            if d.rule == "ticket.unknown"
+                && let Some(refusal) = legacy_completion::refusal(store, query)?
+            {
+                return Ok(refusal);
+            }
+            return Ok(Outcome::from_diagnostic(d));
+        }
     };
     let now = now_secs();
     let date = date_of(now);
