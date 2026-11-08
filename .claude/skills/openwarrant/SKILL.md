@@ -1,6 +1,6 @@
 ---
 name: openwarrant
-description: "OpenWarrant shared workflow: tickets, Warrants and the war CLI. Use for explicit OpenWarrant work, or when a war skill needs the tracking or sign-off details. Ordinary coding needs none of it."
+description: "OpenWarrant shared workflow: Ticket, Warrant and Order levels, and the war CLI. Use for explicit OpenWarrant work, or when a war skill needs the tracking or sign-off details. Ordinary coding needs none of it."
 ---
 
 # OpenWarrant
@@ -9,21 +9,29 @@ Ordinary coding needs no Warrant and no ticket: edit, build and test as in any
 repository. OpenWarrant is optional planning and tracking. Read the target
 repository's AGENTS.md for its own conventions.
 
-- A **Warrant** is one work document with a stable ID. New work defaults to
-  one Markdown source; add checklists, stages and checks to it. `ticket` is a
-  compatibility name. Use `war start --json` for the complete required context
-  packet, implement, then `war done --note "..."`. Ordinary completion is
-  unverified and needs no signature unless explicit requirements say otherwise.
-  [Daily work](references/tickets.md) describes the six commands; `war view
-  warrants` lists every encoding.
-- A Warrant whose type has a sign-off step adds a person's approval, and the
-  tool holds those rules.
-- **Completion is separate from assurance.** Report finished work as unverified.
-  Use OpenWarrant Verified only after independent evidence and secure human
-  acceptance bind the exact result under the applicable baseline.
-- At the end of a session, tell the person what waits on them: `war view next`
-  lists the approvals and signatures that are a person's, and
-  `war sign inbox` the same list by person. Agents go on working meanwhile.
+- Track one outcome with one stable ID. A **Ticket** finishes on the worker's
+  report. A **Warrant** requires every current required check to pass. An
+  **Order** also requires a human signature. Add requirements in place with
+  `war plan promote`. [Daily work](references/tickets.md) covers the loop.
+- Start with `war_start` over MCP, or `war start <id> --json` at the CLI. Read
+  the complete required context before editing. MCP supplies it automatically
+  in structured content and its text fallback. A missing required source holds
+  the affected work until it can be supplied.
+- Implement within the declared scope and permissions. Record experience with
+  `war_note`. Use `ask`, `blocking` and `needs_human` when a decision is missing.
+  Resume affected work after its required answer arrives.
+- Finish with `war_done`, or `war done --note "..."`. Read the returned state
+  and next action. Use `war_status` with `target` for its effective level and
+  state, then a separate `next: true` call for pending actions. Legacy response
+  keys named `ticket` can hold work at any level. Failed or UNKNOWN required
+  checks keep the work unfinished.
+  An Order can reach `awaiting_signature` after the worker finishes. Hand the
+  named action to its human signer and report the pending state.
+- Completion and assurance are separate. Report the actual state and evidence.
+  The Verified mark requires the applicable independent evidence and secure
+  human acceptance of the exact result. A performer reports its own checks.
+- `war_status` with `next: true`, or `war status --next`, lists whose action is
+  next. Continue independent permitted work while a human action is pending.
 - The repository's `CLAUDE.md` and `AGENTS.md` sections are records too
   (`md:CLAUDE.md#testing`): a plan can cite one, and
   `war plan impact md:CLAUDE.md#testing` lists what cites it. The block between
@@ -46,10 +54,10 @@ repository's AGENTS.md for its own conventions.
 
 | When | Read |
 | --- | --- |
-| Tracking work as tickets | [tickets](references/tickets.md) |
+| Tracking daily work | [tickets](references/tickets.md) |
 | Remaining work, status, next steps | [progress](references/progress.md) |
 | Drafting or applying a proposal | [drafting](references/drafting.md) |
-| Authoring or checking RC.3 documents and supplied records | [SDK artifacts](references/sdk-artifacts.md) |
+| Historical RC.3 SDK documents and supplied records | [SDK artifacts](references/sdk-artifacts.md) |
 | Migrating existing docs or upgrading their OpenWarrant edition | [war-migrate](../war-migrate/SKILL.md) |
 | Implementing a planned Warrant's scope | [execution](references/execution.md) |
 | Sign-off, verification, or a `war sign` that failed | [verification](references/verification.md) |
@@ -57,9 +65,9 @@ repository's AGENTS.md for its own conventions.
 | MCP transport | [MCP](references/mcp.md) |
 
 Report what you observed. Actors, signatures, verifier verdicts, test results
-and completion come from the records and tools that hold them; what could not
-be observed is UNKNOWN. Generated views are rebuilt with `war admin compile`. Other
-work goes ahead while one scope waits.
+and completion come from the records and tools that hold them. Unavailable
+observations are UNKNOWN. Follow the repository's view publication policy.
+OpenWarrant's own derived views are published by the main-only workflow.
 
 Methods/provenance: [adaptation record](../openwarrant/ADAPTATIONS.md),
 [upstream license](../openwarrant/LICENSE.mattpocock). Skills choose a process

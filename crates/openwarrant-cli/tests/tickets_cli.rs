@@ -789,8 +789,8 @@ fn agents_in_linked_worktrees_claim_under_their_own_names() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
-/// Over MCP a ticket tool reads like the CLI (a brief once, in Markdown;
-/// `done` in one line) with the envelope as structured content, and a
+/// Starting work carries the complete context envelope and its Markdown
+/// brief. Other replies stay terse. A
 /// misnamed parameter is refused, never ignored: an ignored `ticket` once
 /// made `war_start` take the next Warrant instead of the one named.
 #[test]
@@ -820,14 +820,21 @@ fn mcp_ticket_tools_read_like_the_cli_and_refuse_a_misnamed_parameter() {
     );
     let started = call(&mut mcp, "war_start", serde_json::json!({"ticket": "T8"}));
     let text = started["result"]["content"][0]["text"].as_str().unwrap();
-    assert!(
-        text.starts_with(&format!("# {id} — T8: Monthly budget")),
-        "{text}"
+    let envelope = &started["result"]["structuredContent"];
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(text).unwrap(),
+        *envelope
     );
-    // The text alone by default; the envelope only when asked.
     assert!(
-        started["result"].get("structuredContent").is_none(),
+        envelope["result"]["markdown"]
+            .as_str()
+            .unwrap()
+            .starts_with(&format!("# {id} — T8: Monthly budget")),
         "{started}"
+    );
+    assert_eq!(
+        envelope["result"]["context"]["schema"],
+        "oh.war/task-context/v1"
     );
     let done = call(
         &mut mcp,

@@ -51,3 +51,10 @@ The scheduled/manual `eval` workflow captures these five cases, their tool
 identity and scratch archives. `retain-run.py` preserves actual input/output
 programs before rejecting unexpected scores. CI artifact upload runs on failure
 too. The original generic baseline comparison remains independent.
+
+## Fresh-agent daily workflow
+
+[Fresh-agent cases](agent-workflow/README.md) use real model contexts and the
+public MCP, with separate projects, protected fixture hashes and retained tool
+calls. Their observations complement this scripted baseline. The baseline's
+`fixture_only` and `model_quality_measured` fields retain their historical scope.

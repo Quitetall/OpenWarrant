@@ -4735,89 +4735,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                 }
             }
-            // A ticket is checked for its structure only (OW-WAR-0147): never
-            // for a signature, evidence or verification it does not need.
-            if let Some(a) = alias.as_deref().filter(|a| ticket::is_ticket_ref(a)) {
-                let mut report = diagnostic::Report::default();
-                match ticket::Store::open(&repository, None) {
-                    Ok(store) => {
-                        // A Format 1.0 ticket is checked as the document it
-                        // is. One the loop refuses is no ticket to go on to.
-                        if let Some(document) = store.document_of(a)? {
-                            format_doc::check_one(&repository, &document, &mut report);
-                        }
-                        if report.is_ready() {
-                            ticket::check(&store, Some(a), &mut report)?;
-                        }
-                    }
-                    Err(e) => report.push(diagnostic::Diagnostic::error(
-                        "tickets.config",
-                        init::CONFIG_FILE.to_owned(),
-                        e.to_string(),
-                    )),
-                }
-                return Ok(output::finish(mode, "check", &report, None));
-            }
-            // M10: a Warrant read in place is checked for what its folder
-            // says, read where it is; nothing is written.
-            if let Some(a) = alias
-                .as_deref()
-                .filter(|a| warrants::kind_of(a) == warrants::IdKind::ReadInPlace)
-            {
-                let mut report = diagnostic::Report::default();
-                interop::adapters::check(&repository, Some(a), &mut report);
-                return Ok(output::finish(mode, "check", &report, None));
-            }
-            // W1.1: a single-file Warrant is checked as the document it is,
-            // with or without a directory corpus around it.
-            if let Some(source) = alias
-                .as_deref()
-                .and_then(|a| work::document_of(&repository, a))
-            {
-                let mut report = diagnostic::Report::default();
-                format_doc::check_one(&repository, &source, &mut report);
-                return Ok(output::finish(mode, "check", &report, None));
-            }
-            // One-shot and read-only: the tree does not move under it (t-eca6).
-            gate_cmd::source::remember_tree_reads();
-            let mut report = check::run(&repository, alias.as_deref(), generated)?;
+            let shared = corpus::Corpus::new(&repository);
+            let mut report = work::check_records(&shared, alias.as_deref(), generated)?;
             if let Some(why) = why_corpus {
                 report.push(diagnostic::Diagnostic::pass(
                     "check.changed",
                     format!("checked the corpus: {why}"),
                 ));
-            }
-            if alias.is_none() {
-                match ticket::Store::open(&repository, None) {
-                    Ok(store) => ticket::check(&store, None, &mut report)?,
-                    Err(e) => report.push(diagnostic::Diagnostic::error(
-                        "tickets.config",
-                        init::CONFIG_FILE.to_owned(),
-                        e.to_string(),
-                    )),
-                }
-                interop::adapters::check(&repository, None, &mut report);
-                // W6: open clauses counted, late ones flagged, [repos] read.
-                interfaces::check(&repository, chrono::Utc::now().date_naive(), &mut report);
-                // OW-WAR-0148 M14: a [preset], [roles] or [notify] table that
-                // does not read is refused by key; an absent one says nothing.
-                if let Err(e) = preset::Policy::read(&repository.root) {
-                    report.push(diagnostic::Diagnostic::error(
-                        preset::CONFIG_RULE,
-                        init::CONFIG_FILE.to_owned(),
-                        e,
-                    ));
-                }
-                // OW-WAR-0148 M17: the ledger's atoms and table, the JSONL
-                // never committed, and the [score] table.
-                ledger::check(&repository, &mut report);
-                if let Err(e) = score::Config::read(&repository.root) {
-                    report.push(diagnostic::Diagnostic::error(
-                        "score.config",
-                        init::CONFIG_FILE.to_owned(),
-                        e,
-                    ));
-                }
             }
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))
