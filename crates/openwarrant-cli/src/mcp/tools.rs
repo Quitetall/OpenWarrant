@@ -570,7 +570,9 @@ fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -
     let mut value: serde_json::Value = serde_json::from_str(&text)
         .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
     lean(&mut value);
-    Ok(CallToolResult::structured(value))
+    let mut reply = CallToolResult::structured(value);
+    reply.is_error = Some(!report.is_ready());
+    Ok(reply)
 }
 
 /// [`envelope`] with every finding: what `verbose: true` asks for.
@@ -578,7 +580,9 @@ fn envelope_whole(command: &str, report: &Report, result: Option<serde_json::Val
     let text = crate::output::envelope(command, report, result);
     let value: serde_json::Value = serde_json::from_str(&text)
         .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
-    Ok(CallToolResult::structured(value))
+    let mut reply = CallToolResult::structured(value);
+    reply.is_error = Some(!report.is_ready());
+    Ok(reply)
 }
 
 /// A result this small is returned whole: its passes are the answer (a

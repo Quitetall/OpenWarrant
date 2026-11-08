@@ -483,13 +483,14 @@ fn native_work_record_checks_match_the_cli_at_every_completion_level() {
                 );
             }
             assert_eq!(report["exit_code"] == 0, !malformed, "{mcp}");
+            assert_eq!(mcp["result"]["isError"], malformed, "{mcp}");
             if malformed {
                 assert!(
                     report["diagnostics"]
                         .as_array()
                         .unwrap()
                         .iter()
-                        .any(|d| d["rule"] == "format.field-duplicate"),
+                        .any(|d| d["rule"] == "format.frontmatter"),
                     "{mcp}"
                 );
             }

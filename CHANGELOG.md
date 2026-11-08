@@ -16,6 +16,8 @@ Notable changes to OpenWarrant. Format loosely follows
 - CLI and MCP record checks share one route for native work at every level,
   legacy records and work read in place. Native Ticket/Warrant/Order IDs now
   receive their actual record checks over MCP.
+- MCP report outcomes mark failed or unavailable checks with the tool error
+  flag while retaining their named verdicts and diagnostics.
 
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it

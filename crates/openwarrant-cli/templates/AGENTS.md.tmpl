@@ -33,7 +33,8 @@ call for pending acts. Legacy JSON keys named `ticket` can hold any level.
 ## Formal profile requirements
 
 For a record using a formal profile such as `delivery` or `decision`, follow
-its explicit action gates and the sign-off workflow. The tool holds five facts:
+its explicit action gates and the sign-off workflow. Legacy directories use
+`docs/warrants/{{namespace}}-WAR-NNNN/`. The tool holds five facts:
 
 1. **Your own work is checked by someone else**: `war evidence verify` refuses a verdict whose verifier is the performer.
 2. **A disposition comes from the verifier** (`war evidence verify --response`), not from an atom edited by hand.
