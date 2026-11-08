@@ -820,7 +820,8 @@ impl Store {
         let mut seen = BTreeSet::new();
         let duplicates: BTreeSet<String> = tickets
             .iter()
-            .filter_map(|t| (!seen.insert(t.id().to_owned())).then(|| t.id().to_owned()))
+            .filter(|t| !seen.insert(t.id().to_owned()))
+            .map(|t| t.id().to_owned())
             .collect();
         for id in &duplicates {
             faults.push(Diagnostic::error(
