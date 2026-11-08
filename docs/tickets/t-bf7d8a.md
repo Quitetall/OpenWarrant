@@ -21,3 +21,8 @@ evaluates t-bf7d8a
 run: cargo test --locked --offline -p openwarrant-cli --test all legacy_completion
 on: done
 evaluates t-bf7d8a
+
+## CHK-test-3 · check — test-3
+run: cargo test --locked --offline -p openwarrant-cli --test all json_envelope::the_corpus_projection_is_the_result_payload_verbatim -- --exact
+on: done
+evaluates t-bf7d8a
