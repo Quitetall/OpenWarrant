@@ -1,8 +1,8 @@
 # Daily work
 
-Use one Warrant for one outcome. New work is one expandable Markdown source
-with a stable ID. `ticket` and `t-...` are compatibility names, not a second
-work model. Ordinary coding may remain untracked.
+Track one outcome as one work item with a stable ID. New work uses one
+expandable Markdown source. Ticket, Warrant and Order are completion levels
+derived from its effective requirements. Ordinary coding may remain untracked.
 
 ```bash
 war init                                       # once per repository
@@ -14,9 +14,11 @@ war status --json                              # read-only progress
 war check                                      # record integrity, not code qualification
 ```
 
-For an agent, `start --json` carries the complete required task packet. Keep
-its exact rules, dependencies and source revisions. Missing required context
-is a refusal, not permission to guess. Human output is a short brief.
+At the CLI, `start --json` carries the complete required task packet. Over
+MCP, `war_start` delivers that packet automatically, including a text fallback
+for clients that ignore structured content. Keep its exact rules, dependencies
+and source revisions. A missing required source holds the affected work until
+it is available. Human CLI output remains a short brief.
 
 Extend the same Warrant with `war plan add`, `war plan note`, and
 `war plan edit`. Checklists and checks do not change its ID. `create` returns
@@ -24,8 +26,7 @@ Extend the same Warrant with `war plan add`, `war plan note`, and
 atom directories remain readable, and `create --legacy` requests that encoding.
 
 `war start` takes ready work or resumes the claim you hold. Explicit Warrant
-requirements still bind. Normally `done` completes work unverified without a
-signature. Declared required checks must all pass for the current definitions,
+requirements still bind. A Ticket normally completes unverified on the worker's report. Declared required checks must all pass for the current definitions,
 subjects and code; optional checks report results. Title-only work with no
 completion checks uses `done`. Completion does not award an assurance mark.
 
@@ -59,3 +60,12 @@ not change the level. A person at a terminal can add `--interactive` to any of
 the six commands; an agent passes arguments, and without a terminal the flag
 is refused by name. `war context <target>` takes a Warrant, a document, a
 section (`file.md#slug`), a few words or a code path, and fits the budget.
+
+## Read the result before reporting completion
+
+Use the returned state and next action. A failed or UNKNOWN required check
+keeps its target unfinished. For an Order, `war_done` can record the worker's
+finished portion with `ticket_state: awaiting_signature`. A successful tool
+call then hands the named action to a human. Report that state and continue
+independent work. A person's required signature and the common Verified mark
+follow their recorded requirements.

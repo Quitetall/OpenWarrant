@@ -1276,7 +1276,7 @@ impl WarServer {
 
     #[tool(
         name = "war_context",
-        description = "The records a task needs, cited by id, within a byte budget. Read-only.",
+        description = "Explore cited context within a budget; strict refuses summaries. war_start delivers required context. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
@@ -1418,7 +1418,7 @@ impl WarServer {
 
     #[tool(
         name = "war_create",
-        description = "Create a Warrant (a ticket); returns its id. `sign` asks for a person's sign-off at the end.",
+        description = "Create a Ticket; tests make a Warrant, sign makes an Order. Returns its stable id.",
         annotations(read_only_hint = false)
     )]
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
@@ -1465,7 +1465,7 @@ impl WarServer {
 
     #[tool(
         name = "war_start",
-        description = "Take the next ready Warrant, or `target`, and return its brief; `claim` only claims.",
+        description = "Claim ready work and deliver its complete required context automatically; claim only reserves.",
         annotations(read_only_hint = false)
     )]
     fn war_start(&self, Parameters(p): Parameters<StartParams>) -> ToolResult {
@@ -1500,7 +1500,7 @@ impl WarServer {
 
     #[tool(
         name = "war_done",
-        description = "Close the Warrant you hold, or one item; `release` gives it back, `reopen` unticks.",
+        description = "Finish after required checks. Orders wait for a human signature. release gives back; reopen marks unfinished.",
         annotations(read_only_hint = false)
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {

@@ -8,6 +8,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- MCP `war_start` always delivers its complete required context packet in both
+  structured content and a text fallback. `json: false` cannot discard required
+  rules. Claim-only replies and other tools keep their terse presentation.
+- The war skill and MCP instructions use the Ticket/Warrant/Order model and
+  explain failed checks, required context, questions and human-signature handoff.
+
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it
   twice. Such a `CLAUDE.md` now gets no block, a copy written before is removed, and
@@ -29,7 +35,7 @@ Notable changes to OpenWarrant. Format loosely follows
   default `tools/list` is 4,904 bytes, down from 32,530. `--all` (or `[mcp]
   tools = "all"`) serves all 42 tools. Input schemas are flat and each
   description is one line.
-- An MCP reply is the CLI's terse text: a finding reads `refused (rule):
+- Other MCP replies use the CLI's terse text: a finding reads `refused (rule):
   ...`, and a nonzero exit ends `exit N, verdict`. `json: true` (or `[mcp]
   structured = true`) returns the `oh.war/report/v1` envelope.
 - The AGENTS.md that `war init` writes is 3,157 bytes, down from 9,775. It

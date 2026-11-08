@@ -219,7 +219,10 @@ runs plus the two it needs between them. The CLI's folds are arguments:
 
 `war admin mcp --all`, or `[mcp] tools = "all"` in `openwarrant.toml`,
 serves the whole table (42 tools), so nothing an MCP client had is gone.
-A reply is the text the CLI prints: a finding reads `refused (rule): ...`
+A `war_start` reply carrying task context always returns the report envelope,
+in structured content and the text fallback, including with `json: false`.
+Claim-only calls retain the terse reply. Other replies use the text the CLI
+prints. A finding reads `refused (rule): ...`
 and a nonzero exit ends `exit N, verdict`. `json: true` on any call, or
 `[mcp] structured = true`, returns the `oh.war/report/v1` envelope instead.
 Either way no signing, ingesting or other human act is a tool; `war admin

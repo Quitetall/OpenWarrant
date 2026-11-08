@@ -350,3 +350,75 @@ fn questions_tool_preserves_partial_store_diagnostics() {
     assert_eq!(s.finish(), 0);
     std::fs::remove_dir_all(root).unwrap();
 }
+
+/// A client needs no verbosity switch to receive binding task context.
+#[test]
+fn starting_work_always_delivers_required_context_to_both_client_shapes() {
+    let root = tempfile::tempdir().unwrap();
+    let init = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["init", "--namespace", "CTX"])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .current_dir(root.path())
+        .output()
+        .unwrap();
+    assert!(
+        init.status.success(),
+        "{}",
+        String::from_utf8_lossy(&init.stderr)
+    );
+    let rules = root.path().join("AGENTS.md");
+    let mut text = std::fs::read_to_string(&rules).unwrap();
+    text.push_str("\n## Required compatibility rule\nPRESERVE_ACCOUNT_IDENTITIES_MCP_SENTINEL\n");
+    std::fs::write(&rules, text).unwrap();
+    let mut session = Session::start_at(root.path());
+    let created = session.tool(2, "war_create", serde_json::json!({"title":"Preserve compatibility", "actor":"context-worker", "json":true}));
+    let id = created["result"]["structuredContent"]["result"]["id"]
+        .as_str()
+        .unwrap();
+    for (number, extra) in [
+        (3, serde_json::json!({})),
+        (4, serde_json::json!({"json":false})),
+    ] {
+        let mut arguments = serde_json::json!({"target":id,"actor":"context-worker"});
+        arguments
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        let reply = session.tool(number, "war_start", arguments);
+        assert_ne!(reply["result"]["isError"], true, "{reply}");
+        let envelope = &reply["result"]["structuredContent"];
+        assert_eq!(
+            envelope["result"]["context"]["schema"], "oh.war/task-context/v1",
+            "{reply}"
+        );
+        let text = reply["result"]["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains("PRESERVE_ACCOUNT_IDENTITIES_MCP_SENTINEL"),
+            "text-only clients need the exact rule: {reply}"
+        );
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(text).unwrap(),
+            *envelope
+        );
+    }
+    #[cfg(unix)]
+    {
+        let outside = tempfile::tempdir().unwrap();
+        let rule = outside.path().join("external-rule.md");
+        std::fs::write(&rule, "External rule must be explicitly supplied").unwrap();
+        std::fs::remove_file(&rules).unwrap();
+        std::os::unix::fs::symlink(&rule, &rules).unwrap();
+        let refused = session.tool(
+            5,
+            "war_start",
+            serde_json::json!({"target":id,"actor":"context-worker"}),
+        );
+        assert_eq!(refused["result"]["isError"], true, "{refused}");
+        let text = refused["result"]["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains("context.required-missing") && text.contains("AGENTS.md"),
+            "{refused}"
+        );
+    }
+    assert_eq!(session.finish(), 0);
+}
