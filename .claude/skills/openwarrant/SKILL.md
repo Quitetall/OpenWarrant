@@ -21,7 +21,10 @@ repository's AGENTS.md for its own conventions.
   `war_note`. Use `ask`, `blocking` and `needs_human` when a decision is missing.
   Resume affected work after its required answer arrives.
 - Finish with `war_done`, or `war done --note "..."`. Read the returned state
-  and next action. Failed or UNKNOWN required checks keep the work unfinished.
+  and next action. Use `war_status` with `target` for its effective level and
+  state, then a separate `next: true` call for pending actions. Legacy response
+  keys named `ticket` can hold work at any level. Failed or UNKNOWN required
+  checks keep the work unfinished.
   An Order can reach `awaiting_signature` after the worker finishes. Hand the
   named action to its human signer and report the pending state.
 - Completion and assurance are separate. Report the actual state and evidence.

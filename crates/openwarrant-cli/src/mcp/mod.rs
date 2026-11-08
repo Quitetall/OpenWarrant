@@ -37,8 +37,9 @@ Warrant requires every current required check to pass. An Order also requires a 
 signature. `war_start` claims ready work and automatically delivers its complete required \
 context, in structured content and a text fallback. Read those rules before editing. \
 `war_done` reports your finished work and runs required checks. An Order may remain \
-awaiting_signature, with a human action next. `war_status` with next:true shows whose act \
-is next. Use `war_note` to record experience or ask/answer a question. needs_human:true \
+awaiting_signature, with a human action next. `war_status` with target reads effective \
+level and state. Legacy ticket keys can hold any level. Use a separate next:true call \
+for pending acts. Use `war_note` to record experience or ask/answer a question. needs_human:true \
 routes a human decision. `war_check` validates records. Names grant no permissions. \
 This server cannot authorize, resolve, award Verified status, accept a SAS, correct a \
 delivered file, or sign anything. A person uses `war sign` for human acts. Other replies \

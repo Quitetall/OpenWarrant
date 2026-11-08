@@ -63,7 +63,9 @@ section (`file.md#slug`), a few words or a code path, and fits the budget.
 
 ## Read the result before reporting completion
 
-Use the returned state and next action. A failed or UNKNOWN required check
+Read effective level and state with `war_status` and `target`. Read pending
+actions with a separate `war_status` call using `next: true`. Legacy response
+keys named `ticket` can hold work at any level. A failed or UNKNOWN required check
 keeps its target unfinished. For an Order, `war_done` can record the worker's
 finished portion with `ticket_state: awaiting_signature`. A successful tool
 call then hands the named action to a human. Report that state and continue

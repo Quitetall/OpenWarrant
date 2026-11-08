@@ -13,6 +13,9 @@ Notable changes to OpenWarrant. Format loosely follows
   rules. Claim-only replies and other tools keep their terse presentation.
 - The war skill and MCP instructions use the Ticket/Warrant/Order model and
   explain failed checks, required context, questions and human-signature handoff.
+- CLI and MCP record checks share one route for native work at every level,
+  legacy records and work read in place. Native Ticket/Warrant/Order IDs now
+  receive their actual record checks over MCP.
 
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it

@@ -422,3 +422,78 @@ fn starting_work_always_delivers_required_context_to_both_client_shapes() {
     }
     assert_eq!(session.finish(), 0);
 }
+
+#[test]
+fn native_work_record_checks_match_the_cli_at_every_completion_level() {
+    for (title, tests, sign) in [
+        ("Ticket record", vec![], false),
+        ("Warrant record", vec!["true"], false),
+        ("Order record", vec!["true"], true),
+    ] {
+        let root = tempfile::tempdir().unwrap();
+        let init = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["init", "--namespace", "PAR"])
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .current_dir(root.path())
+            .output()
+            .unwrap();
+        assert!(init.status.success());
+        let mut session = Session::start_at(root.path());
+        let mut sequence = 2;
+        let created = session.tool(
+            sequence,
+            "war_create",
+            serde_json::json!({"title":title,"tests":tests,"sign":sign,"json":true}),
+        );
+        sequence += 1;
+        let work = &created["result"]["structuredContent"]["result"];
+        let id = work["id"].as_str().unwrap();
+        for malformed in [false, true] {
+            if malformed {
+                let source = root.path().join(work["source"].as_str().unwrap());
+                let text = std::fs::read_to_string(&source).unwrap();
+                std::fs::write(
+                    source,
+                    text.replacen(
+                        &format!("alias: {id}"),
+                        &format!("alias: {id}\nalias: {id}"),
+                        1,
+                    ),
+                )
+                .unwrap();
+            }
+            let cli = Command::new(env!("CARGO_BIN_EXE_war"))
+                .args(["--json", "check", id])
+                .env("OPENWARRANT_NO_PROJECTS", "1")
+                .current_dir(root.path())
+                .output()
+                .unwrap();
+            let cli: serde_json::Value = serde_json::from_slice(&cli.stdout).unwrap();
+            let mcp = session.tool(
+                sequence,
+                "war_check",
+                serde_json::json!({"target":id,"json":true}),
+            );
+            sequence += 1;
+            let report = &mcp["result"]["structuredContent"];
+            for field in ["exit_code", "counts", "diagnostics"] {
+                assert_eq!(
+                    report[field], cli[field],
+                    "{title}, malformed={malformed}: {mcp}"
+                );
+            }
+            assert_eq!(report["exit_code"] == 0, !malformed, "{mcp}");
+            if malformed {
+                assert!(
+                    report["diagnostics"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|d| d["rule"] == "format.field-duplicate"),
+                    "{mcp}"
+                );
+            }
+        }
+        assert_eq!(session.finish(), 0);
+    }
+}

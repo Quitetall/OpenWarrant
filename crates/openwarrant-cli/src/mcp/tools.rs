@@ -746,7 +746,7 @@ impl WarServer {
         annotations(read_only_hint = true)
     )]
     fn war_check(&self, Parameters(p): Parameters<CheckParams>) -> ToolResult {
-        let r = crate::check::run_with(
+        let r = crate::work::check_records(
             &crate::corpus::held(&self.repo),
             p.target.as_deref(),
             p.generated,
