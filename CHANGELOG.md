@@ -26,6 +26,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- The managed AGENTS.md block again tells agents to run `war start` before reading
+  anything else and not to read `docs/tickets/` directly. The shorter wording from #406
+  named the directory as an alternative, and in the adoption study agents on that build
+  read ticket files about four times as often, roughly 90k tokens per task.
+
+### Fixed
+
 - Two `runtime_capture::protected_executable` tests failed on GitHub's `ubuntu-26.04`
   runners, where `/usr/bin/true` links to a multicall coreutils binary that the
   sealed-descriptor check rightly refuses as linked. The tests now use the real
