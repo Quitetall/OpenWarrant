@@ -135,6 +135,13 @@ fn graph_with(corpus: &Corpus, model: &Model, states: &[State]) -> Graph {
         name: repo.config.project.name.clone(),
         ..Graph::default()
     };
+    // Section 10.3 step 3: each Format 1.0 item's tier (FORMAT-1.0 §4.6).
+    let docs = corpus.format_docs();
+    for d in docs.docs.iter().filter(|d| d.admitted()) {
+        if let Some(tier) = crate::format_doc::tier(d, &docs.profiles) {
+            g.tiers.insert(d.source.clone(), tier);
+        }
+    }
     // A legacy Warrant's `paths`: the files its deliverables declare.
     let mut deliverable_paths: BTreeMap<&str, Vec<String>> = BTreeMap::new();
     for r in model.records.iter().filter(|r| r.kind == "deliverable") {

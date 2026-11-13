@@ -122,6 +122,11 @@ pub struct Graph {
     /// What a preset that reads state read besides the documents (section
     /// 10.4); `None` for a graph of the documents alone.
     pub tracking: Option<Tracking>,
+    /// Section 10.3 step 3 (FORMAT-1.0 §4.6): the tier, 1 (highest) to 4,
+    /// of each item by its source path. A unit of a source not here (a
+    /// legacy encoding, or a tier that could not be read) ranks after 4.
+    #[serde(default)]
+    pub tiers: BTreeMap<String, u8>,
 }
 
 /// The journals, claims and time a preset that reads state answers at
@@ -1029,7 +1034,8 @@ fn compile_seeds(
     }
     let (mut reached, mut findings) =
         walk_over(graph, &seeds, opts.depth, &preset.steps, &preset.omit_types);
-    // Step 3: distance, type rank, source, line (then id, so ties are fixed).
+    // Step 3: distance, tier (§4.6), type rank, source, line (then id, so
+    // ties are fixed).
     // `human` gives the work document's own units first, in document order.
     let key = |r: &Reached| {
         let u = &graph.units[&r.id];
@@ -1037,11 +1043,12 @@ fn compile_seeds(
             && let Some(doc) = &own
             && of_document(u, doc)
         {
-            return (0, 0, 0, "", u.line, u.id.as_str());
+            return (0, 0, 0, 0, "", u.line, u.id.as_str());
         }
         (
             1,
             r.distance,
+            graph.tiers.get(&u.source).copied().unwrap_or(5),
             type_rank(&u.kind),
             u.source.as_str(),
             u.line,

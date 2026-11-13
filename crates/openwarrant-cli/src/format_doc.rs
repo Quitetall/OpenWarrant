@@ -321,10 +321,14 @@ pub fn load(repo: &Repository) -> FormatDocs {
         }
     }
     // §4.5: one root specification. A file of profile `spec` that is not
-    // `SPEC.md` and names no `part_of` is a second one.
+    // `SPEC.md` or the master `spec` and names no `part_of` is a second one;
+    // so is the master `spec` beside `SPEC.md`.
+    let spec_md = out.docs.iter().any(|d| d.source == "SPEC.md");
     for d in &out.docs {
+        let master = d.source == format::SPEC_MASTER;
         if d.doc.profile == "spec"
             && d.source != "SPEC.md"
+            && (!master || spec_md)
             && !d.doc.relations.iter().any(|r| r.kind == "part_of")
         {
             out.faults.push(Fault {
@@ -332,9 +336,35 @@ pub fn load(repo: &Repository) -> FormatDocs {
                 rule: "format.document-duplicate",
                 file: d.source.clone(),
                 line: 1,
+                message: if master {
+                    format!(
+                        "{} is the Spec, and SPEC.md is also there: a repository has one \
+                         Spec (FORMAT-1.0 §4.5)",
+                        d.source
+                    )
+                } else {
+                    format!(
+                        "{} has profile `spec`, is not SPEC.md and names no `part_of`: a second \
+                         root specification. A part says `part_of: doc:SPEC.md`",
+                        d.source
+                    )
+                },
+            });
+        }
+        // §4.6: one Roadmap. A work order of profile `roadmap` that is not
+        // `roadmap` is a second one.
+        if d.doc.profile == "roadmap"
+            && d.doc.alias.as_deref().is_some_and(|a| a != "roadmap")
+            && d.place != Place::Records
+        {
+            out.faults.push(Fault {
+                outcome: Outcome::Refusal,
+                rule: "format.document-duplicate",
+                file: d.source.clone(),
+                line: 1,
                 message: format!(
-                    "{} has profile `spec`, is not SPEC.md and names no `part_of`: a second \
-                     root specification. A part says `part_of: doc:SPEC.md`",
+                    "{} has profile `roadmap` and is not `roadmap`: a second Roadmap. A \
+                     repository has one, docs/work/roadmap/roadmap.md (FORMAT-1.0 §4.6)",
                     d.source
                 ),
             });
@@ -347,7 +377,97 @@ pub fn load(repo: &Repository) -> FormatDocs {
         .map(|f| f.file.clone())
         .collect();
     out.docs.retain(|d| !second.contains(&d.source));
+    let profiles = out.profiles.clone();
+    for d in &mut out.docs {
+        type_tier(d, &profiles);
+    }
     out
+}
+
+/// §4.6: the tier of the item `d`, 1 (highest) to 4, derived: the Spec and
+/// the Roadmap are 1; else a required signature 2, a trigger 3, nothing
+/// extra 4. `None` when a fact it depends on could not be read.
+#[must_use]
+pub fn tier(d: &Loaded, profiles: &Profiles) -> Option<u8> {
+    if matches!(d.doc.alias.as_deref(), Some("spec" | "roadmap")) || d.source == "SPEC.md" {
+        return Some(1);
+    }
+    let own = d
+        .doc
+        .alias
+        .clone()
+        .unwrap_or_else(|| format!("doc:{}", d.source));
+    match crate::work::document_level(&own, d, profiles) {
+        crate::work::Level::Order => Some(2),
+        crate::work::Level::Warrant => Some(3),
+        crate::work::Level::Ticket => Some(4),
+        crate::work::Level::Unknown => None,
+    }
+}
+
+/// The tier's name on the ladder of `kind` (§4.6).
+#[must_use]
+pub fn tier_name(kind: &str, tier: u8) -> &'static str {
+    match (kind, tier) {
+        ("document", 1) => "Spec",
+        ("document", 2) => "ADR",
+        ("document", 3) => "Design",
+        ("document", _) => "Guide",
+        (_, 1) => "Roadmap",
+        (_, 2) => "Order",
+        (_, 3) => "Warrant",
+        _ => "Ticket",
+    }
+}
+
+/// The 1-based line of the frontmatter key `key`, or 1.
+fn key_line(bytes: &[u8], key: &str) -> usize {
+    let text = String::from_utf8_lossy(bytes);
+    let prefix = format!("{key}:");
+    text.lines()
+        .take_while({
+            let mut fences = 0;
+            move |l| {
+                if l.trim_end() == "---" {
+                    fences += 1;
+                }
+                fences < 2
+            }
+        })
+        .position(|l| l.starts_with(&prefix))
+        .map_or(1, |i| i + 1)
+}
+
+/// §4.6: a document's `type` names a tier, and it is the derived one.
+fn type_tier(d: &mut Loaded, profiles: &Profiles) {
+    if !d.admitted() || format::kind_of(d.doc.alias.as_deref()) != "document" {
+        return;
+    }
+    let Some(value) = d.doc.fields.get("type").and_then(|v| v.as_str()) else {
+        return;
+    };
+    let value = value.to_owned();
+    let line = key_line(&d.bytes, "type");
+    let message = match (format::type_tier(&value), tier(d, profiles)) {
+        (None, _) => format!(
+            "`type: {value}` is no document type: spec, adr, design, interface or guide \
+             (FORMAT-1.0 §4.6)"
+        ),
+        (Some(want), Some(have)) if want != have => format!(
+            "`type: {value}` is a {} (tier {want}), and this document derives tier {have}, a \
+             {}: a tier is what the document does (a required signature, a trigger, or \
+             neither; the Spec is `spec`), never what it says (FORMAT-1.0 §4.6)",
+            tier_name("document", want),
+            tier_name("document", have)
+        ),
+        _ => return,
+    };
+    d.doc.findings.push(format::Finding {
+        outcome: Outcome::Refusal,
+        rule: "format.type-tier",
+        line,
+        message,
+    });
 }
 
 fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut FormatDocs) {

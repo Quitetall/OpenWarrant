@@ -8,8 +8,8 @@
 [F] t-0d61d/CHK-reset · check · - · reset tests pass · docs/tickets/t-0d61d.md:20
 [F] REQ-reset-1 · requirement · - · a reset link works once · SPEC.md:16
 [F] CON-1 · constraint · - · no new datastore · SPEC.md:21
-[F] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 [F] doc:SPEC.md · spec · - · Account service · SPEC.md:1
+[F] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 
 ## Records
 > t-0d61d/i-4d11 · item · docs/tickets/t-0d61d.md:16 · sha256:739e9dd2426a
@@ -50,13 +50,6 @@ statement: Reset state MUST live in the existing accounts database.
 constrains REQ-reset-1
 
 
-> OW-WAR-0150/OBL-001 · obligation · docs/warrants/OW-WAR-0150.md:20 · sha256:fd56c1e72596
-## OBL-001 · obligation — a consumed link is refused
-scope: the reset endpoint, one consumed link.
-evidence: the second use answers 410.
-refusal: a fresh link is accepted.
-evaluates REQ-reset-1
-
 > doc:SPEC.md · spec · SPEC.md:1 · sha256:123d49465d23
 ---
 format: openwarrant/1.0
@@ -67,4 +60,11 @@ summary: Password reset for the account service.
 ---
 # Account service
 
+
+> OW-WAR-0150/OBL-001 · obligation · docs/warrants/OW-WAR-0150.md:20 · sha256:fd56c1e72596
+## OBL-001 · obligation — a consumed link is refused
+scope: the reset endpoint, one consumed link.
+evidence: the second use answers 410.
+refusal: a fresh link is accepted.
+evaluates REQ-reset-1
 
