@@ -172,6 +172,9 @@ pub struct ClaimRow {
     /// renewed lock does not prove one is.
     pub renewed_unix: Option<u64>,
     pub workspace: Option<String>,
+    /// Where the work is done, in one line (`work in ... (repo, branch,
+    /// from)`); `None` for a lock that could not be read.
+    pub place: Option<String>,
     /// Declared write paths; empty when none were.
     pub scope: Vec<String>,
     /// Held on another machine: the claims remote it was read from. Its lock

@@ -23,6 +23,16 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
+- One work order, one place. A claim records its repository, origin URL, worktree,
+  branch and base commit, and `war start` prints them as the brief's first line
+  (`work in <wt> (repo <name>, branch <b>, from <commit>)`), once; Mission Control's
+  claim detail shows it, and the JSON of `war status <id>` and `war status --next`
+  carries it, their text does not. `war start`,
+  `war done` and `war note` on work you hold from another worktree are refused
+  (`work.other-worktree`) naming it (another actor's claim is still refused by its
+  holder's name); claiming for another actor in a checkout where you
+  hold live work needs `--here` (`dispatch.here`); `war start hpr:t-...` is refused (`work.other-repo`)
+  naming that repository, its pin and where to work. Plant 260.
 
 ### Fixed
 
@@ -49,16 +59,13 @@ Notable changes to OpenWarrant. Format loosely follows
   anything else and not to read `docs/tickets/` directly. The shorter wording from #406
   named the directory as an alternative, and in the adoption study agents on that build
   read ticket files about four times as often, roughly 90k tokens per task.
-
-### Fixed
-
+- `war start --worktree` on a `docs/work/` master looked for a `manifest.toml` and
+  refused it as uncommitted; it now checks the master's document, and refuses one
+  edited since the base commit, as it does a single-file ticket.
 - Two `runtime_capture::protected_executable` tests failed on GitHub's `ubuntu-26.04`
   runners, where `/usr/bin/true` links to a multicall coreutils binary that the
   sealed-descriptor check rightly refuses as linked. The tests now use the real
   file and call it as `true`. The check itself is unchanged.
-
-### Fixed
-
 - MCP `war_start` always delivers its complete required context packet in both
   structured content and a text fallback. `json: false` cannot discard required
   rules. Claim-only replies and other tools keep their terse presentation.
@@ -69,7 +76,6 @@ Notable changes to OpenWarrant. Format loosely follows
   receive their actual record checks over MCP.
 - MCP report outcomes mark failed or unavailable checks with the tool error
   flag while retaining their named verdicts and diagnostics.
-
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it
   twice. Such a `CLAUDE.md` now gets no block, a copy written before is removed, and

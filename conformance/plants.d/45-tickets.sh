@@ -245,6 +245,9 @@ fi
 # t-9d3e: after `war done` on a blocker exits 0, `ready` lists the item it
 # held and `claim` takes it — 200 times, eight workers on one corpus. A step
 # that failed is counted apart (named in the message), never as disagreement.
+# The workers claim with `--here`: the default actor still holds the items it
+# took above in this checkout, and a claim for another actor beside live work
+# is refused without it (`dispatch.here`, plant 260).
 TK_AG=$(mktemp -d)
 tk_agree_worker() {
     local k=$1 n o t f w
@@ -254,12 +257,12 @@ tk_agree_worker() {
         o=$(tkj add "$t" Walls --after "$f" --as "ag-$k") || { echo "setup add exit $?" >>"$TK_AG/$k"; continue; }
         w=$(tk_field "$o" 'v["result"]["item"]')
         [[ -n "$t" && -n "$f" && -n "$w" ]] || { echo "setup no-id" >>"$TK_AG/$k"; continue; }
-        tkw claim "$t/$f" --as "ag-$k" >/dev/null 2>&1 || { echo "setup claim exit $?" >>"$TK_AG/$k"; continue; }
+        tkw claim "$t/$f" --as "ag-$k" --here >/dev/null 2>&1 || { echo "setup claim exit $?" >>"$TK_AG/$k"; continue; }
         tkw done "$t/$f" --as "ag-$k" >/dev/null 2>&1 || { echo "setup done exit $?" >>"$TK_AG/$k"; continue; }
         o=$(tkj ready --as "ag-$k" 2>/dev/null) || { echo "setup ready exit $?" >>"$TK_AG/$k"; continue; }
         tk_in "$(tk_field "$o" '",".join(r["ticket"]+"/"+str(r["item"]) for r in v["result"]["ready"])')" "$t/$w" \
             || { echo "disagree $t/$w not ready after done" >>"$TK_AG/$k"; continue; }
-        o=$(tkw claim "$t/$w" --as "ag-$k" 2>&1 >/dev/null) || { echo "disagree $t/$w ready, claim refused: $o" >>"$TK_AG/$k"; continue; }
+        o=$(tkw claim "$t/$w" --as "ag-$k" --here 2>&1 >/dev/null) || { echo "disagree $t/$w ready, claim refused: $o" >>"$TK_AG/$k"; continue; }
         echo "agreed" >>"$TK_AG/$k"
     done
 }

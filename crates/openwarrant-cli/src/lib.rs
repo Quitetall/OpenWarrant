@@ -862,6 +862,11 @@ enum DailyCommand {
         /// With --claim: take a claim past its TTL. Journalled.
         #[arg(long, requires = "claim")]
         steal: bool,
+        /// With --claim and `--as` another actor: put that actor's work in
+        /// this checkout on purpose. Without it, that is refused: dispatch it
+        /// to a worktree of its own (`war start --worktree <id> --as <actor>`).
+        #[arg(long, requires = "claim")]
+        here: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -2186,6 +2191,11 @@ enum AdminCommand {
         /// Take a claim older than `[tickets] claim_ttl_minutes` (default 120). Journalled.
         #[arg(long)]
         steal: bool,
+        /// With `--as` another actor: put that actor's work in this checkout
+        /// on purpose. Without it, that is refused: dispatch it to a worktree
+        /// of its own (`war start --worktree <id> --as <actor>`).
+        #[arg(long)]
+        here: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
         /// Act as of this time (RFC 3339) instead of now: the claim's
@@ -4545,6 +4555,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             claim: true,
             paths,
             steal,
+            here,
             actor,
             ..
         } if !id.is_empty() => run_admin(
@@ -4553,6 +4564,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 target: id.join(" "),
                 paths,
                 steal,
+                here,
                 actor,
                 at: None,
             },
@@ -7711,12 +7723,36 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             target,
             paths,
             steal,
+            here,
             actor,
             at,
         } => {
             answer_at(at.as_deref())?;
             ticket::cache::permit();
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            // Claiming for another actor while your own work is live in
+            // this checkout is dispatching it beside yours: only when asked.
+            // `--as` alone names who you are, and a replay (`--at`)
+            // dispatches nothing.
+            let own = ticket::own_actor(&repository);
+            if !here
+                && at.is_none()
+                && actor.is_some()
+                && store.actor != own
+                && ticket::holds_here(&store, &own)
+            {
+                let refusal = ticket::Outcome::refused(
+                    "dispatch.here",
+                    target.clone(),
+                    format!(
+                        "claiming {target} for {} would put its work in this checkout, beside \
+                         {own}'s. Give it a worktree of its own: `war start --worktree {target} \
+                         --as {0}`; or put it here on purpose with `--here`",
+                        store.actor
+                    ),
+                );
+                return Ok(ticket_answer(mode, "claim", &refusal));
+            }
             Ok(ticket_answer(
                 mode,
                 "claim",
