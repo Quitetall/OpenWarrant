@@ -28,6 +28,11 @@
 #   proves the launch, and says nothing of what a real session then does.
 # - `q` leaves the alternate screen and exits 0.
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== Mission Control on a real terminal (t-3c16c W5) =="
 TP_TMP=$(mktemp -d)
 TP_WAR="$REPO_ROOT/${WAR#./}"
@@ -526,3 +531,4 @@ if [[ $TP_RC -ne 0 && $TP_BAD -eq 0 ]]; then
 fi
 /usr/bin/rm -rf "$TP_TMP"
 unset TP_TMP TP_WAR TP_OUT TP_RC TP_OK TP_BAD
+unset OPENWARRANT_TICKET_LAYOUT

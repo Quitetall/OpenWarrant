@@ -74,6 +74,10 @@ use crate::repo::{RepoError, Repository};
 
 pub use render::{Filter, description, list, notes, prime, show, tickets, tickets_filtered};
 
+/// Set to `tickets`: `war create` writes `<tickets>/<t-id>.md`, the layout
+/// before `docs/work/`, instead of a master.
+pub const LAYOUT_ENV: &str = "OPENWARRANT_TICKET_LAYOUT";
+
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
 /// Where claims lived before they were shared across worktrees (M11), and
@@ -1237,7 +1241,7 @@ impl Store {
         // R2: every act on a ticket is journalled here, so this is where its
         // announcement to the other worktrees is kept current, or dropped
         // once it is done.
-        shared::sync(self, t);
+        shared::sync(self, t, event_type);
         Ok(())
     }
 }
@@ -2225,7 +2229,11 @@ fn create_with_encoding(
     // New work is a master, `docs/work/<w-id>/<id>-<slug>.md`, its state
     // beside it (one-format.md): the id is minted and taken on the one path
     // `war plan new` starts on. `--legacy` keeps a `t-` directory ticket.
-    let (dir, uuid, master) = if legacy {
+    // `OPENWARRANT_TICKET_LAYOUT=tickets` keeps the layout before
+    // `docs/work/`, one document `<tickets>/<t-id>.md`: for a script or a
+    // test that is about that layout, which stays readable and workable.
+    let single = !legacy && std::env::var(LAYOUT_ENV).is_ok_and(|v| v.trim() == "tickets");
+    let (dir, uuid, master) = if legacy || single {
         std::fs::create_dir_all(&store.dir)
             .map_err(io(format!("could not create {}", store.dir)))?;
         let existing = store.ticket_count()?;
@@ -2248,13 +2256,13 @@ fn create_with_encoding(
                     // register gives it too.
                     if let Some(reg) = &registry {
                         let name = candidate.file_name().unwrap_or_default();
-                        let entry = reg.stub(
-                            name,
-                            &uuid,
-                            &title,
-                            &store.actor,
-                            &store.rel(&candidate.join("manifest.toml")),
-                        );
+                        let document = if legacy {
+                            candidate.join("manifest.toml")
+                        } else {
+                            store.dir.join(format!("{name}.md"))
+                        };
+                        let entry =
+                            reg.stub(name, &uuid, &title, &store.actor, &store.rel(&document));
                         let taken = reg
                             .reserve(&entry)
                             .map_err(io(format!("could not register {name} in {}", reg.dir)));
@@ -2367,11 +2375,17 @@ fn create_with_encoding(
             &authoring::document(&manifest, &intent, &checklist),
             &args.scope,
         );
-        let reserved = master.as_ref().expect("a master was reserved above");
-        match authoring::create(&reserved.path, &document) {
-            Ok(()) => reserved.path.clone(),
+        let path = master.as_ref().map_or_else(
+            || store.dir.join(format!("{id}.md")),
+            |reserved| reserved.path.clone(),
+        );
+        match authoring::create(&path, &document) {
+            Ok(()) => path,
             Err(error) => {
-                reserved.release();
+                let _ = std::fs::remove_dir(&dir);
+                if let Some(reg) = &registry {
+                    reg.release(&id, &uuid);
+                }
                 return Err(error);
             }
         }

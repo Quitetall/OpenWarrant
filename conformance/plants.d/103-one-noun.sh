@@ -15,6 +15,11 @@
 # is neither a type nor a profile (ticket.filter-type-unknown); a --state
 # that is no state and no phase (ticket.filter-state-unknown).
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== one id space, one list, two encodings (M10) =="
 PLANT_ROOT=$(scratch_corpus ON)
 [[ -d "${PLANT_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -144,3 +149,4 @@ corpus_gone "$PLANT_ROOT"
 unset ON_T ON_OLD ON_LS ON_ALIAS ON_LIGHT ON_DIR ON_RES ON_RES_T ON_RES_L ON_HUMAN ON_WANT_LIGHT ON_BAD \
     ON_ERR1 ON_ERR2 ON_ERR3 ON_ERR4 ON_ERR5 ON_S1 ON_S2 ON_S3 ON_S4 ON_S5 ON_SH_T ON_SH_OLD ON_SH_W \
     ON_ST_T ON_ST_W ON_B0 ON_B1 ON_B2 ON_GIT
+unset OPENWARRANT_TICKET_LAYOUT

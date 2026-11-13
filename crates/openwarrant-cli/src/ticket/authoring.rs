@@ -149,7 +149,7 @@ pub(crate) fn create(source: &camino::Utf8Path, text: &str) -> Result<(), RepoEr
     file.write_all(text.as_bytes())
         .and_then(|_| file.sync_all())
         .map_err(super::io(format!("could not write {source}")))?;
-    let result = std::fs::hard_link(&temporary, &source).map_err(super::io(format!(
+    let result = std::fs::hard_link(&temporary, source).map_err(super::io(format!(
         "could not publish {source} without replacement"
     )));
     let _ = std::fs::remove_file(&temporary);

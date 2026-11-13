@@ -171,15 +171,15 @@ print(v["exit_code"], r["schema"], r["file"], r["ticket"], " ".join("%s:%s" % (x
 ' <<<"$PL_A" 2>&1)
 PL_TK=$(awk '{print $4}' <<<"$PL_AJ")
 PL_REC="docs/records/password-reset-email/10-password-reset-by-email.md"
-PL_NEW=$(pl_git status --porcelain --untracked-files=all | sed -n 's/^?? //p' | sed "s|docs/tickets/$PL_TK/.*|docs/tickets/$PL_TK/|" | LC_ALL=C sort -u | tr '\n' ' ')
+PL_NEW=$(pl_git status --porcelain --untracked-files=all | sed -n 's/^?? //p' | sed "$(tk "s|docs/tickets/$PL_TK/.*|docs/tickets/$PL_TK/|")" | LC_ALL=C sort -u | tr '\n' ' ')
 PL_CHK=$(pl_war check 2>&1); PL_CS=$?
 PL_REL=$(pl_war model --json 2>/dev/null | python3 -c '
 import json, sys
 m = json.load(sys.stdin)["result"]
 ids = {"OUT-pre1", "REQ-pre1", "REQ-pre2", "CON-pre1", "DEC-pre1"}
 recs = sorted("%s:%s" % (r["id"], r["type"]) for r in m["records"] if r["id"] in ids)
-rels = sorted("%s>%s>%s" % (r["from"].split("/")[-1] if r["from"].startswith("t-") else r["from"], r["kind"], r["to"])
-              for r in m["relations"] if (r["from"] in ids or r["from"].startswith("t-")) and r["kind"] != "part_of")
+rels = sorted("%s>%s>%s" % (r["from"].split("/")[-1] if r["from"].startswith(("t-", "w-")) else r["from"], r["kind"], r["to"])
+              for r in m["relations"] if (r["from"] in ids or r["from"].startswith(("t-", "w-"))) and r["kind"] != "part_of")
 print(" ".join(recs), "|", " ".join(rels))
 ' 2>&1)
 PL_I1=$(awk '{print $10}' <<<"$PL_AJ" | cut -d'>' -f1)
@@ -192,7 +192,7 @@ i = json.load(sys.stdin)["result"]
 print(" ".join(sorted("%s>%s" % (a["id"].split("/")[-1], a["via"]["kind"]) for a in i["affected"])))
 ' 2>&1)
 if [[ "$PL_AJ" == "0 oh.war/records-applied/v1 $PL_REC t-"*" OUT-pre1:outcome REQ-pre1:requirement REQ-pre2:requirement CON-pre1:constraint DEC-pre1:decision i-"*">REQ-pre1+CON-pre1 i-"*">REQ-pre2 i-"*">-" \
-    && "$PL_NEW" == "docs/records/password-reset-email/10-password-reset-by-email.md docs/tickets/$PL_TK.md docs/tickets/$PL_TK/ " \
+    && "$PL_NEW" == "$(tk "docs/records/password-reset-email/10-password-reset-by-email.md docs/tickets/$PL_TK.md docs/tickets/$PL_TK/ ")" \
     && $PL_CS -eq 0 && "${PL_REL%% |*}" == "${PL_WREL%% |*}" \
     && "$(tr ' ' '\n' <<<"${PL_REL#*| }" | sort | tr '\n' ' ')" == "$PL_WREL_SORTED" \
     && "$PL_IMP" == "CON-pre1>constrains DEC-pre1>constrains $PL_I1>implements" ]] \
@@ -228,7 +228,7 @@ PL_CK=$(pl_war check 2>&1); PL_CKS=$?
 PL_CM=$(pl_war model --json 2>/dev/null | python3 -c '
 import json, sys
 m = json.load(sys.stdin)["result"]
-print(len([r for r in m["relations"] if r["from"].startswith("t-") and r["kind"] == "implements"]))
+print(len([r for r in m["relations"] if r["from"].startswith(("t-", "w-")) and r["kind"] == "implements"]))
 ' 2>&1)
 pl_reset
 if [[ "$PL_CJ" == "0 docs/records/email-reset/10-password-reset-by-email.md 5 3" && $PL_CKS -eq 0 && "$PL_CM" == 3 ]] \

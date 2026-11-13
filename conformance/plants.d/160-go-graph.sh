@@ -23,6 +23,11 @@
 # (go.no-containment); and `war evidence perform` still refuses
 # [perform] max_concurrent above 1 (perform.no-containment).
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== war go: a 20-node graph with diamonds (M15) =="
 GA_ROOT=$(scratch_corpus GA)
 [[ -d "${GA_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -210,13 +215,13 @@ ga_default "true"
 read -r GA_E GA_e1 <<<"$(ga_new "Epsilon" -i e1)"
 ga_commit "epsilon"
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null)
-GA_EOBS=$(grep -c "^- \[x\] e1 .*\[observed\]" "$GA_ROOT/docs/tickets/$GA_E.md")
+GA_EOBS=$(grep -c "^- \[x\] e1 .*\[observed\]" "$(tk "$GA_ROOT/docs/tickets/$GA_E.md")")
 ga_default "false"
 read -r GA_Z GA_z1 <<<"$(ga_new "Zeta" -i z1)"
 ga_commit "zeta"
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null)
 GA_ZRULES=$(ga_field "$GA_OUT" '",".join(sorted({d["rule"] for d in v["diagnostics"]}))')
-GA_ZOPEN=$(grep -c "^- \[ \] z1" "$GA_ROOT/docs/tickets/$GA_Z.md")
+GA_ZOPEN=$(grep -c "^- \[ \] z1" "$(tk "$GA_ROOT/docs/tickets/$GA_Z.md")")
 if [[ "$GA_EOBS" == "1" && "$GA_ZOPEN" == "1" && "$GA_ZRULES" == *go.check-failed* ]]; then
     ga_ok "the default test runs where the work is" "passing: landed at observed; failing: go.check-failed, not ticked"
 else
@@ -232,3 +237,4 @@ unset GA_ROOT GA_TMP GA_WAR GA_FIX GA_ECHO GA_OUT GA_RC GA_RULES GA_DISPATCHED G
     GA_A GA_a1 GA_a2 GA_a3 GA_a4 GA_a5 GA_B GA_b1 GA_b2 GA_b3 GA_b4 GA_b5 GA_C GA_c1 GA_c2 GA_c3 GA_c4 GA_c5 \
     GA_D GA_d1 GA_d2 GA_d3 GA_d4 GA_d5
 unset -f ga_ok ga_fail gaw ga_field ga_new ga_add ga_commit ga_go
+unset OPENWARRANT_TICKET_LAYOUT

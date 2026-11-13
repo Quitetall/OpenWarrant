@@ -52,6 +52,23 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
+- One layout for new work: `war create` writes a master,
+  `docs/work/<w-id>/<id>-<slug>.md`, with its journal and check output beside
+  it, and every daily command, the shared register, the duplicate check, the
+  merge driver, `done_test`, `.openwarrant/next.md` and the ticket cache read
+  it as they read a `t-` ticket. `t-` tickets stay valid where they are.
+  `war create` and `war plan new` take their id on one path; `war plan new`
+  now refuses a likely duplicate too (`--force`), and a work order another
+  worktree holds is listed as elsewhere. A reopened ticket is announced
+  again. Plant 293. Scripts that read `docs/tickets/<id>.md` for a new ticket
+  must read the `source` that `war create --json` returns.
+- `war admin migrate` (without `--corpus`) moves tickets kept outside
+  `docs/work/` into it as masters: ids kept, `git mv`, `--dry-run` prints the
+  plan, and anything with a recorded act, a signed or verified tick, a
+  resolved pin or a live claim is named and left in place. Plant 294.
+- The generated views (`docs/ROADMAP.md`, `docs/HISTORY.md`, `docs/pages/`)
+  are no entries of the document index, so one `war admin compile` is a fixed
+  point in a repository with masters.
 - Shared work: a new ticket reaches every worktree of the clone at once.
   `war create` (and `war plan new`) registers the id under git's common
   directory, so an id is one ticket's across the clone, and `war status`,

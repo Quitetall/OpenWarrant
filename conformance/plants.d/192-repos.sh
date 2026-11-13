@@ -18,7 +18,7 @@ rp_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 rp_git() { git -c user.email=plant@invalid -c user.name=plant -c protocol.file.allow=always "$@"; }
 hpr() { OPENWARRANT_ACTOR=hpr-agent "$WAR" --root "$RP_TMP/hpr" "$@"; }
 wmd() { local who=$1; shift; OPENWARRANT_ACTOR=$who "$WAR" --root "$RP_TMP/wmd" "$@"; }
-rp_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
+rp_id() { sed -n 's/.*"id": "\([tw]-[0-9a-f]*\)".*/\1/p' | head -1; }
 # A ticket's state as `view tickets` reads it. `war done` hands an Order to a
 # person and exits 0, so "not closed" is read here, not from an exit code.
 rp_state() { local side=$1 id=$2; "$side" --json view tickets 2>/dev/null | python3 -c 'import json,sys

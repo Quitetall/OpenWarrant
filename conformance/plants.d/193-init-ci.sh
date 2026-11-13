@@ -84,7 +84,7 @@ git -C "$CI_R" add -A >/dev/null 2>&1
 git -C "$CI_R" -c user.name=t -c user.email=t@t commit -qm base >/dev/null 2>&1
 CI_BASE=$(git -C "$CI_R" rev-parse HEAD)
 ciw check --changed --since "$CI_BASE" >/dev/null 2>&1; CI_CLEAN=$?
-sed -i 's/^format: .*/format: openwarrant\/9.9/' "$CI_R/docs/tickets/$CI_ID.md"
+sed -i 's/^format: .*/format: openwarrant\/9.9/' "$(tk "$CI_R/docs/tickets/$CI_ID.md")"
 git -C "$CI_R" add -A >/dev/null 2>&1
 git -C "$CI_R" -c user.name=t -c user.email=t@t commit -qm change >/dev/null 2>&1
 ciw check --changed --since "$CI_BASE" >"$CI_T/bad.out" 2>&1; CI_BAD=$?

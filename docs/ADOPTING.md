@@ -27,6 +27,25 @@ already initialized, use its existing setup and start with `war create`.
 later sign-off. A ticket enters the authority layer only through explicit
 promotion; ordinary implementation does not require that step.
 
+### Setting it up, in three commands
+
+```sh
+war init --done-test "<your test command>" --claims-remote origin
+war admin migrate --dry-run          # then `war admin migrate`, if it lists anything
+war admin agents-md --block          # the block your agents read, for AGENTS.md
+```
+
+- `--done-test` records `[tickets] done_test`: a plain `war done` runs it and
+  finishes the work only on a pass. `--claims-remote` records `[claims]
+  remote`: claims and new work reach every clone through that git remote.
+  Commit `openwarrant.toml` so every clone shares both.
+- New work is written to `docs/work/`. A repository that used an earlier
+  `war` has tickets under `docs/tickets/`; they keep working where they are,
+  and `war admin migrate` moves them (ids kept, `git mv`, nothing signed or
+  claimed touched). `--dry-run` prints exactly what a run would do.
+- `war admin agents-md --block` prints the instructions block for your
+  `AGENTS.md`.
+
 ## 1. Optional governed setup: record the baseline
 
 The remaining steps create the SAS, authority examples and first Warrant for

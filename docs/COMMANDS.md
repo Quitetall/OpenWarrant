@@ -7,7 +7,7 @@ and keep their report envelope's command name.
 | Daily command | Purpose |
 | --- | --- |
 | `war init` | Set up a repository |
-| `war create "Outcome"` | Create one Markdown Warrant with a stable ID; every worktree sees it at once. A likely duplicate of open work is refused by name (`--force` creates anyway) |
+| `war create "Outcome"` | Create one Markdown Warrant with a stable ID, `docs/work/<w-id>/<id>-<slug>.md`; every worktree sees it at once. A likely duplicate of open work is refused by name (`--force` creates anyway) |
 | `war start` | Claim ready work and receive its context |
 | `war done --note "Result"` | Record completion under the declared conditions |
 | `war status` | Read progress |
@@ -191,7 +191,7 @@ so it stays there. Its top-level spelling is what retires.
 | Write the AGENTS.md this repository ships, for the repository's namespace. `war init` writes it once; this rewrites (--force) or prints it. `--block` keeps only a small managed pointer block in the files you already have (M16) | `war admin agents-md` | `war agents-md` | often | group; `war agents-md` retiring |
 | Bring work in as Warrants (OW-WAR-0148 M10): `beads <file.jsonl>` (Beads' issue JSONL, as `bd export` writes it), `openspec <dir>` (each change of an OpenSpec folder) or `speckit <dir>` (each feature of a Spec Kit `specs/` folder). Each becomes a light Warrant (a ticket) with its tasks as items. Running it again changes nothing; input it cannot map is refused by name, and a refusal writes nothing. To keep working in those tools instead, read the folder in place: `[[adapters]]` in openwarrant.toml (docs/TYPES.md) | `war admin import` | `war import` | often | group; `war import` retiring |
 | §68 portable export and round trip; or, as `war admin export beads`, every light Warrant (a ticket) as Beads issue JSONL on stdout, in the shape `bd export` writes, which `war admin import beads` reads back (OW-WAR-0148 M10) | `war admin export` | `war export` | often | group; `war export` retiring |
-| Import a legacy ADR corpus (§96), discharging OW-WAR-0043 | `war admin migrate` | `war migrate` | often | group; `war migrate` retiring |
+| Move tickets kept outside `docs/work/` into it as masters, ids kept (`--dry-run` prints the plan); with `--corpus` and `--commit`, import a legacy ADR corpus (§96), discharging OW-WAR-0043 | `war admin migrate` | `war migrate` | often | group; `war migrate` retiring |
 | Experimental preservation transport. Imported records grant no authority | `war admin archive` | `war archive` | often | group; `war archive` retiring |
 | Feed a harness's own task list into the tick ladder (OW-WAR-0148 M13). Proposes ticks; writes only with `--apply`; never blocks | `war admin bridge` | `war bridge` | often | group; `war bridge` retiring |
 | Host the WAR domain for Liminal, `oh.war/liminal-v1` (OW-WAR-0148 M8; SAS §82.2; docs/LIMINAL_HOST.md): one request on stdin, one response on stdout. Pure — no repository, no file, no network, no process. Exit 0 compiled, 1 refused, 2 compiled with something not established. `--export` writes the request that reproduces this repository's model instead | `war admin host` | `war host` | often | kept: the Liminal protocol |

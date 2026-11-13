@@ -18,6 +18,11 @@
 # malformed OpenSpec or Spec Kit task list; a folder that is neither; an
 # unknown format; `war export beads` with a §68 flag.
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== import and export: Beads, OpenSpec, Spec Kit (M10) =="
 PLANT_ROOT=$(scratch_corpus IM)
 [[ -d "${PLANT_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -125,12 +130,12 @@ fi
 IM_OS=$(imj "$PLANT_ROOT" import openspec "$IM_FIX/openspec")
 IM_OSID=$(im_field "$IM_OS" '[c["id"] for c in v["result"]["created"] if c["imported_from"] == "openspec:add-2fa"][0]')
 IM_OSN=$(im_field "$IM_OS" '",".join(sorted("%s=%d" % (c["imported_from"], c["items"]) for c in v["result"]["created"]))')
-IM_OSCL="$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/15-checklist.md"
+IM_OSCL="$(tk "$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/15-checklist.md")"
 IM_OSAGAIN=$(im_field "$(imj "$PLANT_ROOT" import openspec "$IM_FIX/openspec")" '"%d/%d" % (len(v["result"]["created"]), len(v["result"]["unchanged"]))')
 if [[ "$IM_OSN" == "openspec:add-2fa=4,openspec:rename-audit-log=2" && "$IM_OSAGAIN" == "0/2" ]] \
     && grep -qE '^- \[x\] 1\.1 Store a TOTP secret with the user \(i-[0-9a-f]+\)' "$IM_OSCL" \
     && grep -qE '^- \[ \] 2\.2 Shorten the session' "$IM_OSCL" \
-    && grep -qF 'openspec:two-factor#totp-second-factor' "$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/10-intent.md"; then
+    && grep -qF 'openspec:two-factor#totp-second-factor' "$(tk "$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/10-intent.md")"; then
     im_ok "openspec changes import" "add-2fa (4 tasks, 1.1 done) and rename-audit-log (2), deltas named; again: 0 created"
 else
     im_fail "openspec changes import" "made '$IM_OSN' again '$IM_OSAGAIN'; $(head -c 300 "$IM_OSCL" 2>/dev/null)"
@@ -143,7 +148,7 @@ fi
 IM_SK=$(imj "$PLANT_ROOT" import speckit "$IM_FIX/speckit")
 IM_SKID=$(im_field "$IM_SK" '[c["id"] for c in v["result"]["created"] if c["imported_from"] == "speckit:001-photo-albums"][0]')
 IM_SKW=$(im_field "$IM_SK" '",".join(sorted(set(d["rule"] for d in v["diagnostics"] if d["rule"].startswith("speckit."))))')
-IM_SKCL="$PLANT_ROOT/docs/tickets/$IM_SKID/atoms/15-checklist.md"
+IM_SKCL="$(tk "$PLANT_ROOT/docs/tickets/$IM_SKID/atoms/15-checklist.md")"
 IM_T3=$(sed -n 's/^- \[ \] T003 .*(\(i-[0-9a-f]*\))$/\1/p' "$IM_SKCL")
 mkdir -p "$IM_TWO/profiles"
 sed '/^require = /d' "$REPO_ROOT/profiles/delivery.toml" > "$IM_TWO/profiles/delivery.toml"
@@ -190,3 +195,4 @@ corpus_gone "$PLANT_ROOT"
 unset IM_TMP IM_FIX IM_TWO IM_THREE IM_OUT IM_MADE IM_IDS IM_WARN IM_CMP IM_A IM_B IM_B0 IM_B1 IM_AGAIN IM_SAME \
     IM_BAD IM_ERR IM_ERR2 IM_S IM_S1 IM_S2 IM_S3 IM_S4 IM_LEFT IM_OS IM_OSID IM_OSN IM_OSCL IM_OSAGAIN IM_SK IM_SKID \
     IM_SKW IM_SKCL IM_T3 IM_SK2 IM_REC IM_MODEL IM_RT IM_CHK IM_F0 IM_F1 IM_E1 IM_E2 IM_E3 IM_E4
+unset OPENWARRANT_TICKET_LAYOUT

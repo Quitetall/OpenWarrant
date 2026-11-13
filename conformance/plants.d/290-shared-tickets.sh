@@ -49,7 +49,7 @@ sw_as alice "$SW_A" --json create "Rotate the signing keys" --item "write the ru
 sw_as bob "$SW_B" status; cp "$SW_T/out" "$SW_T/status"
 sw_as bob "$SW_B" view prime; cp "$SW_T/out" "$SW_T/prime"
 sw_as bob "$SW_B" view ready; cp "$SW_T/out" "$SW_T/ready"
-if [[ $SW_BEFORE == 1 && -n "$SW_ID" && ! -e "$SW_B/docs/tickets/$SW_ID.md" ]] \
+if [[ $SW_BEFORE == 1 && -n "$SW_ID" && ! -e "$(tk "$SW_B/docs/tickets/$SW_ID.md")" ]] \
     && grep -q '^Tickets: 1 open' "$SW_T/status" \
     && grep -q "^- $SW_ID — Rotate the signing keys .*elsewhere: worktree $SW_A (branch main)" "$SW_T/prime" \
     && grep -q "^$SW_ID .*Rotate the signing keys.*\[elsewhere: worktree $SW_A (branch main)\]" "$SW_T/ready" \
@@ -87,14 +87,14 @@ fi
 
 # --- worked in B: the document is brought there, and the branches merge ------------
 sw_as bob "$SW_B" start "$SW_ID"; SW_RC=$?
-SW_SAME=no; cmp -s "$SW_A/docs/tickets/$SW_ID.md" "$SW_B/docs/tickets/$SW_ID.md" && SW_SAME=yes
+SW_SAME=no; cmp -s "$(tk "$SW_A/docs/tickets/$SW_ID.md")" "$(tk "$SW_B/docs/tickets/$SW_ID.md")" && SW_SAME=yes
 sw_as alice "$SW_A" plan add "$SW_ID" "tell the on-call"; SW_ADD=$?
-SW_ITEM=$(grep -o 'i-[0-9a-f]*' "$SW_B/docs/tickets/$SW_ID.md" | head -1)
+SW_ITEM=$(grep -o 'i-[0-9a-f]*' "$(tk "$SW_B/docs/tickets/$SW_ID.md")" | head -1)
 sw_as bob "$SW_B" done "$SW_ID/$SW_ITEM" --note "written"; SW_DONE=$?
 sw_g -C "$SW_A" add -A; sw_g -C "$SW_A" commit -qm "a: an item added"
 sw_g -C "$SW_B" add -A; sw_g -C "$SW_B" commit -qm "b: an item ticked"
 (cd "$SW_A" && "${SW_ENV[@]}" git merge -q feature -m merge >"$SW_T/merge" 2>&1); SW_MERGE=$?
-SW_DOC="$SW_A/docs/tickets/$SW_ID.md"
+SW_DOC="$(tk "$SW_A/docs/tickets/$SW_ID.md")"
 if [[ $SW_RC == 0 && $SW_SAME == yes && $SW_ADD == 0 && $SW_DONE == 0 && $SW_MERGE == 0 ]] \
     && grep -q '^- \[x\] write the runbook' "$SW_DOC" && grep -q '^- \[ \] tell the on-call' "$SW_DOC" \
     && ! grep -q '^<<<<<<<' "$SW_DOC"; then
@@ -117,7 +117,7 @@ fi
 sw_as alice "$SW_A" --json create "Only A has this one"; SW_ID3=$(sw_id)
 sw_as bob "$SW_B" view tickets; SW_CLEAN=$(grep -c 'ticket.id-collision' "$SW_T/err")
 sed -e 's/^uuid: .*/uuid: 01a1d2f8-0000-7000-8000-000000000009/' -e 's/Only A has this one/A stranger under the same id/' \
-    "$SW_A/docs/tickets/$SW_ID3.md" >"$SW_B/docs/tickets/$SW_ID3.md"
+    "$(tk "$SW_A/docs/tickets/$SW_ID3.md")" >"$(tk "$SW_B/docs/tickets/$SW_ID3.md")"
 sw_as bob "$SW_B" view tickets; cp "$SW_T/err" "$SW_T/collision"; cp "$SW_T/out" "$SW_T/listed"
 sw_as bob "$SW_B" status
 if [[ $SW_CLEAN == 0 ]] && grep -q "ticket.id-collision.*$SW_ID3.*A stranger under the same id.*Only A has this one" "$SW_T/collision" \

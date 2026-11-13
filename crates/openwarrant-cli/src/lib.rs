@@ -1301,6 +1301,10 @@ enum PlanCommand {
         /// and resolve. The ticket records `promoted_to` and stays workable.
         #[arg(long, value_name = "TICKET", conflicts_with_all = ["title", "preset", "profile", "parent", "format_version"])]
         from: Option<String>,
+        /// Create the work order although open work's title is, or reads
+        /// as, this one's (`ticket.duplicate` names it).
+        #[arg(long)]
+        force: bool,
         /// Who is acting, with `--from`.
         #[arg(long = "as", value_name = "ACTOR", requires = "from")]
         actor: Option<String>,
@@ -5253,6 +5257,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             profile,
             parent,
             format_version,
+            force,
             ..
         } => {
             let title = title.unwrap_or_default();
@@ -5283,7 +5288,11 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                         return Ok(EXIT_DIAGNOSTIC);
                     }
                 };
-                let (id, path) = subject::create_master(&repository, &title, delivery)?;
+                let (id, path) = match subject::create_master(&repository, &title, delivery, force)?
+                {
+                    Ok(made) => made,
+                    Err(refusal) => return Ok(ticket_answer(mode, "new", &refusal)),
+                };
                 let rel = repository.relative(&path);
                 let profile = if delivery { "delivery" } else { "decision" };
                 output::emit(

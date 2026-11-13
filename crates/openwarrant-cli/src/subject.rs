@@ -414,11 +414,16 @@ pub fn reserve_master(
 /// `war plan new <title>`: a new master, `docs/work/<id>/<id>-<slug>.md`, its
 /// id `w-` and the hash of a fresh UUIDv7 (merge-safe; two branches never take one).
 /// The bytes are those `war plan new --format 1.0` writes, with this id.
+///
+/// As `war create` does, it holds the title's lock and refuses a title that
+/// is, or reads as, open work's (`ticket.duplicate`, the `Err` inside);
+/// `force` creates anyway.
 pub fn create_master(
     repo: &Repository,
     title: &str,
     delivery: bool,
-) -> Result<(String, Utf8PathBuf), RepoError> {
+    force: bool,
+) -> Result<Result<(String, Utf8PathBuf), crate::ticket::Outcome>, RepoError> {
     let title = title.trim();
     if title.is_empty() || title.contains('\n') {
         return Err(RepoError::Message(
@@ -427,6 +432,10 @@ pub fn create_master(
     }
     let taken = all(repo).len() + count_entries(&work_root(repo));
     let store = crate::ticket::Store::open(repo, None)?;
+    let _one_title = crate::ticket::shared::TitleLock::take(&store, title);
+    if !force && let Some(refusal) = crate::ticket::shared::duplicate(&store, title, None)? {
+        return Ok(Err(refusal));
+    }
     let mut reserved = reserve_master(&store, &roots(repo), taken, title)?;
     let text = crate::new::format_template(&reserved.id, &reserved.uuid, title, delivery);
     let written = std::fs::OpenOptions::new()
@@ -447,7 +456,7 @@ pub fn create_master(
     if let (Some(reg), Some(mut entry)) = (&reserved.registry, reserved.entry.take()) {
         reg.fill(&mut entry, delivery, &text);
     }
-    Ok((reserved.id, reserved.path))
+    Ok(Ok((reserved.id, reserved.path)))
 }
 
 fn count_entries(dir: &Utf8Path) -> usize {

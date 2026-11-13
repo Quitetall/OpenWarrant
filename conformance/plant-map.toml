@@ -399,6 +399,7 @@ plants = [
     "100-concurrency.sh", "102-concurrency-stress.sh", "103-one-noun.sh", "132-first-done.sh",
     "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh", "210-two-machines.sh",
     "290-shared-tickets.sh", "291-no-duplicates.sh", "292-shared-remote.sh",
+    "293-create-master.sh", "294-migrate-work.sh", "295-id-taken.sh",
     "280-done-default.sh", "281-next-without-asking.sh",
 ]
 

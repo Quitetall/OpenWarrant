@@ -19,6 +19,11 @@
 #
 # No signature is involved: no key, no ssh-agent.
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== ticket work keeps evidence (t-5d82) =="
 PLANT_ROOT=$(scratch_corpus TB)
 [[ -d "${PLANT_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -69,7 +74,7 @@ TB_RECEIPT="$PLANT_ROOT/docs/warrants/$TB_A/gate-runs/plant_tree_1_0_0.receipt.j
 TB_T=$(grep -o '"tree:[0-9a-f]*"' "$TB_RECEIPT" 2>/dev/null | tr -d '"')
 TB=$(find "$PLANT_ROOT/docs/tickets" -mindepth 1 -maxdepth 1 -name 't-*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | head -1)
 [[ -n "$TB_T" && -n "$TB" ]] || { printf 'PLANT SETUP FAILED: no receipt tree or no ticket\n' >&2; exit 9; }
-TB_I1=$(grep -o '(i-[0-9a-z]*' "$PLANT_ROOT/docs/tickets/$TB.md" | head -1 | tr -d '(')
+TB_I1=$(grep -o '(i-[0-9a-z]*' "$(tk "$PLANT_ROOT/docs/tickets/$TB.md")" | head -1 | tr -d '(')
 TB_ADMIT="evidence.admissible .*plant.tree@1.0.0 .*$TB_T"
 
 # Before any ticket work, the receipt counts (the control below is not a
@@ -93,9 +98,9 @@ TB_LOOP=$?
 TB_MOVED=$(git -C "$PLANT_ROOT" status --porcelain --untracked-files=all)
 TB_OUT=$(tb_war check "$TB_A" 2>&1)
 if [[ $TB_LOOP -eq 0 ]] \
-    && grep -q "docs/tickets/$TB/journal.jsonl" <<<"$TB_MOVED" \
-    && grep -q "docs/tickets/$TB.md" <<<"$TB_MOVED" \
-    && grep -q 'the CLI waits on the grammar' "$PLANT_ROOT/docs/tickets/$TB/journal.jsonl" \
+    && grep -q "$(tk "docs/tickets/$TB/journal.jsonl")" <<<"$TB_MOVED" \
+    && grep -q "$(tk "docs/tickets/$TB.md")" <<<"$TB_MOVED" \
+    && grep -q 'the CLI waits on the grammar' "$(tk "$PLANT_ROOT/docs/tickets/$TB/journal.jsonl")" \
     && grep -q "var/claims/$TB.lock" <<<"$TB_MOVED" \
     && grep -q "$TB_ADMIT" <<<"$TB_OUT" && ! grep -q 'evidence.stale-binding' <<<"$TB_OUT"; then
     tb_ok "ticket work leaves the receipt" "claim/done/note/create moved journal, document, a lock; still admissible"
@@ -130,11 +135,11 @@ fi
 
 # ... and a file in a ticket's directory the loop does not write is not
 # bookkeeping: it stales the receipt by name.
-printf 'an attachment\n' > "$PLANT_ROOT/docs/tickets/$TB/design.md"
+printf 'an attachment\n' > "$(tk "$PLANT_ROOT/docs/tickets/$TB/design.md")"
 TB_OUT=$(tb_war check "$TB_A" 2>&1)
-command rm -f "$PLANT_ROOT/docs/tickets/$TB/design.md"
-if grep -q "evidence.stale-binding .*names $TB_T .*docs/tickets/$TB/design.md" <<<"$TB_OUT"; then
-    tb_ok "another ticket-dir file stales it" "evidence.stale-binding names docs/tickets/$TB/design.md"
+command rm -f "$(tk "$PLANT_ROOT/docs/tickets/$TB/design.md")"
+if grep -q "$(tk "evidence.stale-binding .*names $TB_T .*docs/tickets/$TB/design.md")" <<<"$TB_OUT"; then
+    tb_ok "another ticket-dir file stales it" "$(tk "evidence.stale-binding names docs/tickets/$TB/design.md")"
 else
     tb_fail "another ticket-dir file stales it" "$(tb_line "$TB_OUT")"
 fi
@@ -142,3 +147,4 @@ fi
 command rm -rf "$TB_TMP"
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT
+unset OPENWARRANT_TICKET_LAYOUT

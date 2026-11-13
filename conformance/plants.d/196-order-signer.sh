@@ -12,6 +12,11 @@
 # Orders, and refuse a plain ticket that place; nothing offers to dispatch one;
 # `war_create` takes `sign`.
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== an Order reaches its signer (t-3c16c W1) =="
 OS_ROOT=$(scratch_corpus OS)
 [[ -d "${OS_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -217,7 +222,7 @@ fi
 os_as agent done "$OS_H" --check; OS_RC=$?
 os_as owner --json view show "$OS_H"
 OS_ALL=$(os_py '[i["done"] for i in v["result"]["items"]]')
-OS_SEEN=$(grep -c '\[observed\]' "$OS_ROOT/docs/tickets/$OS_H.md")
+OS_SEEN=$(grep -c '\[observed\]' "$(tk "$OS_ROOT/docs/tickets/$OS_H.md")")
 if [[ $OS_RC == 0 && $OS_ALL == "[True, True]" && $OS_SEEN == 2 ]]; then
     os_ok "--check ticks every item observed" "$OS_H/both, the one added since included"
 else
@@ -277,3 +282,4 @@ else
 fi
 
 /usr/bin/rm -rf "$OS_T"
+unset OPENWARRANT_TICKET_LAYOUT

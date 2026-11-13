@@ -966,7 +966,7 @@ fn done_and_status_name_what_is_next_inside_their_budgets() {
         last = said(&war(&root, &["done", "--as", "ann"]));
     }
     assert!(
-        last.starts_with("done t-") && !last.contains("next:"),
+        last.starts_with("done w-") && !last.contains("next:"),
         "{last}"
     );
     assert!(!next_md.exists(), "nothing is held or ready");

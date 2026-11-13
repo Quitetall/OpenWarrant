@@ -9,6 +9,11 @@
 #   an empty title creates nothing;
 #   bare `war` is the app at a terminal and refused without one.
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+# 293-create-master.sh runs the loop on a master.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== the human surface: --interactive (W1.7) =="
 IA_T=$(mktemp -d)
 ia_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
@@ -70,8 +75,8 @@ else
 import json, sys
 for t in json.load(sys.stdin)["result"]["tickets"]:
     print(t["id"], t["title"])' 2>/dev/null)
-    if [[ -f "$IA_R/docs/tickets/$IA_ID.md" ]] && grep -q 'one' "$IA_R/docs/tickets/$IA_ID.md" \
-        && grep -q '^run: true' "$IA_R/docs/tickets/$IA_ID.md" && grep -q "$IA_ID Typed work" <<<"$IA_L"; then
+    if [[ -f "$(tk "$IA_R/docs/tickets/$IA_ID.md")" ]] && grep -q 'one' "$(tk "$IA_R/docs/tickets/$IA_ID.md")" \
+        && grep -q '^run: true' "$(tk "$IA_R/docs/tickets/$IA_ID.md")" && grep -q "$IA_ID Typed work" <<<"$IA_L"; then
         ia_ok "create asks, then does what the flags do" "$IA_ID, its step and its test written"
     else
         ia_fail "create asks, then does what the flags do" "id=$IA_ID: $(tail -c 300 <<<"$IA_O")"
@@ -81,7 +86,7 @@ for t in json.load(sys.stdin)["result"]["tickets"]:
     IA_H=$(ia_tty 'finished by hand\n' done --interactive)
     IA_C=$(ia_tty '\n' check --interactive)
     IA_V=$(ia_tty '\n' status --interactive)
-    if grep -q "$IA_ID" <<<"$IA_S" && grep -q 'finished by hand' "$IA_R/docs/tickets/$IA_ID/journal.jsonl" \
+    if grep -q "$IA_ID" <<<"$IA_S" && grep -q 'finished by hand' "$(tk "$IA_R/docs/tickets/$IA_ID/journal.jsonl")" \
         && grep -q 'WELL-FORMED\|READY' <<<"$IA_C" && [[ -n "$IA_V" ]]; then
         ia_ok "start, done, check, status ask too" "start took $IA_ID, done kept the note, check and status answered"
     else
@@ -99,3 +104,4 @@ for t in json.load(sys.stdin)["result"]["tickets"]:
     fi
 fi
 command rm -rf "$IA_T"
+unset OPENWARRANT_TICKET_LAYOUT

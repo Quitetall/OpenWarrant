@@ -193,7 +193,11 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
         .items()
         .iter()
         .filter(|i| {
-            i.id != "roadmap" && format::kind_of(Some(&i.id)) == "work" && !ticket_master(&i.id)
+            i.id != "roadmap"
+                && format::kind_of(Some(&i.id)) == "work"
+                // A master of profile `ticket` the store listed is read as the
+                // store reads it: one with no items is done by its journal.
+                && (!ticket_master(&i.id) || i.level != crate::work::Level::Unknown)
         })
         .cloned()
         .collect();
