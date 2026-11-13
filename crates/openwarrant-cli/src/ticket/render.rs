@@ -859,7 +859,7 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         record.map_or_else(String::new, |rid| crate::states::annotate(&declared, &rid))
     };
     md.push_str(&format!(
-        "{}{} · {}/{} done · priority {} · created {} by {} · `{}/`\n",
+        "{}{} · {}/{} done · priority {} · created {} by {} · `{}`\n",
         r.state.as_str(),
         ann(Some(t.id().to_owned())),
         r.done,
@@ -867,7 +867,12 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         r.priority,
         &t.manifest.created_at[..t.manifest.created_at.len().min(10)],
         t.manifest.created_by,
-        r.dir
+        // Where the document is: a file for Format 1.0, a directory before it.
+        if t.format {
+            store.rel(&t.checklist_path)
+        } else {
+            format!("{}/", r.dir)
+        }
     ));
     if let Some(w) = &t.manifest.promoted_to {
         md.push_str(&format!("Promoted to Warrant {w} for sign-off.\n"));
@@ -881,10 +886,13 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         facts.push(format!("labels {}", t.manifest.labels.join(", ")));
     }
     if let Some(p) = &t.manifest.part_of {
-        let title = tickets.iter().find(|x| x.id() == p).map_or_else(
-            || " (unknown)".to_owned(),
-            |x| format!(" ({})", x.manifest.title),
-        );
+        // A Warrant here, or a phase of the roadmap: `part_of` names either.
+        let title = tickets
+            .iter()
+            .find(|x| x.id() == p)
+            .map(|x| x.manifest.title.clone())
+            .or_else(|| super::phase_title(store, p))
+            .map_or_else(|| " (unknown)".to_owned(), |title| format!(" ({title})"));
         facts.push(format!("part of {p}{title}"));
     }
     // OW-WAR-0148 M15: a due date, when there is one.
@@ -1087,15 +1095,26 @@ fn checks_section(
     standings: &[super::ladder::KpiStanding],
 ) -> String {
     let mut md = String::from("\n## Checks\n\n");
+    // One check that evaluates several items is one line naming them all.
+    let mut tests: Vec<(&str, &str, Vec<&str>)> = Vec::new();
     for test in &report.checks.tests {
+        let item = test.item.as_deref();
+        match tests
+            .iter_mut()
+            .find(|(name, cmd, _)| *name == test.name && *cmd == test.cmd)
+        {
+            Some((_, _, items)) => items.extend(item),
+            None => tests.push((&test.name, &test.cmd, item.into_iter().collect())),
+        }
+    }
+    for (name, cmd, items) in tests {
         md.push_str(&format!(
-            "- test {}: `{}`{}\n",
-            test.name,
-            test.cmd,
-            test.item
-                .as_ref()
-                .map(|i| format!(" (for {i})"))
-                .unwrap_or_default()
+            "- test {name}: `{cmd}`{}\n",
+            if items.is_empty() {
+                String::new()
+            } else {
+                format!(" (for {})", items.join(", "))
+            }
         ));
     }
     for s in standings {
@@ -1123,7 +1142,11 @@ fn checks_section(
         md.push_str(&format!(
             "- line {} of {}: {} ({})\n",
             f.line,
-            openwarrant_core::ticks::CHECKS_FILE,
+            if t.format {
+                "the document"
+            } else {
+                openwarrant_core::ticks::CHECKS_FILE
+            },
             f.message,
             f.rule
         ));
@@ -1272,10 +1295,10 @@ pub fn prime(
     // takes none of it and the overview may not grow with the corpus.
     let elsewhere = LevelCounts::open(work.others());
     if work.unread(crate::work::Source::Others).is_some() {
-        md.push_str("\nAlso open elsewhere: ?\n");
+        md.push_str("\nAlso open, not taken by `war start`: ?\n");
     } else if elsewhere != LevelCounts::default() {
         md.push_str(&format!(
-            "\nAlso open elsewhere: {} (`war view tickets`)\n",
+            "\nAlso open, not taken by `war start`: {} (`war view tickets`)\n",
             elsewhere.describe()
         ));
     }
@@ -1622,6 +1645,79 @@ pub fn brief_with_status(store: &Store, all: &[Ticket], t: &Ticket, status: &str
             "markdown": md,
         }),
     )
+}
+
+/// The record types a brief never repeats from the task packet: the work
+/// document's own shell (the brief already is its description and items),
+/// the work it depends on (named under "Depends on"), and the host's
+/// instruction files, which the reader already holds.
+const BRIEF_SHELL: [&str; 8] = [
+    "ticket",
+    "warrant",
+    "section",
+    "item",
+    "check",
+    "kpi",
+    "instruction",
+    "x.journal-notes",
+];
+
+/// `brief` with the records its task packet selects (the requirements it
+/// implements, what constrains them, the obligations that evaluate it), so
+/// the work needs no `war context` call. Only what the packet selected, in
+/// its order, each whole while the brief stays within
+/// [`super::prompt::BRIEF_BUDGET`] bytes; a record that does not fit is one
+/// line, and the cut is said.
+#[must_use]
+pub fn brief_with_records(
+    brief: &str,
+    packet: &crate::context::task::TaskPacket,
+    text: &std::collections::BTreeMap<String, String>,
+) -> String {
+    let records: Vec<_> = packet
+        .projection
+        .records
+        .iter()
+        .filter(|r| !BRIEF_SHELL.contains(&r.kind.as_str()))
+        .filter_map(|r| Some((r, text.get(&r.id)?)))
+        .collect();
+    if records.is_empty() {
+        return brief.to_owned();
+    }
+    let budget = super::prompt::BRIEF_BUDGET;
+    let mut section = String::from("\n## Records\n");
+    let mut listed = Vec::new();
+    for (r, body) in records {
+        let head = format!("{} · {} · {}:{}", r.id, r.kind, r.source, r.line);
+        let whole = format!("\n> {head}\n{}\n", body.trim_end());
+        // Room is kept for one line per record still to come.
+        if listed.is_empty() && brief.len() + section.len() + whole.len() + 160 <= budget {
+            section.push_str(&whole);
+        } else {
+            listed.push(head);
+        }
+    }
+    if !listed.is_empty() {
+        section.push_str(&format!(
+            "\nNot printed (this brief holds {budget} bytes); `war context <id>` prints one:\n"
+        ));
+        const LISTED: usize = 12;
+        for head in listed.iter().take(LISTED) {
+            section.push_str(&format!("- {head}\n"));
+        }
+        if listed.len() > LISTED {
+            section.push_str(&format!(
+                "- … and {} more: `war context {}`\n",
+                listed.len() - LISTED,
+                packet.target
+            ));
+        }
+    }
+    // Before the closing line, which stays last.
+    match brief.rfind("\n\nClose it in the same command") {
+        Some(at) => format!("{}\n{}{}", &brief[..at], section.trim_end(), &brief[at..]),
+        None => format!("{brief}\n{}", section.trim_end()),
+    }
 }
 
 #[cfg(test)]

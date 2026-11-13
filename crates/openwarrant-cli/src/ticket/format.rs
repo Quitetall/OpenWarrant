@@ -289,6 +289,21 @@ impl Store {
         })
     }
 
+    /// The Format 1.0 work documents the ticket loop does not hold (the
+    /// subjects of a formal act, [`crate::subject::all`]), each read as the
+    /// loop reads a ticket's document, with the subject's own state
+    /// directory: what running a check needs, and nothing the loop works.
+    pub(crate) fn formal_documents(&self, repo: &crate::repo::Repository) -> Vec<Ticket> {
+        crate::subject::all(repo)
+            .into_iter()
+            .filter_map(|found| {
+                let mut t = self.load_format(&found.file, &found.alias).ok()?;
+                t.dir = found.state;
+                Some(t)
+            })
+            .collect()
+    }
+
     /// The Format 1.0 document `query` (`t-x` or `t-x/i-y`, a unique prefix)
     /// names, relative to the root, whether or not it can be worked: a
     /// document the loop refuses is no [`Ticket`], so resolving against the

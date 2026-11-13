@@ -42,6 +42,8 @@ mod done_enforce_cli;
 mod eval_subject_cli;
 #[path = "evidence_recorder.rs"]
 mod evidence_recorder;
+#[path = "field_report_cli.rs"]
+mod field_report_cli;
 #[path = "format_cli.rs"]
 mod format_cli;
 #[path = "frontier_integrity_cli.rs"]

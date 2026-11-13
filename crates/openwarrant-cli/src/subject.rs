@@ -677,7 +677,18 @@ pub fn load(repo: &Repository, found: &Found) -> Result<Loaded, RepoError> {
         profile_digest: None,
         assurance_level: field(&doc, "assurance_level").map(str::to_owned),
         implements: vec![],
-        roadmap: vec![],
+        // FORMAT-1.0 §10.3: a document joins a phase by `part_of` it. That is
+        // the `[[roadmap]]` ref a legacy manifest writes, so a phase lists
+        // its Warrants the same way in either encoding.
+        roadmap: doc
+            .relations
+            .iter()
+            .filter(|r| r.kind == "part_of" && r.target.id.contains("-PHASE-"))
+            .filter(|r| openwarrant_core::traceability::RoadmapRef::parse(&r.target.id).is_ok())
+            .map(|r| openwarrant_core::manifest::RoadmapRef {
+                r#ref: format!("roadmap://{}", r.target.id),
+            })
+            .collect(),
         parents: vec![],
         supersedes: vec![],
         currency: None,

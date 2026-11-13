@@ -3755,14 +3755,17 @@ fn check_action(
     let now = checks::moment;
     match action {
         CheckAction::Run { target, actor } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repo, store) = ctx.tickets(actor.as_deref())?;
             let (work, check) = match target.as_deref() {
                 None => (Vec::new(), None),
                 Some(t) if t.contains('/') => (
                     vec![t.split('/').next().unwrap_or(t).to_owned()],
                     Some(t.to_owned()),
                 ),
-                Some(t) if ticket::is_ticket_ref(t) => (vec![t.to_owned()], None),
+                // A work document by its id, whatever its profile or place.
+                Some(t) if ticket::is_ticket_ref(t) || subject::find(&repo, t).is_some() => {
+                    (vec![t.to_owned()], None)
+                }
                 Some(t) => (Vec::new(), Some(t.to_owned())),
             };
             let subject = now();

@@ -26,6 +26,33 @@ fn runtime(root: &Utf8Path, path: &Utf8Path, evidence: &Utf8Path) -> bool {
         || path == root.join(super::next_file::FILE)
 }
 
+/// Whether a path is a record about work, not the source a check observes:
+/// a work document's journal or check output (`<id>/journal.jsonl`,
+/// `<id>/checks/`), written by the acts themselves, or a Format 1.0 work
+/// document, whose ticks are progress. The kind decides, never the directory
+/// it is kept in. The check's own document still counts, by its contract
+/// ([`contract_digest`]).
+fn is_record(root: &Utf8Path, relative: &Utf8Path) -> bool {
+    let parts: Vec<&str> = relative.components().map(|c| c.as_str()).collect();
+    let id = crate::format_doc::is_alias;
+    if parts.windows(2).enumerate().any(|(i, w)| {
+        id(w[0]) && (w[1] == "checks" || (w[1] == "journal.jsonl" && i + 2 == parts.len()))
+    }) {
+        return true;
+    }
+    let Some(stem) = relative.file_name().and_then(|n| n.strip_suffix(".md")) else {
+        return false;
+    };
+    let dir = relative.parent().and_then(Utf8Path::file_name);
+    let alias = match dir {
+        Some(d) if id(d) && (matches!(stem, "ticket" | "warrant") || stem.starts_with(d)) => d,
+        _ if id(stem) => stem,
+        _ => return false,
+    };
+    crate::vfs::read_anchored_limited(root.as_std_path(), relative.as_std_path(), MAX_BYTES)
+        .is_ok_and(|text| openwarrant_core::format::parse(&text).alias.as_deref() == Some(alias))
+}
+
 fn file_hash(root: &Utf8Path, path: &Utf8Path, budget: &mut usize) -> Result<String, String> {
     let size = std::fs::symlink_metadata(path)
         .map_err(|e| format!("{path}: {e}"))?
@@ -186,6 +213,26 @@ pub fn capture(root: &Utf8Path, evidence: &Utf8Path) -> Result<Basis, String> {
                 path.strip_prefix(root).map_err(|e| e.to_string())?
             ));
         }
+        // A record about other work is not this check's source: a tick, a
+        // receipt or a new ticket written meanwhile never stales what was
+        // observed for this one.
+        let mut args = vec!["diff", "--name-only", "-z", "HEAD", "--", "."];
+        args.extend(excluded.iter().map(String::as_str));
+        let dirty = crate::go::git::git_raw(root, &args)
+            .map_err(|e| format!("local source diff unavailable: {e:?}"))?;
+        if !dirty.success {
+            return Err(format!(
+                "local source diff unavailable: {}",
+                String::from_utf8_lossy(&dirty.stderr)
+            ));
+        }
+        let names = std::str::from_utf8(&dirty.stdout).map_err(|_| "source paths are not UTF-8")?;
+        let records: Vec<String> = names
+            .split('\0')
+            .filter(|name| !name.is_empty() && is_record(root, Utf8Path::new(name)))
+            .map(|name| format!(":(exclude,literal){name}"))
+            .collect();
+        excluded.extend(records);
         let mut args = vec![
             "diff",
             "--no-ext-diff",
@@ -244,11 +291,11 @@ pub fn capture(root: &Utf8Path, evidence: &Utf8Path) -> Result<Basis, String> {
         if runtime(root, &path, evidence) || contract.as_ref() == Some(&path) {
             continue;
         }
-        let key = path
-            .strip_prefix(root)
-            .map_err(|e| e.to_string())?
-            .to_string();
-        entries.insert(key, file_hash(root, &path, &mut budget)?);
+        let relative = path.strip_prefix(root).map_err(|e| e.to_string())?;
+        if is_record(root, relative) {
+            continue;
+        }
+        entries.insert(relative.to_string(), file_hash(root, &path, &mut budget)?);
     }
     let value = serde_json::json!({"schema":SCHEMA,"commit":commit,"contract":contract_hash,"tracked_diff":patch,"files":entries});
     let canonical = serde_jcs::to_vec(&value).map_err(|e| e.to_string())?;
