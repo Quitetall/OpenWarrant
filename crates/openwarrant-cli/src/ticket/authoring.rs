@@ -140,7 +140,12 @@ pub(crate) fn validate(text: &str) -> Result<(), String> {
 pub(crate) fn create(source: &camino::Utf8Path, text: &str) -> Result<(), RepoError> {
     validate(text).map_err(|why| RepoError::Message(format!("ticket.document-invalid: {why}")))?;
     let dir = source.parent().unwrap_or(source);
-    let temporary = dir.join(".source.war-tmp");
+    // Named by the document: single-file tickets share one directory, and
+    // two creates at once must not share one staging file.
+    let temporary = dir.join(format!(
+        ".{}.war-tmp",
+        source.file_name().unwrap_or("source")
+    ));
     let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
