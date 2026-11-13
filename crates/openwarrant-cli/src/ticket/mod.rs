@@ -74,6 +74,10 @@ use crate::repo::{RepoError, Repository};
 
 pub use render::{Filter, description, list, notes, prime, show, tickets, tickets_filtered};
 
+/// `work` or `tickets`: where `war create` writes, over `[tickets] layout`
+/// (for a test or a script that is about one layout).
+pub const LAYOUT_ENV: &str = "OPENWARRANT_TICKET_LAYOUT";
+
 /// Where tickets live unless `[tickets] dir` says otherwise.
 pub const DEFAULT_DIR: &str = "docs/tickets";
 /// Where claims lived before they were shared across worktrees (M11), and
@@ -177,6 +181,12 @@ pub struct Policy {
     /// session carries nothing. `false` turns it off.
     #[serde(default)]
     pub session_start: Option<bool>,
+    /// Where `war create` writes new work: `tickets` (the default), one
+    /// document `<dir>/<t-id>.md`; or `work`, a master
+    /// `docs/work/<w-id>/<id>-<slug>.md` with its state beside it
+    /// (docs/design/one-format.md). Either way every layout is read.
+    #[serde(default)]
+    pub layout: Option<String>,
     /// The repository's own test, as one shell command line. `war done` runs
     /// it, once per call, on anything no check of the ticket's own applies
     /// to: a pass ticks at `observed`, a fail or an UNKNOWN run ticks
@@ -464,6 +474,10 @@ pub struct Store {
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
     /// [`default_actor`]. A name for coordination; it authorizes nothing.
     pub actor: String,
+    /// Whether nobody named the actor (`--as`, `OPENWARRANT_ACTOR`,
+    /// `[project] performer`): it is the built-in default, and `war start`
+    /// says so ([`Self::actor_note`]).
+    pub actor_defaulted: bool,
     pub project: String,
     /// OW-WAR-0148 M14: `[preset] name`, when set. Under `vibe`, `war done`
     /// claims an unclaimed item itself.
@@ -487,6 +501,9 @@ pub struct Store {
     pub done_test: Option<String>,
     /// `[tickets] done_test_timeout`, in seconds.
     pub done_test_timeout: Option<u64>,
+    /// `[tickets] layout = "work"` (or [`LAYOUT_ENV`]): `war create` writes
+    /// masters in `docs/work/`.
+    pub layout_work: bool,
 }
 
 /// Now, in Unix seconds.
@@ -554,6 +571,139 @@ pub fn holds_here(store: &Store, actor: &str) -> bool {
     })
 }
 
+/// The agent harness this process runs under, when its environment says:
+/// the variables each sets for the commands it runs.
+fn harness() -> Option<&'static str> {
+    let set = |name: &str| std::env::var_os(name).is_some_and(|v| !v.is_empty());
+    [
+        ("claude", &["CLAUDECODE"][..]),
+        (
+            "codex",
+            &["CODEX_THREAD_ID", "CODEX_SESSION_ID", "CODEX_SANDBOX"],
+        ),
+        ("opencode", &["OPENCODE"]),
+        ("gemini", &["GEMINI_CLI"]),
+        ("cursor", &["CURSOR_AGENT"]),
+    ]
+    .into_iter()
+    .find(|(_, names)| names.iter().any(|n| set(n)))
+    .map(|(name, _)| name)
+}
+
+impl Store {
+    /// One line for `war start` when the actor is the built-in default and
+    /// the harness does not confirm it: a name nobody chose is said, never
+    /// silent. `None` when the actor was named, or the harness is the one
+    /// the default names.
+    #[must_use]
+    pub fn actor_note(&self) -> Option<String> {
+        if !self.actor_defaulted {
+            return None;
+        }
+        let base = self.actor.split('@').next().unwrap_or(&self.actor);
+        match harness() {
+            Some(h) if h == base => None,
+            Some(h) => Some(format!(
+                "acting as {}, the default name, in a {h} session: `--as {h}` or \
+                 OPENWARRANT_ACTOR={h} names it",
+                self.actor
+            )),
+            None => Some(format!(
+                "acting as {}, the default name: `--as <name>` or OPENWARRANT_ACTOR names this \
+                 agent",
+                self.actor
+            )),
+        }
+    }
+}
+
+/// The roadmap's phases, when `id` could be one (`<PREFIX>-PHASE-<N>`) and
+/// the roadmap record reads. Nothing pays for it but work that names a
+/// phase, and that work reads it once: the answer is kept while the phases
+/// atom and `openwarrant.toml` stay as they were stat'ed.
+fn roadmap_phases(
+    root: &Utf8Path,
+    id: &str,
+) -> Option<std::sync::Arc<openwarrant_core::roadmap::Phases>> {
+    type Stamp = Option<(std::time::SystemTime, u64)>;
+    type Kept = (
+        Utf8PathBuf,
+        [Stamp; 2],
+        Option<std::sync::Arc<openwarrant_core::roadmap::Phases>>,
+    );
+    static KEPT: std::sync::Mutex<Vec<(Utf8PathBuf, Kept)>> = std::sync::Mutex::new(Vec::new());
+    if !id.contains("-PHASE-") {
+        return None;
+    }
+    let stamp = |p: &Utf8Path| -> Stamp {
+        let m = std::fs::metadata(p).ok()?;
+        Some((m.modified().ok()?, m.len()))
+    };
+    let config = root.join(crate::init::CONFIG_FILE);
+    let mut kept = KEPT.lock().ok()?;
+    if let Some((_, (atom, stamps, phases))) = kept.iter().find(|(r, _)| r == root)
+        && *stamps == [stamp(&config), stamp(atom)]
+    {
+        return phases.clone();
+    }
+    let repo = Repository::discover(Some(root.to_owned())).ok()?;
+    let loaded = crate::roadmap_cmd::load(&repo).ok().flatten();
+    let atom = loaded.as_ref().map_or_else(
+        || root.join(&repo.config.paths.roadmap).join("roadmap.toml"),
+        |l| {
+            l.manifest
+                .atoms
+                .iter()
+                .find(|a| a.role == "phases")
+                .map_or_else(|| l.dir.join("roadmap.toml"), |a| l.dir.join(&a.path))
+        },
+    );
+    let phases = loaded.map(|l| std::sync::Arc::new(l.phases));
+    kept.retain(|(r, _)| r != root);
+    kept.push((
+        root.to_owned(),
+        (atom.clone(), [stamp(&config), stamp(&atom)], phases.clone()),
+    ));
+    phases
+}
+
+/// The phases the phase of `t` depends on, directly or through another
+/// phase, that still hold open work: work `part_of` a phase waits on those,
+/// by name (the roadmap's `depends_on`, OW-ADR-0023). A phase is finished
+/// here when no Warrant `part_of` it is open; `members` gives a phase's.
+fn phase_blockers<'a>(members: &dyn Fn(&str) -> Vec<&'a Ticket>, t: &Ticket) -> Vec<String> {
+    let Some(own) = t.manifest.part_of.as_deref() else {
+        return Vec::new();
+    };
+    let Some(phases) = roadmap_phases(&t.repository_root, own) else {
+        return Vec::new();
+    };
+    let mut seen: BTreeSet<&str> = BTreeSet::new();
+    let mut queue: Vec<&str> = phases
+        .get(own)
+        .map(|p| p.depends_on.iter().map(String::as_str).collect())
+        .unwrap_or_default();
+    let mut open = Vec::new();
+    while let Some(id) = queue.pop() {
+        if !seen.insert(id) {
+            continue;
+        }
+        if members(id).iter().any(|m| !m.is_done()) {
+            open.push(id.to_owned());
+        }
+        if let Some(p) = phases.get(id) {
+            queue.extend(p.depends_on.iter().map(String::as_str));
+        }
+    }
+    open.sort();
+    open
+}
+
+/// The title of the roadmap phase `id`, when it is one.
+pub(crate) fn phase_title(store: &Store, id: &str) -> Option<String> {
+    Some(roadmap_phases(&store.root, id)?.get(id)?.title.clone())
+}
+
 fn default_actor(repo: &Repository) -> String {
     let performer = repo.performer();
     match repo.root.file_name() {
@@ -570,6 +720,14 @@ impl Store {
     /// Open the ticket store of `repo`, acting as `actor` when given.
     pub fn open(repo: &Repository, actor: Option<&str>) -> Result<Self, RepoError> {
         let (policy, claims_policy, preset) = policy_of(&repo.root)?;
+        if let Some(layout) = policy.layout.as_deref()
+            && !matches!(layout, "tickets" | "work")
+        {
+            return Err(RepoError::Message(format!(
+                "tickets.layout: `{layout}` is no layout; `[tickets] layout` is \"tickets\" \
+                 (the default) or \"work\""
+            )));
+        }
         let definition = ticket_definition(&repo.profiles)?;
         let resolve = |p: &str| {
             let p = Utf8PathBuf::from(p);
@@ -579,12 +737,13 @@ impl Store {
                 repo.root.join(p)
             }
         };
-        let actor = actor
+        let named = actor
             .map(str::to_owned)
             .or_else(|| std::env::var("OPENWARRANT_ACTOR").ok())
             .map(|a| ticket::one_line(&a))
-            .filter(|a| !a.is_empty())
-            .unwrap_or_else(|| default_actor(repo));
+            .filter(|a| !a.is_empty());
+        let actor_defaulted = named.is_none() && repo.config.project.performer.is_none();
+        let actor = named.unwrap_or_else(|| default_actor(repo));
         let tree_claims_dir = resolve(policy.claims_dir.as_deref().unwrap_or(DEFAULT_CLAIMS_DIR));
         let layout = match policy.claims_dir {
             Some(_) => None,
@@ -620,6 +779,7 @@ impl Store {
             session_start: policy.session_start.unwrap_or(true),
             definition,
             actor,
+            actor_defaulted,
             project: repo.config.project.name.clone(),
             preset: preset.preset,
             tick_floor: if preset.preset.is_some() {
@@ -629,12 +789,30 @@ impl Store {
             },
             check_root: None,
             shared: false,
+            layout_work: std::env::var(LAYOUT_ENV)
+                .ok()
+                .map(|v| v.trim().to_owned())
+                .filter(|v| !v.is_empty())
+                .or_else(|| policy.layout.clone())
+                .is_some_and(|v| v == "work"),
             done_test: policy
                 .done_test
                 .map(|c| c.trim().to_owned())
                 .filter(|c| !c.is_empty()),
             done_test_timeout: policy.done_test_timeout.filter(|s| *s > 0),
         })
+    }
+
+    /// Where the ticket `id` keeps its state, and its files when it is a
+    /// directory ticket: `docs/work/<id>/` for a master, else `<tickets>/<id>`.
+    #[must_use]
+    pub fn state_dir(&self, id: &str) -> Utf8PathBuf {
+        let master = self.root.join(crate::subject::WORK_ROOT).join(id);
+        if master != self.dir.join(id) && master.is_dir() {
+            master
+        } else {
+            self.dir.join(id)
+        }
     }
 
     /// This store, listing shared work too ([`Self::shared`]): for the views
@@ -1000,23 +1178,19 @@ impl Store {
                 }
             }
         }
-        let documents = self.format_documents(&entries, &|d| look.contains(d.as_str()));
-        let read = match cache {
+        let mut documents = self.format_documents(&entries, &|d| look.contains(d.as_str()));
+        // The masters in `docs/work/` (one-format.md) are listed on their
+        // own and read through the same cache: an entry is keyed by the
+        // document's path under the root, and judged by its own stat.
+        let masters = self.master_entries()?;
+        documents.extend(self.format_documents(&masters, &|_| true));
+        let read: Vec<Result<Ticket, Diagnostic>> = match cache {
             Some(cache) => cache.load_documents(self, &documents, pass),
             None => documents
                 .into_iter()
                 .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias)))
                 .collect(),
         };
-        // Master roots have their own listing and state paths. Do not put them
-        // in the ticket-directory cache, whose keys are relative to that root.
-        let masters = self.master_entries()?;
-        let master_documents = self.format_documents(&masters, &|_| true);
-        let read = read.into_iter().chain(
-            master_documents
-                .into_iter()
-                .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias))),
-        );
         let mut any_format = false;
         for one in read {
             match one {
@@ -1068,7 +1242,7 @@ impl Store {
         let query = query.trim();
         let prefix = match query.split_once('/') {
             Some((t, _)) => t,
-            None if query.starts_with("t-") => query,
+            None if query.starts_with("t-") || query.starts_with("w-") => query,
             None => return self.load_all(),
         };
         let entries = self.entries()?;
@@ -1119,6 +1293,16 @@ impl Store {
             for dir in entries.iter().filter(|d| named(d, id)) {
                 take(dir, &mut tickets);
             }
+        }
+        // Work `part_of` a roadmap phase waits on whatever is open in the
+        // phases before it ([`phase_blockers`]): that is any ticket.
+        if tickets.iter().any(|t| {
+            t.manifest
+                .part_of
+                .as_deref()
+                .is_some_and(|p| p.contains("-PHASE-"))
+        }) {
+            return self.load_all();
         }
         Ok((tickets, faults))
     }
@@ -1327,7 +1511,7 @@ impl Store {
         // R2: every act on a ticket is journalled here, so this is where its
         // announcement to the other worktrees is kept current, or dropped
         // once it is done.
-        shared::sync(self, t);
+        shared::sync(self, t, event_type);
         Ok(())
     }
 }
@@ -1427,7 +1611,54 @@ fn ticket_definition(registry: &ProfileRegistry) -> Result<ProfileDefinition, Re
 /// rather than a Warrant alias, which is `NS-WAR-NNNN` and never lowercase.
 #[must_use]
 pub fn is_ticket_ref(s: &str) -> bool {
-    s.starts_with("t-") || s.starts_with("i-")
+    s.starts_with("t-") || s.starts_with("i-") || master_ticket(s)
+}
+
+/// The repository this process serves, for [`is_ticket_ref`]: set once, by
+/// the command line and by the MCP server ([`serve`]).
+static SERVED: std::sync::OnceLock<Utf8PathBuf> = std::sync::OnceLock::new();
+
+/// Name the repository this process serves: `root`, else the nearest
+/// directory from the current one up that holds `openwarrant.toml`.
+pub fn serve(root: Option<&Utf8Path>) {
+    let found = root.map(Utf8Path::to_owned).or_else(|| {
+        let cwd = Utf8PathBuf::from_path_buf(std::env::current_dir().ok()?).ok()?;
+        cwd.ancestors()
+            .find(|d| d.join(crate::init::CONFIG_FILE).is_file())
+            .map(Utf8Path::to_owned)
+    });
+    if let Some(found) = found {
+        let _ = SERVED.set(found);
+    }
+}
+
+/// Whether `s` (`w-x` or `w-x/i-y`) names a ticket kept as a master: a `w-`
+/// id shows a work order, never its tier, so the document's profile says.
+/// `false` where no repository was named ([`serve`]).
+fn master_ticket(s: &str) -> bool {
+    let head = s.split('/').next().unwrap_or(s);
+    if !ticket::is_work_id(head) {
+        return false;
+    }
+    let Some(root) = SERVED.get() else {
+        return false;
+    };
+    let work = root.join(crate::subject::WORK_ROOT);
+    let is_ticket = |id: &str| match crate::subject::document_in(&work.join(id), id) {
+        crate::subject::Held::One(file) => std::fs::read_to_string(file)
+            .is_ok_and(|text| crate::format_doc::frontmatter_profile(&text) == Some("ticket")),
+        _ => false,
+    };
+    if work.join(head).is_dir() {
+        return is_ticket(head);
+    }
+    // A prefix of an id, as every ticket command takes one.
+    std::fs::read_dir(&work).is_ok_and(|entries| {
+        entries
+            .flatten()
+            .filter_map(|e| e.file_name().into_string().ok())
+            .any(|name| name.starts_with(head) && is_ticket(&name))
+    })
 }
 
 /// What a command acts on.
@@ -1489,7 +1720,10 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
         let item = pick(&refs, i).map_err(|found| unknown("item", &found))?;
         return Ok(Target::Item(index, item.to_owned()));
     }
-    if query.starts_with("t-") || tickets.iter().any(|t| t.id() == query) {
+    if query.starts_with("t-")
+        || ticket::is_work_id(query)
+        || tickets.iter().any(|t| t.id() == query)
+    {
         return find_ticket(query).map(Target::Ticket);
     }
     if query.starts_with("i-") {
@@ -1637,18 +1871,24 @@ fn holder(c: Option<&claim::Claim>, now: u64) -> String {
 /// relation to a global record id (`t-x/i-y` or `t-x`,
 /// [`ticket::Blocker::record_id`]); `war plan model` emits the same relation.
 fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
-    open_blockers_by(&|id| tickets.iter().find(|x| x.id() == id), t, item)
+    open_blockers_by(
+        &|id| tickets.iter().find(|x| x.id() == id),
+        &|id| children_of(tickets, id),
+        t,
+        item,
+    )
 }
 
 /// [`open_blockers`], finding a ticket by id with `find`: what a scan of
 /// the tickets for the first with that id finds ([`first_by_id`]).
 fn open_blockers_by<'a>(
     find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    members: &dyn Fn(&str) -> Vec<&'a Ticket>,
     t: &Ticket,
     item: &Item,
 ) -> Vec<String> {
     // FORMAT-1.0 §11.1: an item also waits on what its document
-    // `depends_on`.
+    // `depends_on`, and on the phases its phase depends on.
     item.after
         .iter()
         .chain(&t.depends_on)
@@ -1657,6 +1897,7 @@ fn open_blockers_by<'a>(
             Some(false) => Some(b.to_string()),
             None => Some(format!("{b} (unknown)")),
         })
+        .chain(phase_blockers(members, t))
         .collect()
 }
 
@@ -1670,7 +1911,11 @@ pub fn waiting_on(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
 /// What a work document itself waits on that is not done (its
 /// `depends_on`, FORMAT-1.0 §11.1): a document with no items is `blocked`
 /// by these as an item would be.
-fn document_blockers_by<'a>(find: &dyn Fn(&str) -> Option<&'a Ticket>, t: &Ticket) -> Vec<String> {
+fn document_blockers_by<'a>(
+    find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    members: &dyn Fn(&str) -> Vec<&'a Ticket>,
+    t: &Ticket,
+) -> Vec<String> {
     t.depends_on
         .iter()
         .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
@@ -1678,6 +1923,7 @@ fn document_blockers_by<'a>(find: &dyn Fn(&str) -> Option<&'a Ticket>, t: &Ticke
             Some(false) => Some(b.to_string()),
             None => Some(format!("{b} (unknown)")),
         })
+        .chain(phase_blockers(members, t))
         .collect()
 }
 
@@ -1726,7 +1972,12 @@ impl<'a> Lookup<'a> {
     /// [`waiting_on`] over these tickets.
     #[must_use]
     pub fn waiting_on(&self, t: &Ticket, item: &Item) -> Vec<String> {
-        open_blockers_by(&|id| self.by_id.get(id).copied(), t, item)
+        open_blockers_by(
+            &|id| self.by_id.get(id).copied(),
+            &|id| self.children_of(id),
+            t,
+            item,
+        )
     }
 
     fn children_of(&self, id: &str) -> Vec<&'a Ticket> {
@@ -2261,58 +2512,80 @@ fn create_with_encoding(
         return Ok(refusal);
     }
     let registry = store.registry();
-    std::fs::create_dir_all(&store.dir).map_err(io(format!("could not create {}", store.dir)))?;
-    let existing = store.ticket_count()?;
-    let uuid = WarUuid::mint().to_string();
-    // The id lengthens past a collision on this branch; across branches the
-    // length rule keeps the chance of one under 1%.
-    let mut dir = None;
-    for len in ticket::ticket_id_len(existing)..=16 {
-        let candidate = store.dir.join(ticket::ticket_id(&uuid, len));
-        if crate::vfs::exists(
-            store
-                .dir
-                .join(format!("{}.md", candidate.file_name().unwrap_or_default())),
-        ) {
-            continue;
-        }
-        match std::fs::create_dir(&candidate) {
-            Ok(()) => {
-                // R2: the id is this ticket's only when the clone's register
-                // gives it too; an id another worktree took is passed over.
-                if let Some(reg) = &registry {
-                    let name = candidate.file_name().unwrap_or_default();
-                    let document = if legacy {
-                        candidate.join("manifest.toml")
-                    } else {
-                        store.dir.join(format!("{name}.md"))
-                    };
-                    let entry = reg.stub(name, &uuid, &title, &store.actor, &store.rel(&document));
-                    let taken = reg
-                        .reserve(&entry)
-                        .map_err(io(format!("could not register {name} in {}", reg.dir)));
-                    if !matches!(taken, Ok(true)) {
-                        let _ = std::fs::remove_dir(&candidate);
-                        taken?;
-                        continue;
+    let work_root = store.root.join(crate::subject::WORK_ROOT);
+    // New work is a master, `docs/work/<w-id>/<id>-<slug>.md`, its state
+    // beside it (one-format.md): the id is minted and taken on the one path
+    // `war plan new` starts on. `--legacy` keeps a `t-` directory ticket.
+    // That is `[tickets] layout = "work"`; without it new work is one
+    // document `<tickets>/<t-id>.md`, as before.
+    let single = !legacy && !store.layout_work;
+    let (dir, uuid, master) = if legacy || single {
+        std::fs::create_dir_all(&store.dir)
+            .map_err(io(format!("could not create {}", store.dir)))?;
+        let existing = store.ticket_count()?;
+        let uuid = WarUuid::mint().to_string();
+        // The id lengthens past a collision on this branch; across branches
+        // the length rule keeps the chance of one under 1%.
+        let mut dir = None;
+        for len in ticket::ticket_id_len(existing)..=16 {
+            let candidate = store.dir.join(ticket::ticket_id(&uuid, len));
+            if crate::vfs::exists(
+                store
+                    .dir
+                    .join(format!("{}.md", candidate.file_name().unwrap_or_default())),
+            ) {
+                continue;
+            }
+            match std::fs::create_dir(&candidate) {
+                Ok(()) => {
+                    // R2: the id is this ticket's only when the clone's
+                    // register gives it too.
+                    if let Some(reg) = &registry {
+                        let name = candidate.file_name().unwrap_or_default();
+                        let document = if legacy {
+                            candidate.join("manifest.toml")
+                        } else {
+                            store.dir.join(format!("{name}.md"))
+                        };
+                        let entry =
+                            reg.stub(name, &uuid, &title, &store.actor, &store.rel(&document));
+                        let taken = reg
+                            .reserve(&entry)
+                            .map_err(io(format!("could not register {name} in {}", reg.dir)));
+                        if !matches!(taken, Ok(true)) {
+                            let _ = std::fs::remove_dir(&candidate);
+                            taken?;
+                            continue;
+                        }
                     }
+                    dir = Some(candidate);
+                    break;
                 }
-                dir = Some(candidate);
-                break;
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
-            Err(source) => {
-                return Err(RepoError::Io {
-                    context: format!("could not create {candidate}"),
-                    source,
-                });
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+                Err(source) => {
+                    return Err(RepoError::Io {
+                        context: format!("could not create {candidate}"),
+                        source,
+                    });
+                }
             }
         }
-    }
-    let Some(dir) = dir else {
-        return Err(RepoError::Message(
-            "ticket.id: every length of this Warrant's id is taken".to_owned(),
-        ));
+        let Some(dir) = dir else {
+            return Err(RepoError::Message(
+                "ticket.id: every length of this Warrant's id is taken".to_owned(),
+            ));
+        };
+        (dir, uuid, None)
+    } else {
+        let existing =
+            store.ticket_count()? + crate::vfs::read_dir_utf8(&work_root).map_or(0, |v| v.len());
+        let reserved = crate::subject::reserve_master(
+            store,
+            &[work_root.clone(), store.dir.clone()],
+            existing,
+            &title,
+        )?;
+        (reserved.dir.clone(), reserved.uuid.clone(), Some(reserved))
     };
     let id = dir.file_name().unwrap_or_default().to_owned();
     let now = now_secs();
@@ -2388,8 +2661,12 @@ fn create_with_encoding(
             &authoring::document(&manifest, &intent, &checklist),
             &args.scope,
         );
-        match authoring::create(store, &dir, &document) {
-            Ok(source) => source,
+        let path = master.as_ref().map_or_else(
+            || store.dir.join(format!("{id}.md")),
+            |reserved| reserved.path.clone(),
+        );
+        match authoring::create(&path, &document) {
+            Ok(()) => path,
             Err(error) => {
                 let _ = std::fs::remove_dir(&dir);
                 if let Some(reg) = &registry {
@@ -2968,6 +3245,7 @@ pub fn ready_rows_at(
         .collect();
     let by_id = first_by_id(tickets);
     let find = |id: &str| by_id.get(id).copied();
+    let members = |id: &str| children_of(tickets, id);
     // Read here, once: other repositories are read on one thread.
     let held = depends::held(store, tickets);
     let workspace = scopes::workspace(store);
@@ -3060,13 +3338,13 @@ pub fn ready_rows_at(
             // An epic with tickets of its own and no items is worked through
             // its tickets, never whole (OW-WAR-0148 M5); a document whose
             // `depends_on` is not done waits (FORMAT-1.0 §11.1).
-            if !parents.contains(t.id()) && document_blockers_by(&find, t).is_empty() {
+            if !parents.contains(t.id()) && document_blockers_by(&find, &members, t).is_empty() {
                 rows.push(row(None, t.manifest.title.clone(), None, 0, whole_stale));
             }
             return rows;
         }
         for (order, item) in t.checklist.items.iter().enumerate() {
-            if item.done || !open_blockers_by(&find, t, item).is_empty() {
+            if item.done || !open_blockers_by(&find, &members, t, item).is_empty() {
                 continue;
             }
             let mut stale_claim = whole_stale.clone();
@@ -3541,7 +3819,11 @@ pub(crate) fn claim_scoped_at(
             ));
         }
         let by_id = first_by_id(&tickets);
-        let mut waiting = document_blockers_by(&|id| by_id.get(id).copied(), t);
+        let mut waiting = document_blockers_by(
+            &|id| by_id.get(id).copied(),
+            &|id| children_of(&tickets, id),
+            t,
+        );
         let unfinished: Vec<_> = t.checklist.items.iter().filter(|it| !it.done).collect();
         if !unfinished.is_empty()
             && unfinished
@@ -4129,6 +4411,7 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
     let repository = Repository::discover(Some(workspace.clone()))?;
     let given = crate::context::task::given(&repository, tickets[index].id())?;
     let mut answer = render::brief(store, &tickets, &tickets[index], &store.actor);
+    answer.human = render::brief_with_records(&answer.human, &given.packet, &given.text);
     // W3: what it was given stays beside its claim; a resumption sees only
     // what changed since.
     let id = tickets[index].id();
@@ -4176,6 +4459,10 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         |c| c.place(),
     );
     answer.human = format!("{place}\n{}", answer.human);
+    if let Some(note) = store.actor_note() {
+        answer.human.push_str(&format!("\n{note}"));
+        answer.result["actor_note"] = serde_json::json!(note);
+    }
     answer.result["place"] = serde_json::json!(place);
     answer
         .human
@@ -5850,7 +6137,59 @@ fn finish_ticket(
         remote_warnings.extend(store.retire_published(&whole));
     }
     let _ = claim::release(&whole, &store.actor);
-    let t = reload(&t)?;
+    let mut t = reload(&t)?;
+    // An item ticked earlier at claimed is raised by the pass this call just
+    // recorded, when that run names it (FORMAT-1.0 §12); one no check
+    // evaluates stays claimed, and that is said.
+    let mut raised: Vec<String> = Vec::new();
+    let mut still_claimed: Vec<String> = Vec::new();
+    if t.format && ticks_of.iter().any(|(_, r)| r.is_some()) {
+        let (evaluation, _) = checks::evaluate(store, Some(t.id()))?;
+        raised = evaluation
+            .effects
+            .iter()
+            .filter(|e| e.effect == "raised")
+            .filter_map(|e| e.target.rsplit('/').next().map(str::to_owned))
+            .collect();
+        raised.dedup();
+        if !raised.is_empty() {
+            t = reload(&t)?;
+        }
+        let claimed_before = |t: &Ticket| -> Vec<String> {
+            let levels = ladder::ticks_of(&ladder::Reader::new(store), t);
+            t.checklist
+                .items
+                .iter()
+                .filter(|i| i.done)
+                .filter_map(|i| i.id.clone())
+                .filter(|id| !open.contains(id))
+                .filter(|id| {
+                    levels
+                        .items
+                        .get(id)
+                        .is_some_and(|v| v.level == Level::Claimed)
+                })
+                .collect()
+        };
+        // The same for a round the ladder ran: no check runs twice.
+        let rounds: Vec<&ladder::CheckRound> =
+            ticks_of.iter().filter_map(|(_, r)| r.as_ref()).collect();
+        for id in claimed_before(&t) {
+            let Some(round) = rounds
+                .iter()
+                .find(|r| ladder::round_covers(&checks, &id, r))
+            else {
+                continue;
+            };
+            let what = format!("{}/{id}", t.id());
+            if !ladder::raise_with(store, &t, &id, &what, None, round, Level::Claimed)?.is_refused()
+            {
+                raised.push(id);
+                t = reload(&t)?;
+            }
+        }
+        still_claimed = claimed_before(&t);
+    }
     let claims = store.claims()?;
     let state = state_of(&t, &claims);
     let (d, n) = t.checklist.progress();
@@ -5875,6 +6214,19 @@ fn finish_ticket(
         ));
     } else {
         human.push_str(&format!("\nticked at observed: {}", observed.join(", ")));
+    }
+    if !raised.is_empty() {
+        human.push_str(&format!(
+            "\nraised from claimed to observed: {}",
+            raised.join(", ")
+        ));
+    }
+    if !still_claimed.is_empty() {
+        human.push_str(&format!(
+            "\nstill at claimed (ticked earlier, and no passing check names it): {}; \
+             `war done <item> --check` runs its checks",
+            still_claimed.join(", ")
+        ));
     }
     if !for_a_person.is_empty() {
         human.push_str(&format!("\n{}", waits_on_a_person(&t, &for_a_person)));

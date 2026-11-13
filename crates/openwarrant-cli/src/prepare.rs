@@ -1203,7 +1203,7 @@ fn foreign_dirt(repo: &Repository, aliases: &[String]) -> Result<Vec<String>, St
 /// a receipt names.
 fn carried_records(repo: &Repository) -> Result<Vec<String>, String> {
     let ex = crate::gate_cmd::source::Exclusions::of(repo);
-    let out = std::process::Command::new("git")
+    let out = crate::go::git::observing(&mut std::process::Command::new("git"))
         .arg("-C")
         .arg(repo.root.as_str())
         .args(["status", "--porcelain=v1", "-z", "--untracked-files=all"])
@@ -1326,7 +1326,7 @@ fn commit_records(
         touched.join(", ")
     );
     let git = |args: &[&str]| -> Result<String, String> {
-        let out = std::process::Command::new("git")
+        let out = crate::go::git::observing(&mut std::process::Command::new("git"))
             .arg("-C")
             .arg(repo.root.as_str())
             // An unattended commit never reaches a signing key.

@@ -251,6 +251,7 @@ fn relation(line: &str) -> Result<Option<(String, Vec<Target>)>, String> {
             && !t.contains(char::is_whitespace)
             && (t.starts_with(|c: char| c.is_ascii_uppercase())
                 || t.starts_with("t-")
+                || t.starts_with("w-")
                 || (t.starts_with(crate::instruction::ID_PREFIX) && t.contains('#')))
     });
     if !shaped {

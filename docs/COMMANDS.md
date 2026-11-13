@@ -191,7 +191,7 @@ so it stays there. Its top-level spelling is what retires.
 | Write the AGENTS.md this repository ships, for the repository's namespace. `war init` writes it once; this rewrites (--force) or prints it. `--block` keeps only a small managed pointer block in the files you already have (M16) | `war admin agents-md` | `war agents-md` | often | group; `war agents-md` retiring |
 | Bring work in as Warrants (OW-WAR-0148 M10): `beads <file.jsonl>` (Beads' issue JSONL, as `bd export` writes it), `openspec <dir>` (each change of an OpenSpec folder) or `speckit <dir>` (each feature of a Spec Kit `specs/` folder). Each becomes a light Warrant (a ticket) with its tasks as items. Running it again changes nothing; input it cannot map is refused by name, and a refusal writes nothing. To keep working in those tools instead, read the folder in place: `[[adapters]]` in openwarrant.toml (docs/TYPES.md) | `war admin import` | `war import` | often | group; `war import` retiring |
 | §68 portable export and round trip; or, as `war admin export beads`, every light Warrant (a ticket) as Beads issue JSONL on stdout, in the shape `bd export` writes, which `war admin import beads` reads back (OW-WAR-0148 M10) | `war admin export` | `war export` | often | group; `war export` retiring |
-| Import a legacy ADR corpus (§96), discharging OW-WAR-0043 | `war admin migrate` | `war migrate` | often | group; `war migrate` retiring |
+| Move tickets kept outside `docs/work/` into it as masters, ids kept (`--dry-run` prints the plan); with `--corpus` and `--commit`, import a legacy ADR corpus (§96), discharging OW-WAR-0043 | `war admin migrate` | `war migrate` | often | group; `war migrate` retiring |
 | Experimental preservation transport. Imported records grant no authority | `war admin archive` | `war archive` | often | group; `war archive` retiring |
 | Feed a harness's own task list into the tick ladder (OW-WAR-0148 M13). Proposes ticks; writes only with `--apply`; never blocks | `war admin bridge` | `war bridge` | often | group; `war bridge` retiring |
 | Host the WAR domain for Liminal, `oh.war/liminal-v1` (OW-WAR-0148 M8; SAS §82.2; docs/LIMINAL_HOST.md): one request on stdin, one response on stdout. Pure — no repository, no file, no network, no process. Exit 0 compiled, 1 refused, 2 compiled with something not established. `--export` writes the request that reproduces this repository's model instead | `war admin host` | `war host` | often | kept: the Liminal protocol |
@@ -463,7 +463,12 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
   `install-hook` (envelopes `check.run`, `check.evaluate`, `check.fire`,
   `check.install-hook`). They run a document's `check` records rather than
   check the records, so they need no thirteenth verb; `war view watch
-  --checks` is the same runner as a poller.
+  --checks` is the same runner as a poller. A target is a work document's
+  id, a check's id or `<document>/<check>`, for any Format 1.0 work document:
+  a ticket, or a Warrant in `docs/warrants/` or `docs/work/`, whose runs are
+  kept in its own state directory. A run is current until a source file
+  changes; records about other work (journals, check output, other work
+  documents) are not source.
 - **`types` and `type` are new under `plan`** (OW-WAR-0148 M18): a type is
   how a document is planned, beside `model`, `render` and `roadmap`.
   `war plan types` lists the types, `war plan types add <pack>` installs a

@@ -56,7 +56,9 @@ pub fn is_document_path(place: &str) -> bool {
         }
     });
     let name = path.rsplit('/').next().unwrap_or(path);
-    name == INNER || single_file(name).is_some()
+    name == INNER
+        || single_file(name).is_some()
+        || (name.ends_with(".md") && Utf8Path::new(path).starts_with(crate::subject::WORK_ROOT))
 }
 
 /// The document of a Format 1.0 ticket whose evidence directory is `dir`:
@@ -289,6 +291,21 @@ impl Store {
         })
     }
 
+    /// The Format 1.0 work documents the ticket loop does not hold (the
+    /// subjects of a formal act, [`crate::subject::all`]), each read as the
+    /// loop reads a ticket's document, with the subject's own state
+    /// directory: what running a check needs, and nothing the loop works.
+    pub(crate) fn formal_documents(&self, repo: &crate::repo::Repository) -> Vec<Ticket> {
+        crate::subject::all(repo)
+            .into_iter()
+            .filter_map(|found| {
+                let mut t = self.load_format(&found.file, &found.alias).ok()?;
+                t.dir = found.state;
+                Some(t)
+            })
+            .collect()
+    }
+
     /// The Format 1.0 document `query` (`t-x` or `t-x/i-y`, a unique prefix)
     /// names, relative to the root, whether or not it can be worked: a
     /// document the loop refuses is no [`Ticket`], so resolving against the
@@ -307,6 +324,14 @@ impl Store {
                 if crate::vfs::exists(&inner) {
                     found.push(self.rel(&inner));
                 }
+            }
+        }
+        // A master, `docs/work/<id>/<id>-<slug>.md`.
+        for path in self.master_entries()? {
+            if path.file_name().is_some_and(|n| n.starts_with(prefix))
+                && let Some(file) = document_of(&path)
+            {
+                found.push(self.rel(&file));
             }
         }
         Ok(match found.as_mut_slice() {

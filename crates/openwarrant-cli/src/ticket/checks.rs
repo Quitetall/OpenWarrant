@@ -1055,7 +1055,7 @@ pub fn cited_work(root: &Utf8Path, sha: &str) -> Vec<String> {
     let mut cited: Vec<String> = Vec::new();
     for word in String::from_utf8_lossy(&out.stdout)
         .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
-        .filter(|w| openwarrant_core::ticket::is_ticket_id(w))
+        .filter(|w| openwarrant_core::ticket::is_light_id(w))
     {
         if !cited.iter().any(|c| c == word) {
             cited.push(word.to_owned());
@@ -1104,7 +1104,15 @@ pub fn fire(store: &Store, sel: &Select<'_>) -> Result<(Firing, Report), RepoErr
     };
     let mut report = Report::default();
     let mut touched: Vec<String> = Vec::new();
-    for t in tickets.iter().filter(|t| t.format) {
+    // A check is a record of its work document, whatever the document's
+    // profile or place: the ones a formal act takes run here too, and their
+    // runs are kept in their own state. No item is theirs to tick.
+    let formal: Vec<Ticket> = store
+        .formal_documents(&repo)
+        .into_iter()
+        .filter(|f| !tickets.iter().any(|t| t.id() == f.id()))
+        .collect();
+    for t in tickets.iter().filter(|t| t.format).chain(&formal) {
         if !sel.work.is_empty() && !sel.work.iter().any(|w| w == t.id()) {
             continue;
         }

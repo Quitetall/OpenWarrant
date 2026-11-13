@@ -23,6 +23,27 @@ set -uo pipefail
 # temporary XDG_CONFIG_HOME.
 export OPENWARRANT_NO_PROJECTS=1
 
+# Where a ticket keeps a file, whichever layout holds it. `war create` writes a
+# master, `docs/work/<id>/<id>-<slug>.md`, with its state beside it; older
+# tickets and `--legacy` ones keep `docs/tickets/<id>.md` or `docs/tickets/<id>/`.
+# A plant names the older path, `tk "$R/docs/tickets/$ID.md"`, and gets the file
+# as it is on disk; a path that exists, or a ticket that is no master, is
+# answered unchanged.
+tk() {
+    local p="$1"
+    if [[ -e "$p" || "$p" != *docs/tickets/* ]]; then printf '%s' "$p"; return; fi
+    local base="${p%%docs/tickets/*}" rest="${p#*docs/tickets/}"
+    local id="${rest%%/*}" inner=""
+    if [[ "$rest" == */* ]]; then inner="${rest#*/}"; else id="${id%.md}"; fi
+    local work="${base}docs/work/$id" f
+    if [[ ! -d "$work" ]]; then printf '%s' "$p"; return; fi
+    if [[ -n "$inner" ]]; then printf '%s' "$work/$inner"; return; fi
+    for f in "$work/$id".md "$work/$id"-*.md; do
+        if [[ -f "$f" ]]; then printf '%s' "$f"; return; fi
+    done
+    printf '%s' "$p"
+}
+
 # No unquoted word-splitting anywhere in this file: a `for X in $LIST` loop does
 # not split in zsh, and the silent no-op that produces has already cost this
 # fleet a 13-repository operation that did nothing while reporting success.

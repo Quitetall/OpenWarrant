@@ -1601,11 +1601,12 @@ fn shown_open(index: &str, id: &str) -> bool {
 /// single-file document that reads as exactly one block.
 fn created_block(repo: &crate::repo::Repository, id: &str) -> Option<(String, String)> {
     let store = crate::ticket::Store::open(repo, None).ok()?;
-    let dir = store.dir.join(id);
+    let dir = store.state_dir(id);
     let document = crate::ticket::format::document_of(&dir);
     let single = store.dir.join(format!("{id}.md"));
     let docs = match document {
-        Some(doc) if doc == single => {
+        // A single-file ticket, or a master: one document, one block.
+        Some(doc) if doc == single || dir != store.dir.join(id) => {
             crate::format_doc::tickets_alone(repo, &[(id.to_owned(), doc)])
         }
         Some(_) => return None,

@@ -77,6 +77,24 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
+- The work layout, opt-in: with `[tickets] layout = "work"` (or
+  `OPENWARRANT_TICKET_LAYOUT=work`), `war create` writes a master,
+  `docs/work/<w-id>/<id>-<slug>.md`, with its journal and check output beside
+  it, and the daily commands, the shared register, the duplicate check, the
+  merge driver, `done_test`, `.openwarrant/next.md` and the ticket cache read
+  it as they read a `t-` ticket. The default is unchanged
+  (`docs/tickets/<t-id>.md`) until the whole battery passes on masters. An
+  older `war` refuses a repository that sets the key. `war create` and
+  `war plan new` take their id on one path; `war plan new` now refuses a
+  likely duplicate too (`--force`), and a work order another worktree holds is
+  listed as elsewhere. A reopened ticket is announced again. Plants 293, 295.
+- `war admin migrate` (without `--corpus`) moves tickets kept outside
+  `docs/work/` into it as masters: ids kept, `git mv`, `--dry-run` prints the
+  plan, and anything with a recorded act, a signed or verified tick, a
+  resolved pin or a live claim is named and left in place. Plant 294.
+- The generated views (`docs/ROADMAP.md`, `docs/HISTORY.md`, `docs/pages/`)
+  are no entries of the document index, so one `war admin compile` is a fixed
+  point in a repository with masters.
 - Shared work: a new ticket reaches every worktree of the clone at once.
   `war create` (and `war plan new`) registers the id under git's common
   directory, so an id is one ticket's across the clone, and `war status`,
@@ -112,6 +130,56 @@ Notable changes to OpenWarrant. Format loosely follows
   Fast CI now selects 62-battery-env when 45-tickets.sh, 62-verifier.sh, or the
   ticket, MCP or verifier code changes: a changed plant file can match a rule
   of `plant-map.toml`.
+- A read verb no longer rewrites `.git/index`. `git diff <commit>` against the
+  working tree refreshes the index when a tracked file's stat data moved, and
+  `GIT_OPTIONAL_LOCKS=0` does not stop it. The gate's observations already read
+  through a private copy of the index; the source basis of a check (since
+  `done_test`), the journal's and `war check --changed`'s diffs, the ledger's
+  and the live notice's did not. They now read through the same private copy,
+  so the answer is unchanged and the index keeps its bytes; `git status` reads
+  take no optional lock. The control behind plant 69 touches a tracked file
+  first, so the write happens every time instead of on a timing, and shows
+  that unguarded git does rewrite the index.
+- From the first field report on alpha.7 (a project with a roadmap, a spec and
+  one single-file delivery Warrant):
+  - `war check run <alias>`, `<alias>/<CHK-id>` and `<CHK-id>` run the checks of a
+    Format 1.0 Warrant the ticket loop does not hold (`docs/warrants/<alias>.md`
+    or a master in `docs/work/`); they were refused with `check.nothing`. Runs
+    are kept in the Warrant's own state directory. No item is ticked and no
+    disposition is set.
+  - A Format 1.0 Warrant `part_of: <PREFIX>-PHASE-<N>` is a member of that phase
+    in `war plan roadmap` and `war status --verbose`, and `roadmap.unassigned`
+    names its document instead of a `manifest.toml` it does not have. The
+    relation is now in such a Warrant's contract digest, as a legacy
+    `[[roadmap]]` ref is: one authorized on an unreleased build with that line
+    in its frontmatter needs a new authorization. No released version could
+    authorize a single-file Warrant.
+  - `check.source-stale` no longer follows a passing run with no edit. A check's
+    source basis leaves out records about other work: another document's
+    journal and check output, and other Format 1.0 work documents. A tick, a
+    receipt or a new ticket is not a source change; an edit to any other file
+    still is.
+  - `war start` prints the records its task packet selects (what the work
+    implements, what constrains it, the obligations that evaluate it) under
+    `## Records`, whole while the brief stays within 6,144 bytes; one that does
+    not fit is a line, and the cut is said. Nothing the packet does not select
+    is added, and the instruction files are not repeated.
+  - Work `part_of` a roadmap phase waits on the phases that phase depends on,
+    directly or through another, while they hold open tickets: it is out of
+    `war view next`, `war view ready` and `war start`, reads `waits on
+    PP-PHASE-3`, and `war start <id>` on it is refused (`ticket.blocked`).
+    `war view show` prints the phase's title for `part of`.
+  - `war start` says once when the actor is the built-in default name, and
+    names the harness when the session is another one's (`--as codex`). The
+    name itself is unchanged; `--as`, `OPENWARRANT_ACTOR` and `[project]
+    performer` add nothing.
+  - `war done <ticket>` raises an item ticked earlier at claimed when the
+    checks it just ran cover it, without running them again, and otherwise
+    says it stays at claimed.
+  - `war view show` prints a Format 1.0 ticket's document path, one line per
+    check with the items it evaluates, and no `atoms/30-checks.md`.
+    `war view prime` says `Also open, not taken by \`war start\``.
+
 - `war create` no longer slows down as tickets pile up. It rebuilt every ticket's block of
   `docs/generated/llms.txt` after each create, reading every ticket; it now adds the new
   ticket's block alone, and `--part-of` reads its parent rather than every ticket. A child

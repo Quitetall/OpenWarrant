@@ -406,8 +406,16 @@ pub fn check(repo: &Repository, corpus: &[crate::repo::Loaded], report: &mut Rep
         let signed = fs::is_file(w.dir.join("authorization.toml"));
         report.push(Diagnostic::warn(
             "roadmap.unassigned",
-            repo.relative(&w.dir.join("manifest.toml")),
-            if signed {
+            // A Format 1.0 Warrant has no manifest: its document is the place.
+            crate::subject::of_state(&w.dir).map_or_else(
+                || repo.relative(&w.dir.join("manifest.toml")),
+                |found| repo.relative(&found.file),
+            ),
+            if !signed && crate::subject::of_state(&w.dir).is_some() {
+                format!(
+                    "{alias}: names no roadmap phase (§6.4); `part_of: <phase>` in its frontmatter joins one, and `war plan roadmap` lists the phases"
+                )
+            } else if signed {
                 format!(
                     "{alias}: names no roadmap phase (§6.4) and is signed, so its manifest cannot take a ref until it is amended; place it with a `[[placement]]` in roadmap.toml and accept the revision (`war plan roadmap` shows the phases)"
                 )

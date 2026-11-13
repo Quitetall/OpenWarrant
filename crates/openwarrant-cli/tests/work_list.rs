@@ -338,7 +338,7 @@ fn prime_and_the_terse_status_show_a_level_only_where_it_is_not_the_default() {
         "{}",
         line(&plain)
     );
-    assert!(!prime.contains("Also open elsewhere"), "{prime}");
+    assert!(!prime.contains("Also open, not taken"), "{prime}");
     assert!(human(root.path(), &["status"]).contains("Open by level: 1 Ticket, 1 Warrant\n"));
 
     war(
@@ -347,7 +347,7 @@ fn prime_and_the_terse_status_show_a_level_only_where_it_is_not_the_default() {
     );
     let prime = human(root.path(), &["view", "prime"]);
     assert!(
-        prime.contains("Also open elsewhere: 1 Order (`war view tickets`)"),
+        prime.contains("Also open, not taken by `war start`: 1 Order (`war view tickets`)"),
         "{prime}"
     );
     assert!(
@@ -379,7 +379,10 @@ fn work_that_could_not_be_read_is_a_question_mark_never_an_empty_list() {
     let said = |out: &std::process::Output| String::from_utf8_lossy(&out.stdout).into_owned();
     let warned = |out: &std::process::Output| String::from_utf8_lossy(&out.stderr).into_owned();
     assert!(said(&prime).contains(&id), "{prime:?}");
-    assert!(said(&prime).contains("Also open elsewhere: ?"), "{prime:?}");
+    assert!(
+        said(&prime).contains("Also open, not taken by `war start`: ?"),
+        "{prime:?}"
+    );
     assert!(
         warned(&prime).contains("UNKNOWN (work.unreadable)"),
         "{prime:?}"

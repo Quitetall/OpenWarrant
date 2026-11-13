@@ -311,6 +311,36 @@ impl Work {
     pub fn read_with(repo: &Repository, store: &Store) -> Self {
         let mut work = Self::tickets_of(store);
         work.read_others(repo);
+        // R2: with a store that lists shared work, the work orders another
+        // worktree holds are rows too, each saying where it lives.
+        if store.shared {
+            for e in crate::ticket::shared::orders_elsewhere(store) {
+                if work.items.iter().any(|i| i.id == e.id) {
+                    continue;
+                }
+                let text = e.files.get(&e.path).cloned().unwrap_or_default();
+                let row = Row {
+                    title: e.title.clone(),
+                    profile: crate::format_doc::frontmatter_profile(&text)
+                        .unwrap_or_default()
+                        .to_owned(),
+                    encoding: crate::warrants::SINGLE_FILE,
+                    level: if e.level == Level::Order.as_str() {
+                        Level::Order
+                    } else {
+                        Level::Unknown
+                    },
+                    state: "draft".to_owned(),
+                    provenance: "computed",
+                    done: None,
+                    total: None,
+                    dir: format!("{} [elsewhere: {}]", e.path, e.lives()),
+                    id: e.id,
+                };
+                work.items.push(row_item(&row));
+                work.rows.push(row);
+            }
+        }
         work
     }
 

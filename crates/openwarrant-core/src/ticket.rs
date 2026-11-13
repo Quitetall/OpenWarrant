@@ -194,7 +194,7 @@ impl TicketManifest {
             }
         }
         if let Some(parent) = &self.part_of {
-            if !is_ticket_id(parent) {
+            if !is_light_id(parent) {
                 return Err(format!("part_of {parent:?} is not a ticket id"));
             }
             if parent == &self.id {
@@ -464,6 +464,14 @@ pub fn is_work_id(s: &str) -> bool {
     is_hash_id(s, "w-")
 }
 
+/// An id a ticket can have: `t-` where tickets were written before
+/// `docs/work/`, `w-` since (one-format.md, "Where new work goes"). What
+/// names a ticket in a blocker, a parent or a relation is either.
+#[must_use]
+pub fn is_light_id(s: &str) -> bool {
+    is_ticket_id(s) || is_work_id(s)
+}
+
 /// `d-` and 3 to 16 of `[0-9a-z]`: a document's hash id in `docs/work/`.
 #[must_use]
 pub fn is_document_id(s: &str) -> bool {
@@ -551,13 +559,13 @@ impl Blocker {
         if is_item_id(s) {
             return Some(Self::Item { item: s.to_owned() });
         }
-        if is_ticket_id(s) {
+        if is_light_id(s) {
             return Some(Self::Ticket {
                 ticket: s.to_owned(),
             });
         }
         let (ticket, item) = s.split_once('/')?;
-        (is_ticket_id(ticket) && is_item_id(item)).then(|| Self::ItemOf {
+        (is_light_id(ticket) && is_item_id(item)).then(|| Self::ItemOf {
             ticket: ticket.to_owned(),
             item: item.to_owned(),
         })

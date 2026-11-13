@@ -62,7 +62,7 @@ fn uncommitted(repo: &Repository, cfg: &Config) -> Vec<String> {
         &["diff", "--name-only", "-z", "--diff-filter=d", "HEAD"][..],
         &["ls-files", "--others", "--exclude-standard", "-z"][..],
     ] {
-        let r = git(&repo.root, args);
+        let r = crate::go::git::git_reading(&repo.root, args);
         if r.ok {
             out.extend(
                 r.stdout

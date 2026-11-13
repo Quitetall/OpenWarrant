@@ -13,12 +13,12 @@ one of three levels its fields decide.
 ## Tracking work (optional)
 
 ```bash
-war start                                    # take the next ready item and its brief
+war start                                    # take the next ready item; its brief holds the records it cites
 make test && war done --note "what you did"  # close it with your last test run
 war create "What it accomplishes" --item "..."
 war status                                   # progress; --next: whose step; --ready: what can start
 war check                                    # record integrity
-war context <id>                             # the records a task needs, cited, in a byte budget
+war context <id> --preset agent.min          # only for more than the brief gave: the tight packet
 ```
 
 The brief's first line names the worktree, branch and commit: work there and

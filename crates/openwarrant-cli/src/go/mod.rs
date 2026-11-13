@@ -1314,7 +1314,7 @@ impl Run<'_> {
     }
 
     fn ticket_dir(&self, tid: &str) -> Option<Utf8PathBuf> {
-        let d = self.store.dir.join(tid);
+        let d = self.store.state_dir(tid);
         self.store.load(&d).ok().map(|_| d)
     }
 
@@ -1325,7 +1325,7 @@ impl Run<'_> {
         };
         let item_index = self
             .store
-            .load(&self.store.dir.join(tid))
+            .load(&self.store.state_dir(tid))
             .ok()
             .and_then(|t| {
                 let (_, item) = openwarrant_core::ticket::split_record_id(node);
