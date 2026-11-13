@@ -6,6 +6,38 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `war done` checks by default. `[tickets] done_test` names the repository's own
+  test; a plain `war done` runs it, once per call, on anything no check of the
+  ticket's own applies to. A pass ticks at observed (`ticked at observed: default
+  passed`); a failure (`ticket.check-failed`) or a run that could not finish
+  (UNKNOWN, `ticket.check-unknown`) ticks nothing. A ticket's own check takes
+  precedence, an Order still waits for its signer, and `war evidence go` runs the
+  default in the node's worktree before it lands. A pass is reused instead of
+  rerun only for the same ticket, command and bytes (HEAD, tracked differences and
+  new unignored files). `done_test_timeout` bounds the run in seconds.
+- `war init` records the test it detects as `done_test` and says so in one line;
+  several build systems are joined with `&&`, and `npm ci`/`npm install` are left
+  out. `war init --done-test ["<command>"]` sets or replaces it in a repository
+  already set up. Deleting the line turns it off. `--program` and `--no-preset`
+  record nothing unless asked.
+- **Upgrade note:** an older `war` refuses a repository whose `[tickets]` table has
+  `done_test` (`tickets.config`: unknown field). Upgrade every `war` that reads the
+  repository before the key is set, or delete the line.
+- `war done` that finishes a ticket ends with `next: <id> <title> (`war start
+  <id>`)` when something is ready (JSON: `result.next`); MCP `war_done` says the
+  same. `war status` names the first two ready tickets under `Ready:`, and
+  `war view prime --ready` prints the ready rows alone.
+- `.openwarrant/next.md`, an untracked per-worktree file for harnesses that load
+  instruction files (opencode `instructions`; docs/INSTALL.md): the brief of the
+  work the acting agent holds, else the ready rows, within 6,144 bytes. Rewritten
+  on create, start, done and release; removed when nothing is held or ready;
+  listed in the clone's `info/exclude` and outside every dirt check.
+- Byte budgets under test: `war done` naming the next ticket within 320 bytes and
+  bare `war status` with ready work within 640. `tools/measure-tokens.sh` prints
+  both, `war view prime --ready` and `next.md`.
+
 ### Fixed
 
 - The managed AGENTS.md block again tells agents to run `war start` before reading

@@ -92,7 +92,7 @@ More, when you need them:
 | `war admin import beads <file.jsonl>` | bring Beads issues in as tickets; also `war admin import openspec <dir>`, `war admin import speckit <dir>` (docs/TYPES.md, "Bringing work in") |
 | `war admin export beads` | every ticket as Beads issue JSONL, on stdout |
 | `war plan add <ticket> --test "<cmd>"` | an optional part: a test, a KPI (`--kpi <name> --cmd ... --direction max\|min [--target N]`), a milestone (`--milestone "<text>" [--min observed]`); docs/TYPES.md, "Optional parts and the tick ladder" |
-| `war done <item> --check` | run the item's tests and KPIs and tick at **observed** only when they pass; a plain `war done` ticks as **claimed** |
+| `war done <item> --check` | run the item's tests and KPIs and tick at **observed** only when they pass; a plain `war done` ticks as **claimed**, or at **observed** on `[tickets] done_test` passing ("For agents") |
 | `war evidence kpi run <ticket>` | run every KPI, journal each value, and say latest, best and target |
 | `war evidence verify <item>` / `war sign <item> --ssh-sign` | an independent verdict, or a human's sign-off, of one item: the **independent** and **signed** rungs of the tick ladder |
 
@@ -603,6 +603,45 @@ them, and an item whose minimum is observed says so in `war view prime`. A faile
 check refuses the tick by name and leaves the claim yours: fix the work and
 run it again.
 
+**The repository's own test.** With `[tickets] done_test` set, a plain
+`war done` runs that command on anything no check of the ticket's own applies
+to, and says `ticked at observed: default passed`. A failure
+(`ticket.check-failed`) or a run that could not finish (UNKNOWN,
+`ticket.check-unknown`) ticks nothing, names the output file and leaves the
+claim yours. `war init` records the test it finds (`cargo test`, `npm test`,
+`go test ./...`, `python -m pytest`, `make test`; several are joined with
+`&&`, so no suite goes unasked) and says so in one line;
+`war init --done-test ["<command>"]` sets or replaces it in a repository
+already set up. Delete the line and `war done` ticks as claimed again.
+
+- It runs once per `war done`, whatever that call ticks: every item of a
+  ticket closed in one call rests on the one run.
+- A ticket's own check takes precedence. Where a `## CHK-…` section evaluates
+  the item or the whole ticket (or a directory ticket's checks file names a
+  test or KPI for it), that decides and the default does not run.
+- A pass is reused, not rerun, only for the same ticket, the same command and
+  the same bytes: HEAD, every tracked difference and every new file git does
+  not ignore, the ticket's own ticks aside. Change anything and it runs
+  again. The line then reads `default passed (not rerun: nothing changed
+  since it passed)`. A failure is never reused.
+- An Order still waits for its signer: the default decides the agent's tick,
+  never a signature.
+- An older `war` refuses a repository whose `[tickets]` has the key
+  (`tickets.config`, an unknown field). Upgrade every `war` that reads the
+  repository before setting it.
+
+**What is next, without asking.** When `war done` finishes a ticket it ends
+with `next: <id> <title> (`war start <id>`)`, or with nothing when nothing is
+ready. `war status` names the first two ready tickets under its `Ready:` line,
+and `war view prime --ready` prints only the ready rows. `war` also keeps
+`.openwarrant/next.md` current in each worktree: the brief of the work the
+acting agent holds, else the ready rows, within 6,144 bytes, rewritten on
+`war create`, `start`, `done` and a release, and removed when nothing is held
+or ready. It is never committed (the clone's `info/exclude` names it) and is
+for a harness that loads instruction files before the first turn
+(docs/INSTALL.md, "opencode"). One worktree has one file: with several actors
+in one worktree it follows whoever acted last.
+
 Over MCP (`war admin mcp`, for a harness without a shell; one with a shell is
 better served by the commands above) the same loop is `war_start` and `war_done`, with
 `war_create`, `war_note` and `war_status` around it (`war_status` takes
@@ -666,6 +705,8 @@ dir = "docs/tickets"                        # where tickets live
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
 session_start = true                        # the plugin's hooks show the agent its held Warrant, the overview, or the ticket a prompt names; false: nothing
+done_test = "cargo test"                    # what `war done` runs on work with no check of its own; no line: nothing runs
+done_test_timeout = 600                     # seconds that run may take before it reads UNKNOWN (default 600)
 
 [claims]
 claim_lease_minutes = 30                    # a claim's lease, renewed by the holder's war commands
