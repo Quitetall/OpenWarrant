@@ -80,6 +80,42 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- From the first field report on alpha.7 (a project with a roadmap, a spec and
+  one single-file delivery Warrant):
+  - `war check run <alias>`, `<alias>/<CHK-id>` and `<CHK-id>` run the checks of a
+    Format 1.0 Warrant the ticket loop does not hold (`docs/warrants/<alias>.md`
+    or a master in `docs/work/`); they were refused with `check.nothing`. Runs
+    are kept in the Warrant's own state directory. No item is ticked and no
+    disposition is set.
+  - A Format 1.0 Warrant `part_of: <PREFIX>-PHASE-<N>` is a member of that phase
+    in `war plan roadmap` and `war status --verbose`, and `roadmap.unassigned`
+    names its document instead of a `manifest.toml` it does not have.
+  - `check.source-stale` no longer follows a passing run with no edit. A check's
+    source basis leaves out records about other work: another document's
+    journal and check output, and other Format 1.0 work documents. A tick, a
+    receipt or a new ticket is not a source change; an edit to any other file
+    still is.
+  - `war start` prints the records its task packet selects (what the work
+    implements, what constrains it, the obligations that evaluate it) under
+    `## Records`, whole while the brief stays within 6,144 bytes; one that does
+    not fit is a line, and the cut is said. Nothing the packet does not select
+    is added, and the instruction files are not repeated.
+  - Work `part_of` a roadmap phase waits on the phases that phase depends on,
+    directly or through another, while they hold open tickets: it is out of
+    `war view next`, `war view ready` and `war start`, reads `waits on
+    PP-PHASE-3`, and `war start <id>` on it is refused (`ticket.blocked`).
+    `war view show` prints the phase's title for `part of`.
+  - `war start` says once when the actor is the built-in default name, and
+    names the harness when the session is another one's (`--as codex`). The
+    name itself is unchanged; `--as`, `OPENWARRANT_ACTOR` and `[project]
+    performer` add nothing.
+  - `war done <ticket>` raises an item ticked earlier at claimed when the
+    checks it just ran cover it, without running them again, and otherwise
+    says it stays at claimed.
+  - `war view show` prints a Format 1.0 ticket's document path, one line per
+    check with the items it evaluates, and no `atoms/30-checks.md`.
+    `war view prime` says `Also open, not taken by \`war start\``.
+
 - `war create` no longer slows down as tickets pile up. It rebuilt every ticket's block of
   `docs/generated/llms.txt` after each create, reading every ticket; it now adds the new
   ticket's block alone, and `--part-of` reads its parent rather than every ticket. A child

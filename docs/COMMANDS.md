@@ -463,7 +463,12 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
   `install-hook` (envelopes `check.run`, `check.evaluate`, `check.fire`,
   `check.install-hook`). They run a document's `check` records rather than
   check the records, so they need no thirteenth verb; `war view watch
-  --checks` is the same runner as a poller.
+  --checks` is the same runner as a poller. A target is a work document's
+  id, a check's id or `<document>/<check>`, for any Format 1.0 work document:
+  a ticket, or a Warrant in `docs/warrants/` or `docs/work/`, whose runs are
+  kept in its own state directory. A run is current until a source file
+  changes; records about other work (journals, check output, other work
+  documents) are not source.
 - **`types` and `type` are new under `plan`** (OW-WAR-0148 M18): a type is
   how a document is planned, beside `model`, `render` and `roadmap`.
   `war plan types` lists the types, `war plan types add <pack>` installs a
