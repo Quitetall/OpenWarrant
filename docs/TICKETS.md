@@ -55,8 +55,12 @@ war done --note "POST /reset, rate-limited" # closes the ticket you hold: every 
 war status                                  # where the work stands
 ```
 
-`war start` claims the ticket whole, so nobody else takes it, and prints a short human brief. With `--json`, it also returns the complete
-required task-context packet, including exact rules and source revisions. Run again,
+`war start` claims the ticket whole, so nobody else takes it, and prints a short human brief. The brief
+ends with the records the task packet selects (what the work implements, what constrains it, the
+obligations that evaluate it) under `## Records`, each whole while the brief stays within 6,144 bytes;
+one that does not fit is a line naming it, to read with `war context <id>`. With `--json`, it also returns the complete
+required task-context packet, including exact rules and source revisions. When nobody named the actor
+(`--as`, `OPENWARRANT_ACTOR`, `[project] performer`), the last line says the name is the default. Run again,
 it prints the one you hold, so an interrupted session resumes there.
 `war view prime` lists what is open, one line per ticket. The finer steps stay:
 `war admin claim t-3f2a/i-9c01` takes one item and `war done t-3f2a/i-9c01` ticks it.
@@ -211,6 +215,13 @@ the epic's progress over them; `war view tickets` marks it `[epic: 1/3 done]`. A
 epic with no items of its own is worked through its tickets: `war view ready` never
 offers it whole. `--part-of none` detaches a ticket; a cycle (an epic part of
 its own ticket) is refused (`ticket.part-of-cycle`).
+
+`part_of` may also name a roadmap phase (`part_of: "PP-PHASE-4"` in the
+frontmatter). Work in a phase waits on every phase that one depends on,
+directly or through another, while it holds an open ticket: it stays out of
+`war view ready`, `war view next` and `war start`, and reads `waits on
+PP-PHASE-3`. A phase with no open ticket holds nothing back. A single-file
+Warrant `part_of` a phase is that phase's member in `war plan roadmap`.
 
 New Markdown sources use header fields. In legacy sources each is one optional
 line in `manifest.toml` (`type = "bug"`,

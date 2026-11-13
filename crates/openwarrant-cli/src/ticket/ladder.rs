@@ -1662,6 +1662,42 @@ pub fn raise_observed(
         Ok(r) => r,
         Err(refusal) => return Ok(*refusal),
     };
+    raise_with(store, t, id, what, if_rev, &round, before.level)
+}
+
+/// Whether every check that decides `item` passed in `round`: a round run
+/// for another item of the ticket backs this one too when it holds them all.
+#[must_use]
+pub fn round_covers(checks: &Checks, item: &str, round: &CheckRound) -> bool {
+    let short = |name: &str| {
+        let name = name.rsplit('/').next().unwrap_or(name);
+        name.strip_prefix("CHK-").unwrap_or(name).to_owned()
+    };
+    let passed: std::collections::BTreeSet<String> = round
+        .gating()
+        .filter(|r| r.verdict == "pass")
+        .map(|r| short(&r.name))
+        .collect();
+    let (tests, kpis) = checks.for_item(Some(item));
+    let mut needed = tests
+        .iter()
+        .map(|t| short(&t.name))
+        .chain(kpis.iter().filter(|k| k.gates()).map(|k| short(&k.name)))
+        .peekable();
+    needed.peek().is_some() && needed.all(|n| passed.contains(&n))
+}
+
+/// Raise the done item `id` to `observed` on `round`, a round of its checks
+/// that passed. Nothing runs here.
+pub fn raise_with(
+    store: &Store,
+    t: &Ticket,
+    id: &str,
+    what: &str,
+    if_rev: Option<&str>,
+    round: &CheckRound,
+    from: Level,
+) -> Result<Outcome, RepoError> {
     let actor = store.actor.clone();
     let today = super::date_of(super::now_secs());
     let written = super::rewrite(&t.checklist_path, |text| {
@@ -1712,7 +1748,7 @@ pub fn raise_observed(
         &serde_json::json!({
             "item": id,
             "target": what,
-            "from": before.level,
+            "from": from,
             "to": "observed",
             "runs": round.runs,
             "commit": round.commit,
@@ -1722,14 +1758,14 @@ pub fn raise_observed(
     Ok(Outcome::ok(
         format!(
             "raised {what} from {} to observed: {} passed",
-            before.level.as_str(),
-            passed_names(&round)
+            from.as_str(),
+            passed_names(round)
         ),
         serde_json::json!({
             "schema": "oh.war/ticket-done/v1",
             "ticket": t.id(),
             "item": id,
-            "raised_from": before.level,
+            "raised_from": from,
             "level": "observed",
             "checks": round,
         }),

@@ -76,6 +76,13 @@ file outside the Warrant, dispatchable stages, `--parent` revisions, presets'
 atom headings, and `plan --apply`'s atom operations. Splitting a document into
 legacy atoms re-encodes it, and C.3 says that lapses its acts, so it is not built.
 
+## Checks
+
+A `check` record runs the same way in every layout and under every profile:
+`war check run <id>`, `<id>/<CHK-id>` or `<CHK-id>`. A ticket's runs tick its
+items. A Warrant's runs are recorded in its state directory (`journal.jsonl`,
+`checks/`) and tick nothing: its obligations are disposed by a verifier.
+
 ## Expand
 
 `war plan expand <id>` moves `docs/warrants/<id>.md` to

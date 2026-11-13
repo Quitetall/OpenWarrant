@@ -752,7 +752,11 @@ On a ticket (`t-x`) a test or KPI is the Warrant's and applies to every
 item; on an item (`t-x/i-y`), or given with the text of a new item in the
 same `war plan add`, it is that item's. Each part added is one line in the
 ticket's optional checks atom and one `ticket.part_added` in its journal.
-`war plan add` without a part is the item it always was.
+`war plan add` without a part is the item it always was. A Warrant's test is
+one check that evaluates every item: `war view show` prints it once with the
+items it is for, and `war done <ticket>` runs it once. An item ticked at
+claimed before the test existed is raised to observed by that same run;
+when no check that ran covers it, `war done` says it stays at claimed.
 
 ### The checks atom
 
