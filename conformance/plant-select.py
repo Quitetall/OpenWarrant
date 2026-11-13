@@ -217,8 +217,11 @@ def select(changed, files, rules):
         if direct:
             sel.add(path[len(plant_prefix):], TIER_CHANGED)
             sel.log.append(f"  changed   {path}: the plant itself")
-            continue
+        # A plant file may also be a path of a rule: the plants that run it
+        # inside themselves. One no rule names selects itself and nothing more.
         met = [r for r in rules if any(rx.match(path) for rx in r["regexes"])]
+        if direct and not met:
+            continue
         if not met:
             sel.warn(f"{path}: no rule in {MAP_FILE} names this path; every plant is selected")
             sel.log.append(f"  UNMAPPED  {path}")
