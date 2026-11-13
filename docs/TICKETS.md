@@ -417,8 +417,9 @@ it; `--force` creates this one anyway
 ```
 
 Titles are compared by their words: lowercased, without filler words (`the`,
-`to`, `for`, ...) and without `-s`, `-ed`, `-ing` endings. The same words in
-any order are the same work. Otherwise two titles read as one when every word
+`to`, `for`, ...) and without `-s`, `-ed`, `-ing` endings; a number belongs
+to the word before it (`plant 45`). The same words in any order are the same
+work. Otherwise two titles read as one when every word
 of one is in the other and covers at least 60% of it, so a rewording that
 adds or drops words is caught. Two titles that each hold a word the other
 lacks are distinct work, however much else they share: "Add CSV export" and

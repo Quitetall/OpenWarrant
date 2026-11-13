@@ -917,14 +917,25 @@ fn stem(word: &str) -> String {
 }
 
 /// The words of a title that say what the work is, stemmed, each with how
-/// often it occurs: "round 0 of worker 0" and "round 0 of worker 1" differ.
+/// often it occurs. A number belongs to the word before it, so "worker 0
+/// round 1" and "worker 1 round 0" are different work though their words,
+/// taken singly, are the same.
 #[must_use]
 pub fn content_words(title: &str) -> BTreeMap<String, usize> {
-    let mut out = BTreeMap::new();
+    let mut words: Vec<String> = Vec::new();
     for w in super::words_of(title) {
-        if !STOP.contains(&w.as_str()) {
-            *out.entry(stem(&w)).or_insert(0) += 1;
+        if w.chars().all(|c| c.is_ascii_digit())
+            && let Some(last) = words.last_mut()
+        {
+            last.push('#');
+            last.push_str(&w);
+        } else if !STOP.contains(&w.as_str()) {
+            words.push(stem(&w));
         }
+    }
+    let mut out = BTreeMap::new();
+    for w in words {
+        *out.entry(w).or_insert(0) += 1;
     }
     out
 }
@@ -1164,6 +1175,9 @@ mod tests {
             ("Release alpha.7", "Release alpha.8", false),
             // A repeated word counts each time it occurs.
             ("worker-0 round 0", "worker-1 round 0", false),
+            // A number belongs to the word before it.
+            ("worker-0 round 1", "worker-1 round 0", false),
+            ("Run plant 45 again", "Run the plant 45 again", true),
             (
                 "Migrate docs/tickets to docs/work",
                 "Migrate docs/work state directories",
