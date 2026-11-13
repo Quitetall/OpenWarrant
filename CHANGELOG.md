@@ -97,6 +97,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Plant 45's timing probe closes the tickets it makes in this repository
+  before removing them. Removing the files alone left their announcements in
+  the clone's shared register, so a second run in the same checkout was refused
+  `ticket.duplicate`; the full gate saw that as 62-battery-env's unequal totals.
+  Fast CI now selects 62-battery-env when 45-tickets.sh, 62-verifier.sh, or the
+  ticket, MCP or verifier code changes: a changed plant file can match a rule
+  of `plant-map.toml`.
 - `war create` no longer slows down as tickets pile up. It rebuilt every ticket's block of
   `docs/generated/llms.txt` after each create, reading every ticket; it now adds the new
   ticket's block alone, and `--part-of` reads its parent rather than every ticket. A child

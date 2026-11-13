@@ -115,6 +115,10 @@ name = "broken"
 paths = ["crates/broken.rs"]
 plants = ["20-broken.sh"]
 [[rule]]
+name = "run inside another"
+paths = ["conformance/plants.d/10-green.sh"]
+plants = ["20-broken.sh"]
+[[rule]]
 name = "everything"
 paths = ["crates/core.rs"]
 plants = ["*"]
@@ -178,6 +182,22 @@ if [[ "$PS_LIST" == "10-green.sh 30-unmapped.sh " && "$PS_RC" -eq 0 ]] && ! grep
     ps_ok "an unselected plant does not run" "$PS_LIST: the broken plant stayed out, exit 0"
 else
     ps_fail "an unselected plant does not run" "list: $PS_LIST exit $PS_RC"
+fi
+
+# A plant that runs another inside itself is selected by a change to it (the
+# map names the inner file as a path); a plant no rule names as a path selects
+# itself and nothing more, with no warning.
+ps_change conformance/plants.d/10-green.sh
+ps_select "$PS_BASE"
+PS_INNER=$PS_LIST; PS_INNER_LOG=$PS_LOG
+ps_change conformance/plants.d/20-broken.sh
+ps_select "$PS_BASE"
+if [[ "$PS_INNER" == "10-green.sh 20-broken.sh 30-unmapped.sh " ]] \
+    && grep -q 'rule run inside another' <<<"$PS_INNER_LOG" \
+    && [[ "$PS_LIST" == "20-broken.sh 30-unmapped.sh " ]] && ! grep -q 'UNMAPPED\|WARNING' <<<"$PS_LOG"; then
+    ps_ok "a changed plant selects its runner" "10-green.sh changed: $PS_INNER; 20-broken.sh changed: itself only, no warning"
+else
+    ps_fail "a changed plant selects its runner" "inner changed: $PS_INNER; other changed: $PS_LIST: $(head -3 <<<"$PS_LOG" | tr '\n' '|')"
 fi
 
 ps_change docs/prose.md
