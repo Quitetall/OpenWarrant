@@ -43,6 +43,7 @@ REFUSALS = {
     "context.over-budget", "format.field-shape", "profile.invalid", "apply.stale",
     "apply.identity", "work.stale-revision", "work.claimed-by-other", "work.journal-rewritten",
     "work.journal-malformed", "work.journal-torn", "work.idempotency-conflict",
+    "format.kind-mismatch", "format.type-tier",
 }
 UNKNOWNS = {"format.newer-major", "format.newer-minor", "format.requires-unknown",
             "format.profile-unknown", "work.claim-remote-unreachable", "work.journal-newer",

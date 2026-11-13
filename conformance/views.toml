@@ -20,10 +20,11 @@ derived = [
     "docs/roadmap/generated/**",
     "docs/records/*/generated/**",
     "docs/warrants/*/generated/**",
-    # The pages the master/view layout (agent/a8-format) renders: open work
-    # orders, and closed ones. Not written today; listed so they are views
-    # from their first compile. Its one page per document joins here by glob
-    # once that layout names where the pages go.
+    # The views of the masters in docs/work/ (FORMAT-1.0 §4.3, revision 4;
+    # crates/openwarrant-cli/src/views.rs): one page per document, the open
+    # work orders by Roadmap phase, and the closed ones. Written only when the
+    # repository has a master.
+    "docs/pages/**",
     "docs/ROADMAP.md",
     "docs/HISTORY.md",
 ]
