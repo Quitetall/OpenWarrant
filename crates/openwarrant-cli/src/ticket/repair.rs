@@ -68,6 +68,8 @@ pub fn propose(
             priority: Some(original.manifest.priority),
             kind: original.manifest.kind.clone(),
             labels: original.manifest.labels.clone(),
+            // One repair per failure is settled by its key, above.
+            force: true,
             ..CreateArgs::default()
         },
     )?;

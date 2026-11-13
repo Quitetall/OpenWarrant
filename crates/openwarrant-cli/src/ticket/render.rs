@@ -314,6 +314,9 @@ struct Row {
     /// ladder. Absent while nothing is ticked.
     #[serde(skip_serializing_if = "Option::is_none")]
     ticks: Option<TickCounts>,
+    /// R2: where it lives, when this checkout has no file for it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    elsewhere: Option<super::shared::Place>,
 }
 
 /// `done` of `total`.
@@ -366,6 +369,7 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
             let counts = super::ladder::ticks_of(&super::ladder::Reader::new(store), t).counts;
             (counts.total() > 0).then_some(counts)
         },
+        elsewhere: t.elsewhere.clone(),
     }
 }
 
@@ -399,6 +403,9 @@ fn fields_tail(r: &Row, with_parent: bool) -> String {
     }
     if let Some(n) = r.issue {
         out.push_str(&format!("  [#{n}]"));
+    }
+    if let Some(p) = &r.elsewhere {
+        out.push_str(&format!("  [elsewhere: {}]", p.describe()));
     }
     out
 }
@@ -799,7 +806,13 @@ pub fn list(
         out.report.push(crate::diagnostic::Diagnostic::warn(
             f.rule.clone(),
             f.file.clone().unwrap_or_default(),
-            format!("skipped: {}", f.message),
+            // R2: an id two tickets share is flagged, and the one here is
+            // still listed.
+            if f.rule == "ticket.id-collision" {
+                f.message.clone()
+            } else {
+                format!("skipped: {}", f.message)
+            },
         ));
     }
     for f in work.other_faults() {
@@ -1434,6 +1447,9 @@ fn overview_line(
         t.manifest.priority,
         level_mark(store, t)
     );
+    if let Some(p) = &t.elsewhere {
+        line.push_str(&format!(" · elsewhere: {}", p.describe()));
+    }
     let mut holders: Vec<String> = claims
         .values()
         .flatten()

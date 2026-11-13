@@ -52,6 +52,8 @@ pub mod remote;
 mod render;
 pub mod repair;
 pub mod scopes;
+/// R2: tickets every worktree and clone can see, and no duplicates.
+pub mod shared;
 pub mod source_basis;
 
 use std::collections::{BTreeMap, BTreeSet};
@@ -330,6 +332,10 @@ pub struct Ticket {
     /// frontmatter relation), as far as it names tickets or their items:
     /// each of its items, and the document, waits on these.
     pub depends_on: Vec<Blocker>,
+    /// Set only as read: this checkout has no file for the ticket, and it
+    /// was read from the clone's register or the claims remote
+    /// ([`shared`]). `war start` brings its document here.
+    pub elsewhere: Option<shared::Place>,
 }
 
 /// `sha256:<hex>` of `bytes`, as `war plan model` writes a revision.
@@ -467,6 +473,12 @@ pub struct Store {
     /// worktree that holds the node's work, while the tick is written here.
     /// `None` everywhere else.
     pub check_root: Option<Utf8PathBuf>,
+    /// R2: whether [`Self::load_all`] also lists the tickets this checkout
+    /// has no file for, which the clone's register or the claims remote
+    /// announce ([`shared`]). Off unless a command of the ticket loop asks
+    /// ([`Self::sharing`]): what is compiled, exported or judged reads this
+    /// checkout's files alone.
+    pub shared: bool,
     /// `[tickets] done_test`: what `war done` runs when the ticket declares
     /// no check of its own ([`ladder::run_default`]). `None`: nothing.
     pub done_test: Option<String>,
@@ -612,12 +624,27 @@ impl Store {
                 Level::Claimed
             },
             check_root: None,
+            shared: false,
             done_test: policy
                 .done_test
                 .map(|c| c.trim().to_owned())
                 .filter(|c| !c.is_empty()),
             done_test_timeout: policy.done_test_timeout.filter(|s| *s > 0),
         })
+    }
+
+    /// This store, listing shared work too ([`Self::shared`]): for the views
+    /// and acts of the ticket loop.
+    #[must_use]
+    pub fn sharing(mut self) -> Self {
+        self.shared = true;
+        self
+    }
+
+    /// [`Self::load_all`], with the tickets held elsewhere whatever
+    /// [`Self::shared`] says.
+    pub(crate) fn load_all_shared(&self) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        self.load_through(cache::Cache::open(self).as_ref(), true)
     }
 
     /// `path` relative to the root, for messages.
@@ -766,15 +793,25 @@ impl Store {
         dir: &Utf8Path,
         before_read: &mut dyn FnMut(&Utf8Path),
     ) -> Result<Ticket, Diagnostic> {
+        self.load_read(dir, &mut |path| {
+            before_read(path);
+            crate::vfs::read_regular_to_string(self.root.as_std_path(), path.as_std_path())
+                .map_err(|e| e.to_string())
+        })
+    }
+
+    /// A directory ticket from whatever `read` answers for each of its
+    /// files: the disk ([`Self::load_observed`]), or the copies the clone's
+    /// register holds of a ticket this checkout lacks ([`shared`]).
+    pub(crate) fn load_read(
+        &self,
+        dir: &Utf8Path,
+        read: &mut dyn FnMut(&Utf8Path) -> Result<String, String>,
+    ) -> Result<Ticket, Diagnostic> {
         let manifest_path = dir.join("manifest.toml");
         let rel = self.rel(&manifest_path);
         let bad = |message: String| Diagnostic::error("ticket.manifest", rel.clone(), message);
-        before_read(&manifest_path);
-        let text = crate::vfs::read_regular_to_string(
-            self.root.as_std_path(),
-            manifest_path.as_std_path(),
-        )
-        .map_err(|e| bad(format!("could not read it: {e}")))?;
+        let text = read(&manifest_path).map_err(|e| bad(format!("could not read it: {e}")))?;
         let manifest: TicketManifest =
             toml::from_str(&text).map_err(|e| bad(format!("does not parse: {e}")))?;
         let revision = revision_of(text.as_bytes());
@@ -795,16 +832,13 @@ impl Store {
         }
         let mut atom = |role: &str| -> Result<(Utf8PathBuf, String), Diagnostic> {
             let path = dir.join(manifest.atom_path(role).unwrap_or_default());
-            before_read(&path);
-            crate::vfs::read_regular_to_string(self.root.as_std_path(), path.as_std_path())
-                .map(|t| (path.clone(), t))
-                .map_err(|e| {
-                    Diagnostic::error(
-                        "ticket.atom-missing",
-                        self.rel(&path),
-                        format!("the {role} atom could not be read: {e}"),
-                    )
-                })
+            read(&path).map(|t| (path.clone(), t)).map_err(|e| {
+                Diagnostic::error(
+                    "ticket.atom-missing",
+                    self.rel(&path),
+                    format!("the {role} atom could not be read: {e}"),
+                )
+            })
         };
         let (intent_path, intent) = atom("intent")?;
         let (checklist_path, checklist_text) = atom(CHECKLIST_ROLE)?;
@@ -823,6 +857,7 @@ impl Store {
             format: false,
             done_whole: false,
             depends_on: Vec::new(),
+            elsewhere: None,
         })
     }
 
@@ -863,14 +898,23 @@ impl Store {
     }
 
     fn load_every(&self, cached: bool) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
-        self.load_through(cache::Cache::open(self).filter(|_| cached).as_ref())
+        self.load_through(
+            cache::Cache::open(self).filter(|_| cached).as_ref(),
+            cached && self.shared,
+        )
     }
 
     /// Every readable ticket and a diagnostic per unreadable one, through
     /// `cache` when there is one.
+    ///
+    /// `shared`: also the tickets this checkout has no file for, which the
+    /// clone's register or the claims remote announce ([`shared`]), each
+    /// marked [`Ticket::elsewhere`]. Never for what judges an approval,
+    /// which reads this checkout's files alone.
     fn load_through(
         &self,
         cache: Option<&cache::Cache>,
+        shared: bool,
     ) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
         let mut tickets = Vec::new();
         let mut faults = Vec::new();
@@ -952,6 +996,9 @@ impl Store {
             ));
         }
         tickets.retain(|t| !duplicates.contains(t.id()));
+        if shared {
+            shared::add_elsewhere(self, &mut tickets, &mut faults, &duplicates);
+        }
         if any_format {
             // One order for both encodings: the directory's, which is the
             // ids'.
@@ -1110,11 +1157,21 @@ impl Store {
     #[must_use]
     pub fn remote_line(&self) -> Option<Result<String, String>> {
         let name = self.remote.as_deref()?;
+        // R2: what other clones announced there is as unknown as its claims.
+        let tickets = match self.remote_tickets() {
+            Some(Err(why)) => format!(
+                "tickets announced on the remote `{name}` are UNKNOWN ({why}): work created in \
+                 another clone may not be listed"
+            ),
+            _ => String::new(),
+        };
         match self.remote_claims()? {
             Err(why) => Some(Err(format!(
                 "claims on the remote `{name}` are UNKNOWN ({why}): an item may be held on \
-                 another machine; `war admin claim` asks the remote before it claims"
+                 another machine; `war admin claim` asks the remote before it claims{}{tickets}",
+                if tickets.is_empty() { "" } else { "; " }
             ))),
+            Ok(_) if !tickets.is_empty() => Some(Err(tickets)),
             Ok(remote) => {
                 let local = self.claims().unwrap_or_default();
                 let now = now_secs();
@@ -1221,8 +1278,12 @@ impl Store {
             event_type,
             &self.actor,
             &payload.to_string(),
-        )
-        .map(|_| ())
+        )?;
+        // R2: every act on a ticket is journalled here, so this is where its
+        // announcement to the other worktrees is kept current, or dropped
+        // once it is done.
+        shared::sync(self, t);
+        Ok(())
     }
 }
 
@@ -1940,6 +2001,9 @@ pub struct CreateArgs {
     /// `--test`: commands `war plan add --test` writes once the Warrant
     /// exists; `war done` runs them.
     pub tests: Vec<String>,
+    /// `--force`: create it although an open ticket's title is, or reads
+    /// as, this one's ([`shared::duplicate`]).
+    pub force: bool,
 }
 
 /// Why a type or a label set is refused by the profile, as a refusal.
@@ -2143,6 +2207,15 @@ fn create_with_encoding(
             ),
         ));
     }
+    // R2: one creator per title at a time (held until this returns), then
+    // no ticket that is, or reads as, an open one.
+    let _one_title = shared::TitleLock::take(store, &title);
+    if !args.force
+        && let Some(refusal) = shared::duplicate(store, &title, part_of.as_deref())?
+    {
+        return Ok(refusal);
+    }
+    let registry = store.registry();
     std::fs::create_dir_all(&store.dir).map_err(io(format!("could not create {}", store.dir)))?;
     let existing = store.ticket_count()?;
     let uuid = WarUuid::mint().to_string();
@@ -2160,6 +2233,25 @@ fn create_with_encoding(
         }
         match std::fs::create_dir(&candidate) {
             Ok(()) => {
+                // R2: the id is this ticket's only when the clone's register
+                // gives it too; an id another worktree took is passed over.
+                if let Some(reg) = &registry {
+                    let name = candidate.file_name().unwrap_or_default();
+                    let document = if legacy {
+                        candidate.join("manifest.toml")
+                    } else {
+                        store.dir.join(format!("{name}.md"))
+                    };
+                    let entry = reg.stub(name, &uuid, &title, &store.actor, &store.rel(&document));
+                    let taken = reg
+                        .reserve(&entry)
+                        .map_err(io(format!("could not register {name} in {}", reg.dir)));
+                    if !matches!(taken, Ok(true)) {
+                        let _ = std::fs::remove_dir(&candidate);
+                        taken?;
+                        continue;
+                    }
+                }
                 dir = Some(candidate);
                 break;
             }
@@ -2255,6 +2347,9 @@ fn create_with_encoding(
             Ok(source) => source,
             Err(error) => {
                 let _ = std::fs::remove_dir(&dir);
+                if let Some(reg) = &registry {
+                    reg.release(&id, &uuid);
+                }
                 return Err(error);
             }
         }
@@ -2262,6 +2357,38 @@ fn create_with_encoding(
     let t = store
         .load(&dir)
         .map_err(|d| RepoError::Message(format!("{}: {}", d.rule, d.message)))?;
+    // R2: every worktree sees it from here on; with `[claims] remote`, so
+    // does every clone, and the remote settles whose id it is.
+    let unannounced = match shared::announce(store, &t) {
+        shared::Announced::Done => None,
+        shared::Announced::Unannounced(why) => Some(why),
+        shared::Announced::Taken(holder) => {
+            if legacy {
+                for file in [
+                    dir.join(INTENT_FILE),
+                    dir.join(&checklist_file),
+                    dir.join("manifest.toml"),
+                ] {
+                    let _ = std::fs::remove_file(file);
+                }
+                let _ = std::fs::remove_dir(dir.join("atoms"));
+            } else {
+                let _ = std::fs::remove_file(&source);
+            }
+            let _ = std::fs::remove_dir(&dir);
+            if let Some(reg) = &registry {
+                reg.release(&id, &uuid);
+            }
+            return Ok(Outcome::refused(
+                "ticket.id-taken",
+                store.rel(&source),
+                format!(
+                    "{id} is already {holder}; nothing was created. Run `war create` again: it \
+                     mints another id"
+                ),
+            ));
+        }
+    };
     let mut payload = serde_json::json!({"ticket": id, "title": title, "items": made.len()});
     if let Some(issue) = &args.issue {
         // Where it came from: the issue's number, address and a digest of
@@ -2389,7 +2516,20 @@ fn create_with_encoding(
     if let Some(h) = hint {
         result["hint"] = serde_json::json!(h);
     }
-    Ok(Outcome::ok(human, result))
+    let mut out = Outcome::ok(human, result);
+    if let Some(why) = unannounced {
+        out.report.push(Diagnostic::warn(
+            "ticket.unannounced",
+            id.clone(),
+            format!(
+                "created here, but the claims remote `{}` could not be told ({why}): whether \
+                 another clone holds this id or this work is UNKNOWN until the next act on it \
+                 reaches the remote",
+                store.remote.as_deref().unwrap_or_default()
+            ),
+        ));
+    }
+    Ok(out)
 }
 
 /// `[warrants] hints` in `openwarrant.toml` (OW-WAR-0148 M13): whether
@@ -2681,6 +2821,9 @@ pub struct ReadyRow {
     /// is read for it).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remaining_secs: Option<u64>,
+    /// R2: where its ticket lives, when this checkout has no file for it.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub elsewhere: Option<shared::Place>,
     #[serde(skip)]
     created_at: String,
     #[serde(skip)]
@@ -2864,6 +3007,7 @@ pub fn ready_rows_at(
             expired_claim: expired_claim.map(Box::new),
             due: None,
             remaining_secs: None,
+            elsewhere: t.elsewhere.clone(),
             created_at: t.manifest.created_at.clone(),
             order,
         };
@@ -3034,6 +3178,9 @@ pub fn ready_lines(rows: &[ReadyRow]) -> String {
                 c.actor
             ));
         }
+        if let Some(p) = &first.elsewhere {
+            out.push_str(&format!("  [elsewhere: {}]", p.describe()));
+        }
         out.push('\n');
     }
     out
@@ -3142,6 +3289,8 @@ pub(crate) fn claim_scoped_at(
     if let Some(refusal) = other_repo(&store.root, query) {
         return Ok(refusal);
     }
+    // R2: a ticket another worktree or clone holds is brought here first.
+    shared::bring_here(store, query)?;
     let workspace = workspace
         .canonicalize_utf8()
         .map_err(io("could not resolve execution workspace".into()))?;
@@ -4856,6 +5005,7 @@ fn finish(
     if_rev: Option<&str>,
     mut how: How,
 ) -> Result<Outcome, RepoError> {
+    shared::bring_here(store, query)?;
     let (tickets, _) = store.load_all()?;
     let target = match resolve(&tickets, query) {
         Ok(t) => t,
@@ -5884,6 +6034,7 @@ pub fn add(
     after: &[String],
     if_rev: Option<&str>,
 ) -> Result<Outcome, RepoError> {
+    shared::bring_here(store, query)?;
     let (tickets, _) = store.load_all()?;
     let (index, named_item) = match resolve(&tickets, query) {
         Ok(Target::Ticket(n)) => (n, None),
@@ -6203,6 +6354,7 @@ pub fn note(
     text: &str,
     if_rev: Option<&str>,
 ) -> Result<Outcome, RepoError> {
+    shared::bring_here(store, query)?;
     let (tickets, _) = store.load_all()?;
     let (index, item) = match resolve(&tickets, query) {
         Ok(Target::Ticket(n)) => (n, None),
@@ -6707,6 +6859,7 @@ mod lookup_tests {
             format: false,
             done_whole: false,
             depends_on: Vec::new(),
+            elsewhere: None,
             dir,
         }
     }

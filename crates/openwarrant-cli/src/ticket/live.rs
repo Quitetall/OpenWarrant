@@ -343,7 +343,7 @@ fn newest_tip(common: &Utf8Path, root: &Utf8Path, branch: &str) -> Option<String
 }
 
 /// The branch `origin/HEAD` names, else `main`, else `master`, with its tip.
-fn default_branch(common: &Utf8Path, root: &Utf8Path) -> Option<(String, String)> {
+pub(super) fn default_branch(common: &Utf8Path, root: &Utf8Path) -> Option<(String, String)> {
     let origin = std::fs::read_to_string(common.join("refs/remotes/origin/HEAD"))
         .ok()
         .and_then(|t| {
@@ -358,7 +358,7 @@ fn default_branch(common: &Utf8Path, root: &Utf8Path) -> Option<(String, String)
 }
 
 /// The branch checked out at `toplevel`, read from git's own files.
-fn checked_out(toplevel: &Utf8Path) -> Option<String> {
+pub(super) fn checked_out(toplevel: &Utf8Path) -> Option<String> {
     let dotgit = toplevel.join(".git");
     let head = if dotgit.is_dir() {
         dotgit.join("HEAD")
@@ -380,7 +380,7 @@ fn checked_out(toplevel: &Utf8Path) -> Option<String> {
 
 /// `path` at `rev`: its bytes, `Some(None)` when it has none there, and `None`
 /// when git could not be asked.
-fn blob(dir: &Utf8Path, rev: &str, path: &str) -> Option<Option<Vec<u8>>> {
+pub(super) fn blob(dir: &Utf8Path, rev: &str, path: &str) -> Option<Option<Vec<u8>>> {
     let out = std::process::Command::new("git")
         .args(["-C", dir.as_str(), "cat-file", "blob"])
         .arg(format!("{rev}:{path}"))

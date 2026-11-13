@@ -817,6 +817,10 @@ enum DailyCommand {
         /// agent may ask for this; only a person can give it (`war sign`).
         #[arg(long, conflicts_with = "legacy")]
         sign: bool,
+        /// Create it although an open ticket's title is, or reads as, this
+        /// one's (`ticket.duplicate` names that ticket).
+        #[arg(long)]
+        force: bool,
         /// Make the Warrant from GitHub issue <N>, read once through
         /// `[intake] fetch_argv`; the Warrant records the link. With
         /// `[intake.writeback]` set, finishing it comments on and closes the issue.
@@ -3646,7 +3650,8 @@ impl Ctx {
     ) -> Result<(repo::Repository, ticket::Store), Box<dyn std::error::Error>> {
         let repository = repo::Repository::discover(self.root.clone())?;
         projects::touch(&repository.root);
-        let store = ticket::Store::open(&repository, actor)?;
+        // R2: the ticket loop lists the work other worktrees and clones hold.
+        let store = ticket::Store::open(&repository, actor)?.sharing();
         store.renew_all();
         Ok((repository, store))
     }
@@ -3955,6 +3960,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             across,
             tests,
             sign,
+            force,
             issue,
             issue_file,
             implements,
@@ -4029,6 +4035,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     &items,
                     body.as_deref(),
                     priority,
+                    force,
                 )?;
                 refresh_index_after(&repository, &outcome, true);
                 return Ok(ticket_answer(mode, "create", &outcome));
@@ -4062,6 +4069,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     clauses,
                 },
                 tests,
+                force,
             };
             let mut outcome = if legacy {
                 ticket::create_legacy(&store, &args)?

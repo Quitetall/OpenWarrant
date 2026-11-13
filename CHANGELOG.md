@@ -70,6 +70,21 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
+- Shared work: a new ticket reaches every worktree of the clone at once.
+  `war create` (and `war plan new`) registers the id under git's common
+  directory, so an id is one ticket's across the clone, and `war status`,
+  `prime`, `ready`, `next` and `tickets` list a ticket this checkout has no
+  file for, marked `elsewhere`. `war start` on one writes its document here;
+  the `war-ticket` merge driver merges one ticket added on two branches item
+  by item, and covers `docs/work/`. With `[claims] remote` the ticket is also
+  `refs/openwarrant/tickets/<id>`, read by other clones once per `remote_ttl`;
+  a remote that cannot be read is UNKNOWN. Two tickets under one id are
+  `ticket.id-collision`. Plants 290 and 292.
+- `war create` refuses a likely duplicate (`ticket.duplicate`), naming the
+  open ticket, its holder and where it lives; `--force` (MCP `force`) creates
+  anyway. Two creates of one title at the same instant leave one ticket. A
+  done ticket never blocks. Plant 291. Existing scripts that create two open
+  tickets with one title need `--force`.
 - One work order, one place. A claim records its repository, origin URL, worktree,
   branch and base commit, and `war start` prints them as the brief's first line
   (`work in <wt> (repo <name>, branch <b>, from <commit>)`), once; Mission Control's

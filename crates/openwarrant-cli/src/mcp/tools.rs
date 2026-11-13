@@ -80,6 +80,9 @@ pub struct CreateParams {
     /// A person signs it off at the end (an Order).
     #[serde(default)]
     pub sign: bool,
+    /// Create despite a likely duplicate.
+    #[serde(default)]
+    pub force: bool,
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -1445,6 +1448,7 @@ impl WarServer {
                 commands: p.commands,
             },
             tests: p.tests,
+            force: p.force,
         };
         self.ticket("create", p.actor.as_deref(), |s| {
             let created = crate::ticket::create(s, &args)?;
@@ -1822,6 +1826,7 @@ impl WarServer {
     ) -> ToolResult {
         // M11: every ticket tool call renews the acting agent's leases.
         let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| {
+            let s = s.sharing();
             s.renew_all();
             let answer = run(&s);
             // W3: a write looks for changes under running agents.

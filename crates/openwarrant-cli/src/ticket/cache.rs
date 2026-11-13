@@ -867,6 +867,7 @@ fn hit(root: &Utf8Path, dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ti
         format: false,
         done_whole: false,
         depends_on: Vec::new(),
+        elsewhere: None,
     })
 }
 
@@ -940,6 +941,7 @@ fn hit_document(
         format: true,
         done_whole,
         depends_on,
+        elsewhere: None,
     })
 }
 
@@ -1480,6 +1482,7 @@ mod tests {
                 ticket::Blocker::parse("t-0a2f").unwrap(),
                 ticket::Blocker::parse("t-0a2f/i-0002").unwrap(),
             ],
+            elsewhere: None,
         };
         let bytes = encode_document(stamp, None, &t);
         let got = hit_document(&t.repository_root, &t.dir, file, stamp, &bytes).unwrap();

@@ -159,15 +159,27 @@ impl Store {
     /// names what is wrong with it: a document the format reader refuses,
     /// or reads `UNKNOWN` as a whole, is never worked.
     pub(crate) fn load_format(&self, file: &Utf8Path, alias: &str) -> Result<Ticket, Diagnostic> {
-        let rel = self.rel(file);
         let bytes =
             crate::vfs::read_regular(self.root.as_std_path(), file.as_std_path()).map_err(|e| {
                 Diagnostic::error(
                     "ticket.atom-missing",
-                    rel.clone(),
+                    self.rel(file),
                     format!("could not read it: {e}"),
                 )
             })?;
+        self.format_ticket(file, alias, bytes)
+    }
+
+    /// [`Self::load_format`] over bytes already read: the file's, or the
+    /// copy the clone's register holds of a ticket this checkout lacks
+    /// ([`super::shared`]).
+    pub(crate) fn format_ticket(
+        &self,
+        file: &Utf8Path,
+        alias: &str,
+        bytes: Vec<u8>,
+    ) -> Result<Ticket, Diagnostic> {
+        let rel = self.rel(file);
         let doc = format::parse(&bytes);
         if let Some(f) = doc.findings.iter().find(|f| {
             f.outcome == format::Outcome::Refusal
@@ -273,6 +285,7 @@ impl Store {
             format: true,
             done_whole: checklist_empty && done_whole(&state, alias),
             depends_on,
+            elsewhere: None,
         })
     }
 
