@@ -1,0 +1,5 @@
+id = "177-second-spec"
+kind = "refuse"
+section = "4.5"
+rule = "format.document-duplicate"
+says = """and so is the master `spec` when `SPEC.md` is also there."""

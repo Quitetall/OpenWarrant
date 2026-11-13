@@ -1,0 +1,5 @@
+id = "174-type-not-the-derived-tier"
+kind = "refuse"
+section = "4.6"
+rule = "format.type-tier"
+says = """A type that is none of these, or whose tier is not the derived one, is refused (`format.type-tier`)"""

@@ -284,8 +284,17 @@ def compile_packet(root, target, preset_name="agent", budget=None, depth=None, a
     dist, via = walk(repo, zero, pair, preset["steps"], preset["depth"], omit_types, diags)
     recs = [repo.by_id[r] for r in dist]
 
+    # 4.6: the tier of the item holding each record, by source; after 4 when unread.
+    tiers = {}
+    for d in repo.docs:
+        if not (d.refused or d.unknown):
+            t = reader.tier(d)
+            if t is not None:
+                tiers[d.source] = t
+
     def order(r):
-        base = (dist[r["id"]], rank(r["type"]), r["source"].encode(), r["line"])
+        base = (dist[r["id"]], tiers.get(r["source"], 5), rank(r["type"]),
+                r["source"].encode(), r["line"])
         if preset.get("own_first") and wdoc is not None:
             if repo.doc_of[r["id"]] is wdoc:
                 return (0, (r["line"],))

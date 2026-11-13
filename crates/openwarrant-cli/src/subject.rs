@@ -209,7 +209,11 @@ fn in_root(root: &Utf8Path, alias: &str) -> Option<Found> {
         }
         _ => return None,
     };
-    is_formal(&file).then(|| Found {
+    // FORMAT-1.0 §4.6: a document (`d-`, `spec`) and the Roadmap are not
+    // work a formal act takes as a Warrant: their acts (acceptance) are
+    // their own, and none is built over a master yet.
+    let warrant = format::kind_of(Some(alias)) == "work" && alias != "roadmap";
+    (warrant && is_formal(&file)).then(|| Found {
         alias: alias.to_owned(),
         file,
         state,
