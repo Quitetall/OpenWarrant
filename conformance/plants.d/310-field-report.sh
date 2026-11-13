@@ -99,7 +99,7 @@ YAML
     printf '## DEC-ws-1 · decision — one crate\nselected_over OPT-ws-1\nconstrains REQ-ws-1\n\nOne crate. DEC-MARK\n\n'
     printf '## OPT-ws-1 · option — many crates\n\nRejected. OPT-MARK\n\n'
     printf '## REQ-long-1 · requirement — a long one\nstatement: It MUST be short. REQ-LONG-MARK\n\n'
-    printf '## CON-long-1 · constraint — a long constraint\nconstrains REQ-long-1\n\n%sCON-LONG-MARK\n' "$(printf 'Long prose. %.0s' $(seq 1 700))"
+    printf '## CON-long-1 · constraint — a long constraint\nconstrains REQ-long-1\nstatement: %sCON-LONG-MARK\n' "$(printf 'Long prose. %.0s' $(seq 1 700))"
 } > "$FR_R/SPEC.md"
 printf 'test "$(cat ok)" = yes\n' > "$FR_R/ok.sh"; printf 'yes\n' > "$FR_R/ok"; printf 'source\n' > "$FR_R/src.txt"
 fr plan new "Workspace builds" --format 1.0 >/dev/null 2>&1
