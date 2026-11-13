@@ -456,9 +456,12 @@ commit "resolutions and projections"
 say "$RESOLVED resolved"
 
 # --- tickets: the smallest Warrant, through the ticket verbs ----------------------
-# `war create` lists the ticket directory and reads nothing else, so this part
-# grows linearly; the verbs that read every ticket (`--part-of`, `add --after`,
-# `claim`, `done`) are a few percent of the rows.
+# `war create` lists the ticket directory by name and adds the new ticket's
+# block to the agent index (docs/generated/llms.txt, which the compile above
+# wrote), reading no other ticket; with `--part-of`, its parent alone. So this
+# part grows linearly. The verbs that read every ticket and rebuild every
+# ticket's block of the index (`add --after`, `done`) are a few percent of the
+# rows.
 EPIC=""
 PREV=""
 for k in $(seq 1 "$TICKETS"); do

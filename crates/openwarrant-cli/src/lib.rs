@@ -3346,6 +3346,26 @@ fn refresh_index_after(
     }
 }
 
+/// [`refresh_index_after`] for `war create`: the new ticket's block alone
+/// ([`context::refresh_index_created`]), so a create does not read every
+/// ticket to list one.
+fn refresh_index_after_create(repository: &repo::Repository, outcome: &ticket::Outcome) {
+    let Some(id) = outcome.result["id"]
+        .as_str()
+        .filter(|_| !outcome.is_refused())
+    else {
+        return refresh_index_after(repository, outcome, false);
+    };
+    if let Err(e) =
+        context::refresh_index_created(repository, id, outcome.result["part_of"].as_str())
+    {
+        eprintln!(
+            "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+            context::INDEX_PATH
+        );
+    }
+}
+
 /// Print a ticket command's answer and return its exit code: the rendering
 /// (or the refusal, on stderr) for a person, the envelope under `--json`.
 /// `--at <RFC 3339>`: answer (or act) as of that time for the rest of this
@@ -3891,6 +3911,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 change,
                 clauses,
             } = *across;
+            // Where a create still reads every ticket (an issue's link, a
+            // done parent's index lines) the ticket cache may answer. Never
+            // with `--sign` or `--records`, which raise or write a record.
+            if !sign && !records {
+                ticket::cache::permit();
+            }
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             // W6: a change request says what it is before anything is written.
             let (mut items, mut tests) = (items, tests);
@@ -3990,7 +4016,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if sign {
                 outcome = ticket::parts::signed(&store, outcome)?;
             }
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_create(&repository, &outcome);
             Ok(ticket_answer(mode, "create", &outcome))
         }
         DailyCommand::Done {
@@ -7085,6 +7111,10 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             Ok(EXIT_OK)
         }
         ViewCommand::Ready { actor } => {
+            // One-shot and read-only: the tree does not move under it, so
+            // HEAD is read once, not once per ticket (each row's scope
+            // names the base revision).
+            gate_cmd::source::remember_tree_reads();
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::ready_for(&store, Some(mode))?;

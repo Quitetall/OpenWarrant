@@ -196,6 +196,17 @@ fn normal(store: &Store, value: &str) -> Result<String, String> {
 }
 
 pub fn of(store: &Store, t: &Ticket, provided: &[String]) -> Result<Coordination, String> {
+    of_in(store, t, provided, &workspace(store))
+}
+
+/// [`of`], with the store's [`workspace`] given: a pass over every ticket
+/// resolves the root once, not once per ticket.
+pub fn of_in(
+    store: &Store,
+    t: &Ticket,
+    provided: &[String],
+    workspace: &str,
+) -> Result<Coordination, String> {
     let mut paths = provided.to_vec();
     if paths.is_empty() && t.format {
         let doc = openwarrant_core::format::parse(t.checklist_text.as_bytes());
@@ -220,7 +231,7 @@ pub fn of(store: &Store, t: &Ticket, provided: &[String]) -> Result<Coordination
     paths.dedup();
     let title = crate::interop::slug(&t.manifest.title);
     Ok(Coordination {
-        workspace: workspace(store),
+        workspace: workspace.to_owned(),
         session: session(),
         base_revision: super::ladder::head_commit(&store.root),
         paths,

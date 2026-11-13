@@ -36,6 +36,25 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- `war create` no longer slows down as tickets pile up. It rebuilt every ticket's block of
+  `docs/generated/llms.txt` after each create, reading every ticket; it now adds the new
+  ticket's block alone, and `--part-of` reads its parent rather than every ticket. A child
+  of a parent the index shows `done` still rebuilds the tickets' blocks, since the parent's
+  own line can move. The passes that judge every ticket's state (`war admin compile`,
+  `war check --generated`, the index refresh of `add`, `done` and `note`) look children and
+  blockers up in maps built once instead of scanning every ticket per ticket.
+- `war view ready` reads HEAD and resolves the repository root once, not once per ticket.
+  At 9,800 tickets it started `git rev-parse HEAD` about 9,400 times per run.
+- New ticket ids lengthen as the store grows, as documented. The count that sizes an id
+  saw only directory tickets, so a store of single-file tickets kept four-digit ids at any
+  size. Both encodings are counted now, from the directory listing alone.
+- `war authority` no longer reports an I/O error for a signature `ssh-keygen` rejects
+  before reading its input. The verifier's early exit broke the pipe the proposal was being
+  written to; the exit status now decides, and the answer is `authority-signature-invalid`.
+- The release workflow's IR parity step no longer fails when main's committed views lag the
+  masters. Each host compiles in a scratch worktree, the two hosts' `WAR.json` digests are
+  compared with each other, and resolved Warrants' digests with the committed files.
+
 - The managed AGENTS.md block again tells agents to run `war start` before reading
   anything else and not to read `docs/tickets/` directly. The shorter wording from #406
   named the directory as an alternative, and in the adoption study agents on that build
