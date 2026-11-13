@@ -75,6 +75,13 @@ fn war(root: &Path, actor: Option<&str>, args: &[&str]) -> Output {
         .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
         .env_remove("OPENWARRANT_ACTOR")
         .env_remove("SSH_AUTH_SOCK")
+        // A harness session would add its own `work.usage` event (session
+        // usage): these tests count the journal's events, so run sessionless.
+        .env_remove("OPENWARRANT_SESSION_ID")
+        .env_remove("KATANA_SESSION_ID")
+        .env_remove("CODEX_THREAD_ID")
+        .env_remove("CODEX_SESSION_ID")
+        .env_remove("CLAUDE_CODE_SESSION_ID")
         .args(args);
     if let Some(a) = actor {
         c.env("OPENWARRANT_ACTOR", a);
