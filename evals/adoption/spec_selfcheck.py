@@ -171,14 +171,15 @@ def isolation_checks(rid: str) -> None:
     # The refusal: the same probe in a sandbox with the walls down must report what it finds.
     cell = run.RUNS / rid / "leak"
     cell.mkdir(parents=True)
-    (cell / "planted.txt").write_text(secret)
+    run.workspace(cell).mkdir()
+    (run.workspace(cell) / "planted.txt").write_text(secret)
     d = run.repo_def("tally")
     sb = run.Sandbox(cell, "tally", arm="plain", agent="fixture-author-probe", binds=[
         ("--ro-bind", run.HERE / "fixture_author.py", "/opt/study/fixture_author.py"),
         ("--ro-bind", d / "hidden", "/opt/hidden"), ("--ro-bind", d, "/opt/study/repo-def")])
     sb.run(["/usr/bin/python3", "/opt/study/fixture_author.py", "probe"], "/work", timeout=300,
            extra_env={"STUDY_PROBE_SECRET": secret})
-    r = json.loads((cell / "probe.json").read_text())
+    r = json.loads((run.workspace(cell) / "probe.json").read_text())
     check("the probe sees a leak when there is one",
           "/opt/hidden" in r["forbidden_paths_present"] and any(n.endswith("test_t8_budget_monthly.py") for n in r["forbidden_names_found"])
           and any(n.endswith("backlog.toml") for n in r["forbidden_names_found"]) and any("planted" in p for p in r["answer_found_in"]),

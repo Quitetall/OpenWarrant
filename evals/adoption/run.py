@@ -12,6 +12,8 @@
                [--jobs N] [--budget-usd X] [--model M]
                                          run the cells (resumable: a finished cell is skipped)
     run.py report <run-id>               results.json and REPORT.md from a run
+    run.py isolation-check --run-id ID   amendment 7's leak probe and a reference relay; no model,
+                                         scratch roots only
 
 The spec study (PROTOCOL-spec.md), which has an author write the spec a worker then runs:
 
@@ -27,9 +29,11 @@ The spec study (PROTOCOL-spec.md), which has an author write the spec a worker t
 
 Every agent session, and everything that touches a repository after an agent
 has (snapshot commits, merges, tracker reads, grading), runs inside a
-bubblewrap sandbox that sees only that cell's directory, the toolchain and the
-pinned tools; never the owner's home, other repositories, this study's hidden
-tests or reference solutions (fixture agents excepted, by design).
+bubblewrap sandbox that sees only that cell's workspace (`<cell>/work`, at /work),
+the toolchain and the pinned tools; never the owner's home, other repositories,
+this study's hidden tests or reference solutions (fixture agents excepted, by
+design), or any session's transcript, grade or tracker reading, which the harness
+writes beside the workspace, outside the sandbox (amendment 7).
 """
 
 from __future__ import annotations
@@ -477,15 +481,25 @@ def check_auth() -> str | None:
     return None
 
 
+def workspace(cell: Path) -> Path:
+    """The only part of a cell a sandbox mounts (at /work): the repository, worktrees and build
+    output. The harness's records of each session (`sNN/`, `aN/`, `merged/`: transcripts, grades,
+    tracker readings) and `result.json` sit beside it in the cell and are never mounted, so no
+    session reads another's grade, or its hidden-test output (amendment 7)."""
+    return cell / "work"
+
+
 class Sandbox:
-    """One cell's view of the machine. `cell` is mounted at /work, read-write."""
+    """One cell's view of the machine. Only `workspace(cell)` is mounted, at /work, read-write."""
 
     WORK = "/work"
     AHOME = "/home/agent"
 
     def __init__(self, cell: Path, repo: str, fixture: bool = False, arm: str = "", agent: str = "claude",
-                 layout: str = "", binds: list | None = None):
+                 layout: str = "", binds: list | None = None, work: Path | None = None):
         self.cell, self.repo, self.fixture, self.arm, self.agent = cell, repo, fixture, arm, agent
+        # `work`: the directory mounted at /work, when it isn't the cell's own workspace (`run.py seed`).
+        self.ws = work or workspace(cell)
         # `layout`: whose files the repository was seeded with, when that isn't `agent`'s own: the
         # spec study's workers are opencode's, and a fixture stands in for them.
         # `binds`: (flag, source, destination), for a session's own extra mounts.
@@ -504,6 +518,7 @@ class Sandbox:
              config: Path | None = None, extra_env: dict | None = None,
              harness: bool = False, key_fd: int | None = None, binds: list | None = None) -> list[str]:
         t = tools(self.arm)
+        self.ws.mkdir(parents=True, exist_ok=True)
         a = ["bwrap", "--die-with-parent", "--new-session", "--unshare-all"]
         if net:
             a.append("--share-net")
@@ -519,7 +534,7 @@ class Sandbox:
               "--ro-bind", t["STUDY_WAR"], "/opt/study/bin/war",
               "--ro-bind", t["STUDY_BD"], "/opt/study/bin/bd",
               "--ro-bind", t["STUDY_CLAUDE"], "/opt/study/bin/claude",
-              "--bind", str(self.cell), self.WORK]
+              "--bind", str(self.ws), self.WORK]
         if arms.tool_of(self.arm) == "openwarrant" and not harness and self.agent == "claude":
             # The plugin QUICKSTART tells a Claude Code user to install: skills, MCP server, hooks.
             a += ["--ro-bind", str(plugin_dir(self.arm)), "/opt/study/ow-plugin"]
@@ -743,6 +758,8 @@ def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "
         return ["/opt/study/bin/opencode", "run", "--standalone", "--format", "json", "-m", model, prompt]
     if agent in ("fixture-reference", "fixture-noop", "fixture-claim", "fixture-spec"):
         return ["python3", "/opt/study/code/fixture_agent.py", agent.split("-", 1)[1]]
+    if agent == "fixture-probe":
+        return ["/usr/bin/python3", "/opt/study/fixture_probe.py"]
     if agent in ("fixture-author-good", "fixture-author-bad", "fixture-author-empty", "fixture-author-probe"):
         return ["/usr/bin/python3", "/opt/study/fixture_author.py", agent.rsplit("-", 1)[1]]
     raise SystemExit(f"unknown agent {agent!r}")
@@ -1045,10 +1062,19 @@ def run_cell(run_id: str, c: dict, agent: str, model: str, turns: int = SESSION_
     if problem:
         raise SystemExit(f"stopped before a cell: {problem}")
     cell.mkdir(parents=True)
+    workspace(cell).mkdir()
     backlog = load_backlog(c["repo"])
     layout = "opencode" if c["scenario"] == "spec" else ""
-    sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent, layout=layout)
     fixture_env = {"STUDY_ARM": arms.tool_of(c["arm"]), "STUDY_REPO": c["repo"]}
+    if agent == "fixture-probe":
+        # The probe sees exactly what a real agent sees, plus its own script; it is told where the
+        # study's files are on the host, and their names, only so it can look for them.
+        sb = Sandbox(cell, c["repo"], arm=c["arm"], agent=agent, layout=layout,
+                     binds=[("--ro-bind", HERE / "fixture_probe.py", "/opt/study/fixture_probe.py")])
+        fixture_env.update(probe_env(c["repo"], cell))
+    else:
+        sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent,
+                     layout=layout)
     result: dict = {"cell": c, "agent": agent, "model": model, "turn_cap": turns,
                     "build": arm_build(c["arm"]), "sessions": []}
     t0 = time.time()
@@ -1078,10 +1104,10 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
         result.update({"author": c["author"], "worker": c["worker"], "spec_slot": c["spec"],
                        "spec_digest": c.get("spec_digest"), "turn_cap": spec_study.WORKER_TURNS})
         if c["author"] == "backlog":    # the control: the study's own text, as in the adoption study
-            seed_repo(c["repo"], c["arm"], cell / "repo", earlier, extra)
+            seed_repo(c["repo"], c["arm"], sb.ws / "repo", earlier, extra)
             result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         else:
-            seed_spec(sb, c["repo"], c["arm"], cell / "repo", earlier, c["spec_digest"], extra)
+            seed_spec(sb, c["repo"], c["arm"], sb.ws / "repo", earlier, c["spec_digest"], extra)
         m = run_session(sb, cell / "s01", f"{sb.WORK}/repo", PROMPTS["spec"].format(id=item["id"]), agent, model,
                         spec_study.WORKER_TURNS, {**fixture_env, "STUDY_TARGET": item["id"],
                                                   "STUDY_AUTHOR": c["author"]}, arm=c["arm"])
@@ -1097,7 +1123,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
 
     elif c["scenario"] == "directed":
         idx = backlog["order"].index(c["item"])
-        seed_repo(c["repo"], c["arm"], cell / "repo", backlog["order"][:idx], extra)
+        seed_repo(c["repo"], c["arm"], sb.ws / "repo", backlog["order"][:idx], extra)
         item = next(i for i in backlog["item"] if i["id"] == c["item"])
         result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         prompt = PROMPTS["directed"].format(id=item["id"], title=item["title"])
@@ -1114,7 +1140,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
         })
 
     elif c["scenario"] == "relay":
-        seed_repo(c["repo"], c["arm"], cell / "repo", [], extra)
+        seed_repo(c["repo"], c["arm"], sb.ws / "repo", [], extra)
         n_max = len(backlog["item"]) + 2
         stalled = 0
         prev_pass: dict = {}
@@ -1152,7 +1178,7 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
 
     elif c["scenario"] == "parallel":
         k = c["k"]
-        seed_repo(c["repo"], c["arm"], cell / "repo", [], extra)
+        seed_repo(c["repo"], c["arm"], sb.ws / "repo", [], extra)
         result["answers"] = deliver(sb, f"{sb.WORK}/repo", c["repo"], c["arm"])
         sb.inside(["_git", "worktrees", str(k)], f"{sb.WORK}/repo")
         finished: list[tuple[float, int, dict]] = []
@@ -1195,25 +1221,106 @@ def _run_cell_body(c: dict, cell: Path, sb: "Sandbox", backlog: dict, agent: str
 def keep_cell(run_id: str, c: dict, cell: Path) -> None:
     """Raw evidence to the keep store; the working trees and build output are deleted."""
     dest = KEEP / run_id / cell.relative_to(RUNS / run_id)
-    if (cell / "repo").exists():
+    ws = workspace(cell)
+    if (ws / "repo").exists():
         Sandbox(cell, c["repo"]).inside(["_git", "bundle", "/work/repo.bundle"], "/work/repo")
     dest.mkdir(parents=True, exist_ok=True)
     for f in cell.rglob("*"):
+        if ws in f.parents:
+            continue  # what an agent wrote is kept as the bundle, never by file name
         if f.is_file() and f.name in ("stream.jsonl", "stderr.txt", "metrics.json", "grade.json",
                                        "tracker.json", "prompt.txt", "result.json", "spec.json",
                                        "questions.jsonl", "probe.json"):
             rel = f.relative_to(cell)
             (dest / rel.parent).mkdir(parents=True, exist_ok=True)
             shutil.copy2(f, dest / rel)
-    if (cell / "repo.bundle").exists():
-        shutil.copy2(cell / "repo.bundle", dest / "repo.bundle")
-    for sub in ("repo", "target", "repo.bundle", "spec-out", "spec-base") + tuple(f"w{k}" for k in range(1, 11)) \
-            + tuple(f"target-{k}" for k in range(1, 11)):
-        p = cell / sub
-        if p.is_dir():
-            shutil.rmtree(p, ignore_errors=True)
-        elif p.exists():
-            p.unlink()
+    for f in ("repo.bundle", "probe.json"):  # the bundle, and a fixture author's probe report
+        if (ws / f).exists():
+            shutil.copy2(ws / f, dest / f)
+    if ws.name == "work" and ws.parent == cell and RUNS in cell.parents:
+        shutil.rmtree(ws, ignore_errors=True)
+
+
+def probe_env(repo: str, cell: Path) -> dict:
+    """What `fixture_probe.py` tries to reach, and the names it looks for (amendment 7)."""
+    d = repo_def(repo)
+    paths = [f"/work/s{n:02d}/{f}" for n in (1, 2, 3) for f in ("grade.json", "tracker.json", "stream.jsonl")]
+    paths += [f"{cell}/s01/grade.json", str(cell), str(d / "hidden"), str(d / "reference"), str(d / "backlog.toml"),
+              str(KEEP), str(RUNS), str(HERE), "/opt/hidden", "/opt/study/repo-def", "/opt/study/code",
+              "/mnt", str(HOME)]
+    names = {f.name for sub in ("hidden", "reference") for f in (d / sub).rglob("*")
+             if f.is_file() and f.name not in ("conftest.py", "__init__.py")} | {"backlog.toml"}
+    return {"STUDY_PROBE_PATHS": "\n".join(paths), "STUDY_PROBE_NAMES": "\n".join(sorted(names))}
+
+
+def probe_report(stream: Path) -> dict:
+    for line in stream.read_text(errors="replace").splitlines():
+        try:
+            ev = json.loads(line)
+        except ValueError:
+            continue
+        if ev.get("type") == "probe":
+            return ev
+    return {}
+
+
+def cmd_isolation_check(args) -> None:
+    """Amendment 7's check, no model: a probe relay must reach none of the study's files, the same
+    probe with the old mount must reach them (the refusal), and a reference relay must still grade."""
+    if "ADOPTION_RUNS_ROOT" not in os.environ or "ADOPTION_KEEP_ROOT" not in os.environ:
+        raise SystemExit("refused: set ADOPTION_RUNS_ROOT and ADOPTION_KEEP_ROOT to scratch")
+    rid, repo, arm = args.run_id, args.repo, args.arm
+    results = []
+
+    def check(name: str, ok: bool, detail: str = "") -> None:
+        results.append(ok)
+        print(f"{'PASS' if ok else 'FAIL'}  {name}" + (f": {detail}" if detail else ""), flush=True)
+
+    probe = {"scenario": "relay", "repo": repo, "arm": arm, "rep": 1}
+    r = run_cell(f"{rid}-probe", probe, "fixture-probe", "fixture")
+    cell = cell_dir(f"{rid}-probe", probe)
+    check("the probe relay ran two sessions and graded each",
+          r["sessions_used"] == 2 and all((cell / f"s{n:02d}" / "grade.json").exists() for n in (1, 2)),
+          f"{r['sessions_used']} sessions, stopped {r['stopped']}")
+    rep2 = probe_report(cell / "s02" / "stream.jsonl")
+    for a in rep2.get("attempts", []):
+        print(f"      s02 tried {a['path']}: " + (a.get("got") or a.get("error")))
+    print(f"      s02 sees /work as {rep2.get('work_entries')}")
+    check("session 2 reaches no earlier grade, record, hidden/, reference/ or study path",
+          bool(rep2) and not rep2["reachable"], f"reachable: {rep2.get('reachable')}")
+    check("session 2 finds no file named as a hidden test, reference patch, backlog or session record",
+          bool(rep2) and not rep2["forbidden_names_found"], f"found: {rep2.get('forbidden_names_found')}")
+    check("session 2 finds no file holding a grade", bool(rep2) and not rep2["grade_like_files"],
+          f"found: {rep2.get('grade_like_files')}")
+    # The refusal: the same probe with the mount the harness had before (the cell at /work) and the
+    # grader's and a fixture's mounts must report what it reaches.
+    d = repo_def(repo)
+    sb = Sandbox(cell, repo, arm=arm, agent="fixture-probe", work=cell, binds=[
+        ("--ro-bind", HERE / "fixture_probe.py", "/opt/study/fixture_probe.py"),
+        ("--ro-bind", d / "hidden", "/opt/hidden"), ("--ro-bind", d, "/opt/study/repo-def")])
+    p = sb.run(["/usr/bin/python3", "/opt/study/fixture_probe.py"], "/work", timeout=600, extra_env=probe_env(repo, cell))
+    down = next((json.loads(l) for l in p.stdout.splitlines() if l.startswith('{"type": "probe"')), {})
+    print(f"      walls down, reachable: {down.get('reachable')}")
+    print(f"      walls down, {len(down.get('forbidden_names_found', []))} names found, e.g. "
+          f"{down.get('forbidden_names_found', [])[:4]}; grades in {down.get('grade_like_files', [])[:3]}")
+    check("the probe sees a leak when there is one",
+          {"/work/s01/grade.json", "/opt/hidden", "/opt/study/repo-def"} <= set(down.get("reachable", []))
+          and any(n.endswith(".patch") for n in down.get("forbidden_names_found", []))
+          and any(n.startswith("/opt/hidden/") for n in down.get("forbidden_names_found", []))
+          and "/work/s01/grade.json" in down.get("grade_like_files", []))
+    ref = {"scenario": "relay", "repo": repo, "arm": arm, "rep": 1}
+    r = run_cell(f"{rid}-reference", ref, "fixture-reference", "fixture")
+    kept = KEEP / f"{rid}-reference" / cell_dir(f"{rid}-reference", ref).relative_to(RUNS / f"{rid}-reference")
+    graded = [json.loads((kept / f"s{s['n']:02d}" / "grade.json").read_text()) for s in r["sessions"]]
+    n_items = len(load_backlog(repo)["item"])
+    check("a reference relay still grades: every item passes, no false completion, every grade kept",
+          r["stopped"] == "all_pass" and len(r["items_passing"]) == n_items and not r["false_completions_at_end"]
+          and all(len(g.get("items", {})) == n_items for g in graded),
+          f"{len(r['items_passing'])} of {n_items} in {r['sessions_used']} sessions, stopped {r['stopped']}, "
+          f"false completions {r['false_completions_at_end']}")
+    print(f"{sum(results)} of {len(results)} checks passed")
+    if not all(results):
+        raise SystemExit(1)
 
 
 # ------------------------------------------------------------------ plan, execute, report
@@ -1518,12 +1625,14 @@ def run_author(run_id: str, slot: dict, agent: str, model: str, layout: str) -> 
     if problem:
         raise SystemExit(f"stopped before an author: {problem}")
     extra = AGENT_SEED.get(layout, {})
-    backlog = seed_scaffold(repo, tool, cell / "repo", backlog_earlier(repo, iid), extra)
+    ws = workspace(cell)
+    ws.mkdir()
+    backlog = seed_scaffold(repo, tool, ws / "repo", backlog_earlier(repo, iid), extra)
     item = next(i for i in backlog["item"] if i["id"] == iid)
-    (cell / "seed-head").write_text(subprocess.run(["git", "-C", str(cell / "repo"), "rev-parse", "HEAD"],
+    (cell / "seed-head").write_text(subprocess.run(["git", "-C", str(ws / "repo"), "rev-parse", "HEAD"],
                                                    capture_output=True, text=True, timeout=30).stdout.strip())
     brief = spec_study.brief_text(iid)
-    (cell / "brief.md").write_text(brief)
+    (ws / "brief.md").write_text(brief)  # the author's own brief, which its prompt also holds
     instr = extra.get("STUDY_INSTRUCTIONS", "CLAUDE.md")
     prompt = spec_study.author_prompt(tool, iid, brief, instr, layout)
     sock = STUDY / "sock" / os.urandom(4).hex() / "c.sock"
@@ -1551,9 +1660,9 @@ def run_author(run_id: str, slot: dict, agent: str, model: str, layout: str) -> 
     if "error" in cap:
         raise SystemExit(f"stopped: could not capture {slot['slot']}: {cap['error']}")
     sb.inside(["_git", "snapshot", "author"], "/work/repo")
-    (cell / "spec-out").mkdir(exist_ok=True)
-    digest, refused = spec_study.store_spec(spec_store(), cell / "spec-out", tool)
-    stats = spec_study.spec_stats(iid, cell / "spec-out", cell / "spec-base")
+    (ws / "spec-out").mkdir(exist_ok=True)
+    digest, refused = spec_study.store_spec(spec_store(), ws / "spec-out", tool)
+    stats = spec_study.spec_stats(iid, ws / "spec-out", ws / "spec-base")
     spec = {**slot, "digest": digest, "agent": agent, "model": model, "layout": layout,
             "brief_sha256": spec_study.brief_digest(iid), "turn_cap": spec_study.AUTHOR_TURNS,
             "cost_usd": m.get("cost_usd") or 0, "metrics": m, "questions": customer.asked,
@@ -1881,6 +1990,9 @@ def main() -> None:
     pp = sub.add_parser("spec-plan"); pp.add_argument("--dry-run", action="store_true"); pp.add_argument("--out")
     sub.add_parser("spec-check")
     sub.add_parser("spec-selfcheck")
+    ic = sub.add_parser("isolation-check", help="amendment 7: the leak probe and a reference relay, no model")
+    ic.add_argument("--run-id", required=True); ic.add_argument("--repo", default="tally")
+    ic.add_argument("--arm", default="openwarrant@a7")
     rp = sub.add_parser("report"); rp.add_argument("run_id")
     po = sub.add_parser("pool"); po.add_argument("run_ids", nargs="+")
     # inside the sandbox only
@@ -1901,7 +2013,7 @@ def main() -> None:
         if args.spec:
             dest = Path(args.dest).resolve()
             dest.parent.mkdir(parents=True, exist_ok=True)
-            sb = Sandbox(dest.parent, args.repo, arm=args.arm, agent="fixture", layout=args.layout)
+            sb = Sandbox(dest.parent, args.repo, arm=args.arm, agent="fixture", layout=args.layout, work=dest.parent)
             seed_spec(sb, args.repo, args.arm, dest, args.done, args.spec, AGENT_SEED.get(args.layout or "opencode", {}))
         else:
             seed_repo(args.repo, args.arm, Path(args.dest), args.done, AGENT_SEED.get(args.layout or "claude"))
@@ -1931,6 +2043,8 @@ def main() -> None:
     elif args.cmd == "spec-selfcheck":
         import spec_selfcheck
         spec_selfcheck.main()
+    elif args.cmd == "isolation-check":
+        cmd_isolation_check(args)
     elif args.cmd == "report":
         cmd_report(args)
     elif args.cmd == "pool":

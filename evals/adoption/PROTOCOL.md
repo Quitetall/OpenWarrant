@@ -571,3 +571,133 @@ completions, median tokens per cell, turns and turns before the first edit, with
 A session whose transcript holds no model step is a harness error, not the agent's
 result. Amendment 5's rule applies: the cell is rerun once for every arm, or excluded for
 every arm, and the report says which.
+
+### Results of amendment 6: `oc-v5-3`
+
+Run 2026-11-07 on harness commit `74e8900c8`, 35 cells, the five arms above, `next` at
+`d9b524f5c`. No harness error: every session's transcript holds model steps and every
+grade ran (one knightlm `plain` session exited 1 after 39 turns, the agent's own end), so
+nothing was rerun or excluded. Its relay cells are affected by the leak amendment 7 fixes:
+read that before the relay column. From `run.py report oc-v5-3`:
+
+| arm | directed passed | false completions | turns per session | ktokens per session | median ktokens per cell | median turns before first edit | relay items passing |
+|---|---|---|---|---|---|---|---|
+| `plain` | 6 of 6 | 0 | 42.2 | 2,421.3 | 2,696.7 | 7.0 | 11, in 12 sessions |
+| `openwarrant@a7` | 6 of 6 | 0 | 39.5 | 1,691.6 | 1,823.3 | 9.0 | 11, in 13 sessions (T8 in session 13, from leaked grades) |
+| `openwarrant@next` | 6 of 6 | 0 | 39.5 | 1,845.6 | 2,109.9 | 8.5 | 10, in 13 sessions; T8 a false completion at the end |
+| `openwarrant-mcp@a7` | 6 of 6 | 0 | 39.5 | 2,260.6 | 2,253.1 | 9.0 | 11, in 13 sessions (T8 in session 13, from leaked grades) |
+| `openwarrant-mcp@next` | 6 of 6 | 0 | 45.2 | 2,162.8 | 2,123.0 | 10.0 | 11, in 13 sessions |
+
+By the rule, in this run alone: `openwarrant@next` against `openwarrant@a7`, 0 and 0 false
+completions, 6 and 6 passes, median tokens per cell 2,109,904 against 1,823,340, `next`
++15.7%: alpha.7 wins on tokens. `openwarrant-mcp@next` against `openwarrant-mcp@a7`: 0 and
+0, 6 and 6, 2,122,966 against 2,253,126, −5.8%: a tie.
+
+**Pooled** (`run.py pool oc-v5-2 oc-v5-3`, ties at two cells for the first pair, one for the
+second):
+
+| pair | runs | cells each | false completions | passes | median tokens per cell | result |
+|---|---|---|---|---|---|---|
+| `openwarrant@next` against `openwarrant@a7` | `oc-v5-2`, `oc-v5-3` | 12 | 0 and 0 | 12 and 12 | 2,019,327 against 1,823,340, +10.7% | tie: no win |
+| `openwarrant-mcp@next` against `openwarrant-mcp@a7` | `oc-v5-3` | 6 | 0 and 0 | 6 and 6 | 2,122,966 against 2,253,126, −5.8% | tie: no win |
+
+Beside their twins (descriptive, `oc-v5-3`): `openwarrant-mcp@a7` 2,253,126 median tokens per
+cell against `openwarrant@a7`'s 1,823,340, the same 39.5 turns per session and 9.0 turns
+before the first edit; `openwarrant-mcp@next` 2,122,966 against `openwarrant@next`'s
+2,109,904, 45.2 turns per session against 39.5, 10.0 turns before the first edit against 8.5.
+
+**What a diagnosis of `oc-v5-3` found**, recorded here with no change to any measure:
+
+- *The pooled token gap is noise at this size.* `next` against alpha.7 is +10.7% as a ratio
+  of medians, just outside the 10% band, but paired cell by cell (the geometric mean of the
+  12 per-cell ratios of `next` to alpha.7 on the same item and run) it is +0.8%, bootstrap
+  95% interval −22% to +29%. That is within the spread of one binary between runs: alpha.7's
+  own median per cell was 1,980,342 in `oc-v5-1`, 1,792,970 in `oc-v5-2` and 1,823,340 here.
+  The rule's verdict stands as written, a tie, and the paired figure says nothing larger is
+  hidden behind it.
+- *The relay false completion is the model's, not `next`'s.* `openwarrant@next` ended with T8
+  recorded done and failing. Both alpha.7 relays made the same false completion (T8 recorded
+  done and failing from session 10 in one, 11 in the other); they ended clean only because session 13 in each read `/work/s01` to `/work/s12/grade.json`, the
+  hidden tests' failure output, and fixed T8 from it. That is the leak amendment 7 closes;
+  without it the three relays would not differ on T8.
+- *One cost was `war`'s.* `next`'s sessions read `docs/tickets/` directly more often than
+  alpha.7's, where `war start` would have given them the ticket. It traces to the wording of
+  the `AGENTS.md` block #406 introduced, which is reverted in PR #416.
+
+## Amendment 7 (2026-11-12): a leak between sessions, closed
+
+Written and pushed before any further run, after a diagnosis of `oc-v5-3`.
+
+**The leak.** "Isolation and safety" says a session sees only its cell directory. It did,
+and that was the hole: `Sandbox.argv` bound the whole cell read-write at `/work`, and the
+harness wrote each session's records into the cell, at `sNN/` (`aN/` and `merged/` for
+parallel cells): the transcript (`stream.jsonl`), `metrics.json`, `tracker.json`, and
+`grade.json`, whose `tail` fields hold the hidden tests' failure output. So every relay
+session after the first could read every earlier session's grade and transcript at
+`/work/s01/...`. The hidden tests themselves, the reference patches and `backlog.toml` were
+never reachable from an agent's session (they are mounted only for grading and for fixture
+agents, and every attempt in the transcripts to list `/opt/hidden` failed), but their
+failure output was, one session late. A directed cell has one session, so it had nothing
+earlier to read.
+
+**Who read it.** Every kept transcript of every run (Claude and opencode) was searched for
+a tool call naming `grade.json`, `tracker.json`, `metrics.json`, a session directory
+(`/work/sNN`, `/work/aN`, `/work/merged`), `/opt/hidden` or `repo-def`, and every tool
+output for a grade's contents or a listing of a session directory. Both searches find the
+same cells, all opencode relays of tally:
+
+| run | cell | session | what it read |
+|---|---|---|---|
+| `oc-v5-1` | relay, `openwarrant@a6` | s03 | s01 and s02's `grade.json`, `tracker.json`, `metrics.json` and transcripts |
+| `oc-v5-3` | relay, `openwarrant@a7` | s13 | s01 to s12's `tracker.json` and `grade.json`, then T8's failure tails in s01 and s07 to s12 |
+| `oc-v5-3` | relay, `openwarrant-mcp@a7` | s13 | s12's prompt, grade, tracker, metrics and transcript, s11's T8 grade, then every session's grade |
+| `oc-rem-2-deepseek` | relay, `openwarrant` | s04, s05 | earlier sessions' prompts, trackers, metrics and grades (s05 also s01's transcript) |
+| `oc-rem-3-glm` | relay, `openwarrant` | s09 | s01 to s08's grades, s08's tracker and metrics |
+
+(`oc-rem-2-glm`'s relay session s07 read its own prompt and the tail of its own transcript,
+under `/work/s07`; nothing earlier.) No directed cell and no parallel cell, in any run, read
+a session record, and no Claude session did. `oc-v5-2` has no such read.
+
+**Effect.** Relay results that depended on earlier grades aren't comparable with relays that
+didn't: in `oc-v5-3`, both alpha.7 relays' T8 (amendment 6's results: fixed in s13 from the
+leaked tails, where `next`'s relay, which read none, ended with T8 a false completion), and
+`oc-v5-1`'s alpha.6 relay, which read grades in s03 and stalled anyway. The relay rows of
+those cells stand as recorded but are marked as leaked; the relays of `oc-v5-2` and the
+other cells of `oc-v5-1` and `oc-v5-3` are unaffected. Directed cells, and so every win-rule
+verdict and every pool, are unaffected. No measure changes.
+
+**The fix** (`run.py` `workspace`). A sandbox now mounts only `<cell>/work` at `/work`:
+the repository, the parallel worktrees, build output, and a spec author's own brief and
+capture directories. The harness writes the records of each session (`sNN/`, `aN/`,
+`merged/`), `result.json`, `seed-head` and a spec author's `questions.jsonl` beside it in
+the cell, which no sandbox mounts. Grading still mounts the hidden tests read-only, only
+while it runs, and writes its grade from the host. `keep_cell` keeps what it kept before,
+plus a fixture author's `probe.json`, never a file an agent wrote except through the
+repository's bundle, and deletes the workspace when the cell ends.
+
+**What stays visible, decided.** A sandbox still mounts the host's `/usr` read-only, and
+`find /` in a session lists it: python, cargo, git and the agents' runtimes live there. It
+holds nothing of the study's (checked on the host: no file under `/usr` or `/etc` is named
+for OpenWarrant, the study, tally or knightlm; and the probe below walks all of `/usr` for
+the names of every hidden test and reference patch, and finds none), so it stays. `/etc` is
+the same. Two mounts are shared between cells, read-write, as before: the offline cargo
+registry (`/opt/cargo-home`) and the compiler cache (`/opt/sccache`). They hold crates and
+compiled objects of agents' code (the hidden tests are Python and never compiled), not
+grades, hidden tests or reference solutions, so they stay as they are; they are named here
+because in principle a session could write to them.
+
+**Proved, no model** (`run.py isolation-check`, scratch roots only). A scripted session
+(`fixture_probe.py`) that mounts nothing a real agent doesn't, except itself, ran as a tally
+relay on `openwarrant@a7`. It changes nothing, so the relay stops after two sessions, both
+graded. In session 2 it tried to stat and read earlier sessions' records under `/work`, the
+cell on the host, the study's `hidden/`, `reference/` and `backlog.toml` on the host, the keep
+store and runs root, the harness's code, `/opt/hidden`, `/opt/study/repo-def`,
+`/opt/study/code`, `/mnt` and the owner's home; walked the whole filesystem for a file named
+as a hidden test, a reference patch, `backlog.toml` or a session record; and read every
+small file under `/work`, `/tmp`, `/run`, `/home` and `/opt` for a grade's keys. Each attempt
+failed and each search found nothing. The refusal: the same probe with the cell mounted at
+`/work` as before, and the grader's and a fixture's mounts, reached `/work/s01/grade.json`,
+`/opt/hidden` and `/opt/study/repo-def` and found the hidden tests by name. Then a
+`fixture-reference` relay on the same arm passed all 11 items in 11 sessions with no false
+completion, every session's grade kept: grading works as before. 6 of 6 checks passed on
+2026-11-12.
