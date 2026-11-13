@@ -4079,6 +4079,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if sign {
                 outcome = ticket::parts::signed(&store, outcome)?;
             }
+            // What follows reads the tickets once, and a create has
+            // already read all but its own (`Store::after_create`).
+            if !outcome.is_refused()
+                && let Some(id) = outcome.result["id"].as_str()
+            {
+                store.after_create(id);
+            }
             refresh_index_after_create(&repository, &outcome);
             ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "create", &outcome))

@@ -445,6 +445,9 @@ pub struct Store {
     /// What the reads that follow this invocation's act share
     /// ([`Self::after_act`]).
     after_act: std::sync::OnceLock<AfterAct>,
+    /// What `war create` read to look for a duplicate, kept for
+    /// [`Self::after_create`].
+    before_create: std::sync::Mutex<Option<(Vec<Ticket>, Vec<Diagnostic>)>>,
     pub ttl_secs: u64,
     /// M11: a claim's lease, in seconds.
     pub lease_secs: u64,
@@ -598,6 +601,7 @@ impl Store {
             layout,
             legacy_dirs: std::sync::OnceLock::new(),
             after_act: std::sync::OnceLock::new(),
+            before_create: std::sync::Mutex::new(None),
             // FORMAT-1.0 §11.3: `[claims]` holds both; `[tickets]`, where
             // they were before, is read when `[claims]` says nothing.
             ttl_secs: claims_policy
@@ -859,6 +863,47 @@ impl Store {
             depends_on: Vec::new(),
             elsewhere: None,
         })
+    }
+
+    /// Keep what `war create` read before it wrote anything (every ticket,
+    /// as [`Self::load_all`] reads them for a store that lists shared work),
+    /// for [`Self::after_create`].
+    pub(crate) fn remember_before_create(&self, tickets: Vec<Ticket>, faults: Vec<Diagnostic>) {
+        if self.shared
+            && let Ok(mut kept) = self.before_create.lock()
+        {
+            *kept = Some((tickets, faults));
+        }
+    }
+
+    /// After `war create` wrote the ticket `id` and nothing else: the
+    /// tickets as they now are, for [`Self::after_act`], without reading
+    /// every one again. They are the tickets the duplicate check read, a
+    /// moment before, and the new one read from its files, in id order: a
+    /// create writes no other ticket. Without that reading (`--force`, a
+    /// store that lists no shared work, an order that is not by id) nothing
+    /// is kept and [`Self::after_act`] reads.
+    pub fn after_create(&self, id: &str) {
+        let kept = self.before_create.lock().ok().and_then(|mut k| k.take());
+        let Some((mut tickets, faults)) = kept else {
+            return;
+        };
+        if self.after_act.get().is_some() || !tickets.is_sorted_by(|a, b| a.id() < b.id()) {
+            return;
+        }
+        let Err(at) = tickets.binary_search_by(|t| t.id().cmp(id)) else {
+            return;
+        };
+        let Ok(new) = self.load(&self.dir.join(id)) else {
+            return;
+        };
+        tickets.insert(at, new);
+        cache::permit();
+        let _ = self.after_act.set(AfterAct {
+            tickets,
+            faults,
+            ready: std::sync::OnceLock::new(),
+        });
     }
 
     /// Every ticket, read once for whatever follows this invocation's act.

@@ -1054,13 +1054,26 @@ pub(super) fn duplicate(
     title: &str,
     part_of: Option<&str>,
 ) -> Result<Option<Outcome>, RepoError> {
+    let (tickets, faults) = store.load_all_shared()?;
+    let found = duplicate_among(store, title, part_of, &tickets);
+    // What follows the create reads these again, plus the ticket it writes.
+    store.remember_before_create(tickets, faults);
+    found
+}
+
+/// [`duplicate`], among `tickets` already read.
+fn duplicate_among(
+    store: &Store,
+    title: &str,
+    part_of: Option<&str>,
+    tickets: &[Ticket],
+) -> Result<Option<Outcome>, RepoError> {
     struct Open {
         id: String,
         title: String,
         part_of: Option<String>,
         place: String,
     }
-    let (tickets, _) = store.load_all_shared()?;
     let mut open: Vec<Open> = tickets
         .iter()
         .filter(|t| !t.is_done())

@@ -23,9 +23,13 @@ Notable changes to OpenWarrant. Format loosely follows
 - The duplicate check of `war create` reads only the register entries that are not
   already listed tickets. It read every entry's file, one per ticket ever created here,
   and looked each up by scanning every ticket.
+- Commands that build the model (`war start`, `war context`) read HEAD once, and only
+  when a document has a check. They ran `git rev-parse HEAD` once per ticket document:
+  about 19,600 processes for one `war start` at 9,800 tickets.
 - After `create`, `start`, `done` and a release, the line naming what is next,
   `.openwarrant/next.md` and the index refresh share one reading of the tickets instead
-  of reading every ticket once each.
+  of reading every ticket once each. After a create that reading is the one its
+  duplicate check made, plus the new ticket.
 
 ### Added
 
