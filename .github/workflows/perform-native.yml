@@ -7,6 +7,10 @@ on:
       - '.github/workflows/perform-native.yml'
       - 'conformance/native/**'
       - 'conformance/lib.sh'
+      # lib.sh's positive control is `war check --generated` over the whole
+      # corpus, and views.py is what makes that pass on a pull request.
+      - 'conformance/views.py'
+      - 'conformance/views.toml'
       - 'conformance/plants.d/60-perform-cancel.sh'
       - 'conformance/fixtures/performer/**'
       - 'tools/performer/**'
@@ -56,6 +60,13 @@ jobs:
                   log.write(repr(argv) + '\n'); log.flush()
                   subprocess.run(argv, check=True, timeout=600, stdout=log, stderr=subprocess.STDOUT)
           PY
+      # A pull request carries no views (conformance/views.toml), and lib.sh's
+      # positive control is `war check --generated`. As fast CI's plants job
+      # does: compile them and commit them locally in this disposable checkout
+      # (the battery restores with `git checkout`), never pushed. The log's
+      # Source line is then this local commit; its parent is the pushed one.
+      - name: Compile the views here
+        run: python3 conformance/views.py fresh --war target/debug/war --commit
       - name: Run the actual cancellation and handoff plant
         run: |
           python3 - <<'PY'
@@ -65,6 +76,16 @@ jobs:
               subprocess.run(['bash', 'conformance/native/perform.sh'], check=True, timeout=600,
                              stdout=log, stderr=subprocess.STDOUT)
           PY
+      - name: Show the end of each log on failure
+        if: failure()
+        run: |
+          for f in "$RUNNER_TEMP"/perform-*.log; do
+            [ -f "$f" ] || continue
+            echo "::group::$f (last 80 lines)"
+            tail -n 80 "$f"
+            echo "::endgroup::"
+            grep -aE '^FAIL|^[0-9]+ passed' "$f" || true
+          done
       - name: Retain observations including failures
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
