@@ -89,7 +89,11 @@ Notable changes to OpenWarrant. Format loosely follows
     disposition is set.
   - A Format 1.0 Warrant `part_of: <PREFIX>-PHASE-<N>` is a member of that phase
     in `war plan roadmap` and `war status --verbose`, and `roadmap.unassigned`
-    names its document instead of a `manifest.toml` it does not have.
+    names its document instead of a `manifest.toml` it does not have. The
+    relation is now in such a Warrant's contract digest, as a legacy
+    `[[roadmap]]` ref is: one authorized on an unreleased build with that line
+    in its frontmatter needs a new authorization. No released version could
+    authorize a single-file Warrant.
   - `check.source-stale` no longer follows a passing run with no edit. A check's
     source basis leaves out records about other work: another document's
     journal and check output, and other Format 1.0 work documents. A tick, a
