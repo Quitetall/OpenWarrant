@@ -199,6 +199,17 @@ pub fn of(store: &Store, t: &Ticket, provided: &[String]) -> Result<Coordination
     of_in(store, t, provided, &workspace(store))
 }
 
+/// Whether `t` plainly declares no paths: a Format 1.0 document whose text
+/// never says `paths`, so neither its `paths` field nor anything else in it
+/// names one. [`of`] with nothing provided is then `Ok` with the one path
+/// `**`, which [`conflict`] holds against nothing ([`undeclared`]): a pass
+/// over every ticket need not build it. `false` says nothing either way (a
+/// directory ticket's declaration is a file of its own).
+#[must_use]
+pub fn declares_none(t: &Ticket) -> bool {
+    t.format && !t.checklist_text.contains("paths")
+}
+
 /// [`of`], with the store's [`workspace`] given: a pass over every ticket
 /// resolves the root once, not once per ticket.
 pub fn of_in(

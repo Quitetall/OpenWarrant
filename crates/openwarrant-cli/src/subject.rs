@@ -245,8 +245,15 @@ pub fn is_document_state(dir: &Utf8Path) -> bool {
 /// Every document a formal act takes, by state directory, sorted.
 #[must_use]
 pub fn all(repo: &Repository) -> Vec<Found> {
+    all_in(&roots(repo))
+}
+
+/// [`all`] under `roots` alone: for a reader that asks only about documents
+/// in some of the work roots, and need not open every item of the others.
+#[must_use]
+pub fn all_in(roots: &[Utf8PathBuf]) -> Vec<Found> {
     let mut out = Vec::new();
-    for root in roots(repo) {
+    for root in roots {
         let Ok(entries) = crate::vfs::read_dir(&root) else {
             continue;
         };
@@ -258,7 +265,7 @@ pub fn all(repo: &Repository) -> Vec<Found> {
             .collect();
         names.sort();
         names.dedup();
-        out.extend(names.iter().filter_map(|n| in_root(&root, n)));
+        out.extend(names.iter().filter_map(|n| in_root(root, n)));
     }
     out.sort_by(|a, b| a.state.cmp(&b.state));
     out

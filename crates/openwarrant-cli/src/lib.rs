@@ -3367,6 +3367,40 @@ fn refresh_index_after(
     }
 }
 
+/// [`refresh_index_after`] for an act on one ticket that leaves every
+/// `part_of` as it was (`done`, `add`, `note`, `start`, `promote`): only that
+/// ticket's lines and its parents' are rebuilt
+/// ([`context::refresh_index_touched`]), from the one reading of the tickets
+/// that everything after the act shares ([`ticket::Store::after_act`]). An
+/// outcome that names no ticket is refreshed in full.
+fn refresh_index_after_touching(
+    repository: &repo::Repository,
+    store: &ticket::Store,
+    outcome: &ticket::Outcome,
+) {
+    if outcome.is_refused() || !repository.root.join(context::INDEX_PATH).is_file() {
+        return;
+    }
+    let named = ["ticket", "id", "target"]
+        .iter()
+        .find_map(|key| outcome.result[*key].as_str())
+        .map(|record| record.split('/').next().unwrap_or(record))
+        .filter(|id| openwarrant_core::ticket::is_ticket_id(id));
+    let Some(id) = named else {
+        return refresh_index_after(repository, outcome, false);
+    };
+    let refreshed = match store.after_act() {
+        Ok(after) => context::refresh_index_touched(repository, id, &after.tickets),
+        Err(e) => Err(e.into()),
+    };
+    if let Err(e) = refreshed {
+        eprintln!(
+            "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+            context::INDEX_PATH
+        );
+    }
+}
+
 /// [`refresh_index_after`] for `war create`: the new ticket's block alone
 /// ([`context::refresh_index_created`]), so a create does not read every
 /// ticket to list one.
@@ -4122,7 +4156,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     o.insert("ledger_prompt".to_owned(), serde_json::json!(ask));
                 }
             }
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_touching(&repository, &store, &outcome);
             ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "done", &outcome))
         }
@@ -4640,7 +4674,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let mut outcome = ticket::start_cmd(&store, id.as_deref())?;
             session_usage::after_start(&repository.root, &store, &mut outcome);
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_touching(&repository, &store, &outcome);
             ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "start", &outcome))
         }
@@ -5126,7 +5160,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     if_rev.as_deref(),
                 )?
             };
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_touching(&repository, &store, &outcome);
             Ok(ticket_answer(mode, "add", &outcome))
         }
         PlanCommand::Note {
@@ -5161,7 +5195,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             }
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_touching(&repository, &store, &outcome);
             Ok(ticket_answer(mode, "note", &outcome))
         }
         PlanCommand::Edit {
@@ -5213,7 +5247,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::parts::promote(&store, &target, &tests)?;
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_touching(&repository, &store, &outcome);
             Ok(ticket_answer(mode, "promote", &outcome))
         }
         PlanCommand::New {
@@ -7842,12 +7876,11 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             if_rev,
             actor,
         } => {
-            let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(
-                mode,
-                "reopen",
-                &ticket::reopen(&store, &target, &reason, if_rev.as_deref())?,
-            ))
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            let outcome = ticket::reopen(&store, &target, &reason, if_rev.as_deref())?;
+            // An item unticked moves the ticket's line and its parents'.
+            refresh_index_after_touching(&repository, &store, &outcome);
+            Ok(ticket_answer(mode, "reopen", &outcome))
         }
         AdminCommand::MergeTicket {
             base,

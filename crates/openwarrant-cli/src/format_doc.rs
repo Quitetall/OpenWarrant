@@ -585,16 +585,16 @@ fn work_document(
     })
 }
 
-/// The single-file ticket `file` (`<tickets>/<alias>.md`) alone, read as
-/// [`load`] reads it among every document, under the repository's
-/// profiles; with `None`, the profiles and no document.
+/// The single-file tickets `files` (alias and `<tickets>/<alias>.md`) alone,
+/// each read as [`load`] reads it among every document, under the
+/// repository's profiles; with none, the profiles and no document.
 #[must_use]
-pub(crate) fn ticket_alone(repo: &Repository, file: Option<(&str, &Utf8Path)>) -> FormatDocs {
+pub(crate) fn tickets_alone(repo: &Repository, files: &[(String, Utf8PathBuf)]) -> FormatDocs {
     let mut out = FormatDocs {
         profiles: profiles(repo),
         ..FormatDocs::default()
     };
-    if let Some((alias, file)) = file {
+    for (alias, file) in files {
         match work_document(repo, Place::Ticket, alias, file, &out.profiles) {
             Ok(one) => out.docs.push(one),
             Err(fault) => out.faults.push(fault),
