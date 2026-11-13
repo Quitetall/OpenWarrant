@@ -165,13 +165,29 @@ fn acquire_linux(path: &Path, expected: &str) -> Result<ProtectedExecutable, Pro
 #[cfg(all(test, target_os = "linux"))]
 mod tests {
     use super::*;
+
+    /// A system `true` as a regular file, with the arguments that make it
+    /// one. Ubuntu 26.04's coreutils links `/usr/bin/true` to a multicall
+    /// binary, which `acquire` rightly refuses as linked; its real file is
+    /// called with `true` as the first argument.
+    fn system_true() -> (std::path::PathBuf, Vec<OsString>) {
+        let real = std::fs::canonicalize("/usr/bin/true").unwrap();
+        let args = if real.file_name().is_some_and(|n| n == "true") {
+            Vec::new()
+        } else {
+            vec![OsString::from("true")]
+        };
+        (real, args)
+    }
+
     #[test]
     fn approved_image_executes_from_a_sealed_descriptor() {
-        let path = Path::new("/usr/bin/true");
+        let (path, args) = system_true();
+        let path = path.as_path();
         let digest = openwarrant_compiler::sha256_hex(&std::fs::read(path).unwrap());
         let image = ProtectedExecutable::acquire(path, &digest).unwrap();
         assert_eq!(image.digest(), digest);
-        let (success, output) = image.run(&[], Duration::from_secs(3), 1024).unwrap();
+        let (success, output) = image.run(&args, Duration::from_secs(3), 1024).unwrap();
         assert!(success);
         assert!(output.is_empty());
         use std::io::Write;
@@ -186,7 +202,8 @@ mod tests {
     }
     #[test]
     fn mismatch_and_unbounded_execution_are_refused() {
-        let path = Path::new("/usr/bin/true");
+        let (path, args) = system_true();
+        let path = path.as_path();
         assert!(matches!(
             ProtectedExecutable::acquire(path, &"0".repeat(64)),
             Err(ProviderFailure::Rejected(_))
@@ -198,11 +215,11 @@ mod tests {
         let digest = openwarrant_compiler::sha256_hex(&std::fs::read(path).unwrap());
         let image = ProtectedExecutable::acquire(path, &digest).unwrap();
         assert!(matches!(
-            image.run(&[], Duration::ZERO, 1024),
+            image.run(&args, Duration::ZERO, 1024),
             Err(ProviderFailure::Rejected(_))
         ));
         assert!(matches!(
-            image.run(&[], Duration::from_secs(1), 0),
+            image.run(&args, Duration::from_secs(1), 0),
             Err(ProviderFailure::Rejected(_))
         ));
     }

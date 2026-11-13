@@ -8,6 +8,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Two `runtime_capture::protected_executable` tests failed on GitHub's `ubuntu-26.04`
+  runners, where `/usr/bin/true` links to a multicall coreutils binary that the
+  sealed-descriptor check rightly refuses as linked. The tests now use the real
+  file and call it as `true`. The check itself is unchanged.
+
+### Fixed
+
 - MCP `war_start` always delivers its complete required context packet in both
   structured content and a text fallback. `json: false` cannot discard required
   rules. Claim-only replies and other tools keep their terse presentation.
