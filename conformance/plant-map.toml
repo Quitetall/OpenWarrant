@@ -231,7 +231,7 @@ paths = [
 ]
 plants = [
     "82-context.sh", "179-context.sh", "184-format-context-apply.sh", "186-token-budget.sh",
-    "188-live-updates.sh",
+    "188-live-updates.sh", "300-create-index.sh",
 ]
 
 [[rule]]
