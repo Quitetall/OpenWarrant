@@ -15,6 +15,14 @@ and keep their report envelope's command name.
 
 Bare `war` opens the human TUI. Agents use explicit commands with `--json`.
 
+`war init` records the repository's test as `[tickets] done_test` when it finds
+one (`war init --done-test ["<command>"]` sets it later), and `war done` then
+runs it on work with no check of its own: a pass ticks at observed, a failure
+ticks nothing. A `war done` that finishes a Warrant ends with `next: <id> <title>`
+when something is ready, `war status` names the first two ready Warrants, and
+`war view prime --ready` prints the ready rows alone (docs/TICKETS.md, "For
+agents").
+
 All six take `--interactive` (`-I`), which asks for what is not given and then does
 what the plain command does: `create` asks for a title, steps, a test and a
 sign-off; `start` and `done` pick from what is ready or held; `status` and `check`
@@ -161,7 +169,7 @@ so it stays there. Its top-level spelling is what retires.
 | List remaining Warrant records and status, read-only, from live sources. `progress` is an alias. Legacy resolution is not implementation completion | `war view overview` | `war overview`, `war view progress`, `war progress` | often | group; `war overview` retiring; aliases retiring |
 | Every Warrant, its type, state and progress: the light ones (tickets) first, then those with a directory, then those read in place. Filters narrow it to exactly the Warrants every one admits | `war view warrants` | `war warrants`, `war view tickets`, `war tickets`, `war view ls`, `war ls` | often | group; `war warrants` retiring; aliases retiring |
 | What can start now: open, unclaimed, unblocked items across Warrants, most urgent and oldest first. A directory Warrant's ready stages are in `war view next` | `war status --ready` | `war view ready`, `war ready` | daily | flag added; `war ready` retiring |
-| What is open: one line per open Warrant (progress, who holds it, what it waits on) and done work by id; one Warrant in full with an id | `war view prime` | `war prime` | daily | group; `war prime` retiring |
+| What is open: one line per open Warrant (progress, who holds it, what it waits on) and done work by id; one Warrant in full with an id; `--ready`, the ready rows alone | `war view prime` | `war prime` | daily | group; `war prime` retiring |
 | The records a task needs, cited by id, inside a byte budget | `war view context` | `war context` | daily | kept: FORMAT-1.0 §10.3 |
 | The corpus timeline (`oh.war/corpus-timeline/v1`): every journal event by day. The same as `war status --timeline`, and its envelope's command is `status`, as that one's is | `war status --timeline` | `war view timeline` | often | duplicate; retiring |
 | Inventory workspaces and conservatively reclaim only finished tool-owned ones | `war admin worktrees` | `war worktrees` | rare | group; `war worktrees` retiring |

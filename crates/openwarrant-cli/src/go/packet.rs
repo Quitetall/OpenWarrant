@@ -61,6 +61,7 @@ pub const SESSION_FILES: &[&str] = &[
     ".openwarrant/session.json",
     ".openwarrant/start.log",
     ".openwarrant/go-packet.json",
+    ".openwarrant/next.md",
     ".openwarrant/state",
 ];
 

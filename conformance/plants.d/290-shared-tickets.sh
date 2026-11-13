@@ -52,7 +52,8 @@ sw_as bob "$SW_B" view ready; cp "$SW_T/out" "$SW_T/ready"
 if [[ $SW_BEFORE == 1 && -n "$SW_ID" && ! -e "$SW_B/docs/tickets/$SW_ID.md" ]] \
     && grep -q '^Tickets: 1 open' "$SW_T/status" \
     && grep -q "^- $SW_ID — Rotate the signing keys .*elsewhere: worktree $SW_A (branch main)" "$SW_T/prime" \
-    && grep -q "^$SW_ID .*Rotate the signing keys" "$SW_T/ready"; then
+    && grep -q "^$SW_ID .*Rotate the signing keys.*\[elsewhere: worktree $SW_A (branch main)\]" "$SW_T/ready" \
+    && grep -q "^  $SW_ID .*Rotate the signing keys.*\[elsewhere: worktree" "$SW_T/status"; then
     sw_ok "created in A, shown in B" "uncommitted in A; B's status counts it, prime and ready title it, marked elsewhere"
 else
     sw_fail "created in A, shown in B" "before $SW_BEFORE id '$SW_ID': $(head -c 200 "$SW_T/status") | $(grep -a "$SW_ID" "$SW_T/prime" | head -c 300)"
@@ -65,6 +66,15 @@ if [[ -n "$SW_ID2" && "$SW_ID2" != "$SW_ID" && $SW_NAMES == 2 && -f "$SW_REG/$SW
     sw_ok "one id, one ticket" "each id is one name in the clone's register, taken as a claim takes a lock"
 else
     sw_fail "one id, one ticket" "ids '$SW_ID' '$SW_ID2', $SW_NAMES entries"
+fi
+
+# --- .openwarrant/next.md in B names it too, marked ----------------------------------
+sw_as bob "$SW_B" create "Something of B's own"; SW_RC=$?
+if [[ $SW_RC == 0 ]] && grep -q "^$SW_ID .*Rotate the signing keys.*\[elsewhere: worktree $SW_A" "$SW_B/.openwarrant/next.md" \
+    && ! grep -q "Something of B's own.*elsewhere" "$SW_B/.openwarrant/next.md"; then
+    sw_ok "next.md lists it, marked" "B's .openwarrant/next.md offers A's ticket as elsewhere; B's own is not marked"
+else
+    sw_fail "next.md lists it, marked" "exit $SW_RC: $(head -c 400 "$SW_B/.openwarrant/next.md" 2>&1)"
 fi
 
 # --- unknown where nothing announces it ---------------------------------------------

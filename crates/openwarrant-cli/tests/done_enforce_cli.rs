@@ -438,3 +438,44 @@ fn work_claimed_without_start_is_said_and_not_refused() {
     assert_eq!(v["exit_code"], 0, "{v}");
     assert_eq!(rules(&v), ["done.unrecorded"], "{v}");
 }
+
+/// `[tickets] done_test` decides the agent's tick on an Order and never its
+/// signature: a failing default hands nothing over, and a passing one leaves
+/// the Order waiting on its signer.
+#[test]
+fn an_order_still_waits_for_its_signer_after_the_default_passes() {
+    let r = Repo::new();
+    let (id, free) = r.order("Ship it");
+    let config = r.root.join("openwarrant.toml");
+    let mut toml = std::fs::read_to_string(&config).unwrap();
+    toml.push_str("\n[tickets]\ndone_test = \"test -f ok\"\n");
+    std::fs::write(&config, toml).unwrap();
+    r.commit("an order");
+    assert_eq!(json(&r.root, "agent", &["start", &id])["exit_code"], 0);
+    let target = format!("{id}/{free}");
+    let refused = json(&r.root, "agent", &["done", &target]);
+    assert!(
+        rules(&refused).contains(&"ticket.check-failed".to_owned()),
+        "{refused}"
+    );
+    let journal = || {
+        std::fs::read_to_string(r.root.join(format!("docs/tickets/{id}/journal.jsonl")))
+            .unwrap_or_default()
+    };
+    assert!(
+        !journal().contains("work.awaits_signature"),
+        "{}",
+        journal()
+    );
+    std::fs::write(r.root.join("ok"), "").unwrap();
+    let done = json(&r.root, "agent", &["done", &target]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["level"], "observed", "{done}");
+    assert_eq!(
+        done["result"]["ticket_state"], "awaiting_signature",
+        "{done}"
+    );
+    assert!(journal().contains("work.awaits_signature"), "{}", journal());
+    let text = std::fs::read_to_string(r.doc(&id)).unwrap();
+    assert!(text.contains("- [ ] the release"), "{text}");
+}

@@ -46,7 +46,14 @@ pub struct Brief {
     pub interfaces: Option<String>,
     /// With `[claims] remote`: what is held on another machine, in one line.
     pub elsewhere: Option<String>,
+    /// The first [`READY_SHOWN`] ready tickets, a line each with the command
+    /// that takes it ([`ticket::ready_lines`]), so the next question is
+    /// already answered.
+    pub ready_rows: Vec<String>,
 }
+
+/// How many ready tickets the brief names; the rest are the count above them.
+pub const READY_SHOWN: usize = 2;
 
 /// A count, or `?`.
 fn figure(n: Option<usize>) -> String {
@@ -137,6 +144,11 @@ impl Brief {
             Ok(rows) => {
                 let ready: BTreeSet<&str> = rows.iter().map(|r| r.ticket.as_str()).collect();
                 self.ready_tickets = Some(ready.len());
+                self.ready_rows = ticket::ready_lines(&rows)
+                    .lines()
+                    .take(READY_SHOWN)
+                    .map(str::to_owned)
+                    .collect();
             }
             Err(e) => self.unknown.push(format!("ready work: {e}")),
         }
@@ -183,6 +195,9 @@ impl Brief {
             counted(self.ready_tickets, "ticket"),
             counted(self.ready_stages, "stage")
         );
+        for row in &self.ready_rows {
+            let _ = writeln!(out, "  {row}");
+        }
         if let Some(line) = &self.elsewhere {
             let _ = writeln!(out, "{}{}", line[..1].to_ascii_uppercase(), &line[1..]);
         }
@@ -261,6 +276,18 @@ mod tests {
              Blocking questions: ?\n\
              `war status --verbose` shows everything.\n"
         );
+    }
+
+    #[test]
+    fn ready_rows_follow_the_ready_line_and_nothing_is_added_without_them() {
+        let brief = Brief {
+            ready_tickets: Some(3),
+            ready_rows: vec!["t-1a2b     p2  Fix it  (1 ready)  `war start t-1a2b`".to_owned()],
+            ..Brief::default()
+        };
+        assert!(brief.render().contains(
+            "Ready: 3 tickets, ? stages\n  t-1a2b     p2  Fix it  (1 ready)  `war start t-1a2b`\nOpen by level"
+        ));
     }
 
     #[test]

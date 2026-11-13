@@ -732,6 +732,19 @@ enum DailyCommand {
             conflicts_with = "guided"
         )]
         claims_remote: Option<String>,
+        /// Set `[tickets] done_test`: the command `war done` runs on work
+        /// that declares no check of its own, ticking at `observed` when it
+        /// passes and nothing when it does not. Without a command, the test
+        /// found in the repository. Plain `war init` records a found one;
+        /// deleting the line turns it off. Works on a repository already
+        /// set up.
+        #[arg(
+            long = "done-test",
+            value_name = "COMMAND",
+            num_args = 0..=1,
+            conflicts_with = "guided"
+        )]
+        done_test: Option<Option<String>>,
     },
     /// Create a Warrant (a ticket) and print its id: a title is enough.
     ///
@@ -2109,6 +2122,10 @@ enum ViewCommand {
         /// nothing. Bounded to 6,144 bytes, reads only, and claims nothing.
         #[arg(long, value_name = "TEXT", conflicts_with_all = ["ticket", "session"])]
         prompt: Option<String>,
+        /// Only what can start now, a line each with the command that takes
+        /// it: no overview and no how-to. What `war view ready` prints.
+        #[arg(long, conflicts_with_all = ["ticket", "session", "prompt"])]
+        ready: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -3277,8 +3294,12 @@ fn init_extras(
     seed: Option<init::schema_seed::Seed>,
     ci: Option<(&camino::Utf8Path, &[String])>,
     claims_remote: Option<(&camino::Utf8Path, &str)>,
+    done_test: Option<(&camino::Utf8Path, init::DoneTest<'_>)>,
 ) -> Result<Vec<String>, init::InitError> {
     let mut lines = Vec::new();
+    if let Some((root, asked)) = done_test {
+        lines.extend(init::set_done_test(root, asked)?);
+    }
     if let Some((root, remote)) = claims_remote {
         lines.push(init::set_claims_remote(root, remote)?);
     }
@@ -4025,6 +4046,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 outcome = ticket::parts::signed(&store, outcome)?;
             }
             refresh_index_after_create(&repository, &outcome);
+            ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "create", &outcome))
         }
         DailyCommand::Done {
@@ -4109,6 +4131,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 }
             }
             refresh_index_after(&repository, &outcome, false);
+            ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "done", &outcome))
         }
         DailyCommand::Apply { package, actor, at } => {
@@ -4389,6 +4412,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             ci,
             ci_tests,
             claims_remote,
+            done_test,
         } => {
             // W1.4: checked before anything is written, so a copy that
             // differs refuses the whole command.
@@ -4397,10 +4421,23 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             // Asked of a repository already set up, only the extra is written.
             let ci = ci.then_some((dir.as_path(), ci_tests.as_slice()));
             let claims_remote = claims_remote.as_deref().map(|r| (dir.as_path(), r));
-            if (seed.is_some() || ci.is_some() || claims_remote.is_some())
+            // `--done-test [CMD]` names or detects it; a plain first init
+            // records one only when it finds one, and says nothing otherwise.
+            // `--program` and `--no-preset` keep their bytes unless asked.
+            let done_test = match &done_test {
+                Some(Some(cmd)) => Some(init::DoneTest::Named(cmd)),
+                Some(None) => Some(init::DoneTest::Detected),
+                None if program.is_none() && !no_preset && !guided => {
+                    Some(init::DoneTest::IfDetected)
+                }
+                None => None,
+            };
+            let asked = done_test.filter(|d| !matches!(d, init::DoneTest::IfDetected));
+            if (seed.is_some() || ci.is_some() || claims_remote.is_some() || asked.is_some())
                 && dir.join(init::CONFIG_FILE).exists()
             {
-                let lines = init_extras(seed, ci, claims_remote)?;
+                let asked = asked.map(|d| (dir.as_path(), d));
+                let lines = init_extras(seed, ci, claims_remote, asked)?;
                 if ctx.json {
                     let report = diagnostic::Report {
                         notes: lines,
@@ -4532,7 +4569,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                 }
             }
-            for line in init_extras(seed, ci, claims_remote)? {
+            let done_test = done_test.map(|d| (dir.as_path(), d));
+            for line in init_extras(seed, ci, claims_remote, done_test)? {
                 if ctx.json {
                     setup_messages.push(line);
                 } else {
@@ -4611,6 +4649,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             let mut outcome = ticket::start_cmd(&store, id.as_deref())?;
             session_usage::after_start(&repository.root, &store, &mut outcome);
             refresh_index_after(&repository, &outcome, false);
+            ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "start", &outcome))
         }
         DailyCommand::Check {
@@ -7132,9 +7171,14 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             ticket: target,
             session,
             prompt,
+            ready,
             actor,
         } => {
             let (repository, store) = ctx.tickets(actor.as_deref())?;
+            if ready {
+                let outcome = ticket::ready_for(&store, Some(mode))?;
+                return Ok(ticket_answer(mode, "prime", &outcome));
+            }
             if let Some(prompt) = prompt {
                 let prompt = if prompt == "-" {
                     let mut text = Vec::new();
@@ -7796,11 +7840,9 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             actor,
         } => {
             let (_, store) = ctx.tickets(actor.as_deref())?;
-            Ok(ticket_answer(
-                mode,
-                "release",
-                &ticket::release(&store, &target, if_rev.as_deref())?,
-            ))
+            let outcome = ticket::release(&store, &target, if_rev.as_deref())?;
+            ticket::next_file::after(&store, &outcome);
+            Ok(ticket_answer(mode, "release", &outcome))
         }
         AdminCommand::Reopen {
             target,
