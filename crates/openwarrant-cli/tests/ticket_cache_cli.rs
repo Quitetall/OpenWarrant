@@ -205,6 +205,44 @@ fn native_program(tag: &str) -> PathBuf {
     root
 }
 
+/// A master, `docs/work/<id>/<id>-<slug>.md`, is answered from the cache as
+/// a single-file ticket is, and an edit in place is seen.
+#[test]
+fn masters_are_answered_from_the_cache() {
+    let root = scratch("masters");
+    for title in ["Alpha master", "Bravo master"] {
+        let out = run(
+            &root,
+            &["create", title, "--item", "one"],
+            &[("OPENWARRANT_TICKET_LAYOUT", "work")],
+        );
+        assert!(out.status.success(), "{}", text(&out.stderr));
+    }
+    std::thread::sleep(std::time::Duration::from_millis(2300));
+    let view: &[&str] = &["--json", "view", "tickets"];
+    same_as_disabled(&root, view);
+    let warm = same_as_disabled(&root, view);
+    assert!(
+        warm.starts_with("ticket cache: 2 of 2 ticket(s) from the cache, 0 read"),
+        "{warm}"
+    );
+    let document = std::fs::read_dir(root.join("docs/work"))
+        .unwrap()
+        .flatten()
+        .flat_map(|d| std::fs::read_dir(d.path()).unwrap().flatten())
+        .map(|f| f.path())
+        .find(|p| p.extension().is_some_and(|x| x == "md"))
+        .unwrap();
+    let text = std::fs::read_to_string(&document).unwrap();
+    std::fs::write(&document, text.replace(" master\n", " master, retitled\n")).unwrap();
+    let seen = same_as_disabled(&root, view);
+    assert!(
+        seen.starts_with("ticket cache: 1 of 2 ticket(s) from the cache, 1 read"),
+        "{seen}"
+    );
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 /// The alias of the single-file ticket whose document holds `needle`.
 fn native_ticket(root: &Path, needle: &str) -> String {
     std::fs::read_dir(root.join("docs/tickets"))

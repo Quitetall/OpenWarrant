@@ -306,6 +306,69 @@ fn war_create_writes_the_tests_it_is_given() {
     assert_eq!(s.finish(), 0);
 }
 
+/// R2 over MCP: `war_create` refuses a likely duplicate by name, as the CLI
+/// does, and `force` creates it.
+#[test]
+fn war_create_refuses_a_duplicate_and_force_creates_it() {
+    let root = tempfile::tempdir().unwrap();
+    let init = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["--root", root.path().to_str().unwrap()])
+        .args(["init", "--namespace", "MT"])
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .expect("runs");
+    assert!(init.status.success(), "{init:?}");
+    let mut s = Session::start_at(root.path());
+    let first = s.tool(
+        2,
+        "war_create",
+        serde_json::json!({"title":"Add CSV export","json":true}),
+    );
+    let id = first["result"]["structuredContent"]["result"]["id"]
+        .as_str()
+        .expect("an id")
+        .to_owned();
+    let again = s.tool(
+        3,
+        "war_create",
+        serde_json::json!({"title":"Add export to CSV","json":true}),
+    );
+    let report = &again["result"]["structuredContent"];
+    assert_eq!(again["result"]["isError"], true, "{again}");
+    assert_eq!(
+        report["diagnostics"][0]["rule"], "ticket.duplicate",
+        "{again}"
+    );
+    assert!(
+        report["diagnostics"][0]["message"]
+            .as_str()
+            .unwrap()
+            .contains(&id),
+        "the refusal names the first: {again}"
+    );
+    assert_eq!(report["result"]["id"], id.as_str(), "{again}");
+    // The refusal pair: distinct work is created, and so is the duplicate
+    // when asked for outright.
+    let other = s.tool(
+        4,
+        "war_create",
+        serde_json::json!({"title":"Add JSON export","json":true}),
+    );
+    assert_eq!(
+        other["result"]["structuredContent"]["exit_code"], 0,
+        "{other}"
+    );
+    let forced = s.tool(
+        5,
+        "war_create",
+        serde_json::json!({"title":"Add export to CSV","force":true,"json":true}),
+    );
+    let made = &forced["result"]["structuredContent"];
+    assert_eq!(made["exit_code"], 0, "{forced}");
+    assert_ne!(made["result"]["id"], id.as_str(), "{forced}");
+    assert_eq!(s.finish(), 0);
+}
+
 #[test]
 fn questions_tool_preserves_partial_store_diagnostics() {
     fn copy(from: &std::path::Path, to: &std::path::Path) {

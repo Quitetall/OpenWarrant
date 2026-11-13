@@ -167,6 +167,7 @@ pub fn scope(corpus: &crate::corpus::Corpus, since: Option<&str>) -> Result<Scop
     let mut literal: Vec<String> = shared.clone();
     literal.push(warrants.clone());
     literal.extend(tickets.clone());
+    literal.push(crate::subject::WORK_ROOT.to_owned());
     literal.extend(pinned.keys().cloned());
     literal.sort();
     literal.dedup();
@@ -211,7 +212,13 @@ pub fn scope(corpus: &crate::corpus::Corpus, since: Option<&str>) -> Result<Scop
         if let Some(owners) = pinned.get(path) {
             scope.warrants.extend(owners.iter().cloned());
         }
-        if tickets.as_deref().is_some_and(|d| under(path, d)) {
+        // A ticket kept as a master, `docs/work/<id>/…` (one-format.md).
+        let master_ticket = path
+            .strip_prefix(crate::subject::WORK_ROOT)
+            .and_then(|r| r.strip_prefix('/'))
+            .and_then(|r| r.split_once('/'))
+            .is_some_and(|(id, _)| crate::ticket::is_ticket_ref(id));
+        if master_ticket || tickets.as_deref().is_some_and(|d| under(path, d)) {
             scope.tickets = true;
         }
         let in_tree = |dir: &str| path.strip_prefix(dir).and_then(|r| r.strip_prefix('/'));
@@ -224,6 +231,7 @@ pub fn scope(corpus: &crate::corpus::Corpus, since: Option<&str>) -> Result<Scop
                 |(_, name)| name == crate::ticket::format::INNER,
             )
         });
+        let work_document = work_document || (master_ticket && path.ends_with(".md"));
         if work_document && repo.root.join(path).is_file() {
             scope.work_documents.insert(path.clone());
         }
@@ -231,6 +239,7 @@ pub fn scope(corpus: &crate::corpus::Corpus, since: Option<&str>) -> Result<Scop
         // `generated/` projection or a hidden directory (doc_index.rs), so a
         // change there is not a document's.
         let indexed = !under(path, &warrants)
+            && !master_ticket
             && !tickets.as_deref().is_some_and(|d| under(path, d))
             && !path
                 .split('/')

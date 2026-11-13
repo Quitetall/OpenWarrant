@@ -137,16 +137,15 @@ pub(crate) fn validate(text: &str) -> Result<(), String> {
 }
 
 /// Publish a complete source without replacing a pre-existing document.
-pub(crate) fn create(
-    store: &Store,
-    dir: &camino::Utf8Path,
-    text: &str,
-) -> Result<camino::Utf8PathBuf, RepoError> {
+pub(crate) fn create(source: &camino::Utf8Path, text: &str) -> Result<(), RepoError> {
     validate(text).map_err(|why| RepoError::Message(format!("ticket.document-invalid: {why}")))?;
-    let source = store
-        .dir
-        .join(format!("{}.md", dir.file_name().unwrap_or_default()));
-    let temporary = dir.join(".source.war-tmp");
+    let dir = source.parent().unwrap_or(source);
+    // Named by the document: single-file tickets share one directory, and
+    // two creates at once must not share one staging file.
+    let temporary = dir.join(format!(
+        ".{}.war-tmp",
+        source.file_name().unwrap_or("source")
+    ));
     let mut file = std::fs::OpenOptions::new()
         .write(true)
         .create_new(true)
@@ -155,12 +154,11 @@ pub(crate) fn create(
     file.write_all(text.as_bytes())
         .and_then(|_| file.sync_all())
         .map_err(super::io(format!("could not write {source}")))?;
-    let result = std::fs::hard_link(&temporary, &source).map_err(super::io(format!(
+    let result = std::fs::hard_link(&temporary, source).map_err(super::io(format!(
         "could not publish {source} without replacement"
     )));
     let _ = std::fs::remove_file(&temporary);
-    result?;
-    Ok(source)
+    result
 }
 
 fn field(text: &str, key: &str, value: Option<&str>) -> String {

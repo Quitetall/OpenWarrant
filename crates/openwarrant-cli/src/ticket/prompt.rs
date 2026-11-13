@@ -80,7 +80,8 @@ fn tokens(prompt: &str) -> Vec<&str> {
 /// Whether `token` is shaped as an id with enough of it to mean one.
 fn id_shaped(token: &str) -> bool {
     let head = token.split('/').next().unwrap_or(token);
-    (head.starts_with("t-") || head.starts_with("i-")) && head.chars().count() >= 2 + MIN_ID_BODY
+    (head.starts_with("t-") || head.starts_with("w-") || head.starts_with("i-"))
+        && head.chars().count() >= 2 + MIN_ID_BODY
 }
 
 /// The Warrants the id-shaped `token` could be: one when `resolve` answers,
@@ -93,7 +94,7 @@ fn by_id(tickets: &[Ticket], token: &str) -> Vec<usize> {
             (0..tickets.len())
                 .filter(|&n| {
                     let t = &tickets[n];
-                    if head.starts_with("t-") {
+                    if head.starts_with("t-") || head.starts_with("w-") {
                         t.id().starts_with(head)
                     } else {
                         t.checklist.ids().iter().any(|i| i.starts_with(head))

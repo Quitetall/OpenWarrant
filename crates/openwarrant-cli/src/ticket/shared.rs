@@ -653,7 +653,7 @@ fn retire(store: &Store, reg: &Registry, e: &Entry) {
 /// After a journalled act on `t`: its entry, if it has one, says what its
 /// files say now, or is dropped when it is done. Best effort: the entry is
 /// an announcement, and the ticket's own files are the record.
-pub(super) fn sync(store: &Store, t: &Ticket) {
+pub(super) fn sync(store: &Store, t: &Ticket, event_type: &str) {
     if t.elsewhere.is_some() {
         return;
     }
@@ -661,6 +661,9 @@ pub(super) fn sync(store: &Store, t: &Ticket) {
         return;
     };
     if !reg.entry_path(t.id()).exists() {
+        if event_type == super::event::ITEM_REOPENED {
+            reregister(store, &reg, t);
+        }
         return;
     }
     let Some(mut e) = reg.read(t.id()).filter(|e| e.uuid == t.manifest.uuid) else {
@@ -682,6 +685,67 @@ pub(super) fn sync(store: &Store, t: &Ticket) {
         }
     }
     sweep(store, &reg);
+}
+
+/// The work orders (`war plan new`: masters that are no ticket) another
+/// worktree of this clone registered and this checkout has no file for.
+#[must_use]
+pub fn orders_elsewhere(store: &Store) -> Vec<Entry> {
+    let Some(reg) = store.registry() else {
+        return Vec::new();
+    };
+    reg.entries()
+        .into_iter()
+        .filter(|e| e.root != reg.root.as_str() && !store.root.join(&e.path).exists())
+        .filter(|e| {
+            e.files.get(&e.path).is_some_and(|text| {
+                crate::format_doc::frontmatter_profile(text).is_some_and(|p| p != "ticket")
+            })
+        })
+        .collect()
+}
+
+impl Entry {
+    /// `worktree /w (branch b)`, or `remote origin (branch b)`.
+    #[must_use]
+    pub fn lives(&self) -> String {
+        self.place().describe()
+    }
+}
+
+/// A ticket reopened after its entry was dropped is announced again.
+fn reregister(store: &Store, reg: &Registry, t: &Ticket) {
+    let Ok(now) = store.load(&t.dir) else {
+        return;
+    };
+    if now.is_done() {
+        return;
+    }
+    let mut e = reg.stub(
+        now.id(),
+        &now.manifest.uuid,
+        &now.manifest.title,
+        &now.manifest.created_by,
+        &store.rel(&now.intent_path),
+    );
+    if reg.reserve(&e).is_ok_and(|taken| taken) {
+        refresh(store, &mut e, &now);
+        let _ = publish(store, reg, &mut e);
+        reg.write(&e);
+    }
+}
+
+/// After `war admin migrate` moved `t` to `docs/work/`: its entry, if it has
+/// one, names the new path and holds the files as they are there.
+pub fn moved(store: &Store, t: &Ticket) {
+    let Some(reg) = store.registry() else {
+        return;
+    };
+    if let Some(mut e) = reg.read(t.id()).filter(|e| e.uuid == t.manifest.uuid) {
+        e.path = store.rel(&t.intent_path);
+        refresh(store, &mut e, t);
+        reg.write(&e);
+    }
 }
 
 /// Drop every entry whose file is on the default branch: everyone has it
@@ -844,7 +908,7 @@ fn seen_remote(
             .collect();
         remote::fetch_refs(root, name, &missing)?;
         let mut out = Vec::new();
-        for (commit, _) in &refs {
+        for (commit, refname) in &refs {
             if let Some(e) = known.get(commit) {
                 out.push((commit.clone(), e.clone()));
                 continue;
@@ -860,6 +924,12 @@ fn seen_remote(
                 e.files
                     .insert(path.clone(), remote::blob_of(root, commit, blob)?);
             }
+            // The ref's name is the id the remote settled, whatever the
+            // record says.
+            e.id = refname
+                .strip_prefix(remote::TICKET_PREFIX)
+                .unwrap_or(&e.id)
+                .to_owned();
             e.remote = Some(name.to_owned());
             e.published = Some(Published {
                 remote: name.to_owned(),
@@ -993,10 +1063,10 @@ pub fn alike(a: &str, b: &str) -> Option<Alike> {
 /// of the title's words, taken as a claim is and released when dropped. Of
 /// two agents creating one title at the same instant, the second waits, then
 /// finds the first's ticket and is refused by [`duplicate`].
-pub(super) struct TitleLock(Option<Utf8PathBuf>);
+pub(crate) struct TitleLock(Option<Utf8PathBuf>);
 
 impl TitleLock {
-    pub(super) fn take(store: &Store, title: &str) -> Self {
+    pub(crate) fn take(store: &Store, title: &str) -> Self {
         let Some(reg) = store.registry() else {
             return Self(None);
         };
@@ -1047,7 +1117,7 @@ impl Drop for TitleLock {
 /// open one: this checkout's, a registered one, or one another clone
 /// announced. Tickets under two different parents are never compared: "Write
 /// the tests" is a step of many plans.
-pub(super) fn duplicate(
+pub(crate) fn duplicate(
     store: &Store,
     title: &str,
     part_of: Option<&str>,
@@ -1082,6 +1152,23 @@ pub(super) fn duplicate(
                     id: e.id,
                     title: e.title,
                     part_of: e.part_of,
+                });
+            }
+        }
+    }
+    // The work orders this checkout holds that are no ticket (`war plan
+    // new`), until a resolution closes them.
+    if let Ok(repo) = crate::repo::Repository::open(store.root.clone()) {
+        for row in crate::warrants::document_rows(&repo).0 {
+            if row.dir.starts_with(crate::subject::WORK_ROOT)
+                && row.state != "resolved"
+                && !open.iter().any(|o| o.id == row.id)
+            {
+                open.push(Open {
+                    id: row.id,
+                    title: row.title,
+                    part_of: None,
+                    place: row.dir,
                 });
             }
         }

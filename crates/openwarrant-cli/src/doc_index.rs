@@ -242,6 +242,10 @@ fn pruned(repo: &Repository) -> BTreeSet<String> {
     out.insert(repo.config.paths.warrants.trim_end_matches('/').to_owned());
     // The masters (FORMAT-1.0 §4.1): each is read as an item in its own form.
     out.insert(crate::subject::WORK_ROOT.to_owned());
+    // Their views (`views.rs`): a projection is no source, and one compile
+    // writes them and the index together, so an index that listed them
+    // would change on the next compile.
+    out.insert(crate::views::PAGES.to_owned());
     if let Ok(store) = crate::ticket::Store::open(repo, None) {
         out.insert(repo.relative(&store.dir));
     }
@@ -329,6 +333,9 @@ pub fn walk(repo: &Repository, globs: &[String]) -> BTreeSet<String> {
         }
         let segs: Vec<&str> = p.split('/').filter(|s| !s.is_empty()).collect();
         expand(&repo.root, "", &segs, &pruned, &mut out);
+    }
+    for view in [crate::views::ROADMAP, crate::views::HISTORY] {
+        out.remove(view);
     }
     out
 }
