@@ -8,6 +8,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- `war host` is a function of its request again: since `docs/work` became opt-in, every
+  `war` asked for the working directory and looked up from it for `openwarrant.toml`
+  before it knew its command, which the full gate's purity check refused. That search is
+  now made by the first `w-` id a command asks about. A one-second plant
+  (`79-host-startup.sh`) runs on every change to the entry point; the full `79-host.sh`
+  was selected for those pull requests and cut by the time cap each time.
 - `war status --ready` and `war status --next` no longer slow down with the number of
   tickets the way they did. At 9,800 tickets `ready` took 2 to 4 seconds and now takes
   about a tenth of a second; the answers are the same, row for row. What changed: who
