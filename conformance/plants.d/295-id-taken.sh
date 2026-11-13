@@ -13,6 +13,7 @@
 # ref is its own.
 
 # The work layout is opt-in (`[tickets] layout = "work"`); this plant is about it.
+IT_LAYOUT_WAS=${OPENWARRANT_TICKET_LAYOUT-}
 export OPENWARRANT_TICKET_LAYOUT=work
 echo "== shared work: an id lost at the remote =="
 IT_WAR="$REPO_ROOT/${WAR#./}"
@@ -82,4 +83,4 @@ else
 fi
 
 [[ -n "$IT_T" && "$IT_T" == */tmp.* ]] && /usr/bin/rm -rf "$IT_T"
-unset OPENWARRANT_TICKET_LAYOUT
+if [[ -n "$IT_LAYOUT_WAS" ]]; then export OPENWARRANT_TICKET_LAYOUT="$IT_LAYOUT_WAS"; else unset OPENWARRANT_TICKET_LAYOUT; fi
