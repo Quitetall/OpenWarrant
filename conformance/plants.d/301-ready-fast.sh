@@ -61,7 +61,7 @@ RF_ORDER=$(rf_as maker --json create "Needs a person" --sign --item "Do the work
 RF_OUT=$(rf_as maker --json create "Leaves the repository" --item "Never ready" | rf_id)
 [[ -n $RF_PATHED && -n $RF_HOLDER && -n $RF_ELSE && -n $RF_ORDER && -n $RF_OUT ]] \
     || { printf 'PLANT SETUP FAILED: the ready plant could not create its tickets\n' >&2; exit 9; }
-sed -i 's|^alias: \(.*\)$|alias: \1\npaths:\n  - "/etc/**"|' "$RF_ROOT/docs/tickets/$RF_OUT.md"
+sed -i 's|^alias: \(.*\)$|alias: \1\npaths:\n  - "/etc/**"|' "$(tk "$RF_ROOT/docs/tickets/$RF_OUT.md")"
 # It is still a ticket the store reads: what keeps it from the ready set is its scope.
 rf_as reader --json view tickets > "$RF_T/tickets.json" 2>/dev/null
 python3 -c '
@@ -113,8 +113,8 @@ RF_P1=$(rf_as maker --json create "Phase one work" --summary "In the first phase
 RF_P2=$(rf_as maker --json create "Phase two work" --summary "In the second phase." --item "Do it" | rf_id)
 [[ -n $RF_P1 && -n $RF_P2 ]] \
     || { printf 'PLANT SETUP FAILED: the ready plant could not create its phase tickets\n' >&2; exit 9; }
-sed -i 's/^summary: .*/part_of: "SC-PHASE-1"\n&/' "$RF_ROOT/docs/tickets/$RF_P1.md"
-sed -i 's/^summary: .*/part_of: "SC-PHASE-2"\n&/' "$RF_ROOT/docs/tickets/$RF_P2.md"
+sed -i 's/^summary: .*/part_of: "SC-PHASE-1"\n&/' "$(tk "$RF_ROOT/docs/tickets/$RF_P1.md")"
+sed -i 's/^summary: .*/part_of: "SC-PHASE-2"\n&/' "$(tk "$RF_ROOT/docs/tickets/$RF_P2.md")"
 rf_as other claim "$RF_HOLDER" --paths "src/a.rs" >"$RF_T/claim.out" 2>&1; RF_CLAIM_RC=$?
 rf_as worker claim "$RF_ORDER" >/dev/null 2>&1
 rf_as worker done "$RF_ORDER" >"$RF_T/order.out" 2>&1

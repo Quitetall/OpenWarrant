@@ -86,7 +86,7 @@ else
 fi
 os_as agent --json done "$OS_A"; OS_RC=$?
 OS_STATE=$(os_py 'v["result"]["ticket_state"]+" "+v["result"]["awaiting_signature"][0]')
-OS_EVENTS=$(cat "$OS_ROOT"/docs/tickets/*/journal.jsonl "$OS_ROOT"/docs/tickets/.journals/* 2>/dev/null | grep -c 'work.awaits_signature')
+OS_EVENTS=$({ tk_journals "$OS_ROOT"; cat "$OS_ROOT"/docs/tickets/.journals/* 2>/dev/null; } | grep -c 'work.awaits_signature')
 [[ $OS_RC == 0 && $OS_STATE == "awaiting_signature $OS_A/$OS_AS" && $OS_EVENTS == 1 ]]
 os_check "a repeat says the same, writes nothing" $? "exit $OS_RC, $OS_STATE, $OS_EVENTS event(s)"
 
@@ -217,7 +217,7 @@ fi
 os_as agent done "$OS_H" --check; OS_RC=$?
 os_as owner --json view show "$OS_H"
 OS_ALL=$(os_py '[i["done"] for i in v["result"]["items"]]')
-OS_SEEN=$(grep -c '\[observed\]' "$OS_ROOT/docs/tickets/$OS_H.md")
+OS_SEEN=$(grep -c '\[observed\]' "$(tk "$OS_ROOT/docs/tickets/$OS_H.md")")
 if [[ $OS_RC == 0 && $OS_ALL == "[True, True]" && $OS_SEEN == 2 ]]; then
     os_ok "--check ticks every item observed" "$OS_H/both, the one added since included"
 else
@@ -235,7 +235,7 @@ fi
 # ---- war create names the document ---------------------------------------------------------
 os_as owner create "A named document"
 OS_MADE=$(sed -n 's/^created //p' "$OS_T/out")
-if [[ $OS_MADE == docs/tickets/t-*.md && -f "$OS_ROOT/$OS_MADE" ]]; then
+if [[ ($OS_MADE == docs/tickets/t-*.md || $OS_MADE == docs/work/w-*/w-*.md) && -f "$OS_ROOT/$OS_MADE" ]]; then
     os_ok "create prints the document's path" "$OS_MADE exists"
 else
     os_fail "create prints the document's path" "[$OS_MADE]"
@@ -250,8 +250,8 @@ OS_TX="$OS_T/tx"
     printf '%s\n' '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"war_create","arguments":{"title":"A ticket over MCP","sign":false,"actor":"mcp-agent"}}}'
 } >"$OS_TX"
 OS_MCP=$(cd "$OS_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$OS_WAR" "$OS_TX" 2>/dev/null)
-OS_ORDER=$(grep -l '^# An Order over MCP$' "$OS_ROOT"/docs/tickets/*.md 2>/dev/null | head -1)
-OS_TICKET=$(grep -l '^# A ticket over MCP$' "$OS_ROOT"/docs/tickets/*.md 2>/dev/null | head -1)
+OS_ORDER=$(grep -l '^# An Order over MCP$' "$OS_ROOT"/docs/tickets/*.md "$OS_ROOT"/docs/work/*/*.md 2>/dev/null | head -1)
+OS_TICKET=$(grep -l '^# A ticket over MCP$' "$OS_ROOT"/docs/tickets/*.md "$OS_ROOT"/docs/work/*/*.md 2>/dev/null | head -1)
 if [[ -n $OS_ORDER && -n $OS_TICKET ]] && grep -q '^min: signed$' "$OS_ORDER" && ! grep -q '^min: signed$' "$OS_TICKET"; then
     os_ok "war_create takes sign" "sign true writes min: signed; false writes none"
 else

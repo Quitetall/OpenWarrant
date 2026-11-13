@@ -25,11 +25,13 @@ ia() { "${IA_ENV[@]}" "$IA_WAR" --root "$IA_R" "$@"; }
 ia_tty() { local input="$1"; shift
     printf '%b' "$input" | "${IA_ENV[@]}" timeout 30 script -qec "$IA_WAR --root $IA_R $*" /dev/null 2>&1; }
 ia init --namespace IA >/dev/null 2>&1 </dev/null
+# How many tickets there are, in either layout.
+ia_n() { ls "$IA_R/docs/tickets" "$IA_R/docs/work" 2>/dev/null | wc -l; }
 
 if ! script -qec true /dev/null >/dev/null 2>&1; then
     printf 'UNKNOWN %-32s %s\n' "the human surface" "no pty here: \`script\` cannot run, nothing established"
 else
-    IA_N0=$(ls "$IA_R/docs/tickets" 2>/dev/null | wc -l)
+    IA_N0=$(ia_n)
     IA_BAD=""
     for c in "create --interactive" "start --interactive" "done --interactive" \
         "status --interactive" "check --interactive" \
@@ -42,21 +44,21 @@ else
     [[ $rc -ne 0 ]] && grep -q 'needs a terminal' <<<"$out" || IA_BAD="$IA_BAD [init: $rc]"
     out=$(ia init -I 2>&1 </dev/null); rc=$?
     [[ $rc -ne 0 ]] && grep -q 'needs a terminal' <<<"$out" || IA_BAD="$IA_BAD [init -I: $rc]"
-    IA_N1=$(ls "$IA_R/docs/tickets" 2>/dev/null | wc -l)
+    IA_N1=$(ia_n)
     if [[ -z "$IA_BAD" && $IA_N0 -eq $IA_N1 ]]; then
         ia_ok "no terminal, no prompt" "all six refused by name; nothing written"
     else
         ia_fail "no terminal, no prompt" "$IA_BAD; tickets $IA_N0->$IA_N1"
     fi
 
-    IA_J=$(ia_tty '' --json create --interactive); IA_N2=$(ls "$IA_R/docs/tickets" 2>/dev/null | wc -l)
+    IA_J=$(ia_tty '' --json create --interactive); IA_N2=$(ia_n)
     if grep -q 'interactive.no-terminal' <<<"$IA_J" && [[ $IA_N2 -eq $IA_N1 ]]; then
         ia_ok "--json never prompts" "refused at a terminal too"
     else
         ia_fail "--json never prompts" "$(head -c 300 <<<"$IA_J")"
     fi
 
-    IA_E=$(ia_tty '\n' create --interactive); IA_N3=$(ls "$IA_R/docs/tickets" 2>/dev/null | wc -l)
+    IA_E=$(ia_tty '\n' create --interactive); IA_N3=$(ia_n)
     if grep -q 'nothing was created' <<<"$IA_E" && [[ $IA_N3 -eq $IA_N1 ]]; then
         ia_ok "an empty title creates nothing" "said so, no document"
     else
@@ -65,13 +67,13 @@ else
 
     # title, one step, an end to the steps, a test, no signature.
     IA_O=$(ia_tty 'Typed work\none\n\ntrue\nn\n' create --interactive)
-    IA_ID=$(grep -oE 't-[0-9a-f]{4,}' <<<"$IA_O" | head -1)
+    IA_ID=$(grep -oE '\b[tw]-[0-9a-f]{4,}' <<<"$IA_O" | head -1)
     IA_L=$(ia --json view warrants </dev/null | python3 -c '
 import json, sys
 for t in json.load(sys.stdin)["result"]["tickets"]:
     print(t["id"], t["title"])' 2>/dev/null)
-    if [[ -f "$IA_R/docs/tickets/$IA_ID.md" ]] && grep -q 'one' "$IA_R/docs/tickets/$IA_ID.md" \
-        && grep -q '^run: true' "$IA_R/docs/tickets/$IA_ID.md" && grep -q "$IA_ID Typed work" <<<"$IA_L"; then
+    if [[ -f "$(tk "$IA_R/docs/tickets/$IA_ID.md")" ]] && grep -q 'one' "$(tk "$IA_R/docs/tickets/$IA_ID.md")" \
+        && grep -q '^run: true' "$(tk "$IA_R/docs/tickets/$IA_ID.md")" && grep -q "$IA_ID Typed work" <<<"$IA_L"; then
         ia_ok "create asks, then does what the flags do" "$IA_ID, its step and its test written"
     else
         ia_fail "create asks, then does what the flags do" "id=$IA_ID: $(tail -c 300 <<<"$IA_O")"
@@ -81,7 +83,7 @@ for t in json.load(sys.stdin)["result"]["tickets"]:
     IA_H=$(ia_tty 'finished by hand\n' done --interactive)
     IA_C=$(ia_tty '\n' check --interactive)
     IA_V=$(ia_tty '\n' status --interactive)
-    if grep -q "$IA_ID" <<<"$IA_S" && grep -q 'finished by hand' "$IA_R/docs/tickets/$IA_ID/journal.jsonl" \
+    if grep -q "$IA_ID" <<<"$IA_S" && grep -q 'finished by hand' "$(tk "$IA_R/docs/tickets/$IA_ID/journal.jsonl")" \
         && grep -q 'WELL-FORMED\|READY' <<<"$IA_C" && [[ -n "$IA_V" ]]; then
         ia_ok "start, done, check, status ask too" "start took $IA_ID, done kept the note, check and status answered"
     else

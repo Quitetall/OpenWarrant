@@ -110,7 +110,7 @@ unset -f nx_cpu_ms
 # Refusal: once the item is claimed it is no longer offered.
 "$WAR" --root "$PLANT_ROOT" create "Plant ticket" --item "Ready plant item" >/dev/null 2>&1
 NX_HUMAN=$("$WAR" --root "$PLANT_ROOT" next 2>/dev/null)
-NX_CLAIM_AT=$(grep -n -m1 '^ready .*war start t-' <<<"$NX_HUMAN" | cut -d: -f1)
+NX_CLAIM_AT=$(grep -n -m1 '^ready .*war start [tw]-' <<<"$NX_HUMAN" | cut -d: -f1)
 NX_SIGN_AT=$(grep -n -m1 '^HUMAN ' <<<"$NX_HUMAN" | cut -d: -f1)
 nx_ready_first() { python3 -c '
 import sys, json

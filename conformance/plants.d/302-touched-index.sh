@@ -65,7 +65,7 @@ TI_OTHER=$(ti_create "Another epic")
     || { printf 'PLANT SETUP FAILED: the index plant could not create its tickets\n' >&2; exit 9; }
 [[ $(ti_gen) == "pass:context-index.drift" ]] \
     || { printf 'PLANT SETUP FAILED: the index drifts before any act (%s)\n' "$(ti_gen)" >&2; exit 9; }
-TI_ITEM=$(sed -n 's/.*(\(i-[0-9a-f]*\)).*/\1/p' "$TI_ROOT/docs/tickets/$TI_LEAF.md" | head -1)
+TI_ITEM=$(sed -n 's/.*(\(i-[0-9a-f]*\)).*/\1/p' "$(tk "$TI_ROOT/docs/tickets/$TI_LEAF.md")" | head -1)
 
 # --- each act leaves a fresh compilation ---------------------------------------------
 ti_step add add "$TI_LEAF" "Second thing"
@@ -88,7 +88,7 @@ ti_line "$TI_MID" > "$TI_T/mid-open.txt"
 TI_BEFORE="$(ti_state "$TI_LEAF") $(ti_state "$TI_MID") $(ti_state "$TI_TOP")"
 while read -r TI_OPEN; do
     [[ -n $TI_OPEN ]] && ti_step "done-$TI_OPEN" done "$TI_LEAF/$TI_OPEN"
-done < <(sed -n 's/^- \[ \] .*(\(i-[0-9a-f]*\)).*/\1/p' "$TI_ROOT/docs/tickets/$TI_LEAF.md")
+done < <(sed -n 's/^- \[ \] .*(\(i-[0-9a-f]*\)).*/\1/p' "$(tk "$TI_ROOT/docs/tickets/$TI_LEAF.md")")
 TI_AFTER="$(ti_state "$TI_LEAF") $(ti_state "$TI_MID") $(ti_state "$TI_TOP")"
 ti_line "$TI_BY" > "$TI_T/by-after.txt"
 cp "$TI_IDX" "$TI_T/done.txt"

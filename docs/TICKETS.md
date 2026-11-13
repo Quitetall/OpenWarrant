@@ -118,10 +118,8 @@ check output beside it in `docs/work/w-xxxx/`, where `war plan new` already
 writes its work orders, by the same path: one id per clone, registered for
 every worktree, and a title that reads as open work's is refused for both
 (`--force` creates anyway). Every daily command reads either layout. It
-becomes the default once the whole plant battery passes on it; until then
-`war evidence go`, the evidence tree rule, context selection, interactive
-create, the order signer and Mission Control are proven on `docs/tickets/`
-only.
+becomes the default once the whole plant battery passes on it:
+`conformance/plant-layouts.sh` runs every plant once per layout.
 
 - **The id is identity.** `w-` and the hash of a fresh UUID. The slug is the
   title's, in the file name only, and cosmetic: rename the file and every

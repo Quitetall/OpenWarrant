@@ -115,7 +115,7 @@ git -C "$GX_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "fiv
 GX_OUT=$(gxw --json evidence go 2>/dev/null); GX_RC=$?
 gx_sum() { gx_field "$GX_OUT" "$1"; }
 GX_LANDED=$(gx_sum '",".join(sorted(x["node"] + ":" + x["level"] for x in v["result"]["landed"]))')
-GX_TICKED=$(cat "$GX_ROOT"/docs/tickets/t-*.md | grep -c '^- \[x\]')
+GX_TICKED=$(tk_docs "$GX_ROOT" | grep -c '^- \[x\]')
 GX_CREATE=$(grep -c '^issue create --title Honest work: h1 --body-file - --assignee @copilot$' "$GX_TMP/fake/gh.argv")
 GX_VIEW=$(grep -c '^issue view https://github.com/o/r/issues/[0-9]* --json comments --jq ' "$GX_TMP/fake/gh.argv")
 GX_BRIEF=$(grep -l '^## Answer' "$GX_TMP"/fake/*.brief 2>/dev/null | wc -l)
@@ -145,7 +145,8 @@ for node, want in zip(sys.argv[2:], ["go.adapter-answer", "submission.self-compl
 print(" ".join(out))
 PY
 )
-if [[ "$GX_RULES" == "ok ok ok" ]] && ! grep -q '^- \[x\] [dfr]1' "$GX_ROOT"/docs/tickets/t-*.md; then
+GX_DOCS=$(tk_docs "$GX_ROOT")
+if [[ "$GX_RULES" == "ok ok ok" ]] && ! grep -q '^- \[x\] [dfr]1' <<<"$GX_DOCS"; then
     gx_ok "an adapter cannot declare done" "status done (go.adapter-answer), resolve (self-completion), forged dispatch (unknown-dispatch): none ticked"
 else
     gx_fail "an adapter cannot declare done" "$GX_RULES"

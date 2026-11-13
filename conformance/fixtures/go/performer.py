@@ -23,6 +23,7 @@ the scheduler from the outside:
 Concurrency is counted under an flock on GO_LOG + ".lock".
 """
 import fcntl
+import glob
 import json
 import os
 import signal
@@ -69,11 +70,17 @@ record(f"start {node} {attempt} {time.time_ns()} running={running}")
 root = packet["root"]
 for dep in packet.get("depends_on", []):
     ticket, _, item = dep.partition("/")
-    path = os.path.join(root, "docs", "tickets", ticket + ".md")
-    try:
-        lines = open(path, encoding="utf-8").read().splitlines()
-    except OSError:
-        lines = []
+    # The ticket's document, in whichever layout holds it: a master in
+    # docs/work/<id>/, or docs/tickets/<id>.md.
+    paths = sorted(glob.glob(os.path.join(root, "docs", "work", ticket, ticket + "*.md")))
+    paths.append(os.path.join(root, "docs", "tickets", ticket + ".md"))
+    lines = []
+    for path in paths:
+        try:
+            lines = open(path, encoding="utf-8").read().splitlines()
+            break
+        except OSError:
+            continue
     if item:
         ticked = any(l.startswith("- [x]") and f"({item}" in l for l in lines)
     else:

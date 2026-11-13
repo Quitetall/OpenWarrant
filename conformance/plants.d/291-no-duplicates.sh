@@ -26,7 +26,12 @@ nd_as() {
         >"$ND_T/out" 2>"$ND_T/err" </dev/null)
 }
 nd_id() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["id"])' "$ND_T/out"; }
-nd_count() { find "$ND_A/docs/tickets" "$ND_B/docs/tickets" -maxdepth 1 -name 't-*.md' 2>/dev/null | wc -l; }
+nd_count() {
+    {
+        find "$ND_A/docs/tickets" "$ND_B/docs/tickets" -maxdepth 1 -name 't-*.md' 2>/dev/null
+        find "$ND_A/docs/work" "$ND_B/docs/work" -mindepth 2 -maxdepth 2 -name '[tw]-*.md' 2>/dev/null
+    } | wc -l
+}
 ND_A="$ND_T/a" ND_B="$ND_T/b"
 
 mkdir -p "$ND_A"
@@ -52,7 +57,7 @@ fi
 
 # --- distinct work with similar words is created ------------------------------------
 nd_as bob "$ND_B" --json create "Add JSON export"; ND_RC=$?; ND_JSON=$(nd_id)
-if [[ $ND_RC == 0 && -n "$ND_JSON" && -f "$ND_B/docs/tickets/$ND_JSON.md" ]]; then
+if [[ $ND_RC == 0 && -n "$ND_JSON" && -f "$(tk "$ND_B/docs/tickets/$ND_JSON.md")" ]]; then
     nd_ok "distinct work is created" "\"Add JSON export\" beside \"Add CSV export\": one word differs on each side, and it is the work"
 else
     nd_fail "distinct work is created" "exit $ND_RC: $(head -c 300 "$ND_T/err")"
@@ -60,7 +65,7 @@ fi
 
 # --- --force creates ------------------------------------------------------------------
 nd_as bob "$ND_B" --json create "Add export to CSV" --force; ND_RC=$?; ND_FORCED=$(nd_id)
-if [[ $ND_RC == 0 && -n "$ND_FORCED" && "$ND_FORCED" != "$ND_FIRST" && -f "$ND_B/docs/tickets/$ND_FORCED.md" ]]; then
+if [[ $ND_RC == 0 && -n "$ND_FORCED" && "$ND_FORCED" != "$ND_FIRST" && -f "$(tk "$ND_B/docs/tickets/$ND_FORCED.md")" ]]; then
     nd_ok "--force creates" "the same title that was refused is created when asked for outright"
 else
     nd_fail "--force creates" "exit $ND_RC: $(head -c 300 "$ND_T/err")"
@@ -78,7 +83,7 @@ for n in 1 2 3 4 5 6; do
     [[ $(cat "$ND_T/race$n.rc") == 0 ]] && ND_WON=$((ND_WON + 1))
     grep -q 'ticket.duplicate.*"Race for one title"' "$ND_T/race$n.err" && ND_NAMED=$((ND_NAMED + 1))
 done
-ND_MADE=$(grep -l '^# Race for one title' "$ND_A"/docs/tickets/t-*.md "$ND_B"/docs/tickets/t-*.md 2>/dev/null | wc -l)
+ND_MADE=$(grep -l '^# Race for one title' "$ND_A"/docs/tickets/t-*.md "$ND_A"/docs/work/*/*.md "$ND_B"/docs/tickets/t-*.md "$ND_B"/docs/work/*/*.md 2>/dev/null | wc -l)
 if [[ $ND_WON == 1 && $ND_NAMED == 5 && $ND_MADE == 1 ]]; then
     nd_ok "a raced title leaves one ticket" "six at once in two worktrees: one created, five refused naming it"
 else

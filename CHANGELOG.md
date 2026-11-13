@@ -20,6 +20,8 @@ Notable changes to OpenWarrant. Format loosely follows
   - `war add`, `done`, `note`, `start` and `plan promote` on a `w-` id rebuild that
     ticket's lines of `docs/generated/llms.txt` and its parents'. They rebuilt every
     ticket's, because the id was tested as `t-` only.
+- `tools/scale/synth-corpus.sh --tickets` accepts the `w-` id `war create` prints in
+  the work layout.
 
 - `war host` is a function of its request again: since `docs/work` became opt-in, every
   `war` asked for the working directory and looked up from it for `openwarrant.toml`

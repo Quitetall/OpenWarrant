@@ -46,7 +46,7 @@ cx_war compile >/dev/null 2>&1
 cx_git add -A >/dev/null 2>&1
 cx_git commit -qm "context fixtures" >/dev/null 2>&1
 CX_ALIAS=CX-WAR-0001
-CX_TICKET=$(basename "$(ls "$CX_ROOT"/docs/tickets/t-*.md | head -1)" .md)
+CX_TICKET=$(tk_ids "$CX_ROOT" | head -1)
 
 # --- determinism ------------------------------------------------------------
 cx_war context "$CX_ALIAS" > "$CX_TMP/a.md" 2>"$CX_TMP/a.err"; CX_RC=$?
@@ -108,7 +108,8 @@ else
 fi
 
 # --- targets ----------------------------------------------------------------
-cx_war context "docs/tickets/$CX_TICKET.md" > "$CX_TMP/path.md" 2>/dev/null; CX_PATH_RC=$?
+CX_DOC=$(tk "$CX_ROOT/docs/tickets/$CX_TICKET.md")
+cx_war context "${CX_DOC#"$CX_ROOT"/}" > "$CX_TMP/path.md" 2>/dev/null; CX_PATH_RC=$?
 # A directory ticket, in the clone: this tree's index stays as compiled.
 cx_clone() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR "$CX_WAR" --root "$CX_CLONE" "$@" </dev/null; }
 cx_clone create --legacy "A directory ticket" --item "Still resolves" >/dev/null 2>&1

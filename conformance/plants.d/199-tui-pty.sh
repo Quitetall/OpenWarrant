@@ -426,7 +426,12 @@ try:
     t.keys(ENTER)
     t.wait(r"\[exit 0\]", 15)
     shown = war("view", "show", new, cwd=tree).stdout
-    here = open("%s/docs/tickets/%s/journal.jsonl" % (R, new)).read()
+    # This checkout's journal of it, in whichever layout holds the ticket.
+    here = ""
+    for held in ("tickets", "work"):
+        journal = "%s/docs/%s/%s/journal.jsonl" % (R, held, new)
+        if os.path.exists(journal):
+            here += open(journal).read()
     claim("a note reaches the holder", "use the fuzz corpus" in shown and "fuzz corpus" not in here,
           "in the worktree, read by `war view show`", shown[:300])
     t.keys(ESC)

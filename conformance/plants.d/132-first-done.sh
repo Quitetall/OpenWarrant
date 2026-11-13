@@ -83,7 +83,7 @@ FD_VID=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["i
 FD_VSTEPS+=(done); FD_VDONE=$(fdv done "$FD_VID" 2>&1); FD_VD=$?
 FD_VSTATE=$(fdv --json show "$FD_VID" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["ticket"]["state"])' 2>/dev/null)
 FD_VEVENTS=$(python3 -c 'import json,sys; print(" ".join(json.loads(l)["type"] for l in open(sys.argv[1])))' \
-    "$FD_VROOT/docs/tickets/$FD_VID/journal.jsonl" 2>/dev/null)
+    "$(tk "$FD_VROOT/docs/tickets/$FD_VID/journal.jsonl")" 2>/dev/null)
 FD_VALL=1
 for w in "${FD_VSTEPS[@]}"; do [[ " $FD_DAILY " == *" $w "* ]] || FD_VALL=0; done
 if [[ $FD_VI -eq 0 && $FD_VC -eq 0 && $FD_VD -eq 0 && "$FD_VSTATE" == "done" && ${#FD_VSTEPS[@]} -eq 3 \
@@ -103,8 +103,8 @@ FD_VI3=$(fdv --json show "$FD_VT" 2>/dev/null | python3 -c 'import json,sys; pri
 fdv claim "$FD_VT/$FD_VI2" --as other-agent >/dev/null 2>&1
 FD_VHELD=$(fdv done "$FD_VT/$FD_VI2" 2>&1); FD_VHELD_RC=$?
 FD_VBLOCKED=$(fdv done "$FD_VT/$FD_VI3" 2>&1); FD_VBLOCKED_RC=$?
-FD_VCL=$(cat "$FD_VROOT/docs/tickets/$FD_VT.md" 2>/dev/null)
-FD_VCLAIMS=$(grep -c '"work.claimed"' "$FD_VROOT/docs/tickets/$FD_VT/journal.jsonl")
+FD_VCL=$(cat "$(tk "$FD_VROOT/docs/tickets/$FD_VT.md")" 2>/dev/null)
+FD_VCLAIMS=$(grep -c '"work.claimed"' "$(tk "$FD_VROOT/docs/tickets/$FD_VT/journal.jsonl")")
 if [[ $FD_VHELD_RC -eq 2 && $FD_VBLOCKED_RC -eq 2 && "$FD_VCLAIMS" == "1" ]] \
     && grep -qF 'work.claimed-by-other' <<<"$FD_VHELD" && grep -qF 'ticket.blocked' <<<"$FD_VBLOCKED" \
     && ! grep -q '\[x\]' <<<"$FD_VCL"; then

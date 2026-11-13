@@ -26,7 +26,7 @@ dtw() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE OPENWARRANT
     "$DT_WAR" --root "$DT_R" "$@" </dev/null; }
 dt_id() { python3 -c 'import json,sys; v=json.load(sys.stdin)["result"]; print(v["id"], *[i["id"] for i in v.get("items", [])])'; }
 dt_runs() { if [[ -f "$DT_T/count" ]]; then wc -l < "$DT_T/count" | tr -d ' '; else echo 0; fi; }
-dt_doc() { cat "$DT_R/docs/tickets/$1.md" 2>/dev/null; }
+dt_doc() { cat "$(tk "$DT_R/docs/tickets/$1.md")" 2>/dev/null; }
 dt_new() { # a git repository holding a counting test that passes when `ok` exists
     DT_R="$DT_T/$1"; mkdir -p "$DT_R"; git -C "$DT_R" init -q .
     printf 'echo run >> "%s"\ntest -f ok\n' "$DT_T/count" > "$DT_R/check.sh"
@@ -87,7 +87,7 @@ fi
 read -r DT_ID _ <<<"$(dtw --json create "Checked" | dt_id)"
 dtw start "$DT_ID" >/dev/null 2>&1
 DT_OUT=$(dtw done "$DT_ID" 2>&1); DT_S=$?
-DT_J="$DT_R/docs/tickets/$DT_ID/journal.jsonl"
+DT_J="$(tk "$DT_R/docs/tickets/$DT_ID/journal.jsonl")"
 if [[ $DT_S -eq 2 ]] && grep -qF 'refused (ticket.check-failed)' <<<"$DT_OUT" && grep -qF 'Nothing was ticked' <<<"$DT_OUT" \
     && ! grep -q 'work.item_done' "$DT_J" && grep -q '"type":"work.check_run"' "$DT_J" \
     && [[ "$(dtw --json view show "$DT_ID" | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["state"])')" != done ]]; then
@@ -113,7 +113,7 @@ read -r DT_ID _ <<<"$(dtw --json create "Cannot finish" | dt_id)"
 dtw start "$DT_ID" >/dev/null 2>&1
 DT_OUT=$(dtw done "$DT_ID" 2>&1); DT_S=$?
 if [[ $DT_S -ne 0 ]] && grep -qF 'UNKNOWN (ticket.check-unknown)' <<<"$DT_OUT" \
-    && ! grep -q 'check-failed\|ticked at' <<<"$DT_OUT" && ! grep -q 'work.item_done' "$DT_R/docs/tickets/$DT_ID/journal.jsonl"; then
+    && ! grep -q 'check-failed\|ticked at' <<<"$DT_OUT" && ! grep -q 'work.item_done' "$(tk "$DT_R/docs/tickets/$DT_ID/journal.jsonl")"; then
     dt_ok "a default that cannot finish" "UNKNOWN (ticket.check-unknown), exit $DT_S: not a pass, not a fail, nothing ticked"
 else
     dt_fail "a default that cannot finish" "exit $DT_S: $(tr '\n' '|' <<<"$DT_OUT" | cut -c1-300)"
@@ -129,7 +129,7 @@ DT_OUT=$(dtw done "$DT_ID" 2>&1); DT_S=$?
 : > "$DT_R/own"
 DT_OUT2=$(dtw done "$DT_ID" 2>&1); DT_S2=$?
 if [[ $DT_S -eq 2 ]] && grep -qF 'check.failed' <<<"$DT_OUT" && [[ $DT_S2 -eq 0 && $(dt_runs) == "$DT_N" ]] \
-    && ! grep -q 'default' <<<"$DT_OUT$DT_OUT2" && ! grep -q '"default"' "$DT_R/docs/tickets/$DT_ID/journal.jsonl"; then
+    && ! grep -q 'default' <<<"$DT_OUT$DT_OUT2" && ! grep -q '"default"' "$(tk "$DT_R/docs/tickets/$DT_ID/journal.jsonl")"; then
     dt_ok "a ticket's own test decides" "the passing default neither stood in for it nor ran"
 else
     dt_fail "a ticket's own test decides" "exit $DT_S then $DT_S2, runs $DT_N -> $(dt_runs): $(tr '\n' '|' <<<"$DT_OUT2" | cut -c1-200)"
@@ -166,14 +166,14 @@ dtw plan add "$DT_ID/$DT_A" --min signed >/dev/null 2>&1
 dtw start "$DT_ID" >/dev/null 2>&1
 command rm -f "$DT_R/ok"
 DT_OUT=$(dtw done "$DT_ID" 2>&1); DT_S=$?
-DT_J="$DT_R/docs/tickets/$DT_ID/journal.jsonl"
+DT_J="$(tk "$DT_R/docs/tickets/$DT_ID/journal.jsonl")"
 DT_HANDED=$(grep -c 'work.awaits_signature' "$DT_J")
 : > "$DT_R/ok"
 DT_OUT2=$(dtw done "$DT_ID" 2>&1); DT_S2=$?
 if [[ $DT_S -eq 2 && $DT_HANDED == 0 ]] && grep -qF 'ticket.check-failed' <<<"$DT_OUT" \
     && [[ $DT_S2 -eq 0 ]] && grep -qF "$DT_ID waits on a person: \`war sign $DT_ID/$DT_A --ssh-sign\`" <<<"$DT_OUT2" \
     && grep -qF 'ticked at observed: default passed' <<<"$DT_OUT2" && grep -q 'work.awaits_signature' "$DT_J" \
-    && grep -q '^- \[ \] the release' "$DT_R/docs/tickets/$DT_ID.md"; then
+    && grep -q '^- \[ \] the release' "$(tk "$DT_R/docs/tickets/$DT_ID.md")"; then
     dt_ok "an Order still waits for its signer" "failing: not handed over; passing: the agent's item observed, the signature item open"
 else
     dt_fail "an Order still waits for its signer" "exit $DT_S ($DT_HANDED handed) then $DT_S2: $(tr '\n' '|' <<<"$DT_OUT2" | cut -c1-300)"
@@ -189,7 +189,7 @@ read -r DT_ID _ <<<"$(dtw --json create "Over MCP" | dt_id)"
 } > "$DT_T/tx"
 command rm -f "$DT_R/ok"
 DT_MCP=$(cd "$DT_R" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_NO_PROJECTS=1 timeout 60 python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$DT_WAR" "$DT_T/tx" 2>/dev/null)
-DT_OPEN=$(grep -c 'work.item_done' "$DT_R/docs/tickets/$DT_ID/journal.jsonl")
+DT_OPEN=$(grep -c 'work.item_done' "$(tk "$DT_R/docs/tickets/$DT_ID/journal.jsonl")")
 : > "$DT_R/ok"
 sed -i '/war_start/d' "$DT_T/tx"
 DT_MCP2=$(cd "$DT_R" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_NO_PROJECTS=1 timeout 60 python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$DT_WAR" "$DT_T/tx" 2>/dev/null)

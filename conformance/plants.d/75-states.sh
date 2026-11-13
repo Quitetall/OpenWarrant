@@ -42,7 +42,7 @@ cp "$R/profiles/ticket.toml" "$R/profiles/delivery.toml" profiles/
 grep -q '^name = "in_review"$' profiles/ticket.toml || printf '\n[[states]]\nname = "in_review"\nrefines = "in_progress"\n' >> profiles/ticket.toml
 printf '\n[[states]]\nname = "signed_off"\nrefines = "verified"\n\n[[states]]\nname = "acknowledged"\nrefines = "draft"\n' >> profiles/delivery.toml
 w create "Ship the states" -i "write the code" -i "write the plant" >/dev/null
-test -n "$(ls docs/tickets)"
+test -n "$(ls docs/tickets docs/work 2>/dev/null)"
 w compile >/dev/null
 g add -A; g commit -qm "profiles declaring states, and a ticket"
 test -z "$(git status --porcelain)"
@@ -59,12 +59,12 @@ sp_war()  { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR "$SP_WAR"
 sp_line() { grep -m1 -E "$1" <<<"$2"; }
 sp_sha()  { sha256sum "$1" | cut -d' ' -f1; }
 SP_W=SP-WAR-0001
-SP_T=$(command ls "$SP_ROOT/docs/tickets" | head -1)
+SP_T=$(tk_ids "$SP_ROOT" | head -1)
 SP_ITEMS=$(sp_war show "$SP_T" --json 2>/dev/null | python3 -c 'import json,sys; print(" ".join(i["id"] for i in json.load(sys.stdin)["result"]["items"]))')
 SP_I1=${SP_ITEMS%% *}
 SP_I2=${SP_ITEMS##* }
 [[ -n "$SP_T" && -n "$SP_I1" && "$SP_I1" != "$SP_I2" ]] || { printf 'PLANT SETUP FAILED: no ticket with two items (%s: %s)\n' "$SP_T" "$SP_ITEMS" >&2; exit 9; }
-SP_J="$SP_ROOT/docs/tickets/$SP_T/journal.jsonl"
+SP_J="$(tk "$SP_ROOT/docs/tickets/$SP_T/journal.jsonl")"
 sp_states() {
     sp_war model --json 2>/dev/null | python3 -c '
 import json, sys

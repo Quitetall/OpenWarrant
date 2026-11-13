@@ -116,7 +116,11 @@ ST_NUNIQ=$(sort -u <<<"$ST_WON" | wc -l)
 ST_NLOST=$(cat "$ST_TMP"/log/*.lost | wc -l)
 ST_BAD=$(cat "$ST_TMP"/log/*.bad)
 # The journals of every checkout, and the remote's refs, by item.
-for at in "${ST_AT[@]}"; do printf '%s\n' "$at"/docs/tickets/*/journal.jsonl; done >"$ST_TMP/journals"
+for at in "${ST_AT[@]}"; do
+    for ST_J in "$at"/docs/tickets/*/journal.jsonl "$at"/docs/work/*/journal.jsonl; do
+        [[ ! -f "$ST_J" ]] || printf '%s\n' "$ST_J"
+    done
+done >"$ST_TMP/journals"
 ST_JCOUNT=$(python3 - "$ST_TMP/pool" "$ST_TMP/journals" <<'PY'
 import json, sys
 pool = set(open(sys.argv[1]).read().split())
@@ -179,7 +183,7 @@ sleep 6
 ST_OUT=$(st_war "$ST_TMP/c1" claim "$ST_V" --as heir 2>&1); ST_S3=$?
 ST_VREF=$(git -C "$ST_TMP/bare.git" log -1 --format=%B "refs/openwarrant/claims/${ST_V/\//--}" 2>/dev/null \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
-ST_VJ=$(grep '"work.claim_reclaimed"' "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")
+ST_VJ=$(grep '"work.claim_reclaimed"' "$(tk "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")")
 if [[ $ST_S -eq 0 && $ST_S2 -eq 2 && $ST_S3 -eq 0 && "$ST_VREF" == heir ]] && grep -q 'claimed on the remote .origin. by victim' <<<"$ST_ERR" \
     && grep -q 'reclaimed from victim' <<<"$ST_OUT" && grep -q '"from":"victim"' <<<"$ST_VJ"; then
     st_ok "a killed holder's item is reclaimed" "6 s in, heartbeating: heir refused by name; killed, its 5 s lease ran out: heir reclaimed it across the remote, journalled from victim"
@@ -197,7 +201,7 @@ for line in open(sys.argv[1]):
         p = e["payload"].get("changed", {}).get("priority")
         if p is not None:
             print(p)
-' "$ST_ROOT/docs/tickets/$ST_K/journal.jsonl"; }
+' "$(tk "$ST_ROOT/docs/tickets/$ST_K/journal.jsonl")"; }
 # The lost update, made on purpose: two writers increment from one read.
 read -r _ ST_A0 < <(st_read)
 st_war "$ST_ROOT" edit "$ST_K" --priority $(( (ST_A0 + 1) % 5 )) --as u1 >/dev/null 2>&1; ST_S=$?

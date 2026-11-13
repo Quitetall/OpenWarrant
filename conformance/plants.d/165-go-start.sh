@@ -52,10 +52,10 @@ GS_E=$(gs_new "Anything goes" -i "Tidy up")
 GS_D=$(gs_new "Declared only" --legacy -i "Look around")
 GS_F=$(gs_new "Single file" -i "Keep to src")
 GS_S=$(gs_new "Scoped tools" -i "Do it" --path 'src/**' --tool Read --command 'cargo test')
-sed -i '0,/^summary: /s//paths: src\/**\nsummary: /' "$GS_ROOT/docs/tickets/${GS_F%/*}.md"
+sed -i '0,/^summary: /s//paths: src\/**\nsummary: /' "$(tk "$GS_ROOT/docs/tickets/${GS_F%/*}.md")"
 printf '# Allowed\n\n## Tools\n- Read\n\n## Paths\n- src/**\n\n## Commands\n- `make test`\n' \
-    > "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md"
-cp "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md" "$GS_ROOT/docs/tickets/${GS_D%/*}/atoms/35-allowed.md"
+    > "$(tk "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md")"
+cp "$(tk "$GS_ROOT/docs/tickets/${GS_T%/*}/atoms/35-allowed.md")" "$(tk "$GS_ROOT/docs/tickets/${GS_D%/*}/atoms/35-allowed.md")"
 git -C "$GS_ROOT" add -A >/dev/null 2>&1
 git -C "$GS_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "three Warrants" >/dev/null 2>&1
 
@@ -65,7 +65,7 @@ GS_WT=$(gs_field "$GS_OUT" 'v["result"]["worktree"]')
 GS_SETTINGS=$(python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); print(s["permissions"]["allow"], s["env"]["OPENWARRANT_ACTOR"])' \
     "$GS_WT/.claude/settings.local.json" 2>/dev/null)
 GS_BRANCH=$(git -C "$GS_WT" symbolic-ref --short HEAD 2>/dev/null)
-GS_WT_CLAIM=$(grep -c '"type":"ticket.claimed"' "$GS_WT/docs/tickets/${GS_T%/*}/journal.jsonl" 2>/dev/null)
+GS_WT_CLAIM=$(grep -c '"type":"ticket.claimed"' "$(tk "$GS_WT/docs/tickets/${GS_T%/*}/journal.jsonl")" 2>/dev/null)
 GS_COMMON=$(git -C "$GS_ROOT" rev-parse --path-format=absolute --git-common-dir)
 if [[ $GS_RC -eq 0 && "$GS_SETTINGS" == "['Read', 'Edit(/src/**)', 'Bash(make test)'] claude" \
     && "$GS_BRANCH" == "war-go/${GS_T%/*}--${GS_T#*/}" && "$GS_WT_CLAIM" == "1" \
@@ -104,7 +104,7 @@ GS_F_OUT=$(gsw --json start --worktree "$GS_F" --print 2>/dev/null); GS_F_RC=$?
 GS_F_WT=$(gs_field "$GS_F_OUT" 'v["result"]["worktree"]')
 GS_F_ALLOW=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["permissions"]["allow"])' \
     "$GS_F_WT/.claude/settings.local.json" 2>/dev/null)
-GS_F_CLAIM=$(grep -c '"type":"work.claimed"' "$GS_F_WT/docs/tickets/${GS_F%/*}/journal.jsonl" 2>/dev/null)
+GS_F_CLAIM=$(grep -c '"type":"work.claimed"' "$(tk "$GS_F_WT/docs/tickets/${GS_F%/*}/journal.jsonl")" 2>/dev/null)
 GS_F_IN=$(gs_guard "$GS_F_WT" src/parser.rs)
 GS_F_OUTSIDE=$(gs_guard "$GS_F_WT" docs/notes.md)
 if [[ $GS_F_RC -eq 0 && "$GS_F_ALLOW" == "['Edit(/src/**)']" && "$GS_F_CLAIM" == "1" && -z "$GS_F_IN" \
