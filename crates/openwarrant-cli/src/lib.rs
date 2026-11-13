@@ -71,6 +71,8 @@ pub mod ledger;
 pub mod mark;
 pub mod mcp;
 pub mod migrate;
+/// `war admin migrate` without `--corpus`: tickets into `docs/work/`.
+pub mod migrate_work;
 pub mod model;
 pub mod new;
 pub mod next;
@@ -2518,12 +2520,18 @@ enum AdminCommand {
     },
     /// Import a legacy ADR corpus (§96), discharging OW-WAR-0043.
     Migrate {
-        /// Directory of ADR files named `NNNN-*.md`.
-        #[arg(long)]
-        corpus: Utf8PathBuf,
+        /// Print what would move and what would stay, and write nothing.
+        /// Without `--corpus`, `war admin migrate` moves the tickets kept
+        /// outside `docs/work/` into it as masters (ids kept, `git mv`).
+        #[arg(long, conflicts_with_all = ["corpus", "commit", "verify", "attempt_promotion"])]
+        dry_run: bool,
+        /// Import a legacy ADR corpus instead: the directory of ADR files
+        /// named `NNNN-*.md`.
+        #[arg(long, requires = "commit")]
+        corpus: Option<Utf8PathBuf>,
         /// The one named, frozen commit the corpus is read at (OBL-001).
-        #[arg(long)]
-        commit: String,
+        #[arg(long, requires = "corpus")]
+        commit: Option<String>,
         /// Where to write the import artifact.
         #[arg(long, default_value = "artifacts/lamquant-adr-import.json")]
         out: Utf8PathBuf,
@@ -8037,12 +8045,31 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
         }
 
         AdminCommand::Migrate {
-            corpus,
+            dry_run,
+            corpus: None,
+            ..
+        } => {
+            let repository = ctx.open_repo()?;
+            let (plan, report) = migrate_work::run(&repository, dry_run)?;
+            if mode != output::Mode::Json {
+                print!("{}", migrate_work::render(&plan));
+            }
+            Ok(output::finish(
+                mode,
+                "migrate",
+                &report,
+                Some(serde_json::to_value(&plan)?),
+            ))
+        }
+        AdminCommand::Migrate {
+            corpus: Some(corpus),
             commit,
             out,
             verify,
             attempt_promotion,
+            ..
         } => {
+            let commit = commit.unwrap_or_default();
             let artifact = migrate::import(&corpus, &commit, attempt_promotion)?;
             migrate::write_or_verify(&artifact, &out, verify)?;
             if mode == output::Mode::Json {

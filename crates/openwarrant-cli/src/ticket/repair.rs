@@ -33,7 +33,7 @@ pub fn propose(
             let id = payload["repair"]
                 .as_str()
                 .ok_or_else(|| RepoError::Message("prior repair link has no ID".into()))?;
-            store.load(&store.dir.join(id)).map_err(|d| {
+            store.load(&store.state_dir(id)).map_err(|d| {
                 RepoError::Message(format!(
                     "linked repair {id} is unavailable; prior history retained: {}",
                     d.message
@@ -85,7 +85,7 @@ pub fn propose(
         .ok_or_else(|| RepoError::Message("repair writer returned no item".into()))?
         .to_owned();
     let draft = store
-        .load(&store.dir.join(&id))
+        .load(&store.state_dir(&id))
         .map_err(|d| RepoError::Message(d.message))?;
     let required: Vec<_> = super::checks::of_ticket(original)
         .into_iter()

@@ -437,7 +437,8 @@ fn prime_stays_a_briefing_however_much_has_been_written() {
             .as_str()
             .unwrap()
             .to_owned();
-        let list = root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"));
+        let list =
+            crate::work_paths::at(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")));
         let text = std::fs::read_to_string(&list).unwrap();
         let day = format!("2020-01-{:02}", n + 1);
         let ticked = text
@@ -618,8 +619,10 @@ fn ticket_acts_splice_their_blocks_and_each_equals_a_full_compile() {
 fn a_summary_is_written_bounded_and_required_of_a_format_1_work_document() {
     let root = scratch("summary");
     let ticket = ticket_id(&root);
-    let manifest =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{ticket}/manifest.toml"))).unwrap();
+    let manifest = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{ticket}/manifest.toml")),
+    ))
+    .unwrap();
     assert!(manifest.contains("summary = \"The parser reads manifests and refuses duplicates.\""));
     let long = "x".repeat(201);
     let out = war(

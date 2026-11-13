@@ -516,7 +516,14 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
             continue;
         };
         let one = match work_document(repo, place, &alias, &file, &out.profiles) {
-            Ok(one) => one,
+            // A master of profile `ticket` is a ticket, wherever it is kept:
+            // the ticket store reads it, and so does the tickets' model.
+            Ok(mut one) => {
+                if master && one.doc.profile == "ticket" {
+                    one.place = Place::Ticket;
+                }
+                one
+            }
             Err(fault) => {
                 out.faults.push(fault);
                 continue;

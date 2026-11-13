@@ -609,6 +609,18 @@ impl Store {
         })
     }
 
+    /// Where the ticket `id` keeps its state, and its files when it is a
+    /// directory ticket: `docs/work/<id>/` for a master, else `<tickets>/<id>`.
+    #[must_use]
+    pub fn state_dir(&self, id: &str) -> Utf8PathBuf {
+        let master = self.root.join(crate::subject::WORK_ROOT).join(id);
+        if master != self.dir.join(id) && master.is_dir() {
+            master
+        } else {
+            self.dir.join(id)
+        }
+    }
+
     /// This store, listing shared work too ([`Self::shared`]): for the views
     /// and acts of the ticket loop.
     #[must_use]
@@ -902,23 +914,19 @@ impl Store {
                 }
             }
         }
-        let documents = self.format_documents(&entries, &|d| look.contains(d));
-        let read = match cache {
+        let mut documents = self.format_documents(&entries, &|d| look.contains(d));
+        // The masters in `docs/work/` (one-format.md) are listed on their
+        // own and read through the same cache: an entry is keyed by the
+        // document's path under the root, and judged by its own stat.
+        let masters = self.master_entries()?;
+        documents.extend(self.format_documents(&masters, &|_| true));
+        let read: Vec<Result<Ticket, Diagnostic>> = match cache {
             Some(cache) => cache.load_documents(self, &documents, pass),
             None => documents
                 .into_iter()
                 .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias)))
                 .collect(),
         };
-        // Master roots have their own listing and state paths. Do not put them
-        // in the ticket-directory cache, whose keys are relative to that root.
-        let masters = self.master_entries()?;
-        let master_documents = self.format_documents(&masters, &|_| true);
-        let read = read.into_iter().chain(
-            master_documents
-                .into_iter()
-                .map(|d| d.and_then(|(alias, file)| self.load_format(&file, &alias))),
-        );
         let mut any_format = false;
         for one in read {
             match one {
@@ -1361,11 +1369,22 @@ fn master_ticket(s: &str) -> bool {
     let Some(root) = SERVED.get() else {
         return false;
     };
-    match crate::subject::document_in(&root.join(crate::subject::WORK_ROOT).join(head), head) {
+    let work = root.join(crate::subject::WORK_ROOT);
+    let is_ticket = |id: &str| match crate::subject::document_in(&work.join(id), id) {
         crate::subject::Held::One(file) => std::fs::read_to_string(file)
             .is_ok_and(|text| crate::format_doc::frontmatter_profile(&text) == Some("ticket")),
         _ => false,
+    };
+    if work.join(head).is_dir() {
+        return is_ticket(head);
     }
+    // A prefix of an id, as every ticket command takes one.
+    std::fs::read_dir(&work).is_ok_and(|entries| {
+        entries
+            .flatten()
+            .filter_map(|e| e.file_name().into_string().ok())
+            .any(|name| name.starts_with(head) && is_ticket(&name))
+    })
 }
 
 /// What a command acts on.

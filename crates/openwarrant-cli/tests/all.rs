@@ -112,6 +112,8 @@ mod ticket_cache_cli;
 mod tickets_cli;
 #[path = "verification_subject_cli.rs"]
 mod verification_subject_cli;
+#[path = "support/work_paths.rs"]
+mod work_paths;
 #[path = "work_states_cli.rs"]
 mod work_states_cli;
 #[path = "work_tracking_cli.rs"]

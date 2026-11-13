@@ -684,6 +684,19 @@ pub(super) fn sync(store: &Store, t: &Ticket) {
     sweep(store, &reg);
 }
 
+/// After `war admin migrate` moved `t` to `docs/work/`: its entry, if it has
+/// one, names the new path and holds the files as they are there.
+pub fn moved(store: &Store, t: &Ticket) {
+    let Some(reg) = store.registry() else {
+        return;
+    };
+    if let Some(mut e) = reg.read(t.id()).filter(|e| e.uuid == t.manifest.uuid) {
+        e.path = store.rel(&t.intent_path);
+        refresh(store, &mut e, t);
+        reg.write(&e);
+    }
+}
+
 /// Drop every entry whose file is on the default branch: everyone has it
 /// through git. Runs only when that branch's tip moved since the last sweep.
 pub(super) fn sweep(store: &Store, reg: &Registry) {

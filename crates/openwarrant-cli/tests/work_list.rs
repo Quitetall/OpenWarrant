@@ -118,7 +118,9 @@ fn adding_a_trigger_makes_a_warrant_in_place_and_stores_no_level() {
     let added = war(root.path(), &["plan", "add", &id, "--test", "true"]);
     assert_eq!(added["exit_code"], 0, "{added}");
     assert_eq!(level(root.path(), &id), Level::Warrant);
-    let document = std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}.md")));
+    let document = std::fs::read_to_string(crate::work_paths::at(
+        root.path().join(format!("docs/tickets/{id}.md")),
+    ));
     assert!(!document.unwrap().contains("level"), "a level was stored");
 }
 
@@ -430,12 +432,18 @@ fn promotion_adds_a_field_in_place_and_writes_no_new_document() {
     assert_eq!(warrants(), before, "a promotion wrote a new document");
 
     // The refusal: it is an Order already, and nothing moves.
-    let bytes = std::fs::read(root.join(format!("docs/tickets/{id}.md"))).unwrap();
+    let bytes = std::fs::read(crate::work_paths::at(
+        root.join(format!("docs/tickets/{id}.md")),
+    ))
+    .unwrap();
     let again = war_raw(root, &["plan", "promote", &id]);
     assert_eq!(again.status.code(), Some(2));
     assert!(String::from_utf8_lossy(&again.stderr).contains("ticket.already-promoted"));
     assert_eq!(
-        std::fs::read(root.join(format!("docs/tickets/{id}.md"))).unwrap(),
+        std::fs::read(crate::work_paths::at(
+            root.join(format!("docs/tickets/{id}.md"))
+        ))
+        .unwrap(),
         bytes
     );
 }
@@ -451,7 +459,7 @@ fn create_makes_every_level_as_one_document() {
     assert_eq!(level(root, &both), Level::Order);
     assert_eq!(level(root, &warrant), Level::Warrant);
     for id in [&order, &both, &warrant] {
-        assert!(root.join(format!("docs/tickets/{id}.md")).is_file());
+        assert!(crate::work_paths::at(root.join(format!("docs/tickets/{id}.md"))).is_file());
         assert!(
             !root
                 .join(format!("docs/tickets/{id}/manifest.toml"))

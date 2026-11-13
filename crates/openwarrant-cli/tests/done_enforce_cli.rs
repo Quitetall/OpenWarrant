@@ -100,7 +100,7 @@ impl Repo {
     }
 
     fn doc(&self, id: &str) -> PathBuf {
-        self.root.join(format!("docs/tickets/{id}.md"))
+        crate::work_paths::at(self.root.join(format!("docs/tickets/{id}.md")))
     }
 
     fn edit(&self, id: &str, from: &str, to: &str) {
@@ -203,7 +203,7 @@ fn a_warrant_is_refused_until_seen_and_held_then_its_trigger_runs() {
     r.commit("start");
     let at = r.start_worktree("alice", &id);
     r.amend_plan();
-    let doc = at.join(format!("docs/tickets/{id}.md"));
+    let doc = crate::work_paths::at(at.join(format!("docs/tickets/{id}.md")));
     let before = std::fs::read(&doc).unwrap();
 
     let refused = run(&at, "alice", &["done", &id]);
@@ -314,7 +314,7 @@ fn a_warrant_widening_is_flagged_by_name_journalled_and_not_started_away() {
     );
     assert_eq!(v["result"]["widened"][0], "x.tools + Bash", "{v}");
     let out = Command::new("grep")
-        .args(["-rlF", "work.scope_widened", "docs/tickets"])
+        .args(["-rlF", "work.scope_widened", "docs/work"])
         .current_dir(&r.root)
         .output()
         .unwrap();
@@ -418,7 +418,10 @@ fn an_unread_level_is_unknown_and_does_not_close() {
     let id = r.create(&["--legacy", "A light Warrant", "-i", "one"]);
     r.commit("start");
     json(&r.root, "alice", &["start", &id]);
-    std::fs::create_dir_all(r.root.join(format!("docs/tickets/{id}/atoms/30-checks.md"))).unwrap();
+    std::fs::create_dir_all(crate::work_paths::at(
+        r.root.join(format!("docs/tickets/{id}/atoms/30-checks.md")),
+    ))
+    .unwrap();
     let out = run(&r.root, "alice", &["done", &id]);
     assert_eq!(code(&out), 2);
     assert!(
@@ -459,8 +462,10 @@ fn an_order_still_waits_for_its_signer_after_the_default_passes() {
         "{refused}"
     );
     let journal = || {
-        std::fs::read_to_string(r.root.join(format!("docs/tickets/{id}/journal.jsonl")))
-            .unwrap_or_default()
+        std::fs::read_to_string(crate::work_paths::at(
+            r.root.join(format!("docs/tickets/{id}/journal.jsonl")),
+        ))
+        .unwrap_or_default()
     };
     assert!(
         !journal().contains("work.awaits_signature"),
