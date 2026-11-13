@@ -1,0 +1,4 @@
+id = "070-spec-and-roadmap-masters"
+kind = "accept"
+section = "4.6"
+says = """the singletons are `docs/work/spec/spec.md` and `docs/work/roadmap/roadmap.md` ... An interface is a Design-tier document"""

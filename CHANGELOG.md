@@ -37,6 +37,21 @@ Notable changes to OpenWarrant. Format loosely follows
 - Byte budgets under test: `war done` naming the next ticket within 320 bytes and
   bare `war status` with ready work within 640. `tools/measure-tokens.sh` prints
   both, `war view prime --ready` and `next.md`.
+- FORMAT-1.0 revision 4, proposed (OW-ADR-0035, `status: proposed`; the editor
+  accepts it): new items are masters `docs/work/<id>/<id>-<slug>.md` with `w-`/`d-`
+  hash ids, `spec` and `roadmap` are the only fixed ids, human numbers are display
+  ordinals, and work orders and documents stand on one four-tier ladder (§4.6).
+  `war check` refuses a document `type` that is not its derived tier
+  (`format.type-tier`), a `kind` that disagrees with the id
+  (`format.kind-mismatch`), a second Roadmap, and the master `spec` beside
+  `SPEC.md` (`format.document-duplicate`). Built-in profiles `design` and `guide`.
+  `war context` ranks a higher tier first within a distance. Corpus cases 069,
+  070 and 174-177.
+- `war compile` writes the views of the masters in `docs/work/`: one page per
+  document (`docs/pages/<id>.md`), the open work orders by Roadmap phase
+  (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
+  `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
+  repository without masters. `conformance/views.toml` lists `docs/pages/**`.
 
 ### Fixed
 

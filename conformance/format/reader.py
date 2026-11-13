@@ -41,7 +41,10 @@ CORE_KINDS = (
     "part_of", "depends_on", "implements", "constrains", "evaluates", "supersedes",
     "supports", "refutes", "trades_off_against", "causes", "qualifies", "selected_over",
 )
-CORE_KEYS = {"format", "profile", "alias", "uuid", "summary", "paths", "requires"}
+CORE_KEYS = {"format", "profile", "alias", "uuid", "summary", "paths", "requires", "kind"}
+# Section 4.6: the document types and their tiers; where the Spec's master is.
+DOCUMENT_TYPES = {"spec": 1, "adr": 2, "design": 3, "interface": 3, "guide": 4}
+SPEC_MASTER = "docs/work/spec/spec.md"
 # Section 3.3: frontmatter keys that are relations of the document's own record.
 RELATION_KEYS = {"implements", "depends_on", "supersedes", "part_of"}
 # Section 2: the core types.
@@ -83,6 +86,7 @@ REFUSALS = {
     "format.relation-target", "format.item", "format.id-duplicate",
     "format.fence-unclosed", "format.section-missing", "format.document-duplicate",
     "format.manifest-restates", "format.unrecognised", "format.field-shape", "profile.invalid",
+    "format.kind-mismatch", "format.type-tier",
 }
 UNKNOWNS = {"format.newer-major", "format.newer-minor", "format.requires-unknown",
             "format.profile-unknown"}
@@ -93,7 +97,7 @@ DOTTED = rf"{LABEL}(?:\.{LABEL})+"
 NAME = rf"(?:{DOTTED}|{WORD})"
 RECORD_ID = r"[A-Z][A-Z0-9]*(?:-[A-Za-z0-9]+)+"
 ITEM_ID = r"i-[0-9a-f]{3,16}"
-ALIAS = rf"(?:{RECORD_ID}|t-[0-9a-f]+)"
+ALIAS = rf"(?:{RECORD_ID}|t-[0-9a-f]+|[wd]-[0-9a-f]{{3,16}}|spec|roadmap)"
 # Appendix A `path`: no empty, `.` or `..` segment.
 DOC_PATH = r"(?!/)(?:(?!\.\.?(?:/|[\s,@#]|$))[^/\s,@#\\]+)(?:/(?!\.\.?(?:/|[\s,@#]|$))[^/\s,@#\\]+)*"
 UUID = r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
@@ -585,6 +589,9 @@ def parse(doc: Doc, data: bytes, work, profiles):
     allowed = CORE_KEYS | RELATION_KEYS
     if prof is not None:
         allowed |= set(prof.fm_required) | set(prof.fm_optional)
+    # 3.3: `type` is a core key on a document; on work only where the profile declares it.
+    if kind_of(fm["alias"][0] if "alias" in fm else None) == "document":
+        allowed |= {"type"}
     fields, ext = {}, {}
     doc_rels = []
     for k, v, n in pairs:
@@ -622,12 +629,16 @@ def parse(doc: Doc, data: bytes, work, profiles):
                 raise Refused("format.field-missing", 1)
         doc.alias = fm["alias"][0]
         doc.uuid = fm["uuid"][0]
+    # 4.6: a `kind` that disagrees with the id.
+    if "kind" in fm and fm["kind"][0] != kind_of(doc.alias):
+        raise Refused("format.kind-mismatch", fm["kind"][1])
     if prof is not None:
         for key in prof.fm_required:
             if key not in fm or fm[key][0] in ("", []):
                 raise Refused("format.field-missing", 1)
     # 4.5: `version` is REQUIRED on SPEC.md.
-    if work == "spec" and ("version" not in fm or fm["version"][0] in ("", [])):
+    if (work == "spec" or doc.source == SPEC_MASTER and profile == "spec") and (
+            "version" not in fm or fm["version"][0] in ("", [])):
         raise Refused("format.field-missing", 1)
     if "summary" in fm and isinstance(fm["summary"][0], str) and len(fm["summary"][0].encode()) > 200:
         doc.find("context.summary-shape", fm["summary"][1])
@@ -821,8 +832,8 @@ def parse(doc: Doc, data: bytes, work, profiles):
 
     have = {slug(s) for s in section_names}
     required = list(prof.sec_required) if prof is not None else []
-    if work == "spec":
-        required += ["Purpose", "Scope"]  # 4.5: SPEC.md requires Purpose and Scope
+    if work == "spec" or doc.source == SPEC_MASTER and profile == "spec":
+        required += ["Purpose", "Scope"]  # 4.5: SPEC.md and the master `spec` require them
     if is_work or prof is not None:
         for s in required:
             if slug(s) not in have:
@@ -980,6 +991,33 @@ def is_alias(name: str) -> bool:
     return re.fullmatch(ALIAS, name) is not None
 
 
+def kind_of(alias) -> str:
+    """4.6: the kind an id shows. `spec`, `d-` and no alias are documents; all else is work."""
+    if alias is None or alias == "spec" or alias.startswith("d-"):
+        return "document"
+    return "work"
+
+
+def tier(d) -> int | None:
+    """4.6: the derived tier, 1 (highest) to 4; None when the profile is not known."""
+    if d.alias in ("spec", "roadmap") or d.source == "SPEC.md":
+        return 1
+    if d.profile is None:
+        return None
+    caps = d.profile.capabilities
+    mins = {r["fields"].get("min") for r in d.records if r["type"] == "milestone"}
+    if caps & {"acceptance", "authorization", "resolution"} or "signed" in mins:
+        return 2
+    evaluates = {r["from"] for r in d.relations if r["kind"] == "evaluates"}
+    # READING: a gating check is one of type `check` that evaluates something and
+    # does not say `gating: false` (12); a KPI's mode is not read here.
+    gating = any(r["type"] == "check" and r["fields"].get("gating") != "false"
+                 and r["id"] in evaluates for r in d.records)
+    if caps & {"evidence", "verification"} or gating or mins & {"observed", "independent"}:
+        return 3
+    return 4
+
+
 def discover(root: str):
     """(source, place, alias) for every document sections 4.1, 4.4 and 4.5 place."""
     out = []
@@ -1007,6 +1045,24 @@ def discover(root: str):
     # 4.5: `SPEC.md` at the root, and its parts `spec/<area>.md`.
     if os.path.isfile(os.path.join(root, "SPEC.md")):
         out.append(("SPEC.md", "spec", None))
+    # 4.1: masters, `docs/work/<id>/<id>.md` or `<id>-<slug>.md` whose `alias` is the id.
+    wd = os.path.join(root, "docs/work")
+    if os.path.isdir(wd):
+        for name in sorted(os.listdir(wd)):
+            p = os.path.join(wd, name)
+            if not (os.path.isdir(p) and is_alias(name)):
+                continue
+            held = []
+            for f in sorted(os.listdir(p)):
+                if f == f"{name}.md" or (f.startswith(f"{name}-") and f.endswith(".md")):
+                    with open(os.path.join(p, f), "rb") as fh:
+                        head = fh.read(4096).decode("utf-8", "replace")
+                    if re.search(rf"(?m)^alias: {re.escape(name)}\s*$", head.split("\n---", 1)[0]):
+                        held.append(f)
+            if len(held) > 1:
+                out.append((f"docs/work/{name}", "duplicate", name))
+            elif held:
+                out.append((f"docs/work/{name}/{held[0]}", "master", name))
     sd = os.path.join(root, "spec")
     if os.path.isdir(sd):
         for name in sorted(os.listdir(sd)):
@@ -1066,6 +1122,13 @@ def load_repository(root: str) -> Repository:
     docs = []
     by_alias: dict[tuple, str] = {}
     for source, place, alias in discover(root):
+        if place == "duplicate":
+            # 4.1: a master directory holding two documents claiming its id.
+            repo.findings.add(f"format.document-duplicate {source}:1")
+            continue
+        if place == "master":
+            # 4.6: a master is read as a work document, whichever its kind.
+            place = "warrant"
         with open(os.path.join(root, source), "rb") as f:
             data = f.read()
         if place in (None, "spec") and not re.match(rb"(\xef\xbb\xbf)?---\r?\n(?:.*\r?\n)*?format:", data):
@@ -1083,10 +1146,26 @@ def load_repository(root: str) -> Repository:
         docs.append(d)
     # 4.5: at most one root specification: any other file with profile `spec`
     # that names no `part_of` is refused, whether or not SPEC.md exists.
+    # The master `spec` is the root, unless SPEC.md is there too (4.5).
+    spec_md = any(d.source == "SPEC.md" for d in docs)
     for d in docs:
-        if d.profile_name == "spec" and d.source != "SPEC.md" and not (d.refused or d.unknown):
+        if (d.profile_name == "spec" and d.source != "SPEC.md"
+                and (d.source != SPEC_MASTER or spec_md) and not (d.refused or d.unknown)):
             if not any(r["kind"] == "part_of" and r["from"] == d.own_id for r in d.relations):
                 d.findings.append(("format.document-duplicate", 1))
+                d.refused = True
+        # 4.6: one Roadmap: a work order of profile `roadmap` that is not `roadmap`.
+        if (d.profile_name == "roadmap" and d.alias not in (None, "roadmap")
+                and not (d.refused or d.unknown)):
+            d.findings.append(("format.document-duplicate", 1))
+            d.refused = True
+        # 4.6: a document's `type` names a tier, and it is the derived one.
+        if (not (d.refused or d.unknown) and kind_of(d.alias) == "document"
+                and isinstance(d.fm.get("type", (None,))[0], str)):
+            want = DOCUMENT_TYPES.get(d.fm["type"][0])
+            have = tier(d)
+            if want is None or (have is not None and want != have):
+                d.findings.append(("format.type-tier", d.fm["type"][1]))
                 d.refused = True
     repo.docs = docs
     for d in docs:

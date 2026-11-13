@@ -28,7 +28,7 @@ use crate::corpus::Corpus;
 use crate::ticket::cache::{DISABLE_ENV, SETTLE, SUBDIR, identity};
 
 /// A change to the file's layout or to [`Graph`] changes this.
-const FORMAT: u32 = 1;
+const FORMAT: u32 = 2;
 
 /// The key, and whether the working tree is settled enough to store under it.
 fn key(root: &Utf8Path) -> Option<(String, bool)> {

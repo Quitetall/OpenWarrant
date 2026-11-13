@@ -133,10 +133,12 @@ impl LocalAlias {
         let malformed = || IdentityError::AliasMalformed {
             alias: alias.to_owned(),
         };
-        // A work order's hash id (`w-3c16c`, docs/design/one-format.md):
-        // the merge-safe identity of a master in `docs/work/`. It belongs to
-        // no namespace and carries no ordinal; a number is a display ordinal.
-        if crate::ticket::is_work_id(alias) {
+        // A master's id (FORMAT-1.0 §5, revision 4): a work order's hash id
+        // (`w-3c16c`), a document's (`d-5e21b`) or a fixed id (`spec`,
+        // `roadmap`), the merge-safe identity of a master in `docs/work/`. It
+        // belongs to no namespace and carries no ordinal; a number is a
+        // display ordinal.
+        if is_master_id(alias) {
             return Ok(Self(alias.to_owned()));
         }
 
@@ -179,10 +181,11 @@ impl LocalAlias {
         Ok(alias)
     }
 
-    /// Whether it is a hash id (`w-<hex>`), not `<NAMESPACE>-WAR-<NNNN>`.
+    /// Whether it is a master's id (`w-<hex>`, `d-<hex>`, `spec`,
+    /// `roadmap`), not `<NAMESPACE>-WAR-<NNNN>`.
     #[must_use]
     pub fn is_hash_id(&self) -> bool {
-        crate::ticket::is_work_id(&self.0)
+        is_master_id(&self.0)
     }
 
     /// The namespace segment, e.g. `OW` in `OW-WAR-0001`; empty for a hash id.
@@ -237,6 +240,13 @@ impl schemars::JsonSchema for WarUuid {
             "description": "A UUIDv7 in canonical hyphenated form (SAS §12)."
         })
     }
+}
+
+/// FORMAT-1.0 §5 (revision 4): a master's id, which no namespace owns.
+fn is_master_id(alias: &str) -> bool {
+    crate::ticket::is_work_id(alias)
+        || crate::ticket::is_document_id(alias)
+        || crate::format::is_singleton(alias)
 }
 
 #[cfg(test)]

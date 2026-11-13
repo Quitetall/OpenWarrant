@@ -843,10 +843,18 @@ pub fn run(
                     println!("compiled {}", repo.relative(&path));
                 }
             }
-            let (path, contents) = crate::context::index_file(&crate::corpus::Corpus::new(repo))?;
+            let corpus = crate::corpus::Corpus::new(repo);
+            let (path, contents) = crate::context::index_file(&corpus)?;
             written += usize::from(write_view(&path, &contents)?);
             if human {
                 println!("compiled {}", repo.relative(&path));
+            }
+            // FORMAT-1.0 §4.3: the views of the masters in docs/work/.
+            for (path, contents) in crate::views::compiled(&corpus) {
+                written += usize::from(write_view(&path, &contents)?);
+                if human {
+                    println!("compiled {}", repo.relative(&path));
+                }
             }
             written += m17(repo, human)?;
         }
@@ -974,6 +982,8 @@ pub fn run(
         // Format 1.0 section 10.2: the index an agent reads before it asks
         // `war context <id>` for any line of it.
         projections.push(crate::context::index_file(&shared)?);
+        // FORMAT-1.0 §4.3: the views of the masters in docs/work/.
+        projections.extend(crate::views::compiled(&shared));
         // Last: the master document reads what the others read, and the
         // queue it carries is judged by the dry run (OW-ADR-0022).
         projections.extend(master_documents_with(&shared)?);

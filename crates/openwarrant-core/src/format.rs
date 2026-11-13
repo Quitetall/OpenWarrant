@@ -44,13 +44,44 @@ pub const VERSION: &str = "openwarrant/1.0";
 /// The major and minor this reader implements.
 pub const MAJOR: u32 = 1;
 pub const MINOR: u32 = 0;
+/// §4.5, §4.6: where the Spec's master is.
+pub const SPEC_MASTER: &str = "docs/work/spec/spec.md";
 /// The longest work document `summary` the format allows, in bytes (§3.3).
 pub const SUMMARY_MAX: usize = 200;
 
 /// §3.3: the undotted frontmatter keys the core defines.
-pub const CORE_KEYS: [&str; 7] = [
-    "format", "profile", "alias", "uuid", "summary", "paths", "requires",
+pub const CORE_KEYS: [&str; 8] = [
+    "format", "profile", "alias", "uuid", "summary", "paths", "requires", "kind",
 ];
+
+/// §3.3 and §4.6: the document types, each with the tier it stands at.
+pub const DOCUMENT_TYPES: [(&str, u8); 5] = [
+    ("spec", 1),
+    ("adr", 2),
+    ("design", 3),
+    ("interface", 3),
+    ("guide", 4),
+];
+
+/// §4.6: the kind an item's id shows. `spec`, a `d-` id and a document with
+/// no alias are documents; every other alias, `roadmap` included, is work.
+#[must_use]
+pub fn kind_of(alias: Option<&str>) -> &'static str {
+    match alias {
+        None => "document",
+        Some(a) if a == "spec" || a.starts_with("d-") => "document",
+        Some(_) => "work",
+    }
+}
+
+/// §4.6: the tier of a document `type`, or `None` for no type of 3.3.
+#[must_use]
+pub fn type_tier(value: &str) -> Option<u8> {
+    DOCUMENT_TYPES
+        .iter()
+        .find(|(t, _)| *t == value)
+        .map(|(_, n)| *n)
+}
 
 /// §3.3: the frontmatter keys that are relations of the document's own
 /// record, not fields: each value (a scalar or a list) is a target.
@@ -286,7 +317,7 @@ pub fn prefix_registered(name: &str) -> bool {
 /// §13.2: every rule id of Format 1.0, with what a finding of it does.
 /// A reader reports nothing under another id; the test below holds this
 /// list to the text of §13.2.
-pub const RULES: [(&str, Outcome); 47] = [
+pub const RULES: [(&str, Outcome); 49] = [
     ("format.encoding", Outcome::Refusal),
     ("format.frontmatter", Outcome::Refusal),
     ("format.key-unknown", Outcome::Refusal),
@@ -306,6 +337,8 @@ pub const RULES: [(&str, Outcome); 47] = [
     ("format.manifest-restates", Outcome::Refusal),
     ("format.unrecognised", Outcome::Refusal),
     ("format.field-shape", Outcome::Refusal),
+    ("format.kind-mismatch", Outcome::Refusal),
+    ("format.type-tier", Outcome::Refusal),
     ("profile.invalid", Outcome::Refusal),
     ("context.target-unknown", Outcome::Refusal),
     ("context.over-budget", Outcome::Refusal),
@@ -501,7 +534,8 @@ impl Document {
         self.alias.is_some()
     }
 
-    /// The document record's type (§4.1).
+    /// The document record's type (§4.1): `ticket` under the `ticket`
+    /// profile, else `warrant`, whichever the item's kind (§4.6).
     #[must_use]
     pub fn record_type(&self) -> &'static str {
         if self.profile == "ticket" {
@@ -637,16 +671,29 @@ pub fn parse_target(token: &str) -> Option<Target> {
             (id, Some(pin.to_owned()))
         }
     };
+    // §5 (revision 4): a master's alias, `w-`/`d-` or a singleton, alone or
+    // with a local record or item id.
+    let master = |a: &str| {
+        crate::ticket::is_work_id(a) || crate::ticket::is_document_id(a) || is_singleton(a)
+    };
     let ok = id.strip_prefix("war://").is_some_and(is_uuid)
         || id.strip_prefix("doc:").is_some_and(is_doc_path)
         || crate::ticket::is_item_id(id)
-        || id
-            .split_once('/')
-            .is_some_and(|(a, b)| is_record_id(a) && crate::ticket::is_item_id(b));
+        || master(id)
+        || id.split_once('/').is_some_and(|(a, b)| {
+            (is_record_id(a) && crate::ticket::is_item_id(b))
+                || (master(a) && (is_record_id(b) || crate::ticket::is_item_id(b)))
+        });
     ok.then(|| Target {
         id: id.to_owned(),
         pin,
     })
+}
+
+/// §5: the fixed ids, `spec` and `roadmap`.
+#[must_use]
+pub fn is_singleton(id: &str) -> bool {
+    matches!(id, "spec" | "roadmap")
 }
 
 /// Appendix A `path` after `doc:`: repository-relative, `/`-separated, no
@@ -1130,9 +1177,13 @@ pub fn parse_with(bytes: &[u8], profiles: &Profiles, path: &str) -> Document {
         "document"
     };
     let own_fields = profile.and_then(|p| p.fields_of(own_type));
+    // §3.3: `type` is a core key on a document; on a work document it is a
+    // key only where the profile declares one.
+    let document = kind_of(doc.alias.as_deref()) == "document";
     let allowed: BTreeSet<&str> = CORE_KEYS
         .iter()
         .copied()
+        .chain(document.then_some("type"))
         .chain(profile.into_iter().flat_map(Profile::frontmatter_keys))
         .chain(
             own_fields
@@ -1209,8 +1260,26 @@ pub fn parse_with(bytes: &[u8], profiles: &Profiles, path: &str) -> Document {
             );
         }
     }
-    // §7.5: a key the profile requires (and §4.5: `version` on SPEC.md).
-    let root_spec = path == "SPEC.md" && is_profile(profile, "spec");
+    // §4.6: a `kind` that disagrees with the id.
+    if let Some((_, value, line)) = get("kind") {
+        let kind = kind_of(doc.alias.as_deref());
+        if value.as_str() != Some(kind) {
+            doc.push(
+                Outcome::Refusal,
+                "format.kind-mismatch",
+                *line,
+                format!(
+                    "`kind: {}` disagrees with the id, which shows {kind}: `w-`, `roadmap` and \
+                     older aliases are work; `d-`, `spec` and documents with no alias are \
+                     documents",
+                    value.as_str().unwrap_or("(a list)")
+                ),
+            );
+        }
+    }
+    // §7.5: a key the profile requires (and §4.5: `version` on SPEC.md and
+    // on the master `spec`, §4.6).
+    let root_spec = (path == "SPEC.md" || path == SPEC_MASTER) && is_profile(profile, "spec");
     // §4.5: a part needs no `version`, and one it carries is ignored.
     if is_profile(profile, "spec") && !path.is_empty() && !root_spec {
         doc.fields.remove("version");
