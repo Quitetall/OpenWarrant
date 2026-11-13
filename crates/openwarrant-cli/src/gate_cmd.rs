@@ -750,6 +750,15 @@ pub mod source {
         {
             return true;
         }
+        // A ticket kept as a master (one-format.md): its one document, at
+        // the top of `docs/work/<id>/`, and its journal.
+        if let Some((id, file)) =
+            under(path, crate::subject::WORK_ROOT).and_then(|r| r.split_once('/'))
+        {
+            return tickets.masters.iter().any(|m| m == id)
+                && (file == crate::journal_cmd::FILE
+                    || (!file.contains('/') && file.ends_with(".md")));
+        }
         let Some(rest) = tickets.dir.as_deref().and_then(|d| under(path, d)) else {
             return false;
         };
@@ -2083,8 +2092,16 @@ mod source_tests {
                 "atoms/10-intent.md".to_owned(),
                 "atoms/15-checklist.md".to_owned(),
             ],
+            masters: vec!["w-3c16".to_owned()],
         };
         let t = |p: &str| is_ticket_record(p, &b, "docs/warrants");
+        // A ticket kept as a master: its document and its journal, and
+        // nothing of a work order that is no ticket.
+        assert!(t("docs/work/w-3c16/w-3c16-a-title.md"));
+        assert!(t("docs/work/w-3c16/journal.jsonl"));
+        assert!(!t("docs/work/w-3c16/evidence/notes.md"));
+        assert!(!t("docs/work/w-9999/w-9999-an-order.md"));
+        assert!(!t("docs/work/w-9999/journal.jsonl"));
         for p in [
             "docs/tickets/t-5d82.md",
             "docs/tickets/t-5d82/manifest.toml",

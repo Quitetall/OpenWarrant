@@ -572,7 +572,7 @@ pub fn check_records(
     // for a signature, evidence or verification it does not need.
     if let Some(a) = alias.filter(|a| ticket::is_ticket_ref(a)) {
         let mut report = diagnostic::Report::default();
-        match ticket::Store::open(repository, None) {
+        match ticket::Store::open(repository, None).map(ticket::Store::sharing) {
             Ok(store) => {
                 // A Format 1.0 ticket is checked as the document it
                 // is. One the loop refuses is no ticket to go on to.
