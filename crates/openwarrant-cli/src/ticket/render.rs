@@ -888,12 +888,9 @@ pub fn show(store: &Store, query: &str) -> Result<Outcome, RepoError> {
         md.push_str(&facts.join(" · "));
         md.push('\n');
     }
-    // Where its live claims do the work: one line each.
+    // Where its live claims do the work: in the JSON only. The text is
+    // read on every status; `war start` prints the place once.
     let places = places_of(&claims, t.id(), now);
-    for p in &places {
-        md.push_str(p);
-        md.push('\n');
-    }
     let body = description(&t.intent);
     if !body.is_empty() {
         md.push('\n');

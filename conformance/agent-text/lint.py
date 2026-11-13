@@ -11,7 +11,8 @@ Usage: lint.py [--first-line] LABEL=FILE ...
 Each FILE is read as Markdown. A heading whose text names a Warrant and its
 sign-off ("When a Warrant's type requires sign-off", "Warrant sign-off: the
 loop") opens a scoped section that lasts until the next heading of the same
-or a higher level; inside it the words below are allowed, because there they
+or a higher level. The generated "Formal profile requirements" heading has
+the same scope. Inside these sections the words below are allowed, because they
 describe what the tool refuses for that Warrant. Everywhere else these are
 refused, case-insensitively, as whole words:
 
@@ -40,7 +41,8 @@ HEADING = re.compile(r"^(#{1,6})\s+(.*)$")
 
 
 def scoped(title: str) -> bool:
-    return bool(re.search(r"warrant", title, re.I) and re.search(r"sign[- ]off", title, re.I))
+    return (title.strip().casefold() == "formal profile requirements"
+            or bool(re.search(r"warrant", title, re.I) and re.search(r"sign[- ]off", title, re.I)))
 
 
 def lint(label: str, text: str, first_line: bool) -> tuple[list[str], int]:

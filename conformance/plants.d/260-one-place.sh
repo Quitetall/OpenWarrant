@@ -5,7 +5,8 @@
 #   the brief's first line names the worktree, branch and base commit; a claim
 #     made in a plain checkout names that checkout;
 #   `done` and `note` from another worktree are refused naming the right one,
-#     and from the claim's own worktree they pass; a read is never refused;
+#     and from the claim's own worktree they pass; a read is never refused,
+#     and names the place in its JSON, not its text;
 #   `war start` of work held from another worktree is refused naming it;
 #   claiming for another actor in a checkout where you hold live work is
 #     refused without `--here`;
@@ -90,11 +91,14 @@ if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "work.other-worktree" && op_has "$OP_O
 else
     op_fail "start elsewhere is refused" "exit $OP_RC: $OP_OUT"
 fi
-OP_OUT=$(op_war "$OP_W" lead status "$OP_A"); OP_RC=$?
-if [[ $OP_RC -eq 0 ]] && op_has "$OP_OUT" "$OP_WANT"; then
-    op_ok "a read is never refused" "status shows the place"
+# A read is never refused; it carries the place in its JSON, and its text
+# does not repeat what `war start` printed once.
+OP_OUT=$(op_war "$OP_W" lead --json status "$OP_A"); OP_RC=$?
+OP_TXT=$(op_war "$OP_W" lead status "$OP_A"); OP_RC2=$?
+if [[ $OP_RC -eq 0 && $OP_RC2 -eq 0 ]] && op_has "$OP_OUT" "$OP_WANT" && ! op_has "$OP_TXT" "work in "; then
+    op_ok "a read is never refused" "status JSON has the place; its text does not repeat it"
 else
-    op_fail "a read is never refused" "exit $OP_RC: $OP_OUT"
+    op_fail "a read is never refused" "exit $OP_RC/$OP_RC2: $OP_OUT // $OP_TXT"
 fi
 OP_OUT=$(op_war "$OP_WT" worker note "$OP_A" "from the right place"); OP_RC=$?
 OP_OUT2=$(op_war "$OP_WT" worker done "$OP_A" --note "done where it was claimed"); OP_RC2=$?

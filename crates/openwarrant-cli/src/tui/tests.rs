@@ -731,16 +731,21 @@ fn an_answer_takes_the_recommendation_and_says_when_it_is_read() {
     assert!(after.contains("next `war start`"), "{after}");
 }
 
-/// Refusal: nobody named, nothing runs. The register decides, not the app.
+/// Nobody named: the answer runs as whoever is at the keyboard, with no
+/// `--as`; the ladder decides, not the app (OW-ADR-0034). An empty answer
+/// with no recommendation still runs nothing.
 #[test]
-fn an_answer_needs_someone_to_give_it() {
+fn an_answer_with_nobody_named_runs_as_whoever_answers() {
     let mut m = fixture();
     handle_key(&mut m, key('2'));
     m.act_panel = Panel::Answer;
     handle_key(&mut m, key('a'));
     enter(&mut m);
-    assert_eq!(enter(&mut m), None);
-    assert!(m.message.contains("human role"), "{}", m.message);
+    let Some(Effect::Say { argv, .. }) = enter(&mut m) else {
+        panic!("an answer with nobody named still runs");
+    };
+    assert!(!argv.iter().any(|a| a == "--as"), "{argv:?}");
+    argv::parses(&argv).expect("it parses");
 }
 
 #[test]

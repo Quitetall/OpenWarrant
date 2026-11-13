@@ -63,6 +63,15 @@ pub fn is_document_path(place: &str) -> bool {
 /// `dir/ticket.md`, else `<dir>.md` beside it.
 #[must_use]
 pub fn document_of(dir: &Utf8Path) -> Option<Utf8PathBuf> {
+    if dir
+        .parent()
+        .is_some_and(|p| p.ends_with(crate::subject::WORK_ROOT))
+    {
+        return match crate::subject::document_in(dir, dir.file_name()?) {
+            crate::subject::Held::One(file) => Some(file),
+            _ => None,
+        };
+    }
     let inner = dir.join(INNER);
     if crate::vfs::exists(&inner) {
         return Some(inner);
@@ -217,6 +226,11 @@ impl Store {
             due: one(fields, "due"),
             atoms: Vec::new(),
         };
+        let state = if file.parent().is_some_and(|p| p.file_name() == Some(alias)) {
+            file.parent().expect("parent checked").to_owned()
+        } else {
+            self.dir.join(alias)
+        };
         let checklist = checklist_in(&text, &doc);
         let checklist_empty = checklist.items.is_empty();
         let depends_on: Vec<ticket::Blocker> = doc
@@ -244,7 +258,7 @@ impl Store {
         intent.push('\n');
         Ok(Ticket {
             repository_root: self.root.clone(),
-            dir: self.dir.join(alias),
+            dir: state.clone(),
             manifest,
             intent_path: file.to_owned(),
             checklist_path: file.to_owned(),
@@ -257,7 +271,7 @@ impl Store {
             revision: revision_of(bytes.get(..doc.head_end).unwrap_or_default()),
             blocked: None,
             format: true,
-            done_whole: checklist_empty && done_whole(&self.dir.join(alias), alias),
+            done_whole: checklist_empty && done_whole(&state, alias),
             depends_on,
         })
     }
@@ -304,7 +318,28 @@ impl Store {
             let Some(name) = path.file_name() else {
                 continue;
             };
-            if let Some(alias) = single_file(name) {
+            if path
+                .parent()
+                .is_some_and(|p| p.ends_with(crate::subject::WORK_ROOT))
+            {
+                match crate::subject::document_in(path, name) {
+                    crate::subject::Held::One(file) => {
+                        if crate::vfs::read_to_string(&file).is_ok_and(|text| {
+                            crate::format_doc::frontmatter_profile(&text) == Some("ticket")
+                        }) {
+                            found.push((name.to_owned(), file));
+                        }
+                    }
+                    crate::subject::Held::Many(_) => {
+                        return vec![Err(Diagnostic::error(
+                            "format.document-duplicate",
+                            self.rel(path),
+                            "multiple master documents claim the same identity",
+                        ))];
+                    }
+                    crate::subject::Held::None => {}
+                }
+            } else if let Some(alias) = single_file(name) {
                 found.push((alias.to_owned(), path.clone()));
             } else if ticket::is_ticket_id(name) && dirs_to_look_in(path) {
                 let inner = path.join(INNER);

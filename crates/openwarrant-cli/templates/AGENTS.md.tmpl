@@ -7,10 +7,10 @@ one of three levels its fields decide.
 | Level | Made with | Done when |
 |---|---|---|
 | **Ticket** | `war create "..."` | you say so |
-| **Warrant** | `--test "<command>"` | the test passes |
-| **Order** | `--sign` | the tests pass and a person signs |
+| **Warrant** | `--test "<command>"` | every required current check passes |
+| **Order** | `--sign` | required checks pass and a person signs |
 
-## Tracking work with tickets (optional)
+## Tracking work (optional)
 
 ```bash
 war start                                    # take the next ready item and its brief
@@ -21,18 +21,21 @@ war check                                    # record integrity
 war context <id>                             # the records a task needs, cited, in a byte budget
 ```
 
-The brief's first line names the worktree, branch and commit to work in:
-work there and nowhere else. No step in this loop needs a signature. On an Order, `war done` names the
-`war sign` command a person runs; an agent cannot sign. Name each of several
+The brief's first line names the worktree, branch and commit: work there and
+nowhere else. Workers finish their portion without signing. On an Order, `war done` names
+the `war sign` command a person runs and leaves the work awaiting signature. Name each of several
 agents with `--as <name>`. `war view prime` lists what is open. Over MCP
 (`war admin mcp`) the same commands are `war_start`, `war_done`,
 `war_create`, `war_status`, `war_check`, `war_context` and `war_note`.
+`war_start` automatically supplies its required task context. Use `war_status`
+with `target` to read effective level and state, then a separate `next: true`
+call for pending acts. Legacy JSON keys named `ticket` can hold any level.
 
-## When a Warrant's type requires sign-off
+## Formal profile requirements
 
-Only while you work on a Warrant whose type has a sign-off step (`delivery`
-and `decision`; `war plan new` writes docs/warrants/{{namespace}}-WAR-NNNN/).
-The tool holds five facts:
+For a record using a formal profile such as `delivery` or `decision`, follow
+its explicit action gates and the sign-off workflow. Legacy directories use
+`docs/warrants/{{namespace}}-WAR-NNNN/`. The tool holds five facts:
 
 1. **Your own work is checked by someone else**: `war evidence verify` refuses a verdict whose verifier is the performer.
 2. **A disposition comes from the verifier** (`war evidence verify --response`), not from an atom edited by hand.

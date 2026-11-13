@@ -61,7 +61,7 @@ pub struct CreateParams {
     pub kind: Option<String>,
     #[serde(default)]
     pub labels: Vec<String>,
-    /// Parent Warrant (an epic).
+    /// Parent work item (an epic).
     #[serde(default)]
     pub part_of: Option<String>,
     /// Paths or globs it may write.
@@ -71,7 +71,7 @@ pub struct CreateParams {
     pub tools: Vec<String>,
     #[serde(default)]
     pub commands: Vec<String>,
-    /// Items or Warrants it waits on; `repo:t-abc` in another repository.
+    /// Work or checklist IDs it waits on; `repo:t-abc` in another repository.
     #[serde(default)]
     pub depends_on: Vec<String>,
     /// Shell commands; `war_done` finishes only when they pass.
@@ -161,7 +161,7 @@ pub struct HeartbeatParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct DoneParams {
-    /// A Warrant (all its items) or one item; omit for the one you hold.
+    /// Work ID or checklist entry; omit for the work you hold.
     #[serde(default, alias = "ticket", alias = "id")]
     pub target: Option<String>,
     #[serde(default)]
@@ -204,11 +204,22 @@ pub struct AddParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct NoteParams {
-    /// A Warrant or item.
+    /// Work ID or checklist entry.
     #[serde(alias = "ticket", alias = "id")]
     pub target: String,
-    /// Markdown.
+    /// Markdown; with `answer`, the answer.
+    #[serde(default)]
     pub text: String,
+    /// Ask this question instead.
+    #[serde(default)]
+    pub ask: Option<String>,
+    /// Answer this question id with `text`.
+    #[serde(default)]
+    pub answer: Option<String>,
+    #[serde(default)]
+    pub blocking: bool,
+    #[serde(default)]
+    pub needs_human: bool,
     /// Refused `work.stale-revision` unless still at this revision.
     #[serde(default)]
     pub if_rev: Option<String>,
@@ -256,7 +267,7 @@ pub struct AliasParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct CheckParams {
-    /// One Warrant; omit for the corpus.
+    /// One work item; omit for the corpus.
     #[serde(default, alias = "alias")]
     pub target: Option<String>,
     /// Also drift-check generated files.
@@ -271,7 +282,7 @@ pub struct CheckParams {
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
 pub struct StatusParams {
-    /// One Warrant; omit for the corpus.
+    /// One work item; omit for the corpus.
     #[serde(default, alias = "alias", alias = "id")]
     pub target: Option<String>,
     /// Whose step is next, agent or person.
@@ -559,7 +570,9 @@ fn envelope(command: &str, report: &Report, result: Option<serde_json::Value>) -
     let mut value: serde_json::Value = serde_json::from_str(&text)
         .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
     lean(&mut value);
-    Ok(CallToolResult::structured(value))
+    let mut reply = CallToolResult::structured(value);
+    reply.is_error = Some(!report.is_ready());
+    Ok(reply)
 }
 
 /// [`envelope`] with every finding: what `verbose: true` asks for.
@@ -567,7 +580,9 @@ fn envelope_whole(command: &str, report: &Report, result: Option<serde_json::Val
     let text = crate::output::envelope(command, report, result);
     let value: serde_json::Value = serde_json::from_str(&text)
         .map_err(|e| McpError::internal_error(format!("envelope is not JSON: {e}"), None))?;
-    Ok(CallToolResult::structured(value))
+    let mut reply = CallToolResult::structured(value);
+    reply.is_error = Some(!report.is_ready());
+    Ok(reply)
 }
 
 /// A result this small is returned whole: its passes are the answer (a
@@ -731,11 +746,11 @@ impl WarServer {
 
     #[tool(
         name = "war_check",
-        description = "Check the records of one Warrant or the corpus. Read-only.",
+        description = "Validate one work item's records or the corpus. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_check(&self, Parameters(p): Parameters<CheckParams>) -> ToolResult {
-        let r = crate::check::run_with(
+        let r = crate::work::check_records(
             &crate::corpus::held(&self.repo),
             p.target.as_deref(),
             p.generated,
@@ -761,7 +776,7 @@ impl WarServer {
 
     #[tool(
         name = "war_status",
-        description = "Where the work stands, or one Warrant (`target`, `view`); `next`: whose step; `ready`: what can start. Read-only.",
+        description = "Read work state and level with target; next shows pending acts, ready shows available work. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_status(&self, Parameters(p): Parameters<StatusParams>) -> ToolResult {
@@ -1185,8 +1200,8 @@ impl WarServer {
 
     // -- writes an agent may make --
 
-    // Asking is an agent's act; answering is not, and `war_answer` is in
-    // REFUSED_TOOLS for the same reason `war_sign` is (OW-WAR-0069).
+    // Asking and answering are `war_note`'s (OW-ADR-0034): who may answer
+    // follows the ladder there. No `war_answer` tool is served.
     #[tool(
         name = "war_ask",
         description = "Ask a person a question that blocks a stage; a person answers.",
@@ -1198,10 +1213,13 @@ impl WarServer {
             crate::questions::ask(
                 &self.repo,
                 &p.alias,
-                &p.stage,
-                &p.question,
-                &p.recommend,
-                p.blocking,
+                &crate::questions::Asking {
+                    stage: &p.stage,
+                    question: &p.question,
+                    recommended: &p.recommend,
+                    blocking: p.blocking,
+                    ..crate::questions::Asking::default()
+                },
             ),
         )
     }
@@ -1262,7 +1280,7 @@ impl WarServer {
 
     #[tool(
         name = "war_context",
-        description = "The records a task needs, cited by id, within a byte budget. Read-only.",
+        description = "Explore cited context within a budget; strict refuses summaries. war_start delivers required context. Read-only.",
         annotations(read_only_hint = true)
     )]
     fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
@@ -1404,7 +1422,7 @@ impl WarServer {
 
     #[tool(
         name = "war_create",
-        description = "Create a Warrant (a ticket); returns its id. `sign` asks for a person's sign-off at the end.",
+        description = "Create a Ticket; tests make a Warrant, sign makes an Order. Returns its stable id.",
         annotations(read_only_hint = false)
     )]
     fn war_create(&self, Parameters(p): Parameters<CreateParams>) -> ToolResult {
@@ -1451,7 +1469,7 @@ impl WarServer {
 
     #[tool(
         name = "war_start",
-        description = "Take the next ready Warrant, or `target`, and return its brief; `claim` only claims.",
+        description = "Claim ready work and deliver its complete required context automatically; claim only reserves.",
         annotations(read_only_hint = false)
     )]
     fn war_start(&self, Parameters(p): Parameters<StartParams>) -> ToolResult {
@@ -1486,7 +1504,7 @@ impl WarServer {
 
     #[tool(
         name = "war_done",
-        description = "Close the Warrant you hold, or one item; `release` gives it back, `reopen` unticks.",
+        description = "Finish after required checks. Orders wait for a human signature. release gives back; reopen marks unfinished.",
         annotations(read_only_hint = false)
     )]
     fn war_done(&self, Parameters(p): Parameters<DoneParams>) -> ToolResult {
@@ -1548,12 +1566,24 @@ impl WarServer {
 
     #[tool(
         name = "war_note",
-        description = "Append a dated note to a Warrant or item.",
+        description = "Record a note, or ask or answer a question about work.",
         annotations(read_only_hint = false)
     )]
     fn war_note(&self, Parameters(p): Parameters<NoteParams>) -> ToolResult {
         self.ticket("note", p.actor.as_deref(), |s| {
-            crate::ticket::note(s, &p.target, &p.text, p.if_rev.as_deref())
+            let act = match (&p.ask, &p.answer) {
+                (Some(q), _) => crate::hotline::NoteAct::Ask(crate::questions::Asking {
+                    question: q,
+                    blocking: p.blocking,
+                    needs_human: p.needs_human,
+                    ..crate::questions::Asking::default()
+                }),
+                (None, Some(id)) => crate::hotline::NoteAct::Answer { id, text: &p.text },
+                (None, None) => {
+                    return crate::ticket::note(s, &p.target, &p.text, p.if_rev.as_deref());
+                }
+            };
+            crate::hotline::note(&self.repo, &p.target, act, p.actor.as_deref())
         })
     }
 

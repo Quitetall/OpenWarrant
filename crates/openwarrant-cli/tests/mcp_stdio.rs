@@ -350,3 +350,151 @@ fn questions_tool_preserves_partial_store_diagnostics() {
     assert_eq!(s.finish(), 0);
     std::fs::remove_dir_all(root).unwrap();
 }
+
+/// A client needs no verbosity switch to receive binding task context.
+#[test]
+fn starting_work_always_delivers_required_context_to_both_client_shapes() {
+    let root = tempfile::tempdir().unwrap();
+    let init = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["init", "--namespace", "CTX"])
+        .env("OPENWARRANT_NO_PROJECTS", "1")
+        .current_dir(root.path())
+        .output()
+        .unwrap();
+    assert!(
+        init.status.success(),
+        "{}",
+        String::from_utf8_lossy(&init.stderr)
+    );
+    let rules = root.path().join("AGENTS.md");
+    let mut text = std::fs::read_to_string(&rules).unwrap();
+    text.push_str("\n## Required compatibility rule\nPRESERVE_ACCOUNT_IDENTITIES_MCP_SENTINEL\n");
+    std::fs::write(&rules, text).unwrap();
+    let mut session = Session::start_at(root.path());
+    let created = session.tool(2, "war_create", serde_json::json!({"title":"Preserve compatibility", "actor":"context-worker", "json":true}));
+    let id = created["result"]["structuredContent"]["result"]["id"]
+        .as_str()
+        .unwrap();
+    for (number, extra) in [
+        (3, serde_json::json!({})),
+        (4, serde_json::json!({"json":false})),
+    ] {
+        let mut arguments = serde_json::json!({"target":id,"actor":"context-worker"});
+        arguments
+            .as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        let reply = session.tool(number, "war_start", arguments);
+        assert_ne!(reply["result"]["isError"], true, "{reply}");
+        let envelope = &reply["result"]["structuredContent"];
+        assert_eq!(
+            envelope["result"]["context"]["schema"], "oh.war/task-context/v1",
+            "{reply}"
+        );
+        let text = reply["result"]["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains("PRESERVE_ACCOUNT_IDENTITIES_MCP_SENTINEL"),
+            "text-only clients need the exact rule: {reply}"
+        );
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(text).unwrap(),
+            *envelope
+        );
+    }
+    #[cfg(unix)]
+    {
+        let outside = tempfile::tempdir().unwrap();
+        let rule = outside.path().join("external-rule.md");
+        std::fs::write(&rule, "External rule must be explicitly supplied").unwrap();
+        std::fs::remove_file(&rules).unwrap();
+        std::os::unix::fs::symlink(&rule, &rules).unwrap();
+        let refused = session.tool(
+            5,
+            "war_start",
+            serde_json::json!({"target":id,"actor":"context-worker"}),
+        );
+        assert_eq!(refused["result"]["isError"], true, "{refused}");
+        let text = refused["result"]["content"][0]["text"].as_str().unwrap();
+        assert!(
+            text.contains("context.required-missing") && text.contains("AGENTS.md"),
+            "{refused}"
+        );
+    }
+    assert_eq!(session.finish(), 0);
+}
+
+#[test]
+fn native_work_record_checks_match_the_cli_at_every_completion_level() {
+    for (title, tests, sign) in [
+        ("Ticket record", vec![], false),
+        ("Warrant record", vec!["true"], false),
+        ("Order record", vec!["true"], true),
+    ] {
+        let root = tempfile::tempdir().unwrap();
+        let init = Command::new(env!("CARGO_BIN_EXE_war"))
+            .args(["init", "--namespace", "PAR"])
+            .env("OPENWARRANT_NO_PROJECTS", "1")
+            .current_dir(root.path())
+            .output()
+            .unwrap();
+        assert!(init.status.success());
+        let mut session = Session::start_at(root.path());
+        let mut sequence = 2;
+        let created = session.tool(
+            sequence,
+            "war_create",
+            serde_json::json!({"title":title,"tests":tests,"sign":sign,"json":true}),
+        );
+        sequence += 1;
+        let work = &created["result"]["structuredContent"]["result"];
+        let id = work["id"].as_str().unwrap();
+        for malformed in [false, true] {
+            if malformed {
+                let source = root.path().join(work["source"].as_str().unwrap());
+                let text = std::fs::read_to_string(&source).unwrap();
+                std::fs::write(
+                    source,
+                    text.replacen(
+                        &format!("alias: {id}"),
+                        &format!("alias: {id}\nalias: {id}"),
+                        1,
+                    ),
+                )
+                .unwrap();
+            }
+            let cli = Command::new(env!("CARGO_BIN_EXE_war"))
+                .args(["--json", "check", id])
+                .env("OPENWARRANT_NO_PROJECTS", "1")
+                .current_dir(root.path())
+                .output()
+                .unwrap();
+            let cli: serde_json::Value = serde_json::from_slice(&cli.stdout).unwrap();
+            let mcp = session.tool(
+                sequence,
+                "war_check",
+                serde_json::json!({"target":id,"json":true}),
+            );
+            sequence += 1;
+            let report = &mcp["result"]["structuredContent"];
+            for field in ["exit_code", "counts", "diagnostics"] {
+                assert_eq!(
+                    report[field], cli[field],
+                    "{title}, malformed={malformed}: {mcp}"
+                );
+            }
+            assert_eq!(report["exit_code"] == 0, !malformed, "{mcp}");
+            assert_eq!(mcp["result"]["isError"], malformed, "{mcp}");
+            if malformed {
+                assert!(
+                    report["diagnostics"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .any(|d| d["rule"] == "format.frontmatter"),
+                    "{mcp}"
+                );
+            }
+        }
+        assert_eq!(session.finish(), 0);
+    }
+}

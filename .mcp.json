@@ -2,7 +2,10 @@
   "mcpServers": {
     "openwarrant": {
       "command": "war",
-      "args": ["mcp"]
+      "args": [
+        "admin",
+        "mcp"
+      ]
     }
   }
 }

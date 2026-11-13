@@ -20,8 +20,9 @@
 //! A second blocking edge (OW-WAR-0132): a blocking question on the stage that
 //! no human has answered. The stage is `blocked` and its `waiting_on` names the
 //! question beside any milestone; every other stage is untouched, and an
-//! answered question blocks nothing. When the authority register holds no
-//! actor who is not an agent, nobody can answer, and each such stage also
+//! answered question blocks nothing. When the authority register holds
+//! assignments and none is of an actor who is not an agent, nobody can answer
+//! (with no register, the person at a terminal can; OW-ADR-0034), and each such stage also
 //! carries UNKNOWN `question.no-responder` naming `roles.toml`: neither
 //! waiting normally nor answered (Law 15).
 
@@ -366,15 +367,17 @@ fn open_blocking(
     by_stage
 }
 
-/// Whether the register names an actor `war plan answer` would accept: any
-/// assignment whose kind is not `agent` (A-002). `Err` when the register
-/// cannot be read at all.
+/// Whether someone `war plan answer` would accept as a person exists: any
+/// register assignment whose kind is not `agent` (A-002), or, with no
+/// register at all, the person at a terminal (OW-ADR-0034). `Err` when the
+/// register cannot be read at all.
 fn someone_can_answer(repo: &Repository) -> Result<bool, String> {
     repo.load_authority_register()
         .map(|r| {
-            r.assignments
-                .iter()
-                .any(|a| a.actor_kind != openwarrant_core::authority::ActorKind::Agent)
+            r.assignments.is_empty()
+                || r.assignments
+                    .iter()
+                    .any(|a| a.actor_kind != openwarrant_core::authority::ActorKind::Agent)
         })
         .map_err(|e| e.to_string())
 }

@@ -653,6 +653,10 @@ fn judged(
     // OW-WAR-0141: a question waiting before its Warrant exists is a human's
     // act too (`answer`), read from `docs/intake/` by questions.rs.
     next.actions.extend(crate::questions::intake_actions(repo));
+    // OW-ADR-0034: a question asked of whoever runs this, with its answer command.
+    if let Ok(store) = crate::ticket::Store::open(repo, None) {
+        next.actions.extend(crate::hotline::next_actions(&store));
+    }
     // An Order an agent finished: a person's, whatever the ticket store's
     // read says below, which reports a store it could not read.
     let sign_offs = crate::console::sign_offs(corpus).unwrap_or_default();
@@ -971,9 +975,8 @@ const BRIEF_PER_ACT: usize = 3;
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
-    for h in &n.held {
-        s.push_str(&format!("{:<6} {} — {}\n", "yours", h.target, h.place));
-    }
+    // `held` stays in the JSON: `war start` prints the place once, and a
+    // line on every `--next` costs each agent that reads it.
     // One line per ready Warrant, not per item: `war start` takes it whole
     // and prints its items; the JSON keeps a row per item.
     let mut order: Vec<&str> = Vec::new();

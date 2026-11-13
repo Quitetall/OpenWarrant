@@ -578,7 +578,7 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
 
     // The queue, the questions, the frontier.
     let queue = board.as_ref().map(records::queue_rows).unwrap_or_default();
-    let questions: Vec<QuestionItem> = board
+    let mut questions: Vec<QuestionItem> = board
         .iter()
         .flat_map(|b| &b.questions)
         .map(|q| QuestionItem {
@@ -590,6 +590,26 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
             command: q.command.clone(),
         })
         .collect();
+    // OW-ADR-0034: what was asked of whoever runs this, in any worktree.
+    if let Ok(store) = crate::ticket::Store::open(&repo, None) {
+        for p in crate::hotline::waiting(&store) {
+            if !questions
+                .iter()
+                .any(|q| q.warrant == p.item && q.id == p.question)
+            {
+                questions.insert(
+                    0,
+                    QuestionItem {
+                        command: crate::hotline::answer_command(&p.item, &p.question),
+                        warrant: p.item,
+                        id: p.question,
+                        question: p.text,
+                        ..QuestionItem::default()
+                    },
+                );
+            }
+        }
+    }
     let frontier = match compiled.frontier() {
         Ok((_, f)) => records::frontier_rows(f, board.as_ref()),
         Err(e) => vec![Row {

@@ -9,6 +9,8 @@ Ordinary coding needs no Warrant and no ticket; this skill is for when the
 user asks for OpenWarrant by name. Read the target repository's AGENTS.md, then
 select one branch from the user's current request. Read the
 [shared workflow](../openwarrant/SKILL.md) once, then load only the selected branch.
+Its Ticket/Warrant/Order rules apply to each branch. Read returned work state
+and next actions before reporting completion.
 
 | Request | Action |
 | --- | --- |

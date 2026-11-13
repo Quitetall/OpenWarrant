@@ -1,5 +1,12 @@
 # Alpha.6 implementation
 
+## Historical plan
+
+The owner adopted the [current model](current-model.md) on 2026-11-07 as the
+baseline for continued work. The plan and implementation checkpoints below
+retain their historical scope. Reconcile remaining items against current code,
+records and the lean programme before scheduling them.
+
 Owner-directed implementation plan, 2026-10-31. Tracked as `t-8956e`.
 This is implementation scope, not formal acceptance of a format edition,
 independent verification, or a release receipt.
