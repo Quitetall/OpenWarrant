@@ -12,7 +12,6 @@
 # retires nothing: the entry stays and the title is still refused by name.
 
 echo "== shared work: the register follows the files =="
-RC_LAYOUT_WAS=${OPENWARRANT_TICKET_LAYOUT-}
 RC_WAR="$REPO_ROOT/${WAR#./}"
 rc_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 rc_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
@@ -69,7 +68,7 @@ else
 fi
 
 # --- a master held elsewhere is read as a ticket before war start ----------------------
-export OPENWARRANT_TICKET_LAYOUT=work
+plant_layout work "a w- id nobody has locally routes as a ticket; a t- id always did"
 rc_as alice "$RC_A" --json create "Rotate the audit keys" --item "one"; read -r RC_W _ < <(rc_made)
 rc_as bob "$RC_B" status "$RC_W"; RC_S=$?; RC_SHOWN=$(grep -c "^# $RC_W — Rotate the audit keys" "$RC_T/out")
 rc_as bob "$RC_B" --json check "$RC_W"; RC_C=$?; RC_UNKNOWN=$(grep -c 'ticket.unknown\|no Warrant' "$RC_T/out")
@@ -79,6 +78,5 @@ if [[ "$RC_W" == w-* && $RC_S == 0 && $RC_SHOWN == 1 && $RC_C == 0 && $RC_UNKNOW
 else
     rc_fail "an elsewhere master routes" "id '$RC_W' status $RC_S shown $RC_SHOWN check $RC_C unknown $RC_UNKNOWN none $RC_NONE: $(head -c 300 "$RC_T/err")"
 fi
-if [[ -n "$RC_LAYOUT_WAS" ]]; then export OPENWARRANT_TICKET_LAYOUT="$RC_LAYOUT_WAS"; else unset OPENWARRANT_TICKET_LAYOUT; fi
 
 [[ -n "$RC_T" && "$RC_T" == */tmp.* ]] && /usr/bin/rm -rf "$RC_T"

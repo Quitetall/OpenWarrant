@@ -44,6 +44,36 @@ tk() {
     printf '%s' "$p"
 }
 
+# tk_docs <root>: the bytes of every ticket document under <root>, whichever
+# layout holds each. tk_journals <root>: of every ticket journal. For a plant
+# that counts lines across all tickets; nothing when there is none.
+tk_docs() {
+    local f
+    for f in "$1"/docs/tickets/t-*.md "$1"/docs/work/*/[tw]-*.md; do
+        [[ -f "$f" ]] && cat -- "$f"
+    done
+    return 0
+}
+# tk_ids <root>: the id of every single-document ticket under <root>, one per
+# line: `docs/tickets/<id>.md` and the masters in `docs/work/<id>/`.
+tk_ids() {
+    local f
+    for f in "$1"/docs/tickets/t-*.md; do
+        [[ -f "$f" ]] && basename "$f" .md
+    done
+    for f in "$1"/docs/work/*/[tw]-*.md; do
+        [[ -f "$f" ]] && basename "$(dirname "$f")"
+    done
+    return 0
+}
+tk_journals() {
+    local f
+    for f in "$1"/docs/tickets/*/journal.jsonl "$1"/docs/work/*/journal.jsonl; do
+        [[ -f "$f" ]] && cat -- "$f"
+    done
+    return 0
+}
+
 # No unquoted word-splitting anywhere in this file: a `for X in $LIST` loop does
 # not split in zsh, and the silent no-op that produces has already cost this
 # fleet a 13-repository operation that did nothing while reporting success.
@@ -105,6 +135,43 @@ if [[ ! -x "$WAR" ]]; then
     echo "build first: cargo build --workspace" >&2
     exit 1
 fi
+
+# Which layout `war create` writes in for this battery: `tickets`
+# (`docs/tickets/<t-id>.md`) or `work` (`docs/work/<w-id>/`), from
+# OW_PLANT_LAYOUT (`plant.sh --layout`). Empty is the product's default. The
+# caller's own OPENWARRANT_TICKET_LAYOUT is never read: every plant file starts
+# from this battery's (plant_layout_reset, in run_plant_files).
+# `conformance/plant-layouts.sh` runs the plants once per layout.
+PLANT_LAYOUT=${OW_PLANT_LAYOUT:-}
+case "$PLANT_LAYOUT" in
+    '' | tickets | work) ;;
+    *)
+        echo "OW_PLANT_LAYOUT must be tickets or work, not '$PLANT_LAYOUT'" >&2
+        exit 1
+        ;;
+esac
+# Exported, so a battery a plant starts inside this one runs in the same layout.
+[[ -z "$PLANT_LAYOUT" ]] || export OW_PLANT_LAYOUT="$PLANT_LAYOUT"
+plant_layout_reset() {
+    if [[ -n "$PLANT_LAYOUT" ]]; then
+        export OPENWARRANT_TICKET_LAYOUT="$PLANT_LAYOUT"
+    else
+        unset OPENWARRANT_TICKET_LAYOUT
+    fi
+}
+plant_layout_reset
+
+# plant_layout <tickets|work> <reason>: this plant file is ABOUT one layout
+# and runs in it whatever the battery's is. The pin ends with the file. A plant
+# that only happens to name a path does not pin: it asks `tk`. The reason is
+# one line; `plant-layouts.sh --pins` lists every pin with it.
+plant_layout() {
+    if [[ $# -ne 2 || -z "$2" || ("$1" != tickets && "$1" != work) ]]; then
+        printf 'PLANT SETUP FAILED: plant_layout <tickets|work> <reason>, not: %s\n' "$*" >&2
+        exit 9
+    fi
+    export OPENWARRANT_TICKET_LAYOUT="$1"
+}
 
 # Every path the plants mutate, named ONCE.
 #
@@ -527,9 +594,11 @@ run_plant_files() {
             continue
         fi
         restore
+        plant_layout_reset
         _rpf_started=$SECONDS
         # shellcheck source=/dev/null
         source "$_rpf_file"
+        plant_layout_reset
         unset PLANT_ROOT
         cd "$REPO_ROOT" || exit 1
         restore

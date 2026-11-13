@@ -15,11 +15,18 @@
 # may share it (lib.sh, "running the plant files").
 
 # `plant.sh --shard i/n` runs one shard, the same as OW_PLANT_SHARD=i/n.
-if [[ $# -eq 2 && "$1" == --shard ]]; then
-    OW_PLANT_SHARD=$2
+# `plant.sh --layout tickets|work` runs the plants in that ticket layout, the
+# same as OW_PLANT_LAYOUT (lib.sh); `plant-layouts.sh` runs both.
+while [[ $# -ge 2 ]]; do
+    case "$1" in
+        --shard) OW_PLANT_SHARD=$2 ;;
+        --layout) OW_PLANT_LAYOUT=$2 ;;
+        *) break ;;
+    esac
     shift 2
-elif [[ $# -ne 0 ]]; then
-    echo "usage: conformance/plant.sh [--shard i/n]" >&2
+done
+if [[ $# -ne 0 ]]; then
+    echo "usage: conformance/plant.sh [--shard i/n] [--layout tickets|work]" >&2
     exit 1
 fi
 
@@ -95,6 +102,7 @@ unset PLANT_ROOT
 
 echo
 echo "$PASSED passed, $FAILED failed"
+[[ -z "$PLANT_LAYOUT" ]] || echo "(ticket layout: $PLANT_LAYOUT)"
 [[ -z "$PLANT_SCOPE" ]] || echo "($PLANT_SCOPE: not the whole battery)"
 
 # OW_PLANT_REPORT=<file>: what ran, for `plant-select.py reports`, which requires

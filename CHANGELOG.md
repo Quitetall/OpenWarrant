@@ -52,6 +52,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `conformance/plant-layouts.sh [PLANT.sh ...]` runs the battery, or the named plant
+  files, once per ticket layout (`tickets`, `work`), each in its own clone of HEAD, and
+  reports per layout. `conformance/plant.sh --layout <layout>` (`OW_PLANT_LAYOUT`) runs
+  one. A plant that is about one layout pins it with `plant_layout <layout> "<reason>"`,
+  and `plant-layouts.sh --pins` lists the pins. The plants name a ticket's files through
+  `tk`, `tk_ids`, `tk_docs` and `tk_journals`, so each holds in both layouts; plant 297
+  covers the runner.
 
 - `war done` checks by default. `[tickets] done_test` names the repository's own
   test; a plain `war done` runs it, once per call, on anything no check of the

@@ -396,11 +396,14 @@ plants = ["90-skills.sh"]
 
 [[rule]]
 name = "the runner's own plants"
-paths = ["conformance/lib.sh", "conformance/plant.sh", "conformance/plant-isolated.sh", "conformance/controls/**"]
+paths = [
+    "conformance/lib.sh", "conformance/plant.sh", "conformance/plant-isolated.sh",
+    "conformance/plant-layouts.sh", "conformance/controls/**",
+]
 plants = [
     "48-isolated-battery.sh", "62-battery-env.sh", "99-fixed-tmp.sh", "99-plant-order.sh",
     "99-quiet-grep.sh", "69-board-tree-reads.sh", "69-overview-tree-reads.sh", "56-contractor.sh",
-    "69-current.sh", "86-submission-bindings.sh",
+    "69-current.sh", "86-submission-bindings.sh", "297-plant-layouts.sh",
 ]
 
 [[rule]]
