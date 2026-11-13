@@ -331,7 +331,7 @@ fn newest_tip(common: &Utf8Path, root: &Utf8Path, branch: &str) -> Option<String
     let fetched = ref_sha(common, &format!("refs/remotes/origin/{branch}"));
     match (local, fetched) {
         (Some(l), Some(f)) if l != f => {
-            let behind = std::process::Command::new("git")
+            let behind = crate::go::git::observing(&mut std::process::Command::new("git"))
                 .args(["-C", root.as_str(), "merge-base", "--is-ancestor", &l, &f])
                 .output()
                 .is_ok_and(|o| o.status.success());
@@ -381,7 +381,7 @@ pub(super) fn checked_out(toplevel: &Utf8Path) -> Option<String> {
 /// `path` at `rev`: its bytes, `Some(None)` when it has none there, and `None`
 /// when git could not be asked.
 pub(super) fn blob(dir: &Utf8Path, rev: &str, path: &str) -> Option<Option<Vec<u8>>> {
-    let out = std::process::Command::new("git")
+    let out = crate::go::git::observing(&mut std::process::Command::new("git"))
         .args(["-C", dir.as_str(), "cat-file", "blob"])
         .arg(format!("{rev}:{path}"))
         .stderr(std::process::Stdio::null())
@@ -1168,7 +1168,12 @@ fn bounded_diff(n: &Notice) -> String {
         args.push(to);
     }
     args.extend(["--", n.path.as_deref().unwrap_or(&n.source)]);
-    let Ok(out) = std::process::Command::new("git")
+    // A diff to the working tree reads through a private index.
+    let index = (n.to.is_none() && n.path.is_none())
+        .then(|| crate::go::git::read_index(Utf8Path::new(&n.checkout)))
+        .flatten();
+    let Ok(out) = crate::go::git::observing(&mut std::process::Command::new("git"))
+        .envs(crate::go::git::index_env(index.as_ref()))
         .args(args)
         .stderr(std::process::Stdio::null())
         .output()
@@ -1481,7 +1486,7 @@ fn holds(root: &Utf8Path, taken: &Taken) -> bool {
     }
     own_digest(root, &taken.source).as_deref() == Some(taken.digest.as_str())
         || taken.to.as_ref().is_some_and(|to| {
-            std::process::Command::new("git")
+            crate::go::git::observing(&mut std::process::Command::new("git"))
                 .args(["-C", root.as_str(), "merge-base", "--is-ancestor", to])
                 .arg("HEAD")
                 .output()
@@ -1892,7 +1897,7 @@ mod newest_tip_tests {
     use super::*;
 
     fn git(root: &Utf8Path, args: &[&str]) -> String {
-        let out = std::process::Command::new("git")
+        let out = crate::go::git::observing(&mut std::process::Command::new("git"))
             .args(["-C", root.as_str()])
             .args(["-c", "user.name=t", "-c", "user.email=t@example.com"])
             .args(["-c", "commit.gpgsign=false"])

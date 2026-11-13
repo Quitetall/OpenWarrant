@@ -11,7 +11,7 @@ use std::{
 };
 
 pub(crate) fn git(repo: &Repository, args: &[&str], limit: usize) -> Result<Vec<u8>, Error> {
-    let mut child = Command::new("git")
+    let mut child = crate::go::git::observing(&mut Command::new("git"))
         .current_dir(&repo.root)
         .args(["--no-pager", "--no-replace-objects"])
         .args(args)

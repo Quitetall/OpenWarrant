@@ -33,7 +33,7 @@ const FORMAT: u32 = 2;
 /// The key, and whether the working tree is settled enough to store under it.
 fn key(root: &Utf8Path) -> Option<(String, bool)> {
     let head = crate::go::git::rev(root, "HEAD")?;
-    let status = std::process::Command::new("git")
+    let status = crate::go::git::observing(&mut std::process::Command::new("git"))
         .args(["-C", root.as_str(), "status", "--porcelain=v1", "-z"])
         .args(["--untracked-files=all", "--no-renames"])
         .output()
