@@ -6624,6 +6624,7 @@ mod lookup_tests {
             format: false,
             done_whole: false,
             depends_on: Vec::new(),
+            elsewhere: None,
             dir,
         }
     }
