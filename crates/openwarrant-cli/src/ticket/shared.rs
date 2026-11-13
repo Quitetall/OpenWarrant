@@ -464,7 +464,13 @@ pub(super) fn add_elsewhere(
     {
         let here: BTreeMap<&str, &Ticket> = tickets.iter().map(|t| (t.id(), t)).collect();
         let mut consider = |e: Entry, added: &mut Vec<Ticket>| {
-            if e.below != reg.below || skip.contains(&e.id) {
+            // An entry this very worktree registered is never "elsewhere":
+            // its file is here, or was removed or cannot be read here, and
+            // the store has already said which.
+            if e.below != reg.below
+                || skip.contains(&e.id)
+                || (e.remote.is_none() && e.root == reg.root.as_str())
+            {
                 return;
             }
             if let Some(local) = here.get(e.id.as_str()) {
@@ -910,14 +916,17 @@ fn stem(word: &str) -> String {
     w.to_owned()
 }
 
-/// The words of a title that say what the work is, stemmed.
+/// The words of a title that say what the work is, stemmed, each with how
+/// often it occurs: "round 0 of worker 0" and "round 0 of worker 1" differ.
 #[must_use]
-pub fn content_words(title: &str) -> BTreeSet<String> {
-    super::words_of(title)
-        .into_iter()
-        .filter(|w| !STOP.contains(&w.as_str()))
-        .map(|w| stem(&w))
-        .collect()
+pub fn content_words(title: &str) -> BTreeMap<String, usize> {
+    let mut out = BTreeMap::new();
+    for w in super::words_of(title) {
+        if !STOP.contains(&w.as_str()) {
+            *out.entry(stem(&w)).or_insert(0) += 1;
+        }
+    }
+    out
 }
 
 /// How two titles read as one piece of work.
@@ -950,11 +959,18 @@ pub fn alike(a: &str, b: &str) -> Option<Alike> {
     if x == y {
         return Some(Alike::Same);
     }
-    let shared = x.intersection(&y).count();
-    let (small, large) = (x.len().min(y.len()), x.len().max(y.len()));
+    let size = |m: &BTreeMap<String, usize>| m.values().sum::<usize>();
+    let (small, large) = if size(&x) <= size(&y) {
+        (&x, &y)
+    } else {
+        (&y, &x)
+    };
+    let within = small
+        .iter()
+        .all(|(w, n)| large.get(w).is_some_and(|m| m >= n));
     #[allow(clippy::cast_precision_loss)]
-    let share = shared as f64 / large as f64;
-    (shared == small && share >= CLOSE).then_some(Alike::Close(share))
+    let share = size(small) as f64 / size(large) as f64;
+    (within && share >= CLOSE).then_some(Alike::Close(share))
 }
 
 /// One creator per title at a time: a lock in the register named by a hash
@@ -968,7 +984,7 @@ impl TitleLock {
         let Some(reg) = store.registry() else {
             return Self(None);
         };
-        let words: Vec<String> = content_words(title).into_iter().collect();
+        let words: Vec<String> = content_words(title).into_keys().collect();
         let key = if words.is_empty() {
             super::words_of(title).join(" ")
         } else {
@@ -1146,6 +1162,8 @@ mod tests {
                 false,
             ),
             ("Release alpha.7", "Release alpha.8", false),
+            // A repeated word counts each time it occurs.
+            ("worker-0 round 0", "worker-1 round 0", false),
             (
                 "Migrate docs/tickets to docs/work",
                 "Migrate docs/work state directories",
@@ -1182,9 +1200,10 @@ mod tests {
     /// work once titles are long: the reason the rule is containment.
     #[test]
     fn plain_jaccard_would_refuse_the_longer_csv_and_json_pair() {
+        let words = |t: &str| content_words(t).into_keys().collect::<BTreeSet<_>>();
         let (x, y) = (
-            content_words("Add CSV export to the reports page"),
-            content_words("Add JSON export to the reports page"),
+            words("Add CSV export to the reports page"),
+            words("Add JSON export to the reports page"),
         );
         #[allow(clippy::cast_precision_loss)]
         let jaccard = x.intersection(&y).count() as f64 / x.union(&y).count() as f64;

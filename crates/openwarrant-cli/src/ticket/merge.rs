@@ -154,15 +154,28 @@ fn same_document(ours: &str, theirs: &str) -> bool {
 
 /// A base for two copies of one document that git has no common ancestor
 /// for: the lines before either side's first difference, and, of the items
-/// both hold, each as both hold it or, where one side ticked it, as it was
-/// before (an item is written open). An item the two sides hold differently
+/// both hold, each as both hold it or, where one side ticked it and the text
+/// is the same, as it was before (an item is written open). An item the two sides hold differently
 /// in any other way is left out, so [`items`] reads it as changed on both
 /// sides and leaves it to git.
 fn common_base(ours: &str, theirs: &str) -> String {
     let (Ok(a), Ok(b)) = (lines(ours), lines(theirs)) else {
         return String::new();
     };
-    let done = |line: &str| ticket::parse(line).items.first().is_some_and(|i| i.done);
+    // `(done, text)` of an item line.
+    let read = |line: &str| {
+        ticket::parse(line)
+            .items
+            .first()
+            .map(|i| (i.done, i.text.clone()))
+    };
+    // The line as it was before one side ticked it: the open one, when the
+    // two say the same thing.
+    let before = |x: &'_ str, y: &'_ str| match (read(x), read(y)) {
+        (Some((true, tx)), Some((false, ty))) if tx == ty => Some(false),
+        (Some((false, tx)), Some((true, ty))) if tx == ty => Some(true),
+        _ => None,
+    };
     let (pa, pb) = (prose(&a), prose(&b));
     let shared = pa.iter().zip(&pb).take_while(|(x, y)| x == y).count();
     let mut out: Vec<&str> = Vec::new();
@@ -177,9 +190,12 @@ fn common_base(ours: &str, theirs: &str) -> String {
             }
             Some(id) => match b.by_id.get(id) {
                 Some(other) if other == line => out.push(line),
-                Some(other) if done(line) && !done(other) => out.push(other),
-                Some(other) if done(other) && !done(line) => out.push(line),
-                _ => {}
+                Some(other) => match before(line, other) {
+                    Some(true) => out.push(line),
+                    Some(false) => out.push(other),
+                    None => {}
+                },
+                None => {}
             },
         }
     }
@@ -446,17 +462,17 @@ mod tests {
     fn one_document_added_on_both_branches_merges_item_by_item() {
         let doc = |one: &str, two: &str, tail: &str| {
             format!(
-                "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-43c0\nuuid: 019a0000-0000-7000-8000-000000000001\n---\n# T\n\n## Checklist\n\n- [{one}] first `i-0001`\n- [{two}] second `i-0002`\n{tail}"
+                "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-43c0\nuuid: 019a0000-0000-7000-8000-000000000001\n---\n# T\n\n## Checklist\n\n- [{one}] first (i-0001)\n- [{two}] second (i-0002)\n{tail}"
             )
         };
         // Ours ticked the first item and added a third; theirs ticked the
         // second.
-        let ours = doc("x", " ", "- [ ] third `i-0003`\n");
+        let ours = doc("x", " ", "- [ ] third (i-0003)\n");
         let theirs = doc(" ", "x", "");
         let Merged::Items(m) = merge("docs/tickets/t-43c0.md", "", &ours, &theirs) else {
             panic!("add/add of one document is left to git");
         };
-        assert_eq!(m, doc("x", "x", "- [ ] third `i-0003`\n"));
+        assert_eq!(m, doc("x", "x", "- [ ] third (i-0003)\n"));
         // Ours appended a note; theirs ticked an item.
         let noted = doc(" ", " ", "\n## Notes\n\n- a note\n");
         let Merged::Items(m) = merge("docs/tickets/t-43c0.md", "", &noted, &theirs) else {
