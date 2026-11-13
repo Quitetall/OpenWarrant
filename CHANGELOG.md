@@ -20,6 +20,9 @@ Notable changes to OpenWarrant. Format loosely follows
 - `war add`, `done`, `note`, `start` and `plan promote` rebuild the acted-on ticket's
   lines of `docs/generated/llms.txt` and its parents', not every ticket's. `war done
   --reopen` now refreshes the index at all: it left a reopened ticket shown as done.
+- The duplicate check of `war create` reads only the register entries that are not
+  already listed tickets. It read every entry's file, one per ticket ever created here,
+  and looked each up by scanning every ticket.
 - After `create`, `start`, `done` and a release, the line naming what is next,
   `.openwarrant/next.md` and the index refresh share one reading of the tickets instead
   of reading every ticket once each.

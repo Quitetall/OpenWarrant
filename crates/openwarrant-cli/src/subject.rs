@@ -254,7 +254,7 @@ pub fn all(repo: &Repository) -> Vec<Found> {
 pub fn all_in(roots: &[Utf8PathBuf]) -> Vec<Found> {
     let mut out = Vec::new();
     for root in roots {
-        let Ok(entries) = crate::vfs::read_dir(&root) else {
+        let Ok(entries) = crate::vfs::read_dir(root) else {
             continue;
         };
         let mut names: Vec<String> = entries
