@@ -955,14 +955,20 @@ short session on the endpoint showing opencode loads the brief file at startup.
 
 Written and pushed before the run it describes.
 
-**`next` is main at `d088e6cd6`** (`d088e6cd6849cb227ad9977b8959907f025a82a5`; since
+**`next` is main at `919add881`** (`919add881cf9c280c4211b5c3313f0e2727c2453`; since
 `764736059`: #422 shared tickets and the duplicate refusal, #424 field fixes, #425 the
-read-path speedups, #426 and #428 the opt-in `docs/work` layout). Release build,
-`/mnt/4tb/tmp/openwarrant-adoption/tools/war-d088e6cd6/war`; it reports `war 1.0.0-alpha.7
-(unreleased, commit d088e6cd6849)`, sha256
-`185ef12bbf3009794ca328e8148c54c42ce5fccbfb668122b61309b421667c3b`, plugin ref `d088e6cd6`.
+read-path speedups, #426 and #428 the opt-in `docs/work` layout, #429 a hosted `war` no
+longer asking for its working directory at startup). Release build,
+`/mnt/4tb/tmp/openwarrant-adoption/tools/war-919add881/war`; it reports `war 1.0.0-alpha.7
+(unreleased, commit 919add881cf9)`, sha256
+`321a3cbc7311fdc3423bc3a6faef5b74df590468b2354b87599cb05a544ab87f`, plugin ref `919add881`.
 Every `@next` arm of `oc-a8-1` uses it. The run waits for the full gate on that commit
-(Actions run 43510274570) to conclude success.
+(Actions run 43522176313) to conclude success. This note first named main at `d088e6cd6`
+(sha256 `185ef12bbf3009794ca328e8148c54c42ce5fccbfb668122b61309b421667c3b`), whose full gate
+(run 43510274570) failed on two plants; no cell ran on that build, #429 is the fix, and the
+checks below were made on `d088e6cd6` and made again on `919add881`, with the same results.
+The model check was made on `d088e6cd6` only: #429 changes neither the brief file nor
+opencode's config.
 
 **Checked on it, no model.** `run.py a8-check`: 28 passed, 1 skipped (the model check
 below), 0 failed. No harness change was needed for this build:
