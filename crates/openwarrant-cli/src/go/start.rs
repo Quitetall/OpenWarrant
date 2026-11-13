@@ -162,6 +162,8 @@ pub fn run(
         .unwrap_or_default();
     let here = Store::open(repo, opts.actor.as_deref())?;
     let actor = here.actor.clone();
+    // OW-ADR-0034: whoever dispatches is asked the session's questions.
+    let dispatcher = Store::open(repo, None).map_or_else(|_| actor.clone(), |s| s.actor);
     // What the id names, read here; the claim is taken in the worktree.
     let (tickets, _) = here.load_all()?;
     let (node, warrant_dir, allowed_here, title) = if crate::ticket::is_ticket_ref(id) {
@@ -409,6 +411,7 @@ pub fn run(
             if let Some(id) = &claim_id {
                 settings["env"]["OPENWARRANT_CLAIM_ID"] = serde_json::json!(id);
             }
+            settings["env"][crate::hotline::DISPATCHER_ENV] = serde_json::json!(dispatcher);
             let body = serde_json::to_string_pretty(&settings).unwrap_or_default() + "\n";
             let _ = std::fs::create_dir_all(wt_root.join(".claude"));
             std::fs::write(&settings_path, &body).map_err(|source| RepoError::Io {
@@ -450,7 +453,15 @@ pub fn run(
         wrote.push(session_path.to_string());
     }
     // The brief: the same context `war evidence go` hands a performer.
-    let mut brief = brief_for(&node, &title, &worktree, &branch, &base, &allowed, &actor);
+    let mut brief = brief_for(
+        &node,
+        &title,
+        &worktree,
+        &branch,
+        &base,
+        &allowed,
+        claim_id.as_ref().map(|_| actor.as_str()),
+    );
     if !changes.is_empty() {
         brief.push('\n');
         brief.push_str(&crate::ticket::live::render(&node, &changes));
@@ -524,6 +535,7 @@ pub fn run(
             .args(&argv[1..])
             .current_dir(&wt_root)
             .env("OPENWARRANT_ACTOR", &actor)
+            .env(crate::hotline::DISPATCHER_ENV, &dispatcher)
             .env("WAR_GO_NODE", &node);
         if let Some(id) = &claim_id {
             command.env("OPENWARRANT_CLAIM_ID", id);
@@ -537,10 +549,17 @@ pub fn run(
     }
     report.push(Diagnostic::pass(
         "start.ready",
-        format!(
-            "{node}: claimed by {actor}, worktree {}",
-            repo.relative(&worktree)
-        ),
+        if claim_id.is_some() {
+            format!(
+                "{node}: claimed by {actor}, worktree {}",
+                repo.relative(&worktree)
+            )
+        } else {
+            format!(
+                "{node}: legacy stage context prepared in {}; no claim or Dispatch created",
+                repo.relative(&worktree)
+            )
+        },
     ));
     let started = Started {
         schema: SCHEMA,
@@ -574,14 +593,27 @@ fn brief_for(
     branch: &str,
     base: &str,
     allowed: &packet::Allowed,
-    actor: &str,
+    actor: Option<&str>,
 ) -> String {
-    let mut md = format!(
-        "# {title}\n\nTracked work `{node}`, claimed by `{actor}`, in its own worktree `{worktree}` \
+    let mut md = if let Some(actor) = actor {
+        format!(
+            "# {title}\n\nTracked work `{node}`, claimed by `{actor}`, in its own worktree `{worktree}` \
          (branch `{branch}`, from `{}`). When it is done: `war done {node} --note \"...\"`, or \
          `war done {node} --check` to run its tests and tick it at observed.\n",
-        &base[..base.len().min(12)]
-    );
+            &base[..base.len().min(12)]
+        )
+    } else {
+        let (alias, stage) = node.split_once('/').unwrap_or((node, "<stage>"));
+        format!(
+            "# {title}\n\nLegacy stage `{node}` in worktree `{worktree}` \
+             (branch `{branch}`, from `{}`). Context preparation creates neither a claim nor a \
+             Dispatch. `war admin dispatch {alias} {stage}` compiles a Dispatch subject to the \
+             legacy action gates; `war evidence submit {alias} <submission-file>` records work \
+             against it. `war sign resolve --dry-run {alias}` lists the remaining closure \
+             requirements. A submission is not independent verification or human resolution.\n",
+            &base[..base.len().min(12)]
+        )
+    };
     if !allowed.is_empty() {
         md.push_str("\n## What the Warrant declares this work touches\n\n");
         for (what, list) in [
@@ -600,6 +632,35 @@ fn brief_for(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn legacy_completion_brief_does_not_advertise_a_claim_or_daily_tick() {
+        let brief = brief_for(
+            "W-WAR-0001/STAGE-001",
+            "legacy",
+            &"/tmp/work".into(),
+            "branch",
+            "0123456789abcdef",
+            &packet::Allowed::default(),
+            None,
+        );
+        assert!(!brief.contains("claimed by"));
+        assert!(!brief.contains("war done"));
+        assert!(brief.contains("war admin dispatch W-WAR-0001 STAGE-001"));
+        assert!(brief.contains("war evidence submit W-WAR-0001 <submission-file>"));
+        assert!(brief.contains("neither a claim nor a Dispatch"));
+        let ticket = brief_for(
+            "t-abcd",
+            "ticket",
+            &"/tmp/work".into(),
+            "branch",
+            "0123456789abcdef",
+            &packet::Allowed::default(),
+            Some("agent://codex"),
+        );
+        assert!(ticket.contains("claimed by `agent://codex`"));
+        assert!(ticket.contains("war done t-abcd --check"));
+    }
 
     #[test]
     fn declared_acts_become_claude_permission_rules() {

@@ -47,15 +47,16 @@ am_ordinary_first() {
     local t=$1 first heading tickets signoff fact
     first=$(grep -v -e '^#' -e '^[[:space:]]*$' <<<"$t" | head -1)
     heading=$(grep -m1 '^## ' <<<"$t")
-    tickets=$(grep -n -m1 '^## Tracking work with tickets (optional)' <<<"$t" | cut -d: -f1)
-    signoff=$(grep -n -m1 "^## When a Warrant's type requires sign-off" <<<"$t" | cut -d: -f1)
+    tickets=$(grep -n -m1 '^## Tracking work (optional)' <<<"$t" | cut -d: -f1)
+    signoff=$(grep -n -m1 "^## Formal profile requirements" <<<"$t" | cut -d: -f1)
     fact=$(grep -n -m1 'Your own work is checked by someone else' <<<"$t" | cut -d: -f1)
     [[ $first == 'Ordinary coding needs no Warrant and no ticket.'* ]] || return 1
-    [[ $heading == '## Tracking work with tickets (optional)' ]] || return 1
+    [[ $heading == '## Tracking work (optional)' ]] || return 1
     [[ -n $tickets && -n $signoff && -n $fact ]] || return 1
     (( tickets < signoff && signoff < fact )) || return 1
     grep -q 'war view prime' <<<"$t" \
-        && grep -q 'No step in this loop needs a signature' <<<"$t" \
+        && grep -q 'Workers finish their portion without signing' <<<"$t" \
+        && grep -q 'leaves the work awaiting signature' <<<"$t" \
         && grep -q 'A disposition comes from the verifier' <<<"$t" \
         && grep -q 'Unknown is reported as UNKNOWN' <<<"$t" \
         && grep -q 'Generated files are rebuilt, not edited' <<<"$t" \

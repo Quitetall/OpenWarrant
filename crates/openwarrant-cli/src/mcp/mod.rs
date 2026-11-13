@@ -32,13 +32,18 @@ use crate::repo::{RepoError, Repository};
 /// agent most needs to hear (M9): ordinary work needs none of this. The
 /// non-authority facts follow, as what the server does and does not do.
 pub const INSTRUCTIONS: &str = "OpenWarrant (`war`) MCP server. Ordinary work needs none of \
-this: edit, build and test as in any repository. To track work: `war_start` takes the next \
-ready Warrant (or `target`) and returns its brief; `war_done` closes it with your last test \
-run; `war_status` says where work stands. No ticket step needs a signature. This server \
-cannot authorize, resolve, verify, accept a SAS, correct a delivered file, or sign anything: \
-those are human acts done at a terminal with `war sign`. A reply is the CLI's text: a finding \
-reads `refused (rule): ...`, and a nonzero exit ends `exit N, not_ready`. `json: true` returns \
-the `oh.war/report/v1` envelope instead.";
+this. Track one work item with a stable id. A Ticket finishes on the worker's report. A \
+Warrant requires every current required check to pass. An Order also requires a human \
+signature. `war_start` claims ready work and automatically delivers its complete required \
+context, in structured content and a text fallback. Read those rules before editing. \
+`war_done` reports your finished work and runs required checks. An Order may remain \
+awaiting_signature, with a human action next. `war_status` with target reads effective \
+level and state. Legacy ticket keys can hold any level. Use a separate next:true call \
+for pending acts. Use `war_note` to record experience or ask/answer a question. needs_human:true \
+routes a human decision. `war_check` validates records. Names grant no permissions. \
+This server cannot authorize, resolve, award Verified status, accept a SAS, correct a \
+delivered file, or sign anything. A person uses `war sign` for human acts. Other replies \
+are terse text with named refusals. json:true requests their report envelope.";
 
 /// Tool names the server must never register. Asserted by a test below
 /// against the live router, and by a source grep against `tools.rs`.
@@ -62,7 +67,7 @@ pub const REFUSED_TOOLS: &[&str] = &[
     "war_export",
     "war_bonsai",
     "war_eval",
-    // An agent asks (war_ask); only a human answers.
+    // Answering is `war_note`'s, where the ladder decides (OW-ADR-0034).
     "war_answer",
     "war_init",
     "war_gate_record",
@@ -370,7 +375,16 @@ impl ServerHandler for WarServer {
         };
         let tcc = rmcp::handler::server::tool::ToolCallContext::new(self, request, context);
         Ok(match self.tool_router.call(tcc).await? {
-            CallToolResponse::Complete(r) if json || self.opts.structured => {
+            CallToolResponse::Complete(r)
+                if json
+                    || self.opts.structured
+                    || r.structured_content.as_ref().is_some_and(|envelope| {
+                        envelope["result"]["context"]["schema"] == crate::context::task::SCHEMA
+                    }) =>
+            {
+                // Task context includes binding rules. Keep it in structured
+                // content and the text fallback for every client, even when
+                // other replies use the terse presentation.
                 CallToolResponse::Complete(enveloped(r))
             }
             CallToolResponse::Complete(r) => CallToolResponse::Complete(terse(r)),

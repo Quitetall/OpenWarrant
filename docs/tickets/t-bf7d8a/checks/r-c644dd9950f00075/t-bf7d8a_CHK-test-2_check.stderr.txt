@@ -1,0 +1,2 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.07s
+     Running tests/all.rs (/mnt/4tb/build/cargo/ow-formal-stage-done/debug/deps/all-dffd103b964e5b99)

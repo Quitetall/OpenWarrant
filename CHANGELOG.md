@@ -26,6 +26,24 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Two `runtime_capture::protected_executable` tests failed on GitHub's `ubuntu-26.04`
+  runners, where `/usr/bin/true` links to a multicall coreutils binary that the
+  sealed-descriptor check rightly refuses as linked. The tests now use the real
+  file and call it as `true`. The check itself is unchanged.
+
+### Fixed
+
+- MCP `war_start` always delivers its complete required context packet in both
+  structured content and a text fallback. `json: false` cannot discard required
+  rules. Claim-only replies and other tools keep their terse presentation.
+- The war skill and MCP instructions use the Ticket/Warrant/Order model and
+  explain failed checks, required context, questions and human-signature handoff.
+- CLI and MCP record checks share one route for native work at every level,
+  legacy records and work read in place. Native Ticket/Warrant/Order IDs now
+  receive their actual record checks over MCP.
+- MCP report outcomes mark failed or unavailable checks with the tool error
+  flag while retaining their named verdicts and diagnostics.
+
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it
   twice. Such a `CLAUDE.md` now gets no block, a copy written before is removed, and
@@ -33,6 +51,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- Who may answer a question follows the ladder (OW-ADR-0034, superseding OW-WAR-0069's
+  human-only rule below an Order): on a Ticket or a Warrant, any actor except the
+  asker (`question.own`), recorded with its kind; on an Order, signed text, an
+  intake question or `--needs-human`, a person (`question.agent`). With no
+  `docs/authority/roles.toml`, a person is whoever is at a terminal with a git
+  identity and in no agent session; a register still decides when there is one.
+  `war plan answer --as` is optional.
 - `war admin mcp` serves seven tools by default (`war_create`, `war_start`,
   `war_done`, `war_status`, `war_check`, `war_context`, `war_note`), with the
   CLI's folds as arguments: `war_status` takes `next`, `ready` and `view`,
@@ -40,7 +65,7 @@ Notable changes to OpenWarrant. Format loosely follows
   default `tools/list` is 4,904 bytes, down from 32,530. `--all` (or `[mcp]
   tools = "all"`) serves all 42 tools. Input schemas are flat and each
   description is one line.
-- An MCP reply is the CLI's terse text: a finding reads `refused (rule):
+- Other MCP replies use the CLI's terse text: a finding reads `refused (rule):
   ...`, and a nonzero exit ends `exit N, verdict`. `json: true` (or `[mcp]
   structured = true`) returns the `oh.war/report/v1` envelope.
 - The AGENTS.md that `war init` writes is 3,157 bytes, down from 9,775. It
@@ -50,6 +75,14 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- Questions find their answerer (OW-ADR-0034). `war plan note <id> --ask "..."`
+  (`--blocking`, `--needs-human`, `--recommend`) asks of the holder of the parent
+  work, else the dispatcher, else the creator, else anyone; `war plan note <id>
+  --answer Q-001 "..."` answers. The party sees it at the top of `war status`, in
+  `war status --next` with the answer command, in `war view prime` and in Mission
+  Control; the asker hears the answer once, on its next `war` call or `war start`.
+  Both travel as W3 notices, across clones with `[claims] remote`. MCP `war_note`
+  takes `ask` and `answer`. Ticket questions live in `docs/questions/<id>/`.
 - The formal path reads a single-file Warrant: authorize, evidence record,
   verify, resolve, compile, check, status and pins take `docs/warrants/<alias>.md`,
   with its state in `docs/warrants/<alias>/`. Its contract digest covers the

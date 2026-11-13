@@ -1233,7 +1233,7 @@ mod agents_md_tests {
             "{first}"
         );
         let scoped = out
-            .find("## When a Warrant's type requires sign-off")
+            .find("## Formal profile requirements")
             .expect("the sign-off section");
         let fact = out
             .find("Your own work is checked by someone else")

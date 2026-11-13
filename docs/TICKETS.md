@@ -107,6 +107,17 @@ optional typed records in one document. Its append-only journal lives beside
 it under `docs/tickets/t-xxxx/journal.jsonl`. A title is enough to start;
 `war plan add` adds items or checks to that same source.
 
+An explicitly migrated ordinary work order may also live in
+`docs/work/<id>/<id>-<slug>.md` with `profile: ticket`. Its alias and UUID stay
+unchanged, including older `*-WAR-*` aliases; its checks and journal live beside
+that source. The daily loop reads these masters and enforces their current checks.
+Migration is an explicit source change, never a side effect of `war done`.
+
+A legacy directory delivery Warrant still uses its Dispatch, Submission and resolution
+workflow. `war done` names that workflow instead of reporting an unknown ticket;
+`war sign resolve --dry-run <alias>` lists its remaining requirements. Preparing a
+legacy stage's worktree creates neither a claim nor a Dispatch.
+
 Legacy records keep their existing `manifest.toml`, intent and checklist atoms.
 `war create --legacy` selects that older layout explicitly. The tool reads
 both; no bulk migration or signed-history rewrite is required.
@@ -603,6 +614,47 @@ better served by the commands above) the same loop is `war_start` and `war_done`
 `part_of`, and `war_tickets` the filters above (`type`, `labels`, `state`,
 `text`, `search`, `epic`). Finding the right ticket is
 `war view tickets --search "<words>" --json`, not reading every directory.
+
+## Questions
+
+An agent that needs a decision asks, instead of guessing or stopping:
+
+```bash
+war plan note t-4332 --ask "sqlite or files?" --blocking   # --recommend "files", --needs-human
+war plan note t-4332 --answer Q-001 "files, one per item"
+```
+
+(`war note` is the same command; `war plan ask` and `war plan answer` still work.)
+The question is `docs/questions/<id>/Q-nnn.toml`, beside nothing else; a directory
+Warrant's stays under its `questions/` and is asked as `<alias>/<stage>`.
+
+**Who is asked.** Asking names a party: the holder of the parent work (`part_of`),
+else the actor that dispatched the session (`war start --worktree` sets
+`OPENWARRANT_DISPATCHER`), else the work's creator, else anyone, and never the
+asker. A question that needs a person is asked of a person. The party sees it at
+the top of `war status`, in `war status --next` with the exact answer command, in
+`war view prime`, and in Mission Control's Act view (`a` answers). An answer is
+written where the question was asked, in another worktree of the same clone too,
+and the asker hears it once: on its next `war` call, or in its `war start` brief.
+With `[claims] remote`, both reach the other clones the way change notices do.
+`war start` on work with an open blocking question says so in one line, and does
+not wait.
+
+**Who may answer** follows the ladder (OW-ADR-0034):
+
+| The question is on | Answered by |
+|---|---|
+| a Ticket or a Warrant | any actor except the asker; the answer records who and their kind |
+| an Order, a directory Warrant whose text is signed, or an intake question | a person |
+| anything, asked with `--needs-human` | a person |
+
+A level that cannot be read needs a person. The asker answering its own question
+is refused `question.own`; an agent where a person is needed, `question.agent`.
+With `docs/authority/roles.toml` the answerer (`--as`, else the acting name) must
+hold an assignment, and its kind is the register's. Without one, a person is
+whoever is at a terminal with a git identity and in no agent session; any other
+caller is an agent. An answer informs the work: a Warrant's trigger still decides
+when it is done, and an Order still needs its signature.
 
 ## Configuration
 

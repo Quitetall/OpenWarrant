@@ -70,6 +70,64 @@ fn json(root: &Path, args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
+fn legacy_completion_names_the_real_workflow_without_ticking_or_resolving() {
+    let root = scratch("legacy-completion");
+    let created = war(
+        &root,
+        &["plan", "new", "Legacy completion", "--format", "legacy"],
+    );
+    assert!(created.status.success());
+    let dir = std::fs::read_dir(root.join("docs/warrants"))
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .find(|dir| {
+            std::fs::read_to_string(dir.join("manifest.toml"))
+                .is_ok_and(|text| text.contains("title = \"Legacy completion\""))
+        })
+        .expect("the directory Warrant exists");
+    let alias = dir.file_name().unwrap().to_str().unwrap();
+    let journal = std::fs::read(dir.join("journal.jsonl")).unwrap();
+    let manifest = std::fs::read(dir.join("manifest.toml")).unwrap();
+    let stage = format!("{alias}/STAGE-001");
+    for (target, rule) in [
+        (alias, "done.legacy-warrant"),
+        (stage.as_str(), "done.legacy-stage"),
+    ] {
+        let result = json(&root, &["done", target, "--check", "--note", "complete"]);
+        assert_eq!(result["exit_code"], 2, "{result}");
+        let diagnostics = result["diagnostics"].as_array().unwrap();
+        assert!(diagnostics.iter().any(|d| d["rule"] == rule), "{result}");
+        assert!(!diagnostics.iter().any(|d| d["rule"] == "ticket.unknown"));
+        assert!(diagnostics.iter().any(|d| {
+            d["message"]
+                .as_str()
+                .unwrap()
+                .contains("war sign resolve --dry-run")
+        }));
+    }
+    let bad_stage = json(&root, &["done", &format!("{alias}/STAGE-missing")]);
+    assert!(
+        bad_stage["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "done.legacy-stage-unknown")
+    );
+    assert_eq!(std::fs::read(dir.join("journal.jsonl")).unwrap(), journal);
+    assert_eq!(std::fs::read(dir.join("manifest.toml")).unwrap(), manifest);
+    assert!(!dir.join("resolution.toml").exists());
+    let unknown = json(&root, &["done", "NOT-A-WARRANT/STAGE-001"]);
+    assert!(
+        unknown["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "ticket.unknown")
+    );
+    std::fs::remove_dir_all(root).unwrap();
+}
+
+#[test]
 fn create_ready_claim_done_needs_no_signature_and_no_human() {
     let root = scratch("loop");
     let created = json(
@@ -731,8 +789,8 @@ fn agents_in_linked_worktrees_claim_under_their_own_names() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
-/// Over MCP a ticket tool reads like the CLI (a brief once, in Markdown;
-/// `done` in one line) with the envelope as structured content, and a
+/// Starting work carries the complete context envelope and its Markdown
+/// brief. Other replies stay terse. A
 /// misnamed parameter is refused, never ignored: an ignored `ticket` once
 /// made `war_start` take the next Warrant instead of the one named.
 #[test]
@@ -762,14 +820,21 @@ fn mcp_ticket_tools_read_like_the_cli_and_refuse_a_misnamed_parameter() {
     );
     let started = call(&mut mcp, "war_start", serde_json::json!({"ticket": "T8"}));
     let text = started["result"]["content"][0]["text"].as_str().unwrap();
-    assert!(
-        text.starts_with(&format!("# {id} — T8: Monthly budget")),
-        "{text}"
+    let envelope = &started["result"]["structuredContent"];
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(text).unwrap(),
+        *envelope
     );
-    // The text alone by default; the envelope only when asked.
     assert!(
-        started["result"].get("structuredContent").is_none(),
+        envelope["result"]["markdown"]
+            .as_str()
+            .unwrap()
+            .starts_with(&format!("# {id} — T8: Monthly budget")),
         "{started}"
+    );
+    assert_eq!(
+        envelope["result"]["context"]["schema"],
+        "oh.war/task-context/v1"
     );
     let done = call(
         &mut mcp,
@@ -1115,4 +1180,41 @@ fn declare_scope(root: &Path, id: &str, paths: &str) {
     )
     .unwrap();
     std::fs::rename(staged, file).unwrap();
+}
+
+#[test]
+fn legacy_completion_migrated_master_keeps_identity_and_enforces_checks() {
+    let root = scratch("migrated-master");
+    let alias = "TK-WAR-0999";
+    let state = root.join("docs/work").join(alias);
+    std::fs::create_dir_all(&state).unwrap();
+    let source = state.join(format!("{alias}-retained-identity.md"));
+    std::fs::write(&source, format!("---\nformat: openwarrant/1.0\nprofile: ticket\nalias: {alias}\nuuid: 01a1b75a-8404-70a5-ac4f-a730d8f7110b\nsummary: Retained identity\n---\n# Retained identity\n\n## Checklist\n\n## CHK-result · check — required result\nrun: test -f passed\non: done\nevaluates {alias}\n")).unwrap();
+    for _ in 0..2 {
+        let started = json(&root, &["start", alias, "--as", "agent://test"]);
+        assert_eq!(started["exit_code"], 0, "{started}");
+    }
+    let failed = json(&root, &["done", alias, "--check", "--as", "agent://test"]);
+    assert!(
+        failed["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "check.failed"),
+        "{failed}"
+    );
+    assert!(!state.join("resolution.toml").exists());
+    std::fs::write(root.join("passed"), "ok").unwrap();
+    let passed = json(&root, &["done", alias, "--check", "--as", "agent://test"]);
+    assert_eq!(passed["exit_code"], 0, "{passed}");
+    let history = std::fs::read_to_string(state.join("journal.jsonl")).unwrap();
+    assert!(history.contains("work.item_done") && history.contains(alias));
+    assert!(!root.join("docs/tickets").join(alias).exists());
+    assert!(!state.join("resolution.toml").exists());
+    assert!(
+        std::fs::read_to_string(source)
+            .unwrap()
+            .contains("uuid: 01a1b75a-8404-70a5-ac4f-a730d8f7110b")
+    );
+    std::fs::remove_dir_all(root).unwrap();
 }

@@ -155,7 +155,7 @@ pub fn directory_rows(repo: &Repository) -> Result<(Vec<Row>, Vec<Diagnostic>), 
     Ok((rows, faults))
 }
 
-fn directory_row(repo: &Repository, dir: &Utf8Path) -> (Option<Row>, Vec<Diagnostic>) {
+pub(crate) fn directory_row(repo: &Repository, dir: &Utf8Path) -> (Option<Row>, Vec<Diagnostic>) {
     let mut faults = Vec::new();
     let manifest = dir.join("manifest.toml");
     // A Format 1.0 document's state directory: its row is the document's

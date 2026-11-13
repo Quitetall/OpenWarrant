@@ -4,8 +4,8 @@ Ordinary coding needs no Warrant; this is for work someone planned as one.
 
 1. Read the Warrant's scope, the repository's instructions, existing changes,
    and `war admin pins --resolved-only` for files a closed Warrant pins. A missing
-   signature is no reason to wait: implementation goes ahead, and the
-   sign-off follows whenever a person gives it.
+   signature alone is no reason to wait for ordinary work. Honor any explicit
+   verified-start or other action gate before its affected action.
 2. Use an isolated worktree per Warrant when several writers share files.
    Implement the scope, run positive and refusal tests, and keep notes. Ask
    about material changes of scope or architecture; carry on with independent
@@ -18,7 +18,9 @@ Ordinary coding needs no Warrant; this is for work someone planned as one.
    [progress guide](progress.md). Lead with the configured completion word
    only when the scope is complete. If the tracker cannot record something
    yet, say so beside the notes.
-5. Report finished work as finished and unverified. Verification needs an
+5. Read the returned state and next action. Required check failures keep work
+   unfinished. An Order may await a human signature after its worker finishes.
+   Report those pending requirements. Verification needs an
    independent check and a person's acceptance; the next requested Warrant
    starts from a new prompt, with no extra approval round.
 

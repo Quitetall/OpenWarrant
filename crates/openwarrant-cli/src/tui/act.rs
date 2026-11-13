@@ -334,9 +334,8 @@ fn dispatch_effect(
 }
 
 fn after_answer() -> String {
-    "Recorded in this checkout. A question answers no running agent by itself: one here reads \
-     this on its next `war start` or `war view show`, and one in a worktree once this is \
-     committed and reaches its branch."
+    "Recorded where it was asked. The asker hears it once, at its next `war start` or other \
+     `war` call; nothing interrupts it."
         .to_owned()
 }
 
@@ -479,20 +478,14 @@ pub fn form_key(m: &mut Model, k: KeyEvent) -> Option<Effect> {
                 }
                 None
             }
-            KeyCode::Enter => {
-                if who.trim().is_empty() {
-                    m.message = "who is answering? It must hold a human role".to_owned();
-                    None
-                } else {
-                    Some(Effect::Say {
-                        title: format!("answer {warrant}/{id}"),
-                        argv: argv::answer(warrant, id, text.trim(), who.trim()),
-                        at: None,
-                        after: after_answer(),
-                        prompt: None,
-                    })
-                }
-            }
+            // Nobody named: whoever runs it, and the ladder decides (OW-ADR-0034).
+            KeyCode::Enter => Some(Effect::Say {
+                title: format!("answer {warrant}/{id}"),
+                argv: argv::answer(warrant, id, text.trim(), who.trim()),
+                at: None,
+                after: after_answer(),
+                prompt: None,
+            }),
             code => {
                 edit(if *on_who { who } else { text }, code);
                 None
@@ -708,11 +701,15 @@ fn form_lines(m: &Model, form: &Form) -> (String, Vec<Line<'static>>, String) {
                 Line::from(""),
                 field("Recommended", recommended, false),
                 field("Answer", text, !on_who),
-                field("As (a human role in roles.toml)", who, *on_who),
+                field(
+                    "As (empty: you; roles.toml names it if there is one)",
+                    who,
+                    *on_who,
+                ),
                 Line::from(""),
                 Line::from(
-                    "An agent here reads this on its next `war start` or `war view show`; one in \
-                     a worktree, once it is merged across.",
+                    "The asker hears it once, at its next `war start` or other `war` call. An \
+                     Order or --needs-human question needs a person.",
                 ),
             ],
             "Enter next, an empty answer takes the recommendation · Esc cancels".to_owned(),

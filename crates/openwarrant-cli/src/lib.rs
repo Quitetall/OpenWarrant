@@ -54,6 +54,7 @@ pub mod go;
 pub mod graph;
 pub mod herdr;
 pub mod host;
+pub mod hotline;
 pub mod impact;
 pub mod inbox;
 pub mod init;
@@ -1185,12 +1186,31 @@ enum PlanCommand {
     },
     /// Append a dated note to a Warrant: context for whoever comes next.
     ///
-    /// For the next agent or person; Markdown, may span lines.
+    /// For the next agent or person; Markdown, may span lines. `--ask` asks
+    /// a question instead, of whoever holds the parent work; `--answer
+    /// Q-nnn "<answer>"` answers one (any actor but the asker, below an Order).
     Note {
-        /// The Warrant (or one of its items).
+        /// The Warrant (or one of its items); `<alias>/<stage>` for a
+        /// directory Warrant's question.
         target: String,
-        /// The note; Markdown, may span lines.
-        text: String,
+        /// The note, or with `--answer` the answer; Markdown, may span lines.
+        #[arg(required_unless_present = "ask")]
+        text: Option<String>,
+        /// Ask this question instead of noting.
+        #[arg(long, value_name = "QUESTION", conflicts_with_all = ["answer", "if_rev"])]
+        ask: Option<String>,
+        /// Answer this question (`Q-001`) with the text.
+        #[arg(long, value_name = "Q-ID", conflicts_with = "if_rev")]
+        answer: Option<String>,
+        /// With `--ask`: the work cannot go on without the answer.
+        #[arg(long, requires = "ask")]
+        blocking: bool,
+        /// With `--ask`: only a person may answer, at any level.
+        #[arg(long = "needs-human", requires = "ask")]
+        needs_human: bool,
+        /// With `--ask`: your recommended answer.
+        #[arg(long, value_name = "ANSWER", requires = "ask")]
+        recommend: Option<String>,
         /// Write only if the item (or Warrant) is still at this revision, the
         /// one `war view show --json` gave; refused `work.stale-revision`
         /// otherwise, naming the current one.
@@ -1433,8 +1453,9 @@ enum PlanCommand {
         #[arg(long)]
         open: bool,
     },
-    /// Ask the human a question that blocks a stage (OW-WAR-0069). An agent
-    /// asks; only a human answers. Neither act authorizes anything.
+    /// Ask a question that blocks a stage (OW-WAR-0069); `war plan note <id>
+    /// --ask` is the short form. Who may answer follows the ladder
+    /// (OW-ADR-0034). Neither act authorizes anything.
     Ask {
         /// The Warrant's local alias.
         alias: String,
@@ -1448,9 +1469,13 @@ enum PlanCommand {
         /// The stage cannot proceed without the answer.
         #[arg(long)]
         blocking: bool,
+        /// Only a person may answer, at any level.
+        #[arg(long = "needs-human")]
+        needs_human: bool,
     },
-    /// Answer a question an agent asked (OW-WAR-0069). Refused for an
-    /// agent-kind actor by the register, and nothing is written.
+    /// Answer a question (OW-WAR-0069, OW-ADR-0034). Any actor but the asker
+    /// answers below an Order; an Order, signed text or `--needs-human`
+    /// needs a person. A refusal writes nothing. `war note <id> --answer`.
     Answer {
         /// The Warrant's local alias.
         alias: String,
@@ -1458,9 +1483,9 @@ enum PlanCommand {
         id: String,
         /// The answer, in full.
         answer: String,
-        /// Who is answering; must hold a human role in roles.toml.
+        /// Who is answering; with docs/authority/roles.toml, an actor it names.
         #[arg(long = "as")]
-        actor: String,
+        actor: Option<String>,
     },
     /// The answers a stage's performer should read before it starts.
     Answers {
@@ -3422,6 +3447,13 @@ fn pinned_prime(repository: &repo::Repository, name: &str, rest: &str) -> ticket
     }
 }
 
+/// OW-ADR-0034: the questions asked of whoever runs `war status`, which lead it.
+fn asked_of_you(repository: &repo::Repository) -> String {
+    ticket::Store::open(repository, None)
+        .map(|store| hotline::status_lines(&store))
+        .unwrap_or_default()
+}
+
 fn ticket_answer(mode: output::Mode, command: &str, outcome: &ticket::Outcome) -> u8 {
     match mode {
         output::Mode::Human => {
@@ -4219,11 +4251,18 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                         if let Some(line) = interfaces::drift_line(&repository) {
                             value["interfaces"] = serde_json::json!(line);
                         }
+                        if let Ok(store) = ticket::Store::open(&repository, None) {
+                            let asked = hotline::waiting(&store);
+                            if !asked.is_empty() {
+                                value["asked_of_you"] = output::value(&asked);
+                            }
+                        }
                         output::emit(mode, "status", &text, value);
                     }
                     // A few lines, not the projection: an agent reads every
                     // byte of this. `--verbose` is the arm below.
                     output::Mode::Human if !output::verbose() => {
+                        print!("{}", asked_of_you(&repository));
                         let brief = status_brief::Brief::read(&repository);
                         print!("{}", brief.render());
                         for why in &brief.unknown {
@@ -4235,6 +4274,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                     output::Mode::Human => {
                         let (_, text) = status::corpus_status_md(&repository)?;
+                        print!("{}", asked_of_you(&repository));
                         println!("{text}");
                         for line in [
                             repos::status_line(&repository.root),
@@ -4696,89 +4736,13 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     }
                 }
             }
-            // A ticket is checked for its structure only (OW-WAR-0147): never
-            // for a signature, evidence or verification it does not need.
-            if let Some(a) = alias.as_deref().filter(|a| ticket::is_ticket_ref(a)) {
-                let mut report = diagnostic::Report::default();
-                match ticket::Store::open(&repository, None) {
-                    Ok(store) => {
-                        // A Format 1.0 ticket is checked as the document it
-                        // is. One the loop refuses is no ticket to go on to.
-                        if let Some(document) = store.document_of(a)? {
-                            format_doc::check_one(&repository, &document, &mut report);
-                        }
-                        if report.is_ready() {
-                            ticket::check(&store, Some(a), &mut report)?;
-                        }
-                    }
-                    Err(e) => report.push(diagnostic::Diagnostic::error(
-                        "tickets.config",
-                        init::CONFIG_FILE.to_owned(),
-                        e.to_string(),
-                    )),
-                }
-                return Ok(output::finish(mode, "check", &report, None));
-            }
-            // M10: a Warrant read in place is checked for what its folder
-            // says, read where it is; nothing is written.
-            if let Some(a) = alias
-                .as_deref()
-                .filter(|a| warrants::kind_of(a) == warrants::IdKind::ReadInPlace)
-            {
-                let mut report = diagnostic::Report::default();
-                interop::adapters::check(&repository, Some(a), &mut report);
-                return Ok(output::finish(mode, "check", &report, None));
-            }
-            // W1.1: a single-file Warrant is checked as the document it is,
-            // with or without a directory corpus around it.
-            if let Some(source) = alias
-                .as_deref()
-                .and_then(|a| work::document_of(&repository, a))
-            {
-                let mut report = diagnostic::Report::default();
-                format_doc::check_one(&repository, &source, &mut report);
-                return Ok(output::finish(mode, "check", &report, None));
-            }
-            // One-shot and read-only: the tree does not move under it (t-eca6).
-            gate_cmd::source::remember_tree_reads();
-            let mut report = check::run(&repository, alias.as_deref(), generated)?;
+            let shared = corpus::Corpus::new(&repository);
+            let mut report = work::check_records(&shared, alias.as_deref(), generated)?;
             if let Some(why) = why_corpus {
                 report.push(diagnostic::Diagnostic::pass(
                     "check.changed",
                     format!("checked the corpus: {why}"),
                 ));
-            }
-            if alias.is_none() {
-                match ticket::Store::open(&repository, None) {
-                    Ok(store) => ticket::check(&store, None, &mut report)?,
-                    Err(e) => report.push(diagnostic::Diagnostic::error(
-                        "tickets.config",
-                        init::CONFIG_FILE.to_owned(),
-                        e.to_string(),
-                    )),
-                }
-                interop::adapters::check(&repository, None, &mut report);
-                // W6: open clauses counted, late ones flagged, [repos] read.
-                interfaces::check(&repository, chrono::Utc::now().date_naive(), &mut report);
-                // OW-WAR-0148 M14: a [preset], [roles] or [notify] table that
-                // does not read is refused by key; an absent one says nothing.
-                if let Err(e) = preset::Policy::read(&repository.root) {
-                    report.push(diagnostic::Diagnostic::error(
-                        preset::CONFIG_RULE,
-                        init::CONFIG_FILE.to_owned(),
-                        e,
-                    ));
-                }
-                // OW-WAR-0148 M17: the ledger's atoms and table, the JSONL
-                // never committed, and the [score] table.
-                ledger::check(&repository, &mut report);
-                if let Err(e) = score::Config::read(&repository.root) {
-                    report.push(diagnostic::Diagnostic::error(
-                        "score.config",
-                        init::CONFIG_FILE.to_owned(),
-                        e,
-                    ));
-                }
             }
             // A non-zero exit for an unsound Warrant is what lets CI gate on it.
             Ok(output::finish(mode, "check", &report, None))
@@ -5091,11 +5055,33 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
         PlanCommand::Note {
             target,
             text,
+            ask,
+            answer,
+            blocking,
+            needs_human,
+            recommend,
             if_rev,
             actor,
             at,
         } => {
             answer_at(at.as_deref())?;
+            let text = text.unwrap_or_default();
+            if ask.is_some() || answer.is_some() {
+                let repository = ctx.open_repo()?;
+                let act = match (&ask, &answer) {
+                    (Some(q), _) => hotline::NoteAct::Ask(questions::Asking {
+                        question: q,
+                        recommended: recommend.as_deref().unwrap_or_default(),
+                        blocking,
+                        needs_human,
+                        ..questions::Asking::default()
+                    }),
+                    (None, Some(id)) => hotline::NoteAct::Answer { id, text: &text },
+                    (None, None) => unreachable!("checked above"),
+                };
+                let outcome = hotline::note(&repository, &target, act, actor.as_deref())?;
+                return Ok(ticket_answer(mode, "note", &outcome));
+            }
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::note(&store, &target, &text, if_rev.as_deref())?;
             refresh_index_after(&repository, &outcome, false);
@@ -5682,10 +5668,21 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             question,
             recommend,
             blocking,
+            needs_human,
         } => {
             let repository = ctx.open_repo()?;
-            let mut report =
-                questions::ask(&repository, &alias, &stage, &question, &recommend, blocking)?;
+            let mut report = questions::ask(
+                &repository,
+                &alias,
+                &questions::Asking {
+                    stage: &stage,
+                    question: &question,
+                    recommended: &recommend,
+                    blocking,
+                    needs_human,
+                    actor: None,
+                },
+            )?;
             // OW-WAR-0148 M14: a question waits on a person; `[notify]` says
             // so when it is configured.
             if report.is_ready()
@@ -5710,7 +5707,7 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
             actor,
         } => {
             let repository = ctx.open_repo()?;
-            let report = questions::answer(&repository, &alias, &id, &answer, &actor)?;
+            let report = questions::answer(&repository, &alias, &id, &answer, actor.as_deref())?;
             Ok(output::finish(mode, "answer", &report, None))
         }
         PlanCommand::Questions { alias, open } => {
@@ -7126,6 +7123,12 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             if let Some(line) = ticket::live::unseen_line(&store) {
                 outcome.human.push_str(&format!("\n\n{line}"));
                 outcome.report.note(line);
+            }
+            // OW-ADR-0034: questions asked of this actor, until answered.
+            let asked = hotline::status_lines(&store);
+            if !asked.is_empty() {
+                outcome.human.push_str(&format!("\n\n{}", asked.trim_end()));
+                outcome.report.note(asked.trim_end().to_owned());
             }
             Ok(ticket_answer(mode, "prime", &outcome))
         }

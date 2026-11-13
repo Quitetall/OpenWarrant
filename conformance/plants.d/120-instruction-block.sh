@@ -135,7 +135,7 @@ IB_OUT=$(ib_war init 2>&1)
 IB_RC=$?
 if [[ $IB_RC -eq 0 ]] && cmp -s <(head -c "$IB_SIZE" "$IB_ROOT/CLAUDE.md") "$IB_TMP/claude.0" \
     && [[ $(ib_count "$IB_BEGIN" "$IB_ROOT/CLAUDE.md") == 1 ]] \
-    && grep -q '^## Tracking work with tickets (optional)' "$IB_ROOT/AGENTS.md" \
+    && grep -q '^## Tracking work (optional)' "$IB_ROOT/AGENTS.md" \
     && [[ $(ib_count "$IB_END" "$IB_ROOT/AGENTS.md") == 1 ]] \
     && grep -q '^CLAUDE.md: added the openwarrant block' <<<"$IB_OUT"; then
     ib_ok "init adds the block to CLAUDE.md" "its bytes kept; the full AGENTS.md written, ending in the block"
