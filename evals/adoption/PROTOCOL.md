@@ -701,3 +701,203 @@ failed and each search found nothing. The refusal: the same probe with the cell 
 `fixture-reference` relay on the same arm passed all 11 items in 11 sessions with no false
 completion, every session's grade kept: grading works as before. 6 of 6 checks passed on
 2026-11-12.
+
+## Amendment 8 (2026-11-12): tokens judged by a paired ratio, a criterion against plain, and what `next` now is
+
+Written and pushed before any further run, at the owner's direction. No run was started
+and no model was called to write it.
+
+**Why.** Amendment 5's token step compares the two arms' medians of total tokens and calls
+anything inside 10% a tie. Run to run, the same binary moves by about that much: alpha.7's
+median per cell was 1,980,342 in `oc-v5-1` and 1,792,970 in `oc-v5-2`, 9.5% apart, and
+paired cell by cell `next` against alpha.7 was +0.8% with a 95% interval of −22% to +29%
+(amendment 6's diagnosis). A 10% band on a median of six or twelve totals mostly reports
+ties, and when it reports a win it can be noise: `oc-v5-3` alone gave alpha.7 the win at
++15.7% on medians, where the same six cells paired give −8.7% (−38.3% to +30.0%).
+
+**The token step, from this amendment on** (`run.py` `paired_ratio`, `win_rule`). Steps 1,
+2 and 4 of amendment 5's rule are unchanged, with amendment 6's pooling: false completions
+first, then passes with a tie of one cell per replicate pooled, and a tie overall is no win.
+Step 3 becomes:
+
+3. On a tie in passes, tokens are judged by the paired ratio. For every directed cell both
+   arms ran (the same item, in the same replicate, of the same run), take the new
+   version's tokens over the old version's (input, cache reads and writes, output, as
+   before). The statistic is the geometric mean of those ratios over all pooled paired
+   cells, with a bootstrap 95% interval. The new version wins on tokens only when the whole
+   interval is below 1.0. It loses on tokens when the whole interval is above 1.0.
+   Otherwise the token step is a tie.
+
+The interval is a percentile bootstrap: the pairs are resampled with replacement 100,000
+times, the mean log ratio taken each time, and the 2.5th and 97.5th percentiles read off;
+the seed is fixed (20261022, the harness's), so a report is the same every time it is made.
+A pair in which either cell reports no tokens has no ratio; it is left out of the token
+step and counted in the report. A cell counts whether or not it passed: passes are step
+2's business. One pair has no interval, and is a tie.
+
+**Earlier verdicts stand as recorded.** Every verdict in the results of amendments 5 and 6
+was reached by the median step and is not reopened. `run.py report` and `run.py pool` now
+print both figures for every pair, the median step's and the paired step's, and both
+verdicts: "Result" follows this amendment, and the line under it says what amendment 5's
+step gives. A report regenerated for an old run therefore shows a second verdict beside
+the recorded one; the recorded one is the one that counted.
+
+**Checked against the recorded runs** (`run.py pool oc-v5-2 oc-v5-3`, on a scratch copy of
+the kept results; the keep store was not rewritten):
+
+| pair | cells | median step (amendment 5) | paired ratio (this amendment) | verdict by each |
+|---|---|---|---|---|
+| `openwarrant@next` against `openwarrant@a7`, `oc-v5-2` and `oc-v5-3` | 12 | 2,019,327 against 1,823,340, +10.7% | 1.008: +0.8%, interval −22.1% to +28.6% | tie, tie |
+| `openwarrant-mcp@next` against `openwarrant-mcp@a7`, `oc-v5-3` | 6 | 2,122,966 against 2,253,126, −5.8% | 0.933: −6.7%, interval −16.5% to +3.5% | tie, tie |
+| `openwarrant@a7` against `openwarrant@a6`, `oc-v5-1` | 6 | 1,980,342 against 4,886,330, −59.5% | 0.322: −67.8%, interval −80.7% to −50.8% | alpha.7 wins, alpha.7 wins |
+
+The first row is the diagnosis's figure: the same +0.8%. Its interval was given as −21.7% to
++28.5%, from 10,000 resamples of another seed; 100,000 resamples of this one give −22.1% to
++28.6%. The difference, 0.4 of a point at the lower end, is resampling noise: 10,000
+resamples under six seeds put the lower end between −22.2% and −21.7%. The seed was not
+searched for one that matches.
+
+**A criterion against plain** (`against_plain`; in `report` and in `pool`). Each OpenWarrant
+arm is also set against `plain` on the directed cells both ran, by the same paired ratio,
+with passes and false completions beside it. This is descriptive: it has no win rule and
+decides nothing between versions. The owner's release criterion reads one row of it:
+**`openwarrant@next`'s ratio against `plain` at or below 1.0**, the point estimate, shown
+with its interval. Over `oc-v5-2` and `oc-v5-3` (12 cells): `openwarrant@next` 0.891
+(−10.9%, −26.2% to +7.7%), `openwarrant@a7` 0.884 (−11.6%, −29.8% to +13.8%); over
+`oc-v5-3` (6 cells) `openwarrant-mcp@next` 0.889 and `openwarrant-mcp@a7` 0.953; over
+`oc-v5-1`, `openwarrant@a6` 2.515 (+96.7% to +239.2%). Twins (amendment 6) get the same
+ratio printed under their table.
+
+**What `next` now is: a default test.** The product is gaining `[tickets] done_test =
+"<command>"` in `openwarrant.toml`: `war done` runs it when a ticket declares no test of
+its own, and refuses to close the ticket when it fails. For the `@next` arms only
+(`openwarrant@next`, `openwarrant-mcp@next`, `openwarrant-brief@next`) the seeder writes
+that key, with the repository's visible test command (`arms.py` `DONE_TEST`,
+`write_done_test`):
+
+| repository | `done_test` |
+|---|---|
+| tally | `python3 -m pytest -q` |
+| knightlm | `cargo test --workspace --locked -j 2` |
+
+Each is a line of the project facts every arm carries, and the seeder refuses a command
+that is not: the key hands `next` no command another arm was not told. It is written last,
+after the seeder has closed the earlier items, so seeding itself runs no test. alpha.7 and
+older arms get nothing: they refuse a `[tickets]` key they don't know (`unknown field
+done_test`, checked on alpha.7 and on `next` at `d9b524f5c`).
+
+This is part of what `next` is, not an advantage the harness gives it: any repository set
+up by `war init` on that version gets the key, and a repository set up by alpha.7 does not
+have the feature to get. The comparison of `next` with alpha.7 is a comparison of versions,
+and this is one of the things that changed. What it can change in the measures: a `war
+done` over a failing visible suite is refused, which can only lower false completions; and
+the test run's output comes back to the agent, which costs tokens.
+
+The switch is `ADOPTION_OW_DONE_TEST`, on unless set to `0`, and it reaches only `@next`
+arms. `run.json` records it (`ow_done_test`: the switch, the arms that carry the key, each
+repository's command), and each cell's `result.json` its own (`done_test`). A run whose
+`next` does not read the key stops before its first cell (`feature_problems`), instead of
+seeding a repository `war` can't read.
+
+**A new arm, opencode only: `openwarrant-brief@next`.** It is `openwarrant@next` (the same
+build, seed, `AGENTS.md`, `done_test`, prompts, model and turn cap) with one difference,
+the session's opencode config: `"instructions": [".openwarrant/next.md"]`, opencode's list
+of files to load at startup beside `AGENTS.md`. `.openwarrant/next.md` is a file `war` will
+keep current: the brief for the next ready ticket, there on the first turn without a
+command. The harness writes nothing into it. A brief cell whose seeded repository has no
+such file stops (`seed_repo`), since without the file the arm is its twin under another
+name; the arm is refused under Claude Code. It is shown beside its twin
+(`openwarrant-brief@next` beside `openwarrant@next`: the amendment 6 table and the paired
+ratio) and against `plain`, with no win rule. Edits under `.openwarrant/` are tracker
+edits, not code edits, like `docs/tickets/` (`TRACKER_PATHS`); no earlier run has the
+directory.
+
+**More cells.** The opencode runs so far used six directed items, T8 to T10 and K7 to K9.
+The backlogs hold sixteen more, each with hidden tests and a reference solution, each run
+as a directed cell under Claude Code in `full-1` and the `rem-c*` runs:
+
+- tally: T1 to T7, and T11 (T7 and T11 carry an open question, as T8 and T10 do).
+- knightlm: K1 to K6, K10 and K11 (none carries an open question; K7 to K9 do).
+
+Under opencode only T1 has run (`oc-smoke-*`, at 25 turns), so how DeepSeek does on the
+other fifteen at 60 turns isn't known; the pass step may separate arms there where it
+couldn't on six.
+
+The widest directed set that fits about three hours a replicate at `--jobs 3` is all 22
+items on four arms, `plain`, `openwarrant@a7`, `openwarrant@next` and
+`openwarrant-brief@next`: 88 cells, 22 pairs a replicate for every pair
+(`plans/oc-a8-directed.json`). A directed cell at 60 turns took 327 s on average over
+`oc-v5-1` to `oc-v5-3` (225 s in `oc-v5-2`, 366 s in `oc-v5-3`), so 88 cells three at a time
+is 2.7 to 3.0 hours, less on a quiet machine. The MCP arms would make it 132 cells and
+4.0 to 4.5 hours, so they are left out; relay cells (about 41 minutes each) are left out
+too. Until the product keeps the brief file, the same plan without the brief arm is
+`plans/oc-a8-directed-nobrief.json`: 66 cells, 2.0 to 2.2 hours. Both at `--turns 60`,
+arms interleaved per item, under `systemd-run --user`, after checking the endpoint is free
+and the registry holds crates. A second replicate is the same plan under a new run id.
+
+Pooling under this amendment: `next` from here carries `done_test`, which `oc-v5-2`'s and
+`oc-v5-3`'s `next` did not, so runs under this amendment are pooled with each other, and
+the 12 earlier pairs are shown beside them, not folded in, unless the owner directs
+otherwise before the pool is run.
+
+**Claude Code cells** (`plans/cc-a8-directed.json`; not run, they cost money and wait for
+the owner). One set: the 22 directed items on `openwarrant@a7` and `openwarrant@next`, 44
+cells, with the plugin and `war mcp` as each version ships them (alpha.7's plugin from its
+tag, `next`'s from the commit it was built from; `agent_argv`). `claude-sonnet-5-5`, 25
+turns (the cap of every earlier Claude Code run, so their prices apply), `--jobs 2`.
+
+- Expected cost: USD 6.86. That is each item's mean price in the openwarrant arm of the
+  earlier Claude Code runs (USD 0.08 to 0.25 a cell, 3.43 for the 22 items of one arm).
+  The dearest directed cell of any arm in any run was USD 0.40. About 45 minutes.
+- The cap: `--session-budget-usd 0.65 --budget-usd 28.60`. Every session at its cap is 44 ×
+  0.65 = USD 28.60, so new spend stays under USD 30 even then. With
+  `--session-budget-usd`, `--budget-usd` is hard (`Purse`): each cell's cap is held before
+  it starts, and a cell that does not fit beside what is spent and held never starts. (Without
+  the flag `--budget-usd` is as it was: checked after a cell ends, with USD 8 a session.)
+  Claude Code checks its own cap between turns, so a session can pass 0.65 by its last
+  turn; the USD 1.40 left under 30 is for that.
+- A session cut by its cap would be the harness's doing, not the arm's: the cell is rerun
+  once for every arm or excluded for every arm (amendment 5's rule), and the report says so.
+
+Claude Code runs are not pooled with opencode runs (amendment 2).
+
+**Checked, no model** (`run.py a8-check`, scratch roots only; fixture agents). 25 checks
+passed and 5 were skipped on 2026-11-12, on alpha.7 and `next` at `d9b524f5c`. A skipped
+check is owed, not passed:
+
+- *The token step.* Twelve cells all cheaper: the new version wins. All dearer: it loses.
+  An interval holding 1.0: a tie, where the median step named a winner. Cheaper everywhere
+  with one false completion: it loses on false completions. Cheaper everywhere with two
+  fewer passes: it loses on passes. The recorded runs give the figures in the table above.
+- *Against plain.* Every OpenWarrant arm has a row; the criterion reads `next`'s, met at
+  0.9 and not met at 1.1.
+- *The hard budget.* A cell whose cap doesn't fit is refused, and fits again once a running
+  cell settles for less than it held.
+- *`done_test`.* Both commands are lines of the facts, and a command that isn't is refused.
+  Only `@next` arms carry the key, and the switch turns it off. alpha.7's seed has no key.
+  The control: on alpha.7, a fixture that adds a failing test to tally's visible suite and
+  then records T8 done (`fixture-claim-broken`) is recorded done, a false completion. A run
+  whose `next` lacks the key stops before its first cell; with the switch off it seeds as
+  before. **Skipped until `war` has the key** (no build of main reads it yet): that
+  `next`'s seed carries it and `war` reads it, that the reference solution is still
+  recorded done, and the refusal, that `war done` over the failing suite is not recorded.
+- *The brief arm.* Its opencode config is its twin's plus the one `instructions` entry; it
+  uses `next`'s build; Claude Code refuses it; a brief cell stops when `war` wrote no brief
+  file. **Skipped until `war` keeps the file:** that the file is in the seed. **Owed
+  before the first brief cell:** one short session on the endpoint, not a study cell,
+  showing opencode loads the file at startup, as amendment 6 proved `war mcp`.
+- *The plans.* Each holds directed cells only, the same cells for every arm, and the
+  Claude Code plan can't pass USD 30.
+
+Before the first run under this amendment: `next` is rebuilt from a main that has both
+features, its commit, version string and sha256 recorded as amendment 6 recorded them;
+`run.py a8-check` is run again and its skipped checks must pass; and the seed parity of
+amendments 5 and 6 is checked again, where `next` and alpha.7 should now differ in the
+`AGENTS.md` block, the `done_test` key, and whatever `war init` writes for the brief.
+
+The spec study's self-checks (`run.py spec-selfcheck`) share this code. Their sections that
+run no spec cell were rerun on 2026-11-12 after these changes, and all 25 checks passed: the
+customer, the gates, the registry, the turn caps and argv (the adoption argv still carries
+USD 8 a session), and an adoption cell at 25 turns. The sections that run cells with fixture
+authors and workers (binaries, isolation, the spec matrix, the control) were not rerun: the
+machine's build slots were taken. They are owed before the spec study's next run.

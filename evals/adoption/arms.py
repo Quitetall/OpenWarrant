@@ -25,16 +25,19 @@ ARMS = ("plain", "plans", "speckit", "beads", "openwarrant", "jira")
 # Amendment 5: OpenWarrant versions as arms, run side by side. Each is the `openwarrant` arm, seeded
 # by the same code; only the `war` binary and the plugin ref differ (run.py OW_VERSIONS).
 # Amendment 6: `openwarrant-mcp@X` is `openwarrant@X` with `war mcp` registered in opencode's config.
+# Amendment 8: `openwarrant-brief@next` is `openwarrant@next` with opencode loading the brief `war`
+# keeps current (BRIEF_FILE) as an instruction file. Only `next` writes that file.
 VERSION_ARMS = ("openwarrant@a6", "openwarrant@a7", "openwarrant@next",
-                "openwarrant-mcp@a7", "openwarrant-mcp@next")
+                "openwarrant-mcp@a7", "openwarrant-mcp@next", "openwarrant-brief@next")
 ALL_ARMS = ARMS + VERSION_ARMS
+BRIEF_FILE = ".openwarrant/next.md"
 
 
 def tool_of(arm: str) -> str:
-    """The tool an arm sets up: `openwarrant@a7` and `openwarrant-mcp@a7` are both the `openwarrant`
-    arm on alpha.7's binary."""
+    """The tool an arm sets up: `openwarrant@a7`, `openwarrant-mcp@a7` and `openwarrant-brief@next`
+    are all the `openwarrant` arm, on that version's binary."""
     base = arm.split("@", 1)[0]
-    return "openwarrant" if base == "openwarrant-mcp" else base
+    return "openwarrant" if base in ("openwarrant-mcp", "openwarrant-brief") else base
 
 
 def with_mcp(arm: str) -> bool:
@@ -42,9 +45,33 @@ def with_mcp(arm: str) -> bool:
     return arm.startswith("openwarrant-mcp@")
 
 
+def with_brief(arm: str) -> bool:
+    """An arm whose agent loads `war`'s first-turn brief as an instruction file (amendment 8)."""
+    return arm.startswith("openwarrant-brief@")
+
+
 def version_arm(arm: str) -> str:
     """The version arm whose build an arm uses: `openwarrant-mcp@a7` uses `openwarrant@a7`'s."""
-    return "openwarrant@" + arm.split("@", 1)[1] if with_mcp(arm) else arm
+    return "openwarrant@" + arm.split("@", 1)[1] if with_mcp(arm) or with_brief(arm) else arm
+
+
+# Amendment 8: each study repository's visible test command, the one its project facts tell every
+# arm to run. The seeder writes it as `[tickets] done_test` for an arm whose `war` has that key.
+DONE_TEST = {
+    "tally": "python3 -m pytest -q",
+    "knightlm": "cargo test --workspace --locked -j 2",
+}
+
+
+def done_test_command(backlog: dict) -> str | None:
+    """The repository's visible test command, or None when the study names none for it. It must be
+    a line of the project facts every arm carries: the key hands no arm a command it was not told."""
+    cmd = DONE_TEST.get(backlog["repo"])
+    if cmd is None:
+        return None
+    if cmd not in [line.strip() for line in backlog["project"]["facts"].splitlines()]:
+        raise RuntimeError(f"{backlog['repo']}: the done_test command {cmd!r} is not a line of the project facts")
+    return cmd
 
 SEED_ENV = {
     "GIT_AUTHOR_NAME": "study-seed",
@@ -345,6 +372,26 @@ def _war(argv, repo, env):
     return report["result"]
 
 
+def tickets_config(repo: Path, line: str) -> None:
+    """One key in openwarrant.toml's `[tickets]` table, which `war init` does not write: the table is
+    appended once, and a later key goes under it."""
+    path = repo / "openwarrant.toml"
+    text = path.read_text()
+    if "\n[tickets]\n" in text:
+        path.write_text(text.replace("\n[tickets]\n", f"\n[tickets]\n{line}\n", 1))
+    else:
+        path.write_text(text + f"\n[tickets]\n{line}\n")
+
+
+def write_done_test(repo: Path, backlog: dict, env: dict) -> None:
+    """Amendment 8: `[tickets] done_test`, when the run asks for it for this arm (STUDY_OW_DONE_TEST,
+    set by run.py for `@next` arms only: an older `war` refuses the key). Written after the seeder
+    has closed the earlier items, so seeding itself runs no test."""
+    cmd = done_test_command(backlog) if env.get("STUDY_OW_DONE_TEST") == "1" else None
+    if cmd:
+        tickets_config(repo, "done_test = " + json.dumps(cmd))
+
+
 def setup_openwarrant(repo: Path, backlog: dict, env: dict) -> None:
     """`war init` and the instruction file: OpenWarrant with no tickets in it."""
     war = env["STUDY_WAR"]
@@ -356,8 +403,7 @@ def setup_openwarrant(repo: Path, backlog: dict, env: dict) -> None:
         raise RuntimeError(f"war init did not add its block to {target.name}")
     if env.get("ADOPTION_OW_SESSION_START") == "1":
         # The opt-in session hook (`[tickets] session_start`), when the run enables it.
-        with open(repo / "openwarrant.toml", "a") as f:
-            f.write("\n[tickets]\nsession_start = true\n")
+        tickets_config(repo, "session_start = true")
 
 
 def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> None:
@@ -386,6 +432,7 @@ def seed_openwarrant(repo: Path, backlog: dict, done: set[str], env: dict) -> No
     for iid in backlog["order"]:
         if iid in done:
             openwarrant_done(tickets[iid], repo, env, "done before this session")
+    write_done_test(repo, backlog, env)
 
 
 def openwarrant_done(ticket: str, repo: Path, env: dict, note: str) -> None:
@@ -517,6 +564,7 @@ def scaffold(arm: str, repo: Path, backlog: dict, tools: dict) -> None:
         setup_beads(repo, backlog, env)
     elif arm == "openwarrant":
         setup_openwarrant(repo, backlog, env)
+        write_done_test(repo, backlog, env)
     elif arm in ("plain", "plans"):
         instructions(repo, env).write_text(facts_header(backlog))
     else:

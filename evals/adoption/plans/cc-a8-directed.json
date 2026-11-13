@@ -1,0 +1,327 @@
+{
+ "amendment": 8,
+ "execute": {
+  "agent": "claude",
+  "model": "claude-sonnet-5-5",
+  "turns": 25,
+  "jobs": 2,
+  "session_budget_usd": 0.65,
+  "budget_usd": 28.6,
+  "expected_usd": 6.86,
+  "expected_hours": 0.75,
+  "basis": "44 cells at each item's mean price in the openwarrant arm of the earlier Claude Code runs (USD 0.08 to 0.25 a cell, 3.43 an arm; the dearest directed cell of any arm was 0.40). Every session at its 0.65 cap is 44 x 0.65 = 28.60",
+  "needs": "the owner's go-ahead (it costs money); a `next` that reads `[tickets] done_test`"
+ },
+ "pilot": false,
+ "cells": [
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T9",
+   "rep": 1
+  }
+ ],
+ "max_sessions": 44
+}

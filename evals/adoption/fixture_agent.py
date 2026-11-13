@@ -5,6 +5,9 @@
                                  done the way the arm's tool records it
     fixture_agent.py noop        change nothing
     fixture_agent.py claim       record the next item done without doing it (a false completion)
+    fixture_agent.py claim-broken
+                                 add a failing test to the visible suite, then record the target item
+                                 done: a tool that tests before it closes must refuse (amendment 8)
     fixture_agent.py spec        read the spec a fixture author wrote, do what its FIXTURE-PATCH line
                                  says (reference, or the natural default), and record the spec done
 
@@ -141,6 +144,17 @@ def main() -> None:
     todo = [target] if target else [i for i in order if i not in done]
     if not todo:
         result_line("reference: nothing left")
+        return
+    if mode == "claim-broken":
+        # tally's layout: pytest collects tests/. The claim is made through the arm's own tool, so a
+        # tool that runs the project's tests before closing a ticket refuses it, and says so.
+        Path("tests/test_zz_fixture_broken.py").write_text("def test_fixture_broken():\n    assert False\n")
+        try:
+            mark_done(arm, backlog, todo[0])
+        except (RuntimeError, subprocess.CalledProcessError) as e:
+            result_line(f"claim-broken: the tool refused to record {todo[0]} done: {str(e)[:300]}")
+            return
+        result_line(f"claim-broken: recorded {todo[0]} done with the visible tests failing")
         return
     if mode == "claim":
         # The next item the tracker does not yet record as done, ticked without any work.

@@ -13,6 +13,7 @@ before any run; `BACKLOG-FORMAT.md` is the format of the study's backlogs.
 | `fixture_agent.py` | scripted agents for zero-cost dry runs (`reference`, `noop`, `claim`) |
 | `repos/tally/`, `repos/knightlm/` | backlog, source, hidden tests, reference solutions, `validate.sh` |
 | `repos/_selftest/` | a two-item repository for testing the harness itself |
+| `plans/` | amendment 8's plan files (not yet run): the 22 directed items under opencode, and under Claude Code with a hard budget |
 
 ```bash
 python3 run.py prepare                 # pinned tools, offline crates, pytest for the sandbox
@@ -24,6 +25,9 @@ python3 run.py execute pilot.json --run-id dry --agent fixture-reference   # fre
 ADOPTION_AUTH=token secrets run -- python3 run.py execute pilot.json \
     --run-id pilot-1 --agent claude --budget-usd 60                        # costs tokens
 python3 run.py report pilot-1
+python3 run.py pool oc-v5-2 oc-v5-3    # the win rule over several runs' directed cells
+ADOPTION_RUNS_ROOT=/mnt/4tb/tmp/x/runs ADOPTION_KEEP_ROOT=/mnt/4tb/tmp/x/keep \
+    python3 run.py a8-check --run-id a8    # amendment 8's checks, free; SKIP is owed, not passed
 ```
 
 Auth: `ADOPTION_AUTH=token` passes `CLAUDE_CODE_OAUTH_TOKEN` (the subscription);

@@ -1,0 +1,634 @@
+{
+ "amendment": 8,
+ "execute": {
+  "agent": "opencode",
+  "model": "lithosai/deepseek-ai/DeepSeek-V4.1-Flash",
+  "turns": 60,
+  "jobs": 3,
+  "expected_usd": 0,
+  "note": "the endpoint reports no price",
+  "expected_hours": 2.9,
+  "basis": "88 cells at 327 to 366 s a directed cell (the means of oc-v5-1, oc-v5-2 and oc-v5-3 together, and of oc-v5-3 alone), three at a time: 2.7 to 3.0 hours",
+  "needs": "a `next` that reads `[tickets] done_test` and keeps `.openwarrant/next.md`"
+ },
+ "pilot": false,
+ "cells": [
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "plain",
+   "item": "K9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@a7",
+   "item": "K9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant@next",
+   "item": "K9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "knightlm",
+   "arm": "openwarrant-brief@next",
+   "item": "K9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T1",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T10",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T11",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T2",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T3",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T4",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T5",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T6",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T7",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T8",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "plain",
+   "item": "T9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@a7",
+   "item": "T9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant@next",
+   "item": "T9",
+   "rep": 1
+  },
+  {
+   "scenario": "directed",
+   "repo": "tally",
+   "arm": "openwarrant-brief@next",
+   "item": "T9",
+   "rep": 1
+  }
+ ],
+ "max_sessions": 88
+}

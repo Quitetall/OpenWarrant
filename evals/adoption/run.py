@@ -12,6 +12,9 @@
                [--jobs N] [--budget-usd X] [--model M]
                                          run the cells (resumable: a finished cell is skipped)
     run.py report <run-id>               results.json and REPORT.md from a run
+    run.py pool <run-id> ...             the win rule over the pooled directed cells of several runs
+    run.py a8-check --run-id ID          amendment 8's checks: the paired token rule, the done_test
+                                         seed, the brief arm, the hard budget; no model, scratch roots
     run.py isolation-check --run-id ID   amendment 7's leak probe and a reference relay; no model,
                                          scratch roots only
 
@@ -380,11 +383,67 @@ def apply_reference(repo: str, dest: Path, ids: list[str]) -> None:
                        check=True, capture_output=True, timeout=120)
 
 
+def ow_done_test(arm: str) -> bool:
+    """Amendment 8: whether an arm's seed carries `[tickets] done_test`. Only `@next` arms can: the key
+    is part of what `next` is, and alpha.7 and older refuse a key they don't know. On unless
+    ADOPTION_OW_DONE_TEST=0; run.json records it."""
+    return (arms.tool_of(arm) == "openwarrant" and arm.endswith("@next")
+            and os.environ.get("ADOPTION_OW_DONE_TEST", "1") != "0")
+
+
+def seed_extras(arm: str) -> dict:
+    return {"STUDY_OW_DONE_TEST": "1"} if ow_done_test(arm) else {}
+
+
+def war_knows_done_test(war: str) -> bool:
+    """Whether a `war` reads `[tickets] done_test`."""
+    return war_reads_tickets_key(war, 'done_test = "true"')
+
+
+def war_reads_tickets_key(war: str, line: str) -> bool:
+    """Whether a `war` reads a `[tickets]` key: a freshly set up repository with the key in it still
+    lists its tickets. A `war` without the key refuses the table (`unknown field`)."""
+    import tempfile
+    env = arms.seed_env({})
+    RUNS.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(dir=RUNS) as d:
+        subprocess.run(["git", "init", "-q", "-b", "main"], cwd=d, env=env, check=True, capture_output=True, timeout=60)
+        if subprocess.run([war, "init", "--root", "."], cwd=d, env=env, capture_output=True, timeout=120).returncode != 0:
+            return False
+        arms.tickets_config(Path(d), line)
+        p = subprocess.run([war, "view", "tickets", "--json"], cwd=d, env=env, capture_output=True, text=True, timeout=120)
+        try:
+            return json.loads(p.stdout).get("exit_code") == 0
+        except ValueError:
+            return False
+
+
+def feature_problems(arm_list: list[str], agent: str, repos: list[str] | None = None) -> list[str]:
+    """Amendment 8: what a plan's arms need of `next` that the build at hand may not have yet. A run
+    stops before its first cell instead of measuring an arm that is silently its own twin."""
+    problems = []
+    for arm in sorted(set(arm_list)):
+        war = arm_war(arm)
+        if not war or not Path(war).exists():
+            continue  # check_tools reports it
+        keyed = repos is None or any(r in arms.DONE_TEST for r in repos)   # a repository with no command gets no key
+        if keyed and ow_done_test(arm) and not war_knows_done_test(war):
+            problems.append(f"{arm}: {war} does not read `[tickets] done_test`. Build `next` from a main that "
+                            "has it, or set ADOPTION_OW_DONE_TEST=0 to run without the key (run.json records which)")
+        if arms.with_brief(arm) and agent == "claude":
+            problems.append(f"{arm}: the brief arm is opencode's (its `instructions` config); not run under {agent}")
+    return problems
+
+
 def seed_repo(repo: str, arm: str, dest: Path, done: list[str], extra: dict | None = None) -> dict:
     backlog = load_backlog(repo)
     materialize(repo, dest)
     apply_reference(repo, dest, done)
-    arms.seed(arm, dest, backlog, set(done), {**tools(arm), **(extra or {})})
+    arms.seed(arm, dest, backlog, set(done), {**tools(arm), **seed_extras(arm), **(extra or {})})
+    if arms.with_brief(arm) and not (dest / arms.BRIEF_FILE).is_file():
+        # The arm is its twin plus this file. Without it the cell would be the twin under another name.
+        raise SystemExit(f"stopped: {arm}'s `war` wrote no {arms.BRIEF_FILE} into the seeded repository; "
+                         "the brief arm waits for a `next` that keeps that file")
     return backlog
 
 
@@ -393,7 +452,7 @@ def seed_scaffold(repo: str, arm: str, dest: Path, done: list[str], extra: dict 
     backlog = load_backlog(repo)
     materialize(repo, dest)
     apply_reference(repo, dest, done)
-    arms.scaffold(arm, dest, backlog, {**tools(arm), **(extra or {})})
+    arms.scaffold(arm, dest, backlog, {**tools(arm), **seed_extras(arm), **(extra or {})})
     return backlog
 
 
@@ -739,8 +798,9 @@ OPENCODE_ARM_MCP = {} if os.environ.get("ADOPTION_OC_OW_MCP") != "1" else ARM_MC
 
 
 def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "",
-               budget: float = SESSION_BUDGET_USD, no_web: bool = False) -> list[str]:
+               budget: float | None = None, no_web: bool = False) -> list[str]:
     arm = arms.tool_of(arm)
+    budget = SESSION_BUDGET_USD if budget is None else budget   # `execute --session-budget-usd` sets the global
     if agent == "claude":
         argv = ["/opt/study/bin/claude", "-p", prompt, "--model", model,
                 "--output-format", "stream-json", "--verbose",
@@ -756,7 +816,7 @@ def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "
     if agent == "opencode":
         # The turn cap is the build agent's `steps` in the session's config (opencode_config).
         return ["/opt/study/bin/opencode", "run", "--standalone", "--format", "json", "-m", model, prompt]
-    if agent in ("fixture-reference", "fixture-noop", "fixture-claim", "fixture-spec"):
+    if agent in ("fixture-reference", "fixture-noop", "fixture-claim", "fixture-claim-broken", "fixture-spec"):
         return ["python3", "/opt/study/code/fixture_agent.py", agent.split("-", 1)[1]]
     if agent == "fixture-probe":
         return ["/usr/bin/python3", "/opt/study/fixture_probe.py"]
@@ -766,7 +826,7 @@ def agent_argv(agent: str, prompt: str, model: str, max_turns: int, arm: str = "
 
 
 TRACKER_PATHS = ("CLAUDE.md", "PLAN.md", "specs/", ".specify/", ".beads/", "docs/tickets/",
-                 "openwarrant.toml", "AGENTS.md")
+                 "openwarrant.toml", "AGENTS.md", ".openwarrant/")
 
 _REDIRECT = re.compile(r"(?<![0-9&>])>{1,2}\s*(?!&|/dev/null)[\w./~-]")
 _WRITERS = re.compile(r"\bsed\s+-i|\btee\b|\bgit\s+apply\b|\bpatch\b|write_text\(|\.write\(|open\([^)]*['\"][wa]['\"]")
@@ -954,7 +1014,7 @@ def parse_opencode(path: Path, max_turns: int) -> dict:
 def opencode_config(arm: str, max_turns: int, no_web: bool = False) -> dict:
     """A session's opencode config: the provider, every tool allowed (the sandbox is the boundary,
     as with Claude Code's bypassPermissions), the turn cap, and the arm's MCP server."""
-    mcp = arms.with_mcp(arm)
+    mcp, full_arm = arms.with_mcp(arm), arm
     arm = arms.tool_of(arm)
     cfg = {
         "$schema": "https://opencode.ai/config.json",
@@ -972,12 +1032,16 @@ def opencode_config(arm: str, max_turns: int, no_web: bool = False) -> dict:
                for name, d in (ARM_MCP if mcp else OPENCODE_ARM_MCP).get(arm, {}).items()}
     if servers:
         cfg["mcp"] = servers
+    if arms.with_brief(full_arm):
+        # Amendment 8: opencode's `instructions` takes files to load beside AGENTS.md at startup. A
+        # relative path is looked up from the session's directory, the repository (or its worktree).
+        cfg["instructions"] = [arms.BRIEF_FILE]
     return cfg
 
 
 def run_session(sb: Sandbox, sdir: Path, cwd: str, prompt: str, agent: str, model: str,
                 max_turns: int, extra_env: dict | None = None, arm: str = "",
-                budget: float = SESSION_BUDGET_USD, no_web: bool = False) -> dict:
+                budget: float | None = None, no_web: bool = False) -> dict:
     sdir.mkdir(parents=True, exist_ok=True)
     config = sdir / ("opencode-config" if agent == "opencode" else "claude-config")
     config.mkdir(exist_ok=True)
@@ -1076,7 +1140,9 @@ def run_cell(run_id: str, c: dict, agent: str, model: str, turns: int = SESSION_
         sb = Sandbox(cell, c["repo"], fixture=agent.startswith("fixture"), arm=c["arm"], agent=agent,
                      layout=layout)
     result: dict = {"cell": c, "agent": agent, "model": model, "turn_cap": turns,
-                    "build": arm_build(c["arm"]), "sessions": []}
+                    "build": arm_build(c["arm"]), "sessions": [],
+                    "done_test": arms.done_test_command(backlog) if ow_done_test(c["arm"]) else None,
+                    "brief_file": arms.BRIEF_FILE if arms.with_brief(c["arm"]) else None}
     t0 = time.time()
     extra = {**(jira_env(cell) if c["arm"] == "jira" else {}), **AGENT_SEED.get(layout or agent, {})} or None
     try:
@@ -1323,6 +1389,230 @@ def cmd_isolation_check(args) -> None:
         raise SystemExit(1)
 
 
+# ------------------------------------------------------------------ amendment 8's checks
+
+
+def _token_cell(arm: str, item: str, tokens: int, success: bool = True, says_done: bool | None = True) -> dict:
+    return {"cell": {"scenario": "directed", "repo": "tally", "arm": arm, "item": item, "rep": 1},
+            "success": success, "tracker_says_done": says_done,
+            "sessions": [{"metrics": {"input_tokens": tokens}}]}
+
+
+def cmd_a8_check(args) -> None:
+    """Amendment 8's checks, no model. Each control is paired with a refusal. A check that needs
+    something `next` does not have yet is SKIP with the reason: neither a pass nor a failure."""
+    if "ADOPTION_RUNS_ROOT" not in os.environ or "ADOPTION_KEEP_ROOT" not in os.environ:
+        raise SystemExit("refused: set ADOPTION_RUNS_ROOT and ADOPTION_KEEP_ROOT to scratch")
+    rid = args.run_id
+    results: list[str] = []
+
+    def check(name: str, ok: bool, detail: str = "") -> None:
+        results.append("PASS" if ok else "FAIL")
+        print(f"{results[-1]}  {name}" + (f": {detail}" if detail else ""), flush=True)
+
+    def skip(name: str, why: str) -> None:
+        results.append("SKIP")
+        print(f"SKIP  {name}: {why}", flush=True)
+
+    def env(**kv):
+        import contextlib
+
+        @contextlib.contextmanager
+        def cm():
+            old = {k: os.environ.get(k) for k in kv}
+            os.environ.update(kv)
+            try:
+                yield
+            finally:
+                for k, v in old.items():
+                    os.environ.pop(k, None) if v is None else os.environ.__setitem__(k, v)
+        return cm()
+
+    # ---- the token step
+    new, old = "openwarrant@next", "openwarrant@a7"
+    items = [f"T{n}" for n in range(1, 13)]
+
+    def pair(new_tokens: list[int], **kw) -> list[dict]:
+        rs = [_token_cell(old, i, 1000) for i in items[:len(new_tokens)]]
+        return rs + [_token_cell(new, i, t) for i, t in zip(items, new_tokens)] + kw.get("extra", [])
+
+    w = win_rule(pair([700, 750, 800, 850, 800, 760, 820, 790, 810, 780, 770, 830]), new, old)
+    check("tokens: every cell cheaper, the whole interval below 1.0, the new version wins",
+          w["result"] == f"{new} wins on tokens" and w["paired_tokens"]["ci95"][1] < 1.0, ratio_text(w["paired_tokens"]))
+    w = win_rule(pair([1300, 1250, 1200, 1350, 1280, 1220, 1310, 1270, 1240, 1290, 1260, 1330]), new, old)
+    check("tokens: every cell dearer, the whole interval above 1.0, the new version loses",
+          w["result"] == f"{old} wins on tokens" and w["paired_tokens"]["ci95"][0] > 1.0, ratio_text(w["paired_tokens"]))
+    w = win_rule(pair([500, 500, 500, 2000, 2000, 2000]), new, old)
+    check("tokens: an interval that holds 1.0 is a tie, where the median rule called a winner",
+          w["result"] == "tie: no win" and w["result_amendment5"] == f"{old} wins on tokens",
+          f"{ratio_text(w['paired_tokens'])}; amendment 5's step: {w['result_amendment5']}")
+    rs = pair([500] * 6)
+    rs[-1] = _token_cell(new, items[5], 500, success=False, says_done=True)
+    w = win_rule(rs, new, old)
+    check("false completions still come first: cheaper everywhere, one false completion, it loses",
+          w["result"] == f"{old} wins on false completions" and w["result_amendment5"] == w["result"], w["result"])
+    rs = pair([500] * 6)
+    for n in (4, 5):
+        rs[6 + n] = _token_cell(new, items[n], 500, success=False, says_done=False)
+    w = win_rule(rs, new, old)
+    check("passes still come before tokens: cheaper everywhere, two fewer passes, it loses",
+          w["result"] == f"{old} wins on passes", w["result"])
+    rows = against_plain(pair([900] * 6, extra=[_token_cell("plain", i, 1000) for i in items[:6]]))
+    by = {r["arm"]: r for r in rows}
+    check("against plain: each OpenWarrant arm has a row, and the release criterion reads next's",
+          set(by) == {new, old} and by[new]["release_criterion"] == "met" and "release_criterion" not in by[old]
+          and against_plain(pair([1100] * 6, extra=[_token_cell("plain", i, 1000) for i in items[:6]]))[1]
+          ["release_criterion"] == "not met", f"next over plain {by[new]['tokens']['ratio']}")
+    recorded = Path("/mnt/4tb/artifacts/OpenWarrant/keep/adoption")
+    real = [{**json.loads(f.read_text()), "_run": r} for r in ("oc-v5-2", "oc-v5-3")
+            for f in sorted((recorded / r).rglob("result.json"))]
+    if real:
+        pr = paired_ratio(real, new, old)
+        # Amendment 6's diagnosis: +0.8%, 95% interval -21.7% to +28.5%, from 10,000 resamples of another seed.
+        check("the recorded runs: oc-v5-2 and oc-v5-3 give the diagnosis's +0.8%, and its interval within resampling noise",
+              pr["pairs"] == 12 and abs(pr["ratio"] - 1.008) < 0.0006 and abs(pr["ci95"][0] - 0.783) < 0.006
+              and abs(pr["ci95"][1] - 1.285) < 0.006, ratio_text(pr))
+    else:
+        skip("the recorded runs reproduce the diagnosis", f"no oc-v5-2 and oc-v5-3 under {recorded}")
+
+    # ---- the hard budget
+    purse = Purse(2.0)
+    took = [purse.take(1.0), purse.take(1.0), purse.take(1.0)]
+    purse.settle(1.0, 0.3)
+    after_one = purse.take(1.0)      # 0.3 spent and 1.0 held: another 1.0 does not fit
+    purse.settle(1.0, 0.2)
+    after_two = purse.take(1.0)      # 0.5 spent, nothing held: it fits
+    check("a hard budget holds each cell's cap before it starts, and refuses the cell that doesn't fit",
+          took == [True, True, False] and after_one is False and after_two is True, f"{took}, {after_one}, {after_two}")
+
+    # ---- done_test in the seed
+    tally, knight = load_backlog("tally"), load_backlog("knightlm")
+    cmds = {b["repo"]: arms.done_test_command(b) for b in (tally, knight)}
+    check("each repository's done_test command is a line of the facts every arm carries",
+          cmds == {"tally": "python3 -m pytest -q", "knightlm": "cargo test --workspace --locked -j 2"}, str(cmds))
+    planted = {"repo": "tally", "project": {"facts": tally["project"]["facts"].replace("python3 -m pytest -q", "make test")}}
+    try:
+        arms.done_test_command(planted)
+        check("a command the facts don't hold is refused", False, "accepted")
+    except RuntimeError as e:
+        check("a command the facts don't hold is refused", True, str(e)[:90])
+    scratch = RUNS / rid
+    shutil.rmtree(scratch, ignore_errors=True)
+    scratch.mkdir(parents=True)
+    (scratch / "cfg").mkdir()
+    (scratch / "cfg" / "openwarrant.toml").write_text('schema = "x"\n')
+    arms.tickets_config(scratch / "cfg", "session_start = true")
+    arms.tickets_config(scratch / "cfg", 'done_test = "python3 -m pytest -q"')
+    cfg = tomllib.loads((scratch / "cfg" / "openwarrant.toml").read_text())
+    check("two [tickets] keys land in one table", cfg["tickets"] == {"session_start": True,
+                                                                      "done_test": "python3 -m pytest -q"}, str(cfg["tickets"]))
+    done = tally["order"][:tally["order"].index("T8")]
+    layout = AGENT_SEED["opencode"]
+    a7 = "openwarrant@a7"
+    check("only @next arms carry the key, and ADOPTION_OW_DONE_TEST=0 turns it off",
+          ow_done_test(new) and ow_done_test("openwarrant-brief@next") and ow_done_test("openwarrant-mcp@next")
+          and not ow_done_test(a7) and not ow_done_test("openwarrant-mcp@a7") and not ow_done_test("openwarrant")
+          and not ow_done_test("plain") and seed_extras(a7) == {})
+    with env(ADOPTION_OW_DONE_TEST="0"):
+        check("the switch off: no arm carries the key", not ow_done_test(new) and seed_extras(new) == {})
+    seed_repo("tally", a7, scratch / "a7", done, layout)
+    check("alpha.7's seed has no done_test, and its `war` still reads its tickets",
+          "done_test" not in (scratch / "a7" / "openwarrant.toml").read_text()
+          and all(v is not None for v in arms.tracker(a7, scratch / "a7", tally, tools(a7)).values()))
+    check("the probe passes a key alpha.7 has (session_start) and refuses the one it lacks (done_test)",
+          war_reads_tickets_key(arm_war(a7), "session_start = true") and not war_knows_done_test(arm_war(a7)))
+    c = {"scenario": "directed", "repo": "tally", "arm": a7, "item": "T8", "rep": 1}
+    r = run_cell(f"{rid}-a7-broken", c, "fixture-claim-broken", "fixture")
+    check("the control: with no done_test, alpha.7 records an item done over a failing visible suite",
+          r["tracker_says_done"] is True and r["success"] is False and r["done_test"] is None,
+          f"tracker {r['tracker_says_done']}, hidden tests pass {r['success']}")
+    nxt = arm_war(new)
+    if not nxt or not Path(nxt).exists():
+        for name in ("next seeds done_test", "`war done` refuses on a failing done_test", "the brief file is in the seed"):
+            skip(name, "no `next` build (set ADOPTION_WAR_NEXT and ADOPTION_OW_PLUGIN_REF_NEXT)")
+        knows = None
+    else:
+        knows = war_knows_done_test(nxt)
+        build = arm_build(new)["war_version"]
+    if knows is False:
+        problems = feature_problems([new], "opencode")
+        check("a run whose `next` lacks the key stops before its first cell", len(problems) == 1 and "done_test" in problems[0],
+              (problems or ["no problem reported"])[0][:110])
+        with env(ADOPTION_OW_DONE_TEST="0"):
+            seed_repo("tally", new, scratch / "next-off", done, layout)
+            check("the switch off: `next` seeds as before, with no key, and nothing stops the run",
+                  feature_problems([new], "opencode") == []
+                  and "done_test" not in (scratch / "next-off" / "openwarrant.toml").read_text())
+        for name in ("next's seed carries done_test and its `war` reads it",
+                     "with done_test, the reference solution is recorded done",
+                     "with done_test, `war done` refuses over a failing visible suite"):
+            skip(name, f"this `next` ({build}) does not read `[tickets] done_test`; owed when the product has the key")
+    elif knows:
+        seed_repo("tally", new, scratch / "next", done, layout)
+        cfg = tomllib.loads((scratch / "next" / "openwarrant.toml").read_text())
+        check("next's seed carries done_test and its `war` reads it",
+              cfg.get("tickets", {}).get("done_test") == cmds["tally"] and feature_problems([new], "opencode") == []
+              and all(v is not None for v in arms.tracker(new, scratch / "next", tally, tools(new)).values()), build)
+        c = {"scenario": "directed", "repo": "tally", "arm": new, "item": "T8", "rep": 1}
+        r = run_cell(f"{rid}-next-reference", c, "fixture-reference", "fixture")
+        check("with done_test, the reference solution is recorded done",
+              r["success"] is True and r["tracker_says_done"] is True and r["done_test"] == cmds["tally"],
+              f"tracker {r['tracker_says_done']}, hidden tests pass {r['success']}")
+        r = run_cell(f"{rid}-next-broken", c, "fixture-claim-broken", "fixture")
+        check("with done_test, `war done` refuses over a failing visible suite",
+              r["tracker_says_done"] is False and r["success"] is False,
+              f"tracker {r['tracker_says_done']}, hidden tests pass {r['success']}")
+
+    # ---- the brief arm
+    brief = "openwarrant-brief@next"
+    cb, cn = opencode_config(brief, 60), opencode_config(new, 60)
+    check("the brief arm's opencode config is its twin's plus the instruction file, and nothing else",
+          cb.get("instructions") == [arms.BRIEF_FILE] and "instructions" not in cn
+          and {k: v for k, v in cb.items() if k != "instructions"} == cn and "mcp" not in cb, str(cb.get("instructions")))
+    check("the brief arm is the openwarrant arm on next's build",
+          arms.tool_of(brief) == "openwarrant" and arms.version_arm(brief) == new and arm_war(brief) == arm_war(new)
+          and brief in arms.ALL_ARMS)
+    with env(ADOPTION_OW_DONE_TEST="0"):
+        check("the brief arm is refused under Claude Code", any("brief" in p for p in feature_problems([brief], "claude"))
+              and feature_problems([brief], "opencode") == [])
+    if knows is not None:
+        with env(ADOPTION_OW_DONE_TEST="1" if knows else "0"):
+            try:
+                seed_repo("tally", brief, scratch / "brief", done, layout)
+                text = (scratch / "brief" / arms.BRIEF_FILE).read_text()
+                check("the brief file is in the seed, and not empty", bool(text.strip()), f"{len(text)} bytes")
+            except SystemExit as e:
+                check("a brief cell stops when `war` wrote no brief file", "wrote no" in str(e), str(e)[:100])
+                skip("the brief file is in the seed", f"this `next` ({build}) writes no {arms.BRIEF_FILE}; owed when the product keeps it")
+    skip("opencode loads the brief file at startup", "needs one model session to see (as amendment 6 proved `war mcp`); "
+         "owed before the first brief cell, not a study cell")
+
+    # ---- the plans
+    for path in sorted((HERE / "plans").glob("*.json")):
+        doc = json.loads(path.read_text())
+        cells = doc["cells"]
+        bad = [c for c in cells if c["arm"] not in arms.ALL_ARMS or c["scenario"] != "directed"
+               or c["item"] not in load_backlog(c["repo"])["order"]]
+        per_arm: dict[str, set] = {}
+        for c in cells:
+            per_arm.setdefault(c["arm"], set()).add((c["repo"], c["item"], c["rep"]))
+        even = len({frozenset(v) for v in per_arm.values()}) == 1
+        ex = doc["execute"]
+        ok = not bad and even
+        detail = f"{len(cells)} cells, {len(per_arm)} arms, {len(next(iter(per_arm.values())))} items each"
+        if ex["agent"] == "claude":
+            worst = len(cells) * ex["session_budget_usd"]
+            ok = ok and ex["budget_usd"] <= 30 and worst <= 30
+            detail += f"; every session at its cap: USD {worst:.2f}, budget {ex['budget_usd']}"
+        check(f"plan {path.name}: directed cells only, the same cells for every arm"
+              + (", and no more than USD 30 even at every cap" if ex["agent"] == "claude" else ""), ok, detail)
+    shutil.rmtree(scratch, ignore_errors=True)
+    n = {k: results.count(k) for k in ("PASS", "SKIP", "FAIL")}
+    print(f"{n['PASS']} passed, {n['SKIP']} skipped (owed, see each), {n['FAIL']} failed")
+    if n["FAIL"]:
+        raise SystemExit(1)
+
+
 # ------------------------------------------------------------------ plan, execute, report
 
 
@@ -1374,6 +1664,13 @@ def cmd_execute(args) -> None:
     if args.agent == "claude" and check_auth():
         problems.append(check_auth())
     problems += [p for p in (registry_problem(r) for r in sorted({c["repo"] for c in cells})) if p]
+    problems += feature_problems(arm_list, args.agent, sorted({c["repo"] for c in cells}))
+    hard = args.session_budget_usd is not None
+    if hard:
+        global SESSION_BUDGET_USD
+        if not args.budget_usd or args.session_budget_usd <= 0:
+            problems.append("--session-budget-usd makes --budget-usd a hard cap: give both, above zero")
+        SESSION_BUDGET_USD = args.session_budget_usd
     if problems:
         raise SystemExit("not ready:\n  " + "\n  ".join(problems))
     if args.agent == "claude":  # only Claude Code loads the plugin
@@ -1389,6 +1686,15 @@ def cmd_execute(args) -> None:
         "plan": str(Path(args.plan).resolve()), "harness_commit": harness_commit(),
         "ow_session_start": os.environ.get("ADOPTION_OW_SESSION_START") == "1",
         "opencode_ow_mcp": args.agent == "opencode" and os.environ.get("ADOPTION_OC_OW_MCP") == "1",
+        # Amendment 8: the switch, the arms whose seed carries `[tickets] done_test`, and each
+        # repository's command; and the arms whose opencode config loads the brief file.
+        "ow_done_test": {"switch": os.environ.get("ADOPTION_OW_DONE_TEST", "1") != "0",
+                         "arms": [a for a in arm_list if ow_done_test(a)],
+                         "commands": {r: arms.done_test_command(load_backlog(r))
+                                      for r in sorted({c["repo"] for c in cells})}
+                                     if any(ow_done_test(a) for a in arm_list) else {}},
+        "ow_brief": {"file": arms.BRIEF_FILE, "arms": [a for a in arm_list if arms.with_brief(a)]},
+        "session_budget_usd": SESSION_BUDGET_USD, "budget_hard": hard,
         "auth": auth_mode(), "budget_usd": args.budget_usd, "specs_run": args.specs_run,
         "started": time.strftime("%Y-%m-%dT%H:%M:%S%z"), "cells": len(cells)}, indent=1)
     (run_root / "run.json").write_text(run_doc)
@@ -1399,12 +1705,29 @@ def cmd_execute(args) -> None:
     spent = 0.0
     lock = threading.Lock()
     stop = threading.Event()
+    purse = Purse(args.budget_usd) if hard else None
 
     def go(c):
         nonlocal spent
         if stop.is_set():
             return None
-        r = run_cell(args.run_id, c, args.agent, args.model, args.turns)
+        hold = 0.0
+        if purse and not (cell_dir(args.run_id, c) / "result.json").exists():
+            # The cap is hard: a cell starts only if every session it may run, each at its own cap,
+            # still fits under the budget beside what is spent and what running cells hold.
+            hold = SESSION_BUDGET_USD * sessions_in(c, load_backlog(c["repo"]))
+            if not purse.take(hold):
+                stop.set()
+                print(f"budget: {c['scenario']} {c['repo']} {c['arm']} {c.get('item', '-')} not started "
+                      f"({purse.spent:.2f} spent, {purse.held:.2f} held, {hold:.2f} needed, "
+                      f"{args.budget_usd} the cap); no new cells start", flush=True)
+                return None
+        r = None
+        try:
+            r = run_cell(args.run_id, c, args.agent, args.model, args.turns)
+        finally:
+            if purse:
+                purse.settle(hold, (r or {}).get("cost_usd") or 0)
         with lock:
             spent += r.get("cost_usd") or 0
             done_line = f"[{spent:8.2f} USD] {c['scenario']:8} {c['repo']:9} {c['arm']:11} {c.get('item','-'):3} r{c['rep']}"
@@ -1417,6 +1740,27 @@ def cmd_execute(args) -> None:
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.jobs) as ex:
         list(ex.map(go, cells))
     print(f"spent {spent:.2f} USD (API-equivalent, as reported by the agent)")
+
+
+class Purse:
+    """A hard budget (amendment 8, `execute --session-budget-usd`): money is held for a cell before it
+    starts, at the most its sessions can cost, and a cell that doesn't fit never starts."""
+
+    def __init__(self, total: float):
+        self.total, self.spent, self.held = total, 0.0, 0.0
+        self._lock = threading.Lock()
+
+    def take(self, hold: float) -> bool:
+        with self._lock:
+            if self.spent + self.held + hold > self.total + 1e-9:
+                return False
+            self.held += hold
+            return True
+
+    def settle(self, hold: float, cost: float) -> None:
+        with self._lock:
+            self.held -= hold
+            self.spent += cost
 
 
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -1455,49 +1799,145 @@ def cell_tokens(r: dict) -> int:
 # Amendment 5: which versions are compared, newer first.
 VERSION_PAIRS = (("openwarrant@a7", "openwarrant@a6"), ("openwarrant@next", "openwarrant@a7"),
                  ("openwarrant-mcp@next", "openwarrant-mcp@a7"))
-# Amendment 6: compared descriptively only, no win rule.
-MCP_TWINS = (("openwarrant-mcp@a7", "openwarrant@a7"), ("openwarrant-mcp@next", "openwarrant@next"))
+# Amendment 6: compared descriptively only, no win rule. Amendment 8 adds the brief arm beside its twin.
+TWINS = (("openwarrant-mcp@a7", "openwarrant@a7"), ("openwarrant-mcp@next", "openwarrant@next"),
+         ("openwarrant-brief@next", "openwarrant@next"))
+RELEASE_ARM = "openwarrant@next"   # amendment 8: the owner's release criterion is this arm's ratio against plain
 
 
-def win_rule(results: list[dict], new: str, old: str, tie: int = 1) -> dict:
-    """Amendment 5's rule, fixed before any run, on the directed cells both arms ran. False
-    completions first (more loses), then passes (a difference of `tie` cells or less is a tie: one
-    per replicate, amendment 6), then median tokens per cell (10% fewer wins, within 10% ties). A tie
-    overall is no win. Pooled results carry `_run`, so cells of different runs stay apart."""
-    cells = {}
+def directed_pairs(results: list[dict], new: str, old: str) -> tuple[list[dict], list[dict]]:
+    """The directed cells both arms ran, in the same order. Pooled results carry `_run`, so cells of
+    different runs stay apart: a pair is one item, in one replicate, of one run."""
+    cells: dict[str, dict] = {}
     for r in results:
         c = r["cell"]
         if c["scenario"] == "directed" and c["arm"] in (new, old):
             cells.setdefault(c["arm"], {})[(r.get("_run", ""), c["repo"], c["item"], c["rep"])] = r
     common = sorted(set(cells.get(new, {})) & set(cells.get(old, {})))
-    a = [cells[new][k] for k in common]
-    b = [cells[old][k] for k in common]
-    steps = [f"cells both ran: {len(common)}"]
+    return [cells[new][k] for k in common], [cells[old][k] for k in common]
+
+
+def paired_ratio(results: list[dict], new: str, old: str, n: int = 100000, seed: int = 20261022) -> dict | None:
+    """Amendment 8's token statistic: the geometric mean, over the directed cells both arms ran, of
+    each cell's tokens under `new` over the same cell's under `old`, with a percentile bootstrap 95%
+    interval (pairs resampled with replacement, `n` times, a fixed seed). Below 1.0, `new` used fewer.
+    A pair where either cell reports no tokens has no ratio and is left out, and counted."""
+    import math
+    import random
+    a, b = directed_pairs(results, new, old)
+    toks = [(cell_tokens(x), cell_tokens(y)) for x, y in zip(a, b)]
+    logs = [math.log(x / y) for x, y in toks if x and y]
+    if not logs:
+        return None
+    k = len(logs)
+    out = {"new": new, "old": old, "pairs": k, "left_out": len(toks) - k,
+           "ratio": round(math.exp(sum(logs) / k), 4), "ci95": None, "verdict": "tie"}
+    if k >= 2:
+        rng = random.Random(seed)
+        means = sorted(sum(rng.choices(logs, k=k)) / k for _ in range(n))
+        lo, hi = math.exp(means[int(0.025 * n)]), math.exp(means[int(0.975 * n) - 1])
+        out["ci95"] = [round(lo, 4), round(hi, 4)]
+        # The whole interval below 1.0: `new` wins on tokens. The whole interval above: it loses.
+        out["verdict"] = "new" if hi < 1.0 else ("old" if lo > 1.0 else "tie")
+    return out
+
+
+def ratio_text(pr: dict | None) -> str:
+    if not pr:
+        return "not available"
+    pct = lambda x: f"{100 * (x - 1):+.1f}%"
+    ci = f"95% interval {pct(pr['ci95'][0])} to {pct(pr['ci95'][1])}" if pr["ci95"] else "one pair, no interval"
+    left = f", {pr['left_out']} left out for no tokens" if pr["left_out"] else ""
+    return f"{pr['ratio']:.3f} ({pct(pr['ratio'])}, {ci}; {pr['pairs']} pairs{left})"
+
+
+def win_rule(results: list[dict], new: str, old: str, tie: int = 1) -> dict:
+    """The rule for a pair of versions, on the directed cells both arms ran. False completions first
+    (more loses), then passes (a difference of `tie` cells or less is a tie: one per replicate,
+    amendment 6), then tokens. A tie overall is no win.
+
+    The token step is amendment 8's: the paired ratio (`paired_ratio`), a win only when its whole 95%
+    interval is on one side of 1.0. `result` follows it. Amendment 5's token step (the median of
+    totals, 10% fewer wins) decided every verdict recorded before amendment 8; those stand, and its
+    figure and verdict are still worked out and printed beside the new one (`result_amendment5`)."""
+    a, b = directed_pairs(results, new, old)
+    out = {"new": new, "old": old, "cells": len(a), "paired_tokens": paired_ratio(results, new, old)}
+    steps = [f"cells both ran: {len(a)}"]
+
+    def done(result: str, result_a5: str | None = None) -> dict:
+        return {**out, "steps": steps, "result": result, "result_amendment5": result_a5 or result}
+
     fa = sum(1 for r in a if r.get("tracker_says_done") and not r.get("success"))
     fb = sum(1 for r in b if r.get("tracker_says_done") and not r.get("success"))
     steps.append(f"false completions: {new} {fa}, {old} {fb}")
     if fa != fb:
-        winner = new if fa < fb else old
-        return {"new": new, "old": old, "cells": len(common), "steps": steps,
-                "result": f"{winner} wins on false completions"}
+        return done(f"{new if fa < fb else old} wins on false completions")
     pa, pb = sum(1 for r in a if r.get("success")), sum(1 for r in b if r.get("success"))
     steps.append(f"passes: {new} {pa}, {old} {pb} (difference {pa - pb}; "
                  + ("one cell or less is a tie)" if tie == 1 else f"{tie} cells or less is a tie)"))
     if abs(pa - pb) > tie:
-        winner = new if pa > pb else old
-        return {"new": new, "old": old, "cells": len(common), "steps": steps,
-                "result": f"{winner} wins on passes"}
+        return done(f"{new if pa > pb else old} wins on passes")
+    # Amendment 5's token step, as it was.
     ta, tb = median([cell_tokens(r) for r in a]), median([cell_tokens(r) for r in b])
+    a5 = "tie: no win"
     if not ta or not tb:
-        steps.append("median tokens per cell: not available")
-        return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": "tie: no win"}
-    steps.append(f"median tokens per cell: {new} {ta:,.0f}, {old} {tb:,.0f} "
-                 f"({new} is {100 * (ta - tb) / tb:+.1f}% against {old}; 10% fewer wins)")
-    if ta <= 0.9 * tb:
-        return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": f"{new} wins on tokens"}
-    if tb <= 0.9 * ta:
-        return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": f"{old} wins on tokens"}
-    return {"new": new, "old": old, "cells": len(common), "steps": steps, "result": "tie: no win"}
+        steps.append("median tokens per cell (amendment 5's step): not available")
+    else:
+        steps.append(f"median tokens per cell (amendment 5's step): {new} {ta:,.0f}, {old} {tb:,.0f} "
+                     f"({new} is {100 * (ta - tb) / tb:+.1f}% against {old}; 10% fewer wins)")
+        a5 = f"{new} wins on tokens" if ta <= 0.9 * tb else (f"{old} wins on tokens" if tb <= 0.9 * ta else a5)
+    # Amendment 8's token step.
+    pr = out["paired_tokens"]
+    steps.append(f"paired token ratio, {new} over {old} (amendment 8's step): {ratio_text(pr)}; "
+                 "a win needs the whole interval on one side of 1.0")
+    a8 = {"new": f"{new} wins on tokens", "old": f"{old} wins on tokens"}.get((pr or {}).get("verdict"), "tie: no win")
+    return done(a8, a5)
+
+
+def rule_lines(w: dict) -> list[str]:
+    """A pair's steps and both verdicts, for a report."""
+    return [f"- {step}" for step in w["steps"]] + [
+        "", f"**Result (amendment 8's token step): {w['result']}**", "",
+        f"By amendment 5's token step, which decided every verdict recorded before amendment 8: "
+        f"{w['result_amendment5']}.", ""]
+
+
+def against_plain(results: list[dict]) -> list[dict]:
+    """Amendment 8: each OpenWarrant arm against `plain` on the directed cells both ran, by the same
+    paired token ratio. Descriptive: no win rule. The owner's release criterion reads one row of it."""
+    arm_names = sorted({r["cell"]["arm"] for r in results if r["cell"]["scenario"] == "directed"})
+    rows = []
+    for arm in arm_names:
+        if arms.tool_of(arm) != "openwarrant" or "plain" not in arm_names:
+            continue
+        a, b = directed_pairs(results, arm, "plain")
+        pr = paired_ratio(results, arm, "plain")
+        if not a or not pr:
+            continue
+        row = {"arm": arm, "cells": len(a), "tokens": pr,
+               "passes": [sum(1 for r in a if r.get("success")), sum(1 for r in b if r.get("success"))],
+               "false_completions": [sum(1 for r in a if r.get("tracker_says_done") and not r.get("success")),
+                                     sum(1 for r in b if r.get("tracker_says_done") and not r.get("success"))]}
+        if arm == RELEASE_ARM:
+            row["release_criterion"] = "met" if pr["ratio"] <= 1.0 else "not met"
+        rows.append(row)
+    return rows
+
+
+def plain_lines(rows: list[dict], over: str = "") -> list[str]:
+    if not rows:
+        return []
+    lines = [f"## Each OpenWarrant arm against plain{over} (amendment 8: paired token ratio, descriptive, no win rule)",
+             "", "| arm | cells both ran | tokens, arm over plain | passes, arm and plain | false completions, arm and plain |",
+             "|---|---|---|---|---|"]
+    lines += [f"| {r['arm']} | {r['cells']} | {ratio_text(r['tokens'])} | {r['passes'][0]} and {r['passes'][1]} | "
+              f"{r['false_completions'][0]} and {r['false_completions'][1]} |" for r in rows]
+    lines.append("")
+    for r in rows:
+        if "release_criterion" in r:
+            lines += [f"The owner's release criterion, `{RELEASE_ARM}`'s ratio against `plain` at or below 1.0: "
+                      f"{r['tokens']['ratio']:.3f}, **{r['release_criterion']}** on these cells.", ""]
+    return lines
 
 
 def describe(results: list[dict], arm: str) -> dict:
@@ -1530,18 +1970,24 @@ def cmd_pool(args) -> None:
         w["runs"] = runs
         out["pairs"].append(w)
         lines += [f"## {new} against {old}, pooled over {', '.join(runs)} (tie: {len(runs)} cells or less)", ""]
-        lines += [f"- {step}" for step in w["steps"]] + ["", f"**Result: {w['result']}**", ""]
-    for mcp_arm, twin in MCP_TWINS:
+        lines += rule_lines(w)
+    plain_runs = [rid for rid in args.run_ids
+                  if "plain" in {r["cell"]["arm"] for r in results if r["_run"] == rid}]
+    out["against_plain"] = against_plain([r for r in results if r["_run"] in plain_runs])
+    lines += plain_lines(out["against_plain"], ", pooled over every run holding both")
+    for mcp_arm, twin in TWINS:
         runs = [rid for rid in args.run_ids
                 if {mcp_arm, twin} <= {r["cell"]["arm"] for r in results if r["_run"] == rid}]
         if not runs:
             continue
         rows = [describe([r for r in results if r["_run"] in runs], a) for a in (mcp_arm, twin)]
-        out["twins"].append({"runs": runs, "rows": rows})
+        pr = paired_ratio([r for r in results if r["_run"] in runs], mcp_arm, twin)
+        out["twins"].append({"runs": runs, "rows": rows, "paired_tokens": pr})
         keys = list(rows[0])
         lines += [f"## {mcp_arm} beside {twin}, pooled over {', '.join(runs)} (descriptive, no win rule)", "",
                   "| " + " | ".join(keys) + " |", "|" + "---|" * len(keys)]
         lines += ["| " + " | ".join(str(r[k]) for k in keys) + " |" for r in rows] + [""]
+        lines += [f"Paired token ratio, {mcp_arm} over {twin}: {ratio_text(pr)}.", ""]
     name = "pool-" + "-".join(args.run_ids)
     (KEEP / f"{name}.json").write_text(json.dumps(out, indent=1))
     (KEEP / f"{name}.md").write_text("\n".join(lines))
@@ -1828,8 +2274,10 @@ def cmd_report(args) -> None:
     paired = paired_differences(results)
     wins = [win_rule(results, new, old) for new, old in VERSION_PAIRS
             if any(r["cell"]["arm"] == new for r in results) and any(r["cell"]["arm"] == old for r in results)]
+    plain_rows = against_plain(results)
     (root / "results.json").write_text(json.dumps({"run_id": args.run_id, "rows": rows,
-                                                   "paired_vs_openwarrant": paired, "version_pairs": wins}, indent=1))
+                                                   "paired_vs_openwarrant": paired, "version_pairs": wins,
+                                                   "against_plain": plain_rows}, indent=1))
     lines = [f"# Adoption study run {args.run_id}", ""]
     for scenario in SCENARIOS:
         sub = [r for r in rows if r["scenario"] == scenario]
@@ -1846,8 +2294,9 @@ def cmd_report(args) -> None:
                   f"{d['mean']} | {d['ci95']} |" for d in paired]
         lines.append("")
     for w in wins:
-        lines += [f"## {w['new']} against {w['old']} (amendment 5's rule, directed cells both ran)", ""]
-        lines += [f"- {step}" for step in w["steps"]] + ["", f"**Result: {w['result']}**", ""]
+        lines += [f"## {w['new']} against {w['old']} (the win rule, directed cells both ran)", ""]
+        lines += rule_lines(w)
+    lines += plain_lines(plain_rows)
     (root / "REPORT.md").write_text("\n".join(lines))
     print("\n".join(lines))
 
@@ -1977,10 +2426,14 @@ def main() -> None:
     pl.add_argument("--reps", type=int, default=3); pl.add_argument("--k", type=int, default=3)
     pl.add_argument("--out")
     pl.add_argument("--arms", nargs="*", choices=arms.ALL_ARMS, help="arms for the full plan (default: all but jira)")
+    pl.add_argument("--scenarios", nargs="*", choices=SCENARIOS, help="only these scenarios (default: all)")
     ex = sub.add_parser("execute"); ex.add_argument("plan"); ex.add_argument("--run-id", required=True)
     ex.add_argument("--agent", required=True); ex.add_argument("--model", default=DEFAULT_MODEL)
     ex.add_argument("--jobs", type=int, default=2); ex.add_argument("--budget-usd", type=float, default=0)
     ex.add_argument("--turns", type=int, default=SESSION_TURNS, help="a session's turn cap (amendment 5: 60)")
+    ex.add_argument("--session-budget-usd", type=float,
+                    help="a session's own cap, in place of USD 8; with it --budget-usd is hard: a cell "
+                         "starts only if its sessions' caps still fit under the budget (amendment 8)")
     ex.add_argument("--specs-run", help="the run whose specs a spec plan's worker cells use")
     ex.add_argument("--skip-unwritten", action="store_true", help="leave out cells whose spec was never written")
     sp = sub.add_parser("spec"); sp.add_argument("plan"); sp.add_argument("--run-id", required=True)
@@ -1995,6 +2448,7 @@ def main() -> None:
     ic.add_argument("--arm", default="openwarrant@a7")
     rp = sub.add_parser("report"); rp.add_argument("run_id")
     po = sub.add_parser("pool"); po.add_argument("run_ids", nargs="+")
+    a8 = sub.add_parser("a8-check", help="amendment 8's checks, no model"); a8.add_argument("--run-id", required=True)
     # inside the sandbox only
     g = sub.add_parser("_grade"); g.add_argument("repo")
     t = sub.add_parser("_tracker"); t.add_argument("repo"); t.add_argument("arm")
@@ -2023,6 +2477,8 @@ def main() -> None:
     elif args.cmd == "plan":
         cells = ([{"scenario": "directed", "repo": "tally", "arm": "plain", "item": "T6", "rep": 1}]
                  if args.smoke else plan_cells(args.pilot, args.reps, args.k, args.arms))
+        if args.scenarios:
+            cells = [c for c in cells if c["scenario"] in args.scenarios]
         n = sum(sessions_in(c, load_backlog(c["repo"])) for c in cells)
         doc = {"pilot": args.pilot, "cells": cells, "max_sessions": n}
         text = json.dumps(doc, indent=1)
@@ -2049,6 +2505,8 @@ def main() -> None:
         cmd_report(args)
     elif args.cmd == "pool":
         cmd_pool(args)
+    elif args.cmd == "a8-check":
+        cmd_a8_check(args)
     elif args.cmd == "_grade":
         print(json.dumps(_inside_grade(args.repo)))
     elif args.cmd == "_answers":
