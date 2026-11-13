@@ -343,7 +343,20 @@ plants = ["61-update.sh"]
 [[rule]]
 name = "host"
 paths = ["crates/openwarrant-cli/src/host.rs", "conformance/host/**"]
-plants = ["79-host.sh"]
+plants = ["79-host.sh", "79-host-startup.sh"]
+
+# What runs before the command is known, and so inside `war host` too. These
+# paths select every plant ("foundations"), which the cap then cuts: 79-host.sh
+# is among the dearest and was left out of each pull request that broke it
+# (#424 to #428). The startup plant is the second of it they can break.
+[[rule]]
+name = "before the command is known"
+paths = [
+    "crates/openwarrant-cli/src/main.rs",
+    "crates/openwarrant-cli/src/lib.rs",
+    "crates/openwarrant-cli/src/ticket/mod.rs",
+]
+plants = ["79-host-startup.sh"]
 
 [[rule]]
 name = "instruction, preset and type packs"
