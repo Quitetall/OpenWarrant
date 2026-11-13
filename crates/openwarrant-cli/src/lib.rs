@@ -3658,6 +3658,9 @@ pub fn run(cli: Cli) -> Result<u8, Box<dyn std::error::Error>> {
         json: cli.json,
         root: cli.root,
     };
+    // A `w-` id shows a work order, never its tier: what routes it as a
+    // ticket reads its document in this repository.
+    ticket::serve(ctx.root.as_deref());
     let Some(command) = cli.command else {
         // `war` alone. `--json` has no envelope to give — a terminal
         // application is not a projection — so it names the commands that do.

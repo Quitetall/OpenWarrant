@@ -137,15 +137,9 @@ pub(crate) fn validate(text: &str) -> Result<(), String> {
 }
 
 /// Publish a complete source without replacing a pre-existing document.
-pub(crate) fn create(
-    store: &Store,
-    dir: &camino::Utf8Path,
-    text: &str,
-) -> Result<camino::Utf8PathBuf, RepoError> {
+pub(crate) fn create(source: &camino::Utf8Path, text: &str) -> Result<(), RepoError> {
     validate(text).map_err(|why| RepoError::Message(format!("ticket.document-invalid: {why}")))?;
-    let source = store
-        .dir
-        .join(format!("{}.md", dir.file_name().unwrap_or_default()));
+    let dir = source.parent().unwrap_or(source);
     let temporary = dir.join(".source.war-tmp");
     let mut file = std::fs::OpenOptions::new()
         .write(true)
@@ -159,8 +153,7 @@ pub(crate) fn create(
         "could not publish {source} without replacement"
     )));
     let _ = std::fs::remove_file(&temporary);
-    result?;
-    Ok(source)
+    result
 }
 
 fn field(text: &str, key: &str, value: Option<&str>) -> String {

@@ -139,11 +139,11 @@ fn named_refs(text: &str) -> Vec<String> {
         let token = token.trim_matches(|c| c == '-' || c == '/');
         let ok = match token.split_once('/') {
             Some((t, i)) => {
-                openwarrant_core::ticket::is_ticket_id(t) && openwarrant_core::ticket::is_item_id(i)
+                openwarrant_core::ticket::is_light_id(t) && openwarrant_core::ticket::is_item_id(i)
             }
             None => {
                 openwarrant_core::ticket::is_item_id(token)
-                    || openwarrant_core::ticket::is_ticket_id(token)
+                    || openwarrant_core::ticket::is_light_id(token)
             }
         };
         if ok && !out.iter().any(|o| o == token) {

@@ -778,7 +778,7 @@ fn ticket_target_ok(t: &str) -> bool {
         && t.len() <= 64
         && t.split('/').count() <= 2
         && t.split('/').all(|part| {
-            (part.starts_with("t-") || part.starts_with("i-"))
+            (part.starts_with("t-") || part.starts_with("w-") || part.starts_with("i-"))
                 && part.len() > 2
                 && part[2..]
                     .bytes()

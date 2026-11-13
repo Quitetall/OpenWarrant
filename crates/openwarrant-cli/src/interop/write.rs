@@ -489,7 +489,12 @@ pub fn apply(repo: &Repository, store: &Store, import: &Import) -> Result<Outcom
         })?;
         if import.format == "table" {
             let text = crate::ticket::authoring::document(manifest, intent, checklist);
-            crate::ticket::authoring::create(store, &dir, &text)?;
+            crate::ticket::authoring::create(
+                &store
+                    .dir
+                    .join(format!("{}.md", dir.file_name().unwrap_or_default())),
+                &text,
+            )?;
         } else {
             std::fs::create_dir_all(dir.join("atoms")).map_err(|source| RepoError::Io {
                 context: format!("could not create {dir}/atoms"),

@@ -970,7 +970,7 @@ impl Store {
         let query = query.trim();
         let prefix = match query.split_once('/') {
             Some((t, _)) => t,
-            None if query.starts_with("t-") => query,
+            None if query.starts_with("t-") || query.starts_with("w-") => query,
             None => return self.load_all(),
         };
         let entries = self.entries()?;
@@ -1329,7 +1329,43 @@ fn ticket_definition(registry: &ProfileRegistry) -> Result<ProfileDefinition, Re
 /// rather than a Warrant alias, which is `NS-WAR-NNNN` and never lowercase.
 #[must_use]
 pub fn is_ticket_ref(s: &str) -> bool {
-    s.starts_with("t-") || s.starts_with("i-")
+    s.starts_with("t-") || s.starts_with("i-") || master_ticket(s)
+}
+
+/// The repository this process serves, for [`is_ticket_ref`]: set once, by
+/// the command line and by the MCP server ([`serve`]).
+static SERVED: std::sync::OnceLock<Utf8PathBuf> = std::sync::OnceLock::new();
+
+/// Name the repository this process serves: `root`, else the nearest
+/// directory from the current one up that holds `openwarrant.toml`.
+pub fn serve(root: Option<&Utf8Path>) {
+    let found = root.map(Utf8Path::to_owned).or_else(|| {
+        let cwd = Utf8PathBuf::from_path_buf(std::env::current_dir().ok()?).ok()?;
+        cwd.ancestors()
+            .find(|d| d.join(crate::init::CONFIG_FILE).is_file())
+            .map(Utf8Path::to_owned)
+    });
+    if let Some(found) = found {
+        let _ = SERVED.set(found);
+    }
+}
+
+/// Whether `s` (`w-x` or `w-x/i-y`) names a ticket kept as a master: a `w-`
+/// id shows a work order, never its tier, so the document's profile says.
+/// `false` where no repository was named ([`serve`]).
+fn master_ticket(s: &str) -> bool {
+    let head = s.split('/').next().unwrap_or(s);
+    if !ticket::is_work_id(head) {
+        return false;
+    }
+    let Some(root) = SERVED.get() else {
+        return false;
+    };
+    match crate::subject::document_in(&root.join(crate::subject::WORK_ROOT).join(head), head) {
+        crate::subject::Held::One(file) => std::fs::read_to_string(file)
+            .is_ok_and(|text| crate::format_doc::frontmatter_profile(&text) == Some("ticket")),
+        _ => false,
+    }
 }
 
 /// What a command acts on.
@@ -1391,7 +1427,10 @@ pub fn resolve(tickets: &[Ticket], query: &str) -> Result<Target, Diagnostic> {
         let item = pick(&refs, i).map_err(|found| unknown("item", &found))?;
         return Ok(Target::Item(index, item.to_owned()));
     }
-    if query.starts_with("t-") || tickets.iter().any(|t| t.id() == query) {
+    if query.starts_with("t-")
+        || ticket::is_work_id(query)
+        || tickets.iter().any(|t| t.id() == query)
+    {
         return find_ticket(query).map(Target::Ticket);
     }
     if query.starts_with("i-") {
@@ -2163,58 +2202,77 @@ fn create_with_encoding(
         return Ok(refusal);
     }
     let registry = store.registry();
-    std::fs::create_dir_all(&store.dir).map_err(io(format!("could not create {}", store.dir)))?;
-    let existing = store.ticket_count()?;
-    let uuid = WarUuid::mint().to_string();
-    // The id lengthens past a collision on this branch; across branches the
-    // length rule keeps the chance of one under 1%.
-    let mut dir = None;
-    for len in ticket::ticket_id_len(existing)..=16 {
-        let candidate = store.dir.join(ticket::ticket_id(&uuid, len));
-        if crate::vfs::exists(
-            store
-                .dir
-                .join(format!("{}.md", candidate.file_name().unwrap_or_default())),
-        ) {
-            continue;
-        }
-        match std::fs::create_dir(&candidate) {
-            Ok(()) => {
-                // R2: the id is this ticket's only when the clone's register
-                // gives it too; an id another worktree took is passed over.
-                if let Some(reg) = &registry {
-                    let name = candidate.file_name().unwrap_or_default();
-                    let document = if legacy {
-                        candidate.join("manifest.toml")
-                    } else {
-                        store.dir.join(format!("{name}.md"))
-                    };
-                    let entry = reg.stub(name, &uuid, &title, &store.actor, &store.rel(&document));
-                    let taken = reg
-                        .reserve(&entry)
-                        .map_err(io(format!("could not register {name} in {}", reg.dir)));
-                    if !matches!(taken, Ok(true)) {
-                        let _ = std::fs::remove_dir(&candidate);
-                        taken?;
-                        continue;
+    let work_root = store.root.join(crate::subject::WORK_ROOT);
+    // New work is a master, `docs/work/<w-id>/<id>-<slug>.md`, its state
+    // beside it (one-format.md): the id is minted and taken on the one path
+    // `war plan new` starts on. `--legacy` keeps a `t-` directory ticket.
+    let (dir, uuid, master) = if legacy {
+        std::fs::create_dir_all(&store.dir)
+            .map_err(io(format!("could not create {}", store.dir)))?;
+        let existing = store.ticket_count()?;
+        let uuid = WarUuid::mint().to_string();
+        // The id lengthens past a collision on this branch; across branches
+        // the length rule keeps the chance of one under 1%.
+        let mut dir = None;
+        for len in ticket::ticket_id_len(existing)..=16 {
+            let candidate = store.dir.join(ticket::ticket_id(&uuid, len));
+            if crate::vfs::exists(
+                store
+                    .dir
+                    .join(format!("{}.md", candidate.file_name().unwrap_or_default())),
+            ) {
+                continue;
+            }
+            match std::fs::create_dir(&candidate) {
+                Ok(()) => {
+                    // R2: the id is this ticket's only when the clone's
+                    // register gives it too.
+                    if let Some(reg) = &registry {
+                        let name = candidate.file_name().unwrap_or_default();
+                        let entry = reg.stub(
+                            name,
+                            &uuid,
+                            &title,
+                            &store.actor,
+                            &store.rel(&candidate.join("manifest.toml")),
+                        );
+                        let taken = reg
+                            .reserve(&entry)
+                            .map_err(io(format!("could not register {name} in {}", reg.dir)));
+                        if !matches!(taken, Ok(true)) {
+                            let _ = std::fs::remove_dir(&candidate);
+                            taken?;
+                            continue;
+                        }
                     }
+                    dir = Some(candidate);
+                    break;
                 }
-                dir = Some(candidate);
-                break;
-            }
-            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
-            Err(source) => {
-                return Err(RepoError::Io {
-                    context: format!("could not create {candidate}"),
-                    source,
-                });
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+                Err(source) => {
+                    return Err(RepoError::Io {
+                        context: format!("could not create {candidate}"),
+                        source,
+                    });
+                }
             }
         }
-    }
-    let Some(dir) = dir else {
-        return Err(RepoError::Message(
-            "ticket.id: every length of this Warrant's id is taken".to_owned(),
-        ));
+        let Some(dir) = dir else {
+            return Err(RepoError::Message(
+                "ticket.id: every length of this Warrant's id is taken".to_owned(),
+            ));
+        };
+        (dir, uuid, None)
+    } else {
+        let existing =
+            store.ticket_count()? + crate::vfs::read_dir_utf8(&work_root).map_or(0, |v| v.len());
+        let reserved = crate::subject::reserve_master(
+            store,
+            &[work_root.clone(), store.dir.clone()],
+            existing,
+            &title,
+        )?;
+        (reserved.dir.clone(), reserved.uuid.clone(), Some(reserved))
     };
     let id = dir.file_name().unwrap_or_default().to_owned();
     let now = now_secs();
@@ -2290,13 +2348,11 @@ fn create_with_encoding(
             &authoring::document(&manifest, &intent, &checklist),
             &args.scope,
         );
-        match authoring::create(store, &dir, &document) {
-            Ok(source) => source,
+        let reserved = master.as_ref().expect("a master was reserved above");
+        match authoring::create(&reserved.path, &document) {
+            Ok(()) => reserved.path.clone(),
             Err(error) => {
-                let _ = std::fs::remove_dir(&dir);
-                if let Some(reg) = &registry {
-                    reg.release(&id, &uuid);
-                }
+                reserved.release();
                 return Err(error);
             }
         }
