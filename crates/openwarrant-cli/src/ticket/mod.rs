@@ -2668,6 +2668,7 @@ pub fn ready_rows_at(
     let find = |id: &str| by_id.get(id).copied();
     // Read here, once: other repositories are read on one thread.
     let held = depends::held(store, tickets);
+    let workspace = scopes::workspace(store);
     // Each ticket's rows depend on it, the claims and the blockers alone:
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
@@ -2678,7 +2679,7 @@ pub fn ready_rows_at(
         {
             return rows;
         }
-        let Ok(candidate) = scopes::of(store, t, &[]) else {
+        let Ok(candidate) = scopes::of_in(store, t, &[], &workspace) else {
             return rows;
         };
         if claims

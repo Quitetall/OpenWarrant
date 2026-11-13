@@ -7098,6 +7098,10 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             Ok(EXIT_OK)
         }
         ViewCommand::Ready { actor } => {
+            // One-shot and read-only: the tree does not move under it, so
+            // HEAD is read once, not once per ticket (each row's scope
+            // names the base revision).
+            gate_cmd::source::remember_tree_reads();
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::ready_for(&store, Some(mode))?;

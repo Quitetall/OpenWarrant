@@ -15,6 +15,8 @@ Notable changes to OpenWarrant. Format loosely follows
   own line can move. The passes that judge every ticket's state (`war admin compile`,
   `war check --generated`, the index refresh of `add`, `done` and `note`) look children and
   blockers up in maps built once instead of scanning every ticket per ticket.
+- `war view ready` reads HEAD and resolves the repository root once, not once per ticket.
+  At 9,800 tickets it started `git rev-parse HEAD` about 9,400 times per run.
 - New ticket ids lengthen as the store grows, as documented. The count that sizes an id
   saw only directory tickets, so a store of single-file tickets kept four-digit ids at any
   size. Both encodings are counted now, from the directory listing alone.
