@@ -147,7 +147,11 @@ pub fn light(t: &Ticket) -> Subject {
             format!(
                 "{} test(s) and {deciding_kpis} deciding KPI(s) in {}",
                 checks.tests.len(),
-                openwarrant_core::ticks::CHECKS_FILE
+                if t.format {
+                    "its document"
+                } else {
+                    openwarrant_core::ticks::CHECKS_FILE
+                }
             ),
         )
     } else {

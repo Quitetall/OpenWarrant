@@ -1017,10 +1017,15 @@ pub mod source {
     /// Git's exact-content filtering can refresh index stat data even with
     /// optional locks disabled. Give worktree diffs a private copy, removed
     /// after the process ends. Hosted observations never create this scratch.
-    struct ReadIndex(PathBuf);
+    pub(crate) struct ReadIndex(PathBuf);
 
     impl ReadIndex {
-        fn new(root: &Utf8Path) -> Result<Self, String> {
+        /// The copy: what `GIT_INDEX_FILE` names for the reading child.
+        pub(crate) fn file(&self) -> PathBuf {
+            self.0.join("index")
+        }
+
+        pub(crate) fn new(root: &Utf8Path) -> Result<Self, String> {
             let paths = tree_read(format!("index-path\0{root}"), || {
                 let bytes = git_uncached(root, &["rev-parse", "--git-path", "index"], false)?;
                 let path = std::str::from_utf8(&bytes)

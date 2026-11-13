@@ -452,6 +452,10 @@ pub struct Store {
     /// Who this invocation acts as: `--as`, else `OPENWARRANT_ACTOR`, else
     /// [`default_actor`]. A name for coordination; it authorizes nothing.
     pub actor: String,
+    /// Whether nobody named the actor (`--as`, `OPENWARRANT_ACTOR`,
+    /// `[project] performer`): it is the built-in default, and `war start`
+    /// says so ([`Self::actor_note`]).
+    pub actor_defaulted: bool,
     pub project: String,
     /// OW-WAR-0148 M14: `[preset] name`, when set. Under `vibe`, `war done`
     /// claims an unclaimed item itself.
@@ -545,6 +549,139 @@ pub fn holds_here(store: &Store, actor: &str) -> bool {
     })
 }
 
+/// The agent harness this process runs under, when its environment says:
+/// the variables each sets for the commands it runs.
+fn harness() -> Option<&'static str> {
+    let set = |name: &str| std::env::var_os(name).is_some_and(|v| !v.is_empty());
+    [
+        ("claude", &["CLAUDECODE"][..]),
+        (
+            "codex",
+            &["CODEX_THREAD_ID", "CODEX_SESSION_ID", "CODEX_SANDBOX"],
+        ),
+        ("opencode", &["OPENCODE"]),
+        ("gemini", &["GEMINI_CLI"]),
+        ("cursor", &["CURSOR_AGENT"]),
+    ]
+    .into_iter()
+    .find(|(_, names)| names.iter().any(|n| set(n)))
+    .map(|(name, _)| name)
+}
+
+impl Store {
+    /// One line for `war start` when the actor is the built-in default and
+    /// the harness does not confirm it: a name nobody chose is said, never
+    /// silent. `None` when the actor was named, or the harness is the one
+    /// the default names.
+    #[must_use]
+    pub fn actor_note(&self) -> Option<String> {
+        if !self.actor_defaulted {
+            return None;
+        }
+        let base = self.actor.split('@').next().unwrap_or(&self.actor);
+        match harness() {
+            Some(h) if h == base => None,
+            Some(h) => Some(format!(
+                "acting as {}, the default name, in a {h} session: `--as {h}` or \
+                 OPENWARRANT_ACTOR={h} names it",
+                self.actor
+            )),
+            None => Some(format!(
+                "acting as {}, the default name: `--as <name>` or OPENWARRANT_ACTOR names this \
+                 agent",
+                self.actor
+            )),
+        }
+    }
+}
+
+/// The roadmap's phases, when `id` could be one (`<PREFIX>-PHASE-<N>`) and
+/// the roadmap record reads. Nothing pays for it but work that names a
+/// phase, and that work reads it once: the answer is kept while the phases
+/// atom and `openwarrant.toml` stay as they were stat'ed.
+fn roadmap_phases(
+    root: &Utf8Path,
+    id: &str,
+) -> Option<std::sync::Arc<openwarrant_core::roadmap::Phases>> {
+    type Stamp = Option<(std::time::SystemTime, u64)>;
+    type Kept = (
+        Utf8PathBuf,
+        [Stamp; 2],
+        Option<std::sync::Arc<openwarrant_core::roadmap::Phases>>,
+    );
+    static KEPT: std::sync::Mutex<Vec<(Utf8PathBuf, Kept)>> = std::sync::Mutex::new(Vec::new());
+    if !id.contains("-PHASE-") {
+        return None;
+    }
+    let stamp = |p: &Utf8Path| -> Stamp {
+        let m = std::fs::metadata(p).ok()?;
+        Some((m.modified().ok()?, m.len()))
+    };
+    let config = root.join(crate::init::CONFIG_FILE);
+    let mut kept = KEPT.lock().ok()?;
+    if let Some((_, (atom, stamps, phases))) = kept.iter().find(|(r, _)| r == root)
+        && *stamps == [stamp(&config), stamp(atom)]
+    {
+        return phases.clone();
+    }
+    let repo = Repository::discover(Some(root.to_owned())).ok()?;
+    let loaded = crate::roadmap_cmd::load(&repo).ok().flatten();
+    let atom = loaded.as_ref().map_or_else(
+        || root.join(&repo.config.paths.roadmap).join("roadmap.toml"),
+        |l| {
+            l.manifest
+                .atoms
+                .iter()
+                .find(|a| a.role == "phases")
+                .map_or_else(|| l.dir.join("roadmap.toml"), |a| l.dir.join(&a.path))
+        },
+    );
+    let phases = loaded.map(|l| std::sync::Arc::new(l.phases));
+    kept.retain(|(r, _)| r != root);
+    kept.push((
+        root.to_owned(),
+        (atom.clone(), [stamp(&config), stamp(&atom)], phases.clone()),
+    ));
+    phases
+}
+
+/// The phases the phase of `t` depends on, directly or through another
+/// phase, that still hold open work: work `part_of` a phase waits on those,
+/// by name (the roadmap's `depends_on`, OW-ADR-0023). A phase is finished
+/// here when no Warrant `part_of` it is open; `members` gives a phase's.
+fn phase_blockers<'a>(members: &dyn Fn(&str) -> Vec<&'a Ticket>, t: &Ticket) -> Vec<String> {
+    let Some(own) = t.manifest.part_of.as_deref() else {
+        return Vec::new();
+    };
+    let Some(phases) = roadmap_phases(&t.repository_root, own) else {
+        return Vec::new();
+    };
+    let mut seen: BTreeSet<&str> = BTreeSet::new();
+    let mut queue: Vec<&str> = phases
+        .get(own)
+        .map(|p| p.depends_on.iter().map(String::as_str).collect())
+        .unwrap_or_default();
+    let mut open = Vec::new();
+    while let Some(id) = queue.pop() {
+        if !seen.insert(id) {
+            continue;
+        }
+        if members(id).iter().any(|m| !m.is_done()) {
+            open.push(id.to_owned());
+        }
+        if let Some(p) = phases.get(id) {
+            queue.extend(p.depends_on.iter().map(String::as_str));
+        }
+    }
+    open.sort();
+    open
+}
+
+/// The title of the roadmap phase `id`, when it is one.
+pub(crate) fn phase_title(store: &Store, id: &str) -> Option<String> {
+    Some(roadmap_phases(&store.root, id)?.get(id)?.title.clone())
+}
+
 fn default_actor(repo: &Repository) -> String {
     let performer = repo.performer();
     match repo.root.file_name() {
@@ -578,12 +715,13 @@ impl Store {
                 repo.root.join(p)
             }
         };
-        let actor = actor
+        let named = actor
             .map(str::to_owned)
             .or_else(|| std::env::var("OPENWARRANT_ACTOR").ok())
             .map(|a| ticket::one_line(&a))
-            .filter(|a| !a.is_empty())
-            .unwrap_or_else(|| default_actor(repo));
+            .filter(|a| !a.is_empty());
+        let actor_defaulted = named.is_none() && repo.config.project.performer.is_none();
+        let actor = named.unwrap_or_else(|| default_actor(repo));
         let tree_claims_dir = resolve(policy.claims_dir.as_deref().unwrap_or(DEFAULT_CLAIMS_DIR));
         let layout = match policy.claims_dir {
             Some(_) => None,
@@ -617,6 +755,7 @@ impl Store {
             session_start: policy.session_start.unwrap_or(true),
             definition,
             actor,
+            actor_defaulted,
             project: repo.config.project.name.clone(),
             preset: preset.preset,
             tick_floor: if preset.preset.is_some() {
@@ -1073,6 +1212,16 @@ impl Store {
             for dir in entries.iter().filter(|d| named(d, id)) {
                 take(dir, &mut tickets);
             }
+        }
+        // Work `part_of` a roadmap phase waits on whatever is open in the
+        // phases before it ([`phase_blockers`]): that is any ticket.
+        if tickets.iter().any(|t| {
+            t.manifest
+                .part_of
+                .as_deref()
+                .is_some_and(|p| p.contains("-PHASE-"))
+        }) {
+            return self.load_all();
         }
         Ok((tickets, faults))
     }
@@ -1652,18 +1801,24 @@ fn holder(c: Option<&claim::Claim>, now: u64) -> String {
 /// relation to a global record id (`t-x/i-y` or `t-x`,
 /// [`ticket::Blocker::record_id`]); `war plan model` emits the same relation.
 fn open_blockers(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
-    open_blockers_by(&|id| tickets.iter().find(|x| x.id() == id), t, item)
+    open_blockers_by(
+        &|id| tickets.iter().find(|x| x.id() == id),
+        &|id| children_of(tickets, id),
+        t,
+        item,
+    )
 }
 
 /// [`open_blockers`], finding a ticket by id with `find`: what a scan of
 /// the tickets for the first with that id finds ([`first_by_id`]).
 fn open_blockers_by<'a>(
     find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    members: &dyn Fn(&str) -> Vec<&'a Ticket>,
     t: &Ticket,
     item: &Item,
 ) -> Vec<String> {
     // FORMAT-1.0 §11.1: an item also waits on what its document
-    // `depends_on`.
+    // `depends_on`, and on the phases its phase depends on.
     item.after
         .iter()
         .chain(&t.depends_on)
@@ -1672,6 +1827,7 @@ fn open_blockers_by<'a>(
             Some(false) => Some(b.to_string()),
             None => Some(format!("{b} (unknown)")),
         })
+        .chain(phase_blockers(members, t))
         .collect()
 }
 
@@ -1685,7 +1841,11 @@ pub fn waiting_on(tickets: &[Ticket], t: &Ticket, item: &Item) -> Vec<String> {
 /// What a work document itself waits on that is not done (its
 /// `depends_on`, FORMAT-1.0 §11.1): a document with no items is `blocked`
 /// by these as an item would be.
-fn document_blockers_by<'a>(find: &dyn Fn(&str) -> Option<&'a Ticket>, t: &Ticket) -> Vec<String> {
+fn document_blockers_by<'a>(
+    find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    members: &dyn Fn(&str) -> Vec<&'a Ticket>,
+    t: &Ticket,
+) -> Vec<String> {
     t.depends_on
         .iter()
         .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
@@ -1693,6 +1853,7 @@ fn document_blockers_by<'a>(find: &dyn Fn(&str) -> Option<&'a Ticket>, t: &Ticke
             Some(false) => Some(b.to_string()),
             None => Some(format!("{b} (unknown)")),
         })
+        .chain(phase_blockers(members, t))
         .collect()
 }
 
@@ -1741,7 +1902,12 @@ impl<'a> Lookup<'a> {
     /// [`waiting_on`] over these tickets.
     #[must_use]
     pub fn waiting_on(&self, t: &Ticket, item: &Item) -> Vec<String> {
-        open_blockers_by(&|id| self.by_id.get(id).copied(), t, item)
+        open_blockers_by(
+            &|id| self.by_id.get(id).copied(),
+            &|id| self.children_of(id),
+            t,
+            item,
+        )
     }
 
     fn children_of(&self, id: &str) -> Vec<&'a Ticket> {
@@ -2998,6 +3164,7 @@ pub fn ready_rows_at(
         .collect();
     let by_id = first_by_id(tickets);
     let find = |id: &str| by_id.get(id).copied();
+    let members = |id: &str| children_of(tickets, id);
     // Read here, once: other repositories are read on one thread.
     let held = depends::held(store, tickets);
     let workspace = scopes::workspace(store);
@@ -3057,13 +3224,13 @@ pub fn ready_rows_at(
             // An epic with tickets of its own and no items is worked through
             // its tickets, never whole (OW-WAR-0148 M5); a document whose
             // `depends_on` is not done waits (FORMAT-1.0 §11.1).
-            if !parents.contains(t.id()) && document_blockers_by(&find, t).is_empty() {
+            if !parents.contains(t.id()) && document_blockers_by(&find, &members, t).is_empty() {
                 rows.push(row(None, t.manifest.title.clone(), None, 0, whole_stale));
             }
             return rows;
         }
         for (order, item) in t.checklist.items.iter().enumerate() {
-            if item.done || !open_blockers_by(&find, t, item).is_empty() {
+            if item.done || !open_blockers_by(&find, &members, t, item).is_empty() {
                 continue;
             }
             let mut stale_claim = whole_stale.clone();
@@ -3538,7 +3705,11 @@ pub(crate) fn claim_scoped_at(
             ));
         }
         let by_id = first_by_id(&tickets);
-        let mut waiting = document_blockers_by(&|id| by_id.get(id).copied(), t);
+        let mut waiting = document_blockers_by(
+            &|id| by_id.get(id).copied(),
+            &|id| children_of(&tickets, id),
+            t,
+        );
         let unfinished: Vec<_> = t.checklist.items.iter().filter(|it| !it.done).collect();
         if !unfinished.is_empty()
             && unfinished
@@ -4126,6 +4297,7 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
     let repository = Repository::discover(Some(workspace.clone()))?;
     let given = crate::context::task::given(&repository, tickets[index].id())?;
     let mut answer = render::brief(store, &tickets, &tickets[index], &store.actor);
+    answer.human = render::brief_with_records(&answer.human, &given.packet, &given.text);
     // W3: what it was given stays beside its claim; a resumption sees only
     // what changed since.
     let id = tickets[index].id();
@@ -4173,6 +4345,10 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         |c| c.place(),
     );
     answer.human = format!("{place}\n{}", answer.human);
+    if let Some(note) = store.actor_note() {
+        answer.human.push_str(&format!("\n{note}"));
+        answer.result["actor_note"] = serde_json::json!(note);
+    }
     answer.result["place"] = serde_json::json!(place);
     answer
         .human
@@ -5848,7 +6024,59 @@ fn finish_ticket(
         remote_warnings.extend(store.retire_published(&whole));
     }
     let _ = claim::release(&whole, &store.actor);
-    let t = reload(&t)?;
+    let mut t = reload(&t)?;
+    // An item ticked earlier at claimed is raised by the pass this call just
+    // recorded, when that run names it (FORMAT-1.0 §12); one no check
+    // evaluates stays claimed, and that is said.
+    let mut raised: Vec<String> = Vec::new();
+    let mut still_claimed: Vec<String> = Vec::new();
+    if t.format && ticks_of.iter().any(|(_, r)| r.is_some()) {
+        let (evaluation, _) = checks::evaluate(store, Some(t.id()))?;
+        raised = evaluation
+            .effects
+            .iter()
+            .filter(|e| e.effect == "raised")
+            .filter_map(|e| e.target.rsplit('/').next().map(str::to_owned))
+            .collect();
+        raised.dedup();
+        if !raised.is_empty() {
+            t = reload(&t)?;
+        }
+        let claimed_before = |t: &Ticket| -> Vec<String> {
+            let levels = ladder::ticks_of(&ladder::Reader::new(store), t);
+            t.checklist
+                .items
+                .iter()
+                .filter(|i| i.done)
+                .filter_map(|i| i.id.clone())
+                .filter(|id| !open.contains(id))
+                .filter(|id| {
+                    levels
+                        .items
+                        .get(id)
+                        .is_some_and(|v| v.level == Level::Claimed)
+                })
+                .collect()
+        };
+        // The same for a round the ladder ran: no check runs twice.
+        let rounds: Vec<&ladder::CheckRound> =
+            ticks_of.iter().filter_map(|(_, r)| r.as_ref()).collect();
+        for id in claimed_before(&t) {
+            let Some(round) = rounds
+                .iter()
+                .find(|r| ladder::round_covers(&checks, &id, r))
+            else {
+                continue;
+            };
+            let what = format!("{}/{id}", t.id());
+            if !ladder::raise_with(store, &t, &id, &what, None, round, Level::Claimed)?.is_refused()
+            {
+                raised.push(id);
+                t = reload(&t)?;
+            }
+        }
+        still_claimed = claimed_before(&t);
+    }
     let claims = store.claims()?;
     let state = state_of(&t, &claims);
     let (d, n) = t.checklist.progress();
@@ -5873,6 +6101,19 @@ fn finish_ticket(
         ));
     } else {
         human.push_str(&format!("\nticked at observed: {}", observed.join(", ")));
+    }
+    if !raised.is_empty() {
+        human.push_str(&format!(
+            "\nraised from claimed to observed: {}",
+            raised.join(", ")
+        ));
+    }
+    if !still_claimed.is_empty() {
+        human.push_str(&format!(
+            "\nstill at claimed (ticked earlier, and no passing check names it): {}; \
+             `war done <item> --check` runs its checks",
+            still_claimed.join(", ")
+        ));
     }
     if !for_a_person.is_empty() {
         human.push_str(&format!("\n{}", waits_on_a_person(&t, &for_a_person)));
