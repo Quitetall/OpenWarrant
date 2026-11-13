@@ -38,7 +38,7 @@ TB_PRIME=$(tb_war view prime 2>&1)
 TB_PRIME_B=$(printf '%s' "$TB_PRIME" | wc -c)
 TB_PRIME_MAX=$(( 600 + 200 * TB_N ))
 if [[ $TB_PRIME_B -le $TB_PRIME_MAX ]] && ! grep -q 'MARKER-' <<<"$TB_PRIME" \
-    && [[ $(grep -c '^- [tw]-' <<<"$TB_PRIME") -eq $TB_N ]]; then
+    && [[ $(grep -c '^- t-' <<<"$TB_PRIME") -eq $TB_N ]]; then
     tb_ok "prime is one line a Warrant" "$TB_PRIME_B bytes for $TB_N (budget $TB_PRIME_MAX); no Warrant's text"
 else
     tb_fail "prime is one line a Warrant" "$TB_PRIME_B bytes (budget $TB_PRIME_MAX); markers: $(grep -o 'MARKER-[0-9]*-[A-Z]*' <<<"$TB_PRIME" | tr '\n' ' ')"
@@ -46,7 +46,7 @@ fi
 
 # --- ready: one line per Warrant, no item text ----------------------------------
 TB_READY=$(tb_war view ready 2>&1)
-if [[ $(grep -c '`war start [tw]-' <<<"$TB_READY") -eq $TB_N ]] && ! grep -q 'MARKER-' <<<"$TB_READY"; then
+if [[ $(grep -c '`war start t-' <<<"$TB_READY") -eq $TB_N ]] && ! grep -q 'MARKER-' <<<"$TB_READY"; then
     tb_ok "ready is one line a Warrant" "$(printf '%s' "$TB_READY" | wc -c) bytes; no item text"
 else
     tb_fail "ready is one line a Warrant" "$(tr '\n' '|' <<<"$TB_READY" | head -c 400)"
@@ -55,7 +55,7 @@ fi
 # --- start: only the one taken ----------------------------------------------------
 TB_START=$(tb_war start 2>&1)
 TB_START_B=$(printf '%s' "$TB_START" | wc -c)
-TB_TAKEN=$(grep -o '^# [tw]-[0-9a-f]*' <<<"$TB_START" | head -1 | cut -c3-)
+TB_TAKEN=$(grep -o '^# t-[0-9a-f]*' <<<"$TB_START" | head -1 | cut -c3-)
 TB_OWN=$(grep -o 'MARKER-[0-9]*-BODY' <<<"$TB_START" | head -1 | cut -d- -f2)
 TB_OTHERS=$(grep -o 'MARKER-[0-9]*-[A-Z]*' <<<"$TB_START" | cut -d- -f2 | sort -u | wc -l)
 if [[ -n $TB_TAKEN && -n $TB_OWN ]] && grep -q "MARKER-$TB_OWN-ITEM" <<<"$TB_START" \

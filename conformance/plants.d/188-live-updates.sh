@@ -157,8 +157,8 @@ lu_as alice "$LU_WA" start "$LU_A"
 
 # --- several changes are one line --------------------------------------------------
 sed -i 's/^# Plan$/# The plan/' "$LU_ROOT/docs/plan.md"
-sed -i 's/^## Checklist$/## Checklist\n/' "$(tk "$LU_ROOT/docs/tickets/$LU_A.md")"
-printf '\nA line the owner added.\n' >>"$(tk "$LU_ROOT/docs/tickets/$LU_A.md")"
+sed -i 's/^## Checklist$/## Checklist\n/' "$LU_ROOT/docs/tickets/$LU_A.md"
+printf '\nA line the owner added.\n' >>"$LU_ROOT/docs/tickets/$LU_A.md"
 lu_g add -A; lu_g commit -qm 'two files'
 lu_as bob "$LU_WB" note "$LU_B" "third"
 lu_as alice "$LU_WA" view ready
@@ -198,8 +198,8 @@ lu_as carol "$LU_ROOT" --json start --worktree --print "$LU_C"
 LU_WC=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["worktree"])' "$LU_T/out")
 lu_as dan "$LU_ROOT" --json start --worktree --print "$LU_P"
 LU_WD=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["worktree"])' "$LU_T/out")
-printf '\nThe programme moved.\n' >>"$(tk "$LU_ROOT/docs/tickets/$LU_EPIC.md")"
-printf '\nThe queued notes moved.\n' >>"$(tk "$LU_ROOT/docs/tickets/$LU_Q.md")"
+printf '\nThe programme moved.\n' >>"$LU_ROOT/docs/tickets/$LU_EPIC.md"
+printf '\nThe queued notes moved.\n' >>"$LU_ROOT/docs/tickets/$LU_Q.md"
 printf 'still nobody\n' >>"$LU_ROOT/docs/other.md"
 lu_g add -A; lu_g commit -qm 'the programme, the notes, an uncited document'
 lu_as owner "$LU_ROOT" note "$LU_EPIC" "said so"

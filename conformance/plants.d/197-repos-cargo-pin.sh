@@ -23,7 +23,7 @@ cp_git() { git -c user.email=plant@invalid -c user.name=plant -c protocol.file.a
 cp_cargo() { (cd "$REPO_ROOT" && CARGO_HOME="$CP_TMP/cargo" timeout 60 cargo "$@"); }
 hpr() { OPENWARRANT_ACTOR=hpr-agent "$WAR" --root "$CP_TMP/hpr" "$@"; }
 wmd() { local who=$1; shift; OPENWARRANT_ACTOR=$who "$WAR" --root "$CP_TMP/wmd" "$@"; }
-cp_id() { sed -n 's/.*"id": "\([tw]-[0-9a-f]*\)".*/\1/p' | head -1; }
+cp_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
 CP_URL="file://$CP_TMP/hpr.git"
 
 cp_git init -q --bare -b main "$CP_TMP/hpr.git" || { printf 'PLANT SETUP FAILED: bare\n' >&2; exit 9; }

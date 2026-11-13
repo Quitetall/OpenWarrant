@@ -161,7 +161,7 @@ const THREE: &str = "- [ ] Reset endpoint (i-9c01)\n- [ ] Email template (i-4d11
                      - [ ] Docs (i-77be, after i-4d11)\n";
 
 fn journal_path(root: &Path, alias: &str) -> PathBuf {
-    crate::work_paths::at(root.join(format!("docs/tickets/{alias}/journal.jsonl")))
+    root.join(format!("docs/tickets/{alias}/journal.jsonl"))
 }
 
 fn write_journal(root: &Path, alias: &str, text: &str) {

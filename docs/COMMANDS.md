@@ -7,7 +7,7 @@ and keep their report envelope's command name.
 | Daily command | Purpose |
 | --- | --- |
 | `war init` | Set up a repository |
-| `war create "Outcome"` | Create one Markdown Warrant with a stable ID, `docs/work/<w-id>/<id>-<slug>.md`; every worktree sees it at once. A likely duplicate of open work is refused by name (`--force` creates anyway) |
+| `war create "Outcome"` | Create one Markdown Warrant with a stable ID; every worktree sees it at once. A likely duplicate of open work is refused by name (`--force` creates anyway) |
 | `war start` | Claim ready work and receive its context |
 | `war done --note "Result"` | Record completion under the declared conditions |
 | `war status` | Read progress |

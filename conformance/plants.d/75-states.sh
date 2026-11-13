@@ -26,11 +26,6 @@
 # run, the status checks and `war next` are byte-identical across entering
 # one.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== states: a fixed set plus declared refinements (OW-WAR-0148 M4) =="
 SP_ROOT=$(scratch_corpus SP)
 [[ -d "${SP_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -69,7 +64,7 @@ SP_ITEMS=$(sp_war show "$SP_T" --json 2>/dev/null | python3 -c 'import json,sys;
 SP_I1=${SP_ITEMS%% *}
 SP_I2=${SP_ITEMS##* }
 [[ -n "$SP_T" && -n "$SP_I1" && "$SP_I1" != "$SP_I2" ]] || { printf 'PLANT SETUP FAILED: no ticket with two items (%s: %s)\n' "$SP_T" "$SP_ITEMS" >&2; exit 9; }
-SP_J="$(tk "$SP_ROOT/docs/tickets/$SP_T/journal.jsonl")"
+SP_J="$SP_ROOT/docs/tickets/$SP_T/journal.jsonl"
 sp_states() {
     sp_war model --json 2>/dev/null | python3 -c '
 import json, sys
@@ -231,4 +226,3 @@ fi
 command rm -rf "$SP_TMP"
 corpus_gone "$SP_ROOT"
 unset SP_ROOT SP_TMP SP_WAR SP_W SP_T SP_ITEMS SP_I1 SP_I2 SP_J SP_WJ SP_J0 SP_M SP_OUT SP_STATUS SP_SHOW SP_SHOW0 SP_LS SP_EV SP_R0 SP_R1
-unset OPENWARRANT_TICKET_LAYOUT

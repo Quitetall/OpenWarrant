@@ -129,7 +129,7 @@ PY
 CI_BAD_SUM=$(sha256sum < "$CI_IDX")
 CI_D=$(ci_create "Made beside a broken index"); CI_D_RC=$?
 CI_BAD_AFTER=$(sha256sum < "$CI_IDX")
-if [[ -n $CI_D && $CI_D_RC -eq 0 && -f "$(tk "$CI_ROOT/docs/tickets/$CI_D.md")" ]] \
+if [[ -n $CI_D && $CI_D_RC -eq 0 && -f "$CI_ROOT/docs/tickets/$CI_D.md" ]] \
     && grep -q 'context-index.refresh' "$CI_T/err" && [[ $CI_BAD_SUM == "$CI_BAD_AFTER" ]]; then
     ci_ok "a broken index is not patched" "the create is accepted and says context-index.refresh; the file is byte-identical"
 else
@@ -153,7 +153,7 @@ CI_FIRST_LEN=$(( ${#CI_A} - 2 ))
 for i in $(seq 1 30); do
     if (( i % 5 == 0 )); then ci_create --legacy "Filler $i" >/dev/null; else ci_create "Filler $i" >/dev/null; fi
 done
-CI_COUNT=$({ ls "$CI_ROOT/docs/tickets" 2>/dev/null; ls "$CI_ROOT/docs/work" 2>/dev/null; } | sed 's/\.md$//' | sort -u | grep -c '^[tw]-')
+CI_COUNT=$(ls "$CI_ROOT/docs/tickets" | sed 's/\.md$//' | sort -u | grep -c '^t-')
 CI_LONG=$(ci_create "Made in a store past the four-digit bound")
 CI_LONG_LEN=$(( ${#CI_LONG} - 2 ))
 if (( CI_FIRST_LEN == 4 && CI_COUNT > 37 && CI_LONG_LEN >= 5 )); then

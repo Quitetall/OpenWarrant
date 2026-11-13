@@ -25,7 +25,7 @@ tww() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_ACTOR=hpr-agent "$WAR"
 tw_state() { tww --json view tickets 2>/dev/null | python3 -c 'import json,sys
 print(next((t["state"] for t in json.load(sys.stdin)["result"]["tickets"] if t["id"]==sys.argv[1]), "missing"))' "$TW_T"; }
 tw_sign() { local sock=$1 who=$2 what=$3; env -u SSH_AGENT_PID SSH_AUTH_SOCK="$sock" OPENWARRANT_ACTOR=hpr-agent "$WAR" --root "$TW_ROOT" sign "$what" --ssh-sign --as "$who" 2>&1; }
-tw_id() { sed -n 's/.*"id": "\([tw]-[0-9a-f]*\)".*/\1/p' | head -1; }
+tw_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
 
 tw_agent() {  # <name>: a key and an agent holding it, and nothing else
     ssh-keygen -q -t ed25519 -N "" -C "$1" -f "$TW_TMP/id_$1" || return 1

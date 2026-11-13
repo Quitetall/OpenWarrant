@@ -26,11 +26,6 @@
 # and `war impact` on an id that is no record. The architecture view, which
 # names REQ-pr1 only by id, is neither named nor moved.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== the typed-records demonstration (OW-WAR-0148 M5) =="
 DM_ROOT=$(scratch_corpus DM)
 [[ -d "${DM_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -213,4 +208,3 @@ command rm -rf "$DM_TMP"
 corpus_gone "$DM_ROOT"
 unset DM_ROOT DM_TMP DM_WAR DM_AREA DM_GEN DM_T DM_I1 DM_I2 DM_REV0 DM_SHOW DM_RM DM_WARMD DM_GENS DM_CG \
     DM_SG DM_N0 DM_N1 DM_ERR DM_SE DM_IMP DM_MISS DM_MOVED DM_WANT DM_CG2 DM_SG2 DM_SC DM_U DM_SU
-unset OPENWARRANT_TICKET_LAYOUT

@@ -40,7 +40,7 @@ read -r NX_C _ <<<"$(nxw --json create "Gamma work" | nx_id)"
 
 # ---- status and prime --ready ------------------------------------------------------
 NX_ST=$(nxw status 2>/dev/null)
-if [[ $(grep -c '^  [tw]-.*`war start [tw]-' <<<"$NX_ST") == 2 ]] && grep -q '^Ready: 3 tickets' <<<"$NX_ST" \
+if [[ $(grep -c '^  t-.*`war start t-' <<<"$NX_ST") == 2 ]] && grep -q '^Ready: 3 tickets' <<<"$NX_ST" \
     && [[ ${#NX_ST} -le 640 ]]; then
     nx_ok "status names two ready tickets" "three are ready, two are named, in ${#NX_ST} bytes"
 else
@@ -48,7 +48,7 @@ else
 fi
 NX_RD=$(nxw view prime --ready 2>/dev/null)
 NX_PR=$(nxw view prime 2>/dev/null)
-if [[ $(wc -l <<<"$NX_RD") == 3 && $(grep -c '`war start [tw]-' <<<"$NX_RD") == 3 ]] && ! grep -q 'How to work' <<<"$NX_RD" \
+if [[ $(wc -l <<<"$NX_RD") == 3 && $(grep -c '`war start t-' <<<"$NX_RD") == 3 ]] && ! grep -q 'How to work' <<<"$NX_RD" \
     && grep -q 'How to work' <<<"$NX_PR"; then
     nx_ok "prime --ready is the rows alone" "three lines; plain prime still carries the how-to"
 else
@@ -73,7 +73,7 @@ git -C "$NX_R" -c user.email=p@invalid -c user.name=p commit -qm base >/dev/null
 # ---- done: an open ticket names no other; a finished one names the next -------------
 NX_D1=$(nxw done "$NX_A/$NX_A1" 2>&1)
 NX_D2=$(nxw done "$NX_A/$NX_A2" 2>&1)
-NX_NEXT=$(sed -n 's/^next: \([tw]-[0-9a-f]*\) .*/\1/p' <<<"$NX_D2")
+NX_NEXT=$(sed -n 's/^next: \(t-[0-9a-f]*\) .*/\1/p' <<<"$NX_D2")
 if ! grep -q '^next: ' <<<"$NX_D1" \
     && [[ $NX_NEXT == "$NX_B" || $NX_NEXT == "$NX_C" ]] \
     && grep -qE "^next: $NX_NEXT (Beta|Gamma) work \(\`war start $NX_NEXT\`\)$" <<<"$NX_D2" && [[ ${#NX_D2} -le 320 ]] \

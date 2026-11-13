@@ -26,11 +26,6 @@
 # write that fails leaves the ticket done and reports the issue UNKNOWN
 # (ticket.issue-unknown), the close never run.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== ticket features (OW-WAR-0148 M5) =="
 TF_ROOT=$(scratch_corpus TF)
 [[ -d "${TF_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -80,7 +75,7 @@ TF_C=$(tf_id "$TF_OUT"); TF_C1=$(tf_item "$TF_OUT" 0)
 TF_OUT=$(tfj create "Speed up sessions" --body "The flaky cache drops sessions." -i "Measure")
 TF_D=$(tf_id "$TF_OUT"); TF_D1=$(tf_item "$TF_OUT" 0)
 tfw add "$TF_A" "Ship the fix" --after "$TF_A2" >/dev/null 2>&1
-TF_A3=$(sed -n 's/^- \[ \] Ship the fix (\(i-[0-9a-f]*\), after .*)$/\1/p' "$(tk "$TF_ROOT/docs/tickets/$TF_A.md")")
+TF_A3=$(sed -n 's/^- \[ \] Ship the fix (\(i-[0-9a-f]*\), after .*)$/\1/p' "$TF_ROOT/docs/tickets/$TF_A.md")
 tfw claim "$TF_C/$TF_C1" >/dev/null 2>&1 && tfw done "$TF_C/$TF_C1" >/dev/null 2>&1
 tfw claim "$TF_D/$TF_D1" >/dev/null 2>&1 && tfw done "$TF_D/$TF_D1" --note "invalidate on logout" >/dev/null 2>&1
 tfw claim "$TF_B/$TF_B1" >/dev/null 2>&1
@@ -229,14 +224,14 @@ assert s.count(old) == 1, "the shipped [fields] block moved"
 open(dst, "w").write(s.replace(old, 'labels = ["backend", "ui", "auth", "docs"]\nlabels_closed = true\n'))
 PY
 TF_N0=$(tf_paths)
-\cp -f "$(tk "$TF_ROOT/docs/tickets/$TF_A.md")" "$TF_TMP/a.manifest"
+\cp -f "$TF_ROOT/docs/tickets/$TF_A.md" "$TF_TMP/a.manifest"
 TF_ERR1=$(tfw create "Labelled wrong" -l backend -l frontend 2>&1 >/dev/null); TF_S1=$?
 TF_ERR2=$(tfw edit "$TF_A" -l frontend 2>&1 >/dev/null); TF_S2=$?
 TF_ERR3=$(tfw tickets --label frontend 2>&1 >/dev/null); TF_S3=$?
 TF_N1=$(tf_paths)
-TF_ADIFF=$(cmp "$TF_TMP/a.manifest" "$(tk "$TF_ROOT/docs/tickets/$TF_A.md")" 2>&1)
+TF_ADIFF=$(cmp "$TF_TMP/a.manifest" "$TF_ROOT/docs/tickets/$TF_A.md" 2>&1)
 TF_GOOD=$(tf_id "$(tfj create "Labelled right" -l ui)")
-command rm -rf "$TF_ROOT/profiles/ticket.toml" "$(tk "$TF_ROOT/docs/tickets/$TF_GOOD")" "$(tk "$TF_ROOT/docs/tickets/$TF_GOOD.md")"
+command rm -rf "$TF_ROOT/profiles/ticket.toml" "$TF_ROOT/docs/tickets/$TF_GOOD" "$TF_ROOT/docs/tickets/$TF_GOOD.md"
 if [[ $TF_S1 -eq 2 && $TF_S2 -eq 2 && $TF_S3 -eq 2 && "$TF_N0" == "$TF_N1" && -z "$TF_ADIFF" && -n "$TF_GOOD" ]] \
     && tf_has 'ticket.label-unknown' "$TF_ERR1" && tf_has '"frontend" is not in the ticket profile'"'"'s closed label set' "$TF_ERR1" \
     && tf_has 'ticket.label-unknown' "$TF_ERR2" && tf_has 'ticket.label-unknown' "$TF_ERR3"; then
@@ -255,7 +250,7 @@ printf '\n[intake]\nfetch_argv = ["gh", "issue", "view", "{id}", "--json", "numb
 TF_OUT=$(tfj create --issue 12 -i "Fix it")
 TF_G=$(tf_id "$TF_OUT"); TF_G1=$(tf_item "$TF_OUT" 0)
 TF_LOG1=$(cat "$TF_TMP/gh.log")
-TF_GM=$(cat "$(tk "$TF_ROOT/docs/tickets/$TF_G.md")" 2>/dev/null)
+TF_GM=$(cat "$TF_ROOT/docs/tickets/$TF_G.md" 2>/dev/null)
 tfw claim "$TF_G/$TF_G1" >/dev/null 2>&1
 TF_DONE=$(tfj done "$TF_G/$TF_G1" --note "guarded"); TF_DS=$?
 TF_LOG2=$(cat "$TF_TMP/gh.log")
@@ -309,7 +304,7 @@ TF_J=$(tfj done "$TF_K/$TF_K1"); TF_SJ=$?
 command rm -f "$TF_TMP/gh.log.fail"
 TF_ST=$(tf_field "$(tfj tickets)" '[t["state"] for t in v["result"]["tickets"] if t["id"] == "'"$TF_K"'"][0]')
 TF_CLOSED=$(grep -c '^argv=issue close' "$TF_TMP/gh.log")
-TF_JL=$(grep '"work.issue_writeback"' "$(tk "$TF_ROOT/docs/tickets/$TF_K/journal.jsonl")")
+TF_JL=$(grep '"work.issue_writeback"' "$TF_ROOT/docs/tickets/$TF_K/journal.jsonl")
 if [[ $TF_S -eq 2 && "$TF_ST" == done && "$TF_CLOSED" == 0 && $TF_SJ -eq 0 ]] \
     && tf_has 'UNKNOWN (ticket.issue-unknown): GitHub issue #14 is UNKNOWN: comment unknown (gh failed' "$TF_ERR" \
     && tf_has 'HTTP 403: denied' "$TF_ERR" && tf_has "The ticket $TF_K is done and stays done" "$TF_ERR" \
@@ -360,4 +355,3 @@ unset TF_ROOT TF_TMP TF_WAR TF_E TF_A TF_A1 TF_A2 TF_A3 TF_B TF_B1 TF_C TF_C1 TF
     TF_LS TF_MODEL TF_OLD TF_MDIFF TF_CDIFF TF_CLINE TF_ST TF_EDIFF TF_N0 TF_N1 TF_ADIFF TF_GOOD TF_G \
     TF_G1 TF_LOG1 TF_LOG2 TF_GM TF_DONE TF_DS TF_WB TF_H TF_H1 TF_H2 TF_MID TF_CALLS TF_COMMENT \
     TF_LAST TF_CLOSE TF_K TF_K1 TF_J TF_SJ TF_CLOSED TF_JL TF_TIMES TF_SLOW
-unset OPENWARRANT_TICKET_LAYOUT

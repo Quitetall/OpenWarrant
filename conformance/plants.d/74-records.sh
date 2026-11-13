@@ -28,10 +28,6 @@
 # kept (record.relation-target-unknown, model.relation-target-unknown); and
 # `war impact` on an unknown id (impact.unknown-record).
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== records and typed relations (OW-WAR-0148 M3) =="
 RP_ROOT=$(scratch_corpus RP)
 [[ -d "${RP_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -137,7 +133,7 @@ rp_sign() {
 RP_REV0=$(cat "$RP_TMP/rev0")
 RP_T=$(awk 'NR==1{print $1}' "$RP_TMP/ticket")
 RP_I=$(sed -n 's/^- \[ \] Expire tokens after issue (implements REQ-pr1) (\(i-[0-9a-f]*\))$/\1/p' \
-    "$(tk "$RP_ROOT/docs/tickets/$RP_T.md")")
+    "$RP_ROOT/docs/tickets/$RP_T.md")
 [[ -n "$RP_T" && -n "$RP_I" ]] || { printf 'PLANT SETUP FAILED: no ticket item (%s)\n' "$(cat "$RP_TMP/ticket")" >&2; exit 9; }
 
 # 1. The records parse: every heading a record of its type, every relation
@@ -148,7 +144,7 @@ RP_REL=$(rp_war model --json 2>/dev/null | python3 -c '
 import json, sys
 m = json.load(sys.stdin)["result"]
 print(" ".join(sorted("%s>%s>%s" % (r["from"], r["kind"], r["to"]) for r in m["relations"]
-    if r["from"] in ("REQ-pr1", "CON-pr1", "DEC-pr1") or r["kind"] in ("evaluates",) or r["from"].startswith(("t-", "w-")))))
+    if r["from"] in ("REQ-pr1", "CON-pr1", "DEC-pr1") or r["kind"] in ("evaluates",) or r["from"].startswith("t-"))))
 ' 2>&1)
 RP_WANT_REL="CON-pr1>constrains>REQ-pr1 DEC-pr1>constrains>REQ-pr1 DEC-pr1>selected_over>OPT-pr1 DEC-pr1>selected_over>OPT-pr2 REQ-pr1>implements>OUT-pr1 RP-WAR-0001/OBL-001>evaluates>REQ-pr1 $RP_T/$RP_I>implements>REQ-pr1 $RP_T/$RP_I>part_of>$RP_T"
 RP_TYPES=$(awk '{print $1":"$2}' <<<"$RP_REVS" | sort | tr '\n' ' ')
@@ -329,4 +325,3 @@ fi
 command rm -rf "$RP_TMP"
 corpus_gone "$RP_ROOT"
 unset RP_ROOT RP_TMP RP_WAR RP_REC RP_REV0 RP_T RP_I
-unset OPENWARRANT_TICKET_LAYOUT

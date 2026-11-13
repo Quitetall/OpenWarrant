@@ -29,7 +29,7 @@ fc_commit() { git -C "$FC_ROOT" add -A >/dev/null 2>&1 && git -C "$FC_ROOT" -c u
 fc_ticket() {
     mkdir -p "$FC_ROOT/docs/tickets"
     printf -- '---\nformat: openwarrant/1.0\nprofile: ticket\nalias: %s\nuuid: %s\nsummary: Plant checks %s.\n---\n# Plant checks %s\n\n## Checklist\n%b\n%b' \
-        "$1" "$2" "$1" "$1" "$3" "$4" > "$(tk "$FC_ROOT/docs/tickets/$1.md")"
+        "$1" "$2" "$1" "$1" "$3" "$4" > "$FC_ROOT/docs/tickets/$1.md"
 }
 # fc_rules <json>: the non-pass rules of an envelope, space-separated.
 fc_rules() { python3 -c '
@@ -39,7 +39,7 @@ try:
 except ValueError:
     print("not-an-envelope"); sys.exit()
 print(" ".join(d["rule"] for d in v.get("diagnostics", []) if d["severity"] != "pass"))' "$1"; }
-fc_doc() { cat "$(tk "$FC_ROOT/docs/tickets/$1.md")"; }
+fc_doc() { cat "$FC_ROOT/docs/tickets/$1.md"; }
 
 # --- a pass ticks observed; a fail ticks nothing ------------------------------------
 fc_ticket t-fc01 01a0e1c2-0b7d-7c11-8f2e-5d6c7b8a0c01 "- [ ] reset endpoint (i-fc11)\n- [ ] template (i-fc12)\n" \

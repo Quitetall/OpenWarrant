@@ -25,11 +25,6 @@
 #
 # No signature is involved: no key, no ssh-agent.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== ticket work leaves the projections current (t-ca38) =="
 PLANT_ROOT=$(scratch_corpus TP)
 [[ -d "${PLANT_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -73,7 +68,7 @@ tp_commit() {
     git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "$1" >/dev/null 2>&1
 }
 TP=$(find "$PLANT_ROOT/docs/tickets" -mindepth 1 -maxdepth 1 -name 't-*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | head -1)
-TP_I1=$(grep -o '(i-[0-9a-z]*' "$(tk "$PLANT_ROOT/docs/tickets/$TP.md")" 2>/dev/null | head -1 | tr -d '(')
+TP_I1=$(grep -o '(i-[0-9a-z]*' "$PLANT_ROOT/docs/tickets/$TP.md" 2>/dev/null | head -1 | tr -d '(')
 [[ -n "$TP" && -n "$TP_I1" ]] || { printf 'PLANT SETUP FAILED: no ticket or no item\n' >&2; exit 9; }
 TP_RES=$(tp_war resolve --dry-run "$TP_A" 2>&1)
 grep -q 'resolution.requirement-met .*every required gate has admissible result' <<<"$TP_RES" \
@@ -132,4 +127,3 @@ fi
 command rm -rf "$TP_TMP"
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT
-unset OPENWARRANT_TICKET_LAYOUT

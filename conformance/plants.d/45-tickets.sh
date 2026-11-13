@@ -35,13 +35,13 @@ tkw claim "$TK/$TK_I1" >/dev/null 2>&1; TK_C=$?
 tkw done "$TK/$TK_I1" --note "grammar written" >/dev/null 2>&1; TK_D=$?
 tkw claim "$TK_I2" >/dev/null 2>&1 && tkw done "$TK_I2" >/dev/null 2>&1
 TK_STATE=$(tk_field "$(tkj tickets)" 'v["result"]["tickets"][0]["state"]')
-TK_CL="$(tk "$PLANT_ROOT/docs/tickets/$TK.md")"
+TK_CL="$PLANT_ROOT/docs/tickets/$TK.md"
 TK_SIGNED=$(find "$PLANT_ROOT/docs/tickets" \( -name 'authorization*' -o -name 'resolution*' -o -name '*.sig' \) | wc -l)
 TK_CHECK_AFTER=$("$WAR" --root "$PLANT_ROOT" sign --list 2>/dev/null | grep -cE '^  [A-Z]+-WAR-[0-9]{4} ')
-if [[ "$TK" =~ ^[tw]-[0-9a-f]{4,}$ && "$TK_R1" == "$TK_I1,$TK_I2" && $TK_C -eq 0 && $TK_D -eq 0 \
+if [[ "$TK" =~ ^t-[0-9a-f]{4,}$ && "$TK_R1" == "$TK_I1,$TK_I2" && $TK_C -eq 0 && $TK_D -eq 0 \
     && "$TK_STATE" == "done" && $TK_SIGNED -eq 0 && "$TK_CHECK_BEFORE" == "$TK_CHECK_AFTER" ]] \
     && grep -q "^- \[x\] Write the grammar ($TK_I1) — done by claude, [0-9-]*: grammar written$" "$TK_CL" \
-    && grep -q '"work.item_done"' "$(tk "$PLANT_ROOT/docs/tickets/$TK/journal.jsonl")"; then
+    && grep -q '"work.item_done"' "$PLANT_ROOT/docs/tickets/$TK/journal.jsonl"; then
     tk_ok "create→ready→claim→done, unsigned" "$TK done; nothing signed, the signing queue unchanged ($TK_CHECK_AFTER)"
 else
     tk_fail "create→ready→claim→done, unsigned" "id=$TK ready=$TK_R1 claim=$TK_C done=$TK_D state=$TK_STATE signed=$TK_SIGNED queue=$TK_CHECK_BEFORE/$TK_CHECK_AFTER"
@@ -68,7 +68,7 @@ TK_ERR2=$(tkw done "$TK2/$TK2_J" --as bob 2>&1 >/dev/null); TK_S2=$?
 TK_ERR3=$(tkw done i-ffff --as bob 2>&1 >/dev/null); TK_S3=$?
 if [[ $TK_S -eq 2 && $TK_S2 -eq 2 && $TK_S3 -eq 2 ]] && grep -q 'claimed-by-other.*alice' <<<"$TK_ERR" \
     && grep -q 'ticket.not-claimed' <<<"$TK_ERR2" && grep -q 'ticket.unknown' <<<"$TK_ERR3" \
-    && ! grep -q '\[x\]' "$(tk "$PLANT_ROOT/docs/tickets/$TK2.md")"; then
+    && ! grep -q '\[x\]' "$PLANT_ROOT/docs/tickets/$TK2.md"; then
     tk_ok "done refuses unclaimed and unknown" "someone else's, unclaimed, unknown: three refusals, nothing ticked"
 else
     tk_fail "done refuses unclaimed and unknown" "$TK_S/$TK_S2/$TK_S3: $TK_ERR | $TK_ERR2 | $TK_ERR3"
@@ -86,10 +86,10 @@ TK_CLB=$(tk_claims_on "$TK2")
 tkw done "$TK2/$TK2_J" --as carol --note "carol finished" >/dev/null 2>&1; TK_S2=$?
 TK_GONE=0; [[ -e "$TK_LOCK" ]] || TK_GONE=1
 TK_CLA=$(tk_claims_on "$TK2")
-TK_TICKED=$(grep -c '^- \[x\]' "$(tk "$PLANT_ROOT/docs/tickets/$TK2.md")")
+TK_TICKED=$(grep -c '^- \[x\]' "$PLANT_ROOT/docs/tickets/$TK2.md")
 if [[ $TK_S -eq 0 && $TK_S2 -eq 0 && $TK_HELD -eq 1 && $TK_GONE -eq 1 && $TK_TICKED -eq 1 ]] \
     && tk_in "$TK_CLB" "carol@$TK2/$TK2_J" && ! tk_in "$TK_CLA" "carol@$TK2/$TK2_J" \
-    && grep -q "^- \[x\] Other item ($TK2_J) — done by carol, [0-9-]*: carol finished$" "$(tk "$PLANT_ROOT/docs/tickets/$TK2.md")"; then
+    && grep -q "^- \[x\] Other item ($TK2_J) — done by carol, [0-9-]*: carol finished$" "$PLANT_ROOT/docs/tickets/$TK2.md"; then
     tk_ok "done by the holder releases it" "carol's lock held, then gone after done; war tickets: '$TK_CLB' -> '$TK_CLA'; one line ticked"
 else
     tk_fail "done by the holder releases it" "claim=$TK_S done=$TK_S2 held=$TK_HELD gone=$TK_GONE ticked=$TK_TICKED claims: '$TK_CLB' -> '$TK_CLA'"
@@ -106,7 +106,7 @@ for n in 1 2 3 4 5 6 7 8; do
 done
 TK_WON=0
 for pid in "${TK_PIDS[@]}"; do wait "$pid" && TK_WON=$((TK_WON + 1)); done
-TK_JC=$(grep -c '"work.claimed"' "$(tk "$PLANT_ROOT/docs/tickets/$TK3/journal.jsonl")")
+TK_JC=$(grep -c '"work.claimed"' "$PLANT_ROOT/docs/tickets/$TK3/journal.jsonl")
 if [[ $TK_WON -eq 1 && $TK_JC -eq 1 ]]; then
     tk_ok "concurrent claims: exactly one wins" "8 processes, 1 claim, 1 journal event"
 else
@@ -120,7 +120,7 @@ tkw claim "$TK2/$TK2_I" --as bob --steal >/dev/null 2>&1; TK_S2=$?
 git -C "$PLANT_ROOT" checkout -q -- openwarrant.toml
 TK_ERR3=$(tkw claim "$TK2/$TK2_I" --as carol --steal 2>&1 >/dev/null); TK_S3=$?
 if [[ $TK_S -eq 2 && $TK_S2 -eq 0 && $TK_S3 -eq 2 ]] && grep -q -- '--steal. takes it' <<<"$TK_ERR" \
-    && grep -q '"from":"alice".*"work.claim_stolen"' "$(tk "$PLANT_ROOT/docs/tickets/$TK2/journal.jsonl")" \
+    && grep -q '"from":"alice".*"work.claim_stolen"' "$PLANT_ROOT/docs/tickets/$TK2/journal.jsonl" \
     && grep -q 'not stale' <<<"$TK_ERR3"; then
     tk_ok "a stale claim is stolen, journalled" "past the TTL: refused, then --steal took it from alice; fresh: refused"
 else
@@ -132,7 +132,7 @@ fi
 TK_OUT=$(tkj create "Hand edited" --item "First" --item "Second" --item "Third")
 TK4=$(tk_field "$TK_OUT" 'v["result"]["id"]')
 TK4_1=$(tk_field "$TK_OUT" 'v["result"]["items"][0]["id"]'); TK4_3=$(tk_field "$TK_OUT" 'v["result"]["items"][2]["id"]')
-TK_CL="$(tk "$PLANT_ROOT/docs/tickets/$TK4.md")"
+TK_CL="$PLANT_ROOT/docs/tickets/$TK4.md"
 python3 - "$TK_CL" "$TK4_1" <<'PY'
 import sys
 p, first = sys.argv[1], sys.argv[2]
@@ -220,7 +220,7 @@ for x in "$TK5/$TK5_W" "$TK5/$TK5_R" "$TK5_OTHER/$TK5_SC" "$TK5_X/$TK5_XT" "$TK5
 done
 [[ "$TK5_XA" == "item_of:$TK5/$TK5_F" ]] || TK_WHY="$TK_WHY trim-after-is-'$TK5_XA'"
 [[ $TK_SX -eq 2 ]] && grep -q "ticket.blocker-unknown" <<<"$TK_ERRX" \
-    && ! grep -q "Nowhere" "$(tk "$PLANT_ROOT/docs/tickets/$TK5_X.md")" \
+    && ! grep -q "Nowhere" "$PLANT_ROOT/docs/tickets/$TK5_X.md" \
     || TK_WHY="$TK_WHY unknown-cross-blocker-not-refused(exit $TK_SX: $TK_ERRX)"
 [[ $TK_S -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5_F" <<<"$TK_ERR" || TK_WHY="$TK_WHY blocked-claim-not-refused(exit $TK_S)"
 [[ $TK_S3 -eq 2 ]] && grep -q "ticket.blocked.*waits on $TK5/$TK5_F" <<<"$TK_ERR3" \
@@ -287,7 +287,7 @@ fi
 tkw note "$TK5" "Chose concrete over timber: the site floods." >/dev/null 2>&1
 TK_OUT=$(tkj create "An old finished job" --item "Old work")
 TK6=$(tk_field "$TK_OUT" 'v["result"]["id"]')
-sed -i 's/^- \[ \] Old work (\(i-[0-9a-f]*\))$/- [x] Old work (\1) — done by alice, 2020-01-01/' "$(tk "$PLANT_ROOT/docs/tickets/$TK6.md")"
+sed -i 's/^- \[ \] Old work (\(i-[0-9a-f]*\))$/- [x] Old work (\1) — done by alice, 2020-01-01/' "$PLANT_ROOT/docs/tickets/$TK6.md"
 TK_PRIME=$(tkw prime 2>/dev/null)
 TK_PRIME_ONE=$(tkw prime "$TK5" 2>/dev/null)
 TK_DONE_LINE=$(grep -E '^[0-9]+ done, latest first: ' <<<"$TK_PRIME")
@@ -311,7 +311,7 @@ if [[ $TK_S -eq 0 ]] && grep -q '^PASS format.well-formed' <<<"$TK_CHK" \
 else
     tk_fail "check: an unsigned ticket is sound" "exit $TK_S: $(grep -E '^(ERROR|WARN)' <<<"$TK_CHK" | head -3)"
 fi
-TK_CL="$(tk "$PLANT_ROOT/docs/tickets/$TK2.md")"
+TK_CL="$PLANT_ROOT/docs/tickets/$TK2.md"
 cp "$TK_CL" "$TK_CL.good"
 printf -- '- [y] odd box\n- [ ] duplicate (%s)\n' "$TK2_I" >> "$TK_CL"
 TK_CHK=$(tkw check "$TK2" 2>&1); TK_S=$?
@@ -410,7 +410,7 @@ TK_MCP=$(cd "$PLANT_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/confor
 command rm -f "$TK_TX"
 if grep -q '"id":2.*"exit_code":0' <<<"$TK_MCP" && grep -q '"id":3.*claimed by mcp-agent' <<<"$TK_MCP" \
     && grep -q '"id":4.*"ticket_state":"done"' <<<"$TK_MCP" \
-    && grep -q "Via a tool ($TK7_I) — done by mcp-agent" "$(tk "$PLANT_ROOT/docs/tickets/$TK7.md")"; then
+    && grep -q "Via a tool ($TK7_I) — done by mcp-agent" "$PLANT_ROOT/docs/tickets/$TK7.md"; then
     tk_ok "the loop over war mcp" "claim, a second agent refused by name, done, prime"
 else
     tk_fail "the loop over war mcp" "$(head -c 400 <<<"$TK_MCP")"
@@ -463,8 +463,8 @@ TK_LVL=$(tk_field "$TK_P" 'v["result"]["level"]')
 TK_ERR=$(tkw promote "$TK" 2>&1 >/dev/null); TK_S=$?
 TK_WN2=$(find "$PLANT_ROOT/docs/warrants" -mindepth 1 -maxdepth 1 | wc -l)
 if [[ "$TK_W" == "$TK" && "$TK_LVL" == order && $TK_WN -eq $TK_WN2 && $TK_S -eq 2 ]] \
-    && grep -q '^min: signed$' "$(tk "$PLANT_ROOT/docs/tickets/$TK.md")" \
-    && ! grep -q '^promoted_to:' "$(tk "$PLANT_ROOT/docs/tickets/$TK.md")" \
+    && grep -q '^min: signed$' "$PLANT_ROOT/docs/tickets/$TK.md" \
+    && ! grep -q '^promoted_to:' "$PLANT_ROOT/docs/tickets/$TK.md" \
     && grep -q 'ticket.already-promoted' <<<"$TK_ERR"; then
     tk_ok "promote adds a field in place" "$TK is an Order, same id, no new document; twice refused"
 else
@@ -477,7 +477,7 @@ TK_P=$(tkj new --from "$TK_F")
 TK_W=$(tk_field "$TK_P" 'v["result"]["warrant"]')
 TK_ERR=$(tkw new --from "$TK_F" 2>&1 >/dev/null); TK_S=$?
 if [[ "$TK_W" =~ ^TK-WAR-[0-9]{4}$ && -f "$PLANT_ROOT/docs/warrants/$TK_W/manifest.toml" && $TK_S -eq 2 ]] \
-    && grep -q "^promoted_to: $TK_W\$" "$(tk "$PLANT_ROOT/docs/tickets/$TK_F.md")" \
+    && grep -q "^promoted_to: $TK_W\$" "$PLANT_ROOT/docs/tickets/$TK_F.md" \
     && grep -q "From ticket \[$TK_F\]" "$PLANT_ROOT/docs/warrants/$TK_W/atoms/10-intent.md" \
     && grep -q 'ticket.already-promoted' <<<"$TK_ERR" \
     && ! grep -q "^authorization" <(ls "$PLANT_ROOT/docs/warrants/$TK_W"); then

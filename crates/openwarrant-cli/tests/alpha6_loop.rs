@@ -726,8 +726,7 @@ fn a_whole_outcome_completes_only_after_all_required_current_checks() {
         completed["result"]["ticket"]["state"], "done",
         "{completed}"
     );
-    let journal =
-        crate::work_paths::at(root.path().join(format!("docs/tickets/{id}/journal.jsonl")));
+    let journal = root.path().join(format!("docs/tickets/{id}/journal.jsonl"));
     let before = std::fs::read(&journal).unwrap();
     assert_eq!(war(root.path(), &["check", "evaluate", id])["exit_code"], 0);
     assert_eq!(
@@ -800,10 +799,9 @@ fn watched_root_regressions_reopen_unaccepted_work_unless_reporting_only() {
             text,
             "progress remains in append-only history"
         );
-        let events = std::fs::read_to_string(crate::work_paths::at(
-            root.path().join(format!("docs/tickets/{id}/journal.jsonl")),
-        ))
-        .unwrap();
+        let events =
+            std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}/journal.jsonl")))
+                .unwrap();
         assert_eq!(events.matches("\"type\":\"work.item_done\"").count(), 1);
         assert_eq!(
             events.matches("\"type\":\"work.item_reopened\"").count(),
@@ -860,7 +858,7 @@ fn prior_signoff_history_is_preserved_with_verified_or_missing_evidence() {
         )
         .unwrap();
         let store = openwarrant_cli::ticket::Store::open(&repo, None).unwrap();
-        let old = store.load(&store.state_dir(id)).unwrap();
+        let old = store.load(&store.dir.join(id)).unwrap();
         let digest = openwarrant_cli::ticket::ladder::statement_digest(&old, item, "Deliver");
         let subject = openwarrant_cli::ticket::ladder::signoff_subject(&old, item);
         let response = openwarrant_cli::authority_check::response_path(
@@ -932,10 +930,9 @@ fn prior_signoff_history_is_preserved_with_verified_or_missing_evidence() {
             text,
             "uncertain prior history is preserved"
         );
-        let journal = std::fs::read_to_string(crate::work_paths::at(
-            root.path().join(format!("docs/tickets/{id}/journal.jsonl")),
-        ))
-        .unwrap();
+        let journal =
+            std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}/journal.jsonl")))
+                .unwrap();
         let proposal = journal
             .lines()
             .filter_map(|line| serde_json::from_str::<serde_json::Value>(line).ok())
@@ -952,7 +949,7 @@ fn prior_signoff_history_is_preserved_with_verified_or_missing_evidence() {
         assert_eq!(proposal["payload"]["qualification_established"], false);
         assert!(proposal["payload"]["accepted_code_revision"].is_null());
         let repair = proposal["payload"]["repair"].as_str().unwrap();
-        let draft = crate::work_paths::at(root.path().join(format!("docs/tickets/{repair}.md")));
+        let draft = root.path().join(format!("docs/tickets/{repair}.md"));
         let repair_text = std::fs::read_to_string(&draft).unwrap();
         assert!(
             repair_text.contains(&format!("x.repairs {id}/{item}")),
@@ -977,10 +974,9 @@ fn prior_signoff_history_is_preserved_with_verified_or_missing_evidence() {
             before_repeat,
             "a repeated failure does not overwrite the repair draft"
         );
-        let history = std::fs::read_to_string(crate::work_paths::at(
-            root.path().join(format!("docs/tickets/{id}/journal.jsonl")),
-        ))
-        .unwrap();
+        let history =
+            std::fs::read_to_string(root.path().join(format!("docs/tickets/{id}/journal.jsonl")))
+                .unwrap();
         assert_eq!(
             history.matches("\"type\":\"work.repair_proposed\"").count(),
             1,
@@ -1282,10 +1278,7 @@ fn a_ticket_declares_what_its_work_may_run_without_changing_how_it_ends() {
     ]);
     let v: serde_json::Value = serde_json::from_slice(&made.stdout).unwrap();
     let id = v["result"]["id"].as_str().unwrap().to_owned();
-    let text = std::fs::read_to_string(crate::work_paths::at(
-        root.join(format!("docs/tickets/{id}.md")),
-    ))
-    .unwrap();
+    let text = std::fs::read_to_string(root.join(format!("docs/tickets/{id}.md"))).unwrap();
     for line in ["paths:", "x.tools:", "x.commands:", "requires:"] {
         assert!(text.contains(line), "{text}");
     }

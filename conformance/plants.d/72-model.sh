@@ -33,7 +33,7 @@ md_war()     { "$MD_WAR" --root "$MD_ROOT" "$@"; }
 # The program: a ticket with a blocker, promoted; a question; a deliverable;
 # the promoted Warrant names MD-WAR-0001 as parent and supersedes it.
 MD_T=$(md_war create "Plant ticket" -i first -i second 2>/dev/null | awk 'NR==1{print $1}')
-MD_I1=$(sed -n 's/^- \[ \] first (\(i-[0-9a-f]*\))$/\1/p' "$(tk "$MD_ROOT/docs/tickets/$MD_T.md")" 2>/dev/null)
+MD_I1=$(sed -n 's/^- \[ \] first (\(i-[0-9a-f]*\))$/\1/p' "$MD_ROOT/docs/tickets/$MD_T.md" 2>/dev/null)
 md_war add "$MD_T" third --after "$MD_I1" >/dev/null 2>&1
 md_war new --from "$MD_T" >/dev/null 2>&1
 MD_L=$(md_war create --legacy "Plant legacy ticket" -i only 2>/dev/null | awk 'NR==1{print $1}')

@@ -19,11 +19,6 @@
 # the chain check is seen to catch one. Beads (`bd`) is not run unless it is
 # installed; its absence is said, not passed.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== concurrency: stress, 30 worktrees and 2 clones (M11) =="
 ST_ROOT=$(scratch_corpus ST)
 [[ -d "${ST_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -184,7 +179,7 @@ sleep 6
 ST_OUT=$(st_war "$ST_TMP/c1" claim "$ST_V" --as heir 2>&1); ST_S3=$?
 ST_VREF=$(git -C "$ST_TMP/bare.git" log -1 --format=%B "refs/openwarrant/claims/${ST_V/\//--}" 2>/dev/null \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
-ST_VJ=$(grep '"work.claim_reclaimed"' "$(tk "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")")
+ST_VJ=$(grep '"work.claim_reclaimed"' "$ST_TMP/c1/docs/tickets/${ST_V%%/*}/journal.jsonl")
 if [[ $ST_S -eq 0 && $ST_S2 -eq 2 && $ST_S3 -eq 0 && "$ST_VREF" == heir ]] && grep -q 'claimed on the remote .origin. by victim' <<<"$ST_ERR" \
     && grep -q 'reclaimed from victim' <<<"$ST_OUT" && grep -q '"from":"victim"' <<<"$ST_VJ"; then
     st_ok "a killed holder's item is reclaimed" "6 s in, heartbeating: heir refused by name; killed, its 5 s lease ran out: heir reclaimed it across the remote, journalled from victim"
@@ -202,7 +197,7 @@ for line in open(sys.argv[1]):
         p = e["payload"].get("changed", {}).get("priority")
         if p is not None:
             print(p)
-' "$(tk "$ST_ROOT/docs/tickets/$ST_K/journal.jsonl")"; }
+' "$ST_ROOT/docs/tickets/$ST_K/journal.jsonl"; }
 # The lost update, made on purpose: two writers increment from one read.
 read -r _ ST_A0 < <(st_read)
 st_war "$ST_ROOT" edit "$ST_K" --priority $(( (ST_A0 + 1) % 5 )) --as u1 >/dev/null 2>&1; ST_S=$?
@@ -257,4 +252,3 @@ if [[ "$ST_DONE" == 32 && "$ST_CHAIN" == "32 0" && "$ST_PE" == $(( (ST_PS + 32) 
 else
     st_fail "no lost update under --if-rev" "writes $ST_DONE; chain (writes, breaks) $ST_CHAIN; value $ST_PE from $ST_PS; $(head -2 "$ST_TMP/log/incr.bad" 2>/dev/null)"
 fi
-unset OPENWARRANT_TICKET_LAYOUT

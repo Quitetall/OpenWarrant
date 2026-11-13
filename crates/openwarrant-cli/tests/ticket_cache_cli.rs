@@ -141,7 +141,7 @@ fn program(tag: &str) -> PathBuf {
         let output = text(&out.stdout);
         let id = output.split_whitespace().next().unwrap();
         std::fs::write(
-            crate::work_paths::at(root.join(format!("docs/tickets/{id}/atoms/35-allowed.md"))),
+            root.join(format!("docs/tickets/{id}/atoms/35-allowed.md")),
             format!("# Allowed\n\n## Paths\n- payload/{id}/**\n"),
         )
         .unwrap();
@@ -201,35 +201,8 @@ fn native_program(tag: &str) -> PathBuf {
         let out = run(&root, &args, &[]);
         assert!(out.status.success(), "{args:?}: {}", text(&out.stderr));
     }
-    as_single_files(&root);
     std::thread::sleep(std::time::Duration::from_millis(2300));
     root
-}
-
-/// These tests are about `docs/tickets/<alias>.md`, where tickets were
-/// written before `docs/work/`: each master `war create` just wrote is put
-/// there under a `t-` alias, with its journal beside it.
-fn as_single_files(root: &Path) {
-    let tickets = root.join("docs/tickets");
-    std::fs::create_dir_all(&tickets).unwrap();
-    for entry in std::fs::read_dir(root.join("docs/work")).unwrap().flatten() {
-        let was = entry.file_name().to_string_lossy().into_owned();
-        let alias = was.replacen("w-", "t-", 1);
-        for file in std::fs::read_dir(entry.path()).unwrap().flatten() {
-            let name = file.file_name().to_string_lossy().into_owned();
-            // The journal is kept as written: each event's key is over its
-            // payload.
-            let text = std::fs::read_to_string(file.path()).unwrap();
-            if name.ends_with(".md") {
-                let text = text.replace(&was, &alias);
-                std::fs::write(tickets.join(format!("{alias}.md")), text).unwrap();
-            } else {
-                std::fs::create_dir_all(tickets.join(&alias)).unwrap();
-                std::fs::write(tickets.join(&alias).join(name), text).unwrap();
-            }
-        }
-    }
-    std::fs::remove_dir_all(root.join("docs/work")).unwrap();
 }
 
 /// A master, `docs/work/<id>/<id>-<slug>.md`, is answered from the cache as
@@ -238,7 +211,11 @@ fn as_single_files(root: &Path) {
 fn masters_are_answered_from_the_cache() {
     let root = scratch("masters");
     for title in ["Alpha master", "Bravo master"] {
-        let out = run(&root, &["create", title, "--item", "one"], &[]);
+        let out = run(
+            &root,
+            &["create", title, "--item", "one"],
+            &[("OPENWARRANT_TICKET_LAYOUT", "work")],
+        );
         assert!(out.status.success(), "{}", text(&out.stderr));
     }
     std::thread::sleep(std::time::Duration::from_millis(2300));
@@ -359,7 +336,7 @@ fn a_single_file_ticket_in_place_with_its_mtime_put_back_is_seen() {
     let view: &[&str] = &["--json", "view", "ready"];
     same_as_disabled(&root, view);
     let id = native_ticket(&root, "Alpha ticket");
-    let document = crate::work_paths::at(root.join(format!("docs/tickets/{id}.md")));
+    let document = root.join(format!("docs/tickets/{id}.md"));
     let before = std::fs::metadata(&document).unwrap();
     let edited = std::fs::read_to_string(&document)
         .unwrap()
@@ -397,7 +374,7 @@ fn the_journal_of_a_ticket_with_no_items_is_a_source_of_it() {
     assert!(warm.starts_with("ticket cache: 3 of 3"), "{warm}");
     // The ticket is done by its journal; its document does not move.
     let id = native_ticket(&root, "Bravo ticket");
-    let document = crate::work_paths::at(root.join(format!("docs/tickets/{id}.md")));
+    let document = root.join(format!("docs/tickets/{id}.md"));
     let was = std::fs::read(&document).unwrap();
     let out = run(&root, &["done", &id], &[("OPENWARRANT_NO_CACHE", "1")]);
     assert!(out.status.success(), "{}", text(&out.stderr));

@@ -20,11 +20,6 @@
 # evidence go` starts nothing and `war plan estimate` answers not ready, until
 # the edge is taken out again.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== war go: estimates, the critical path, deadlines, cycles (M15) =="
 GE_ROOT=$(scratch_corpus GE)
 [[ -d "${GE_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -37,7 +32,7 @@ ge_new() { ge_field "$(gew --json create "$@" 2>/dev/null)" 'v["result"]["id"] +
 ge_est() { ge_field "$GE_EST" "[(r['estimate']['seconds'], r['estimate']['source'], r['estimate']['samples']) for r in v['result']['rows'] if r['id'] == '$1'][0]"; }
 # plant <ticket> <event> <target> <time>: one journal line, as `war` writes one
 # (FORMAT-1.0 §11.2: `v: 2`, an object payload, its key over the canonical bytes).
-ge_plant() { python3 - "$(tk "$GE_ROOT/docs/tickets/$1")" "$2" "$3" "$4" <<'PY'
+ge_plant() { python3 - "$GE_ROOT/docs/tickets/$1" "$2" "$3" "$4" <<'PY'
 import hashlib, json, re, sys, uuid
 d, kind, target, at = sys.argv[1:]
 doc = re.search(r"^uuid: (\S+)$", open(f"{d}.md").read(), re.M).group(1)
@@ -56,9 +51,9 @@ GE_n2b=$(ge_field "$(gew --json add "$GE_N2" n2b --after "$GE_n2a" 2>/dev/null)"
 read -r GE_N3 GE_n3 <<<"$(ge_new "Open chore" --type chore -i n3)"
 read -r GE_N4 GE_n4 <<<"$(ge_new "After the chore" -i n4)"
 gew add "$GE_N4" n4b --after "$GE_N3/$GE_n3" >/dev/null 2>&1
-GE_n4=$(sed -n 's/^- \[ \] n4b (\(i-[0-9a-f]*\), after .*)$/\1/p' "$(tk "$GE_ROOT/docs/tickets/$GE_N4.md")")
+GE_n4=$(sed -n 's/^- \[ \] n4b (\(i-[0-9a-f]*\), after .*)$/\1/p' "$GE_ROOT/docs/tickets/$GE_N4.md")
 # N4's own first item is out of the way: ticked by hand (the file is the state).
-sed -i 's/^- \[ \] n4 (/- [x] n4 (/' "$(tk "$GE_ROOT/docs/tickets/$GE_N4.md")"
+sed -i 's/^- \[ \] n4 (/- [x] n4 (/' "$GE_ROOT/docs/tickets/$GE_N4.md"
 
 GE_EST=$(gew --json plan estimate 2>/dev/null)
 GE_PRIOR=$(ge_est "$GE_N1/$GE_n1")
@@ -78,7 +73,7 @@ ge_plant "$GE_H1" work.item_done "$GE_H1/$GE_h2" 2026-10-01T10:40:00Z
 ge_plant "$GE_H2" work.claimed "$GE_H2/$GE_f1" 2026-10-02T09:00:00Z
 ge_plant "$GE_H2" work.item_done "$GE_H2/$GE_f1" 2026-10-02T10:00:00Z
 ge_plant "$GE_H2" work.item_done "$GE_H2/$GE_f2" 2026-10-02T11:00:00Z
-sed -i 's/^- \[ \] /- [x] /' "$(tk "$GE_ROOT/docs/tickets/$GE_H1.md")" "$(tk "$GE_ROOT/docs/tickets/$GE_H2.md")"
+sed -i 's/^- \[ \] /- [x] /' "$GE_ROOT/docs/tickets/$GE_H1.md" "$GE_ROOT/docs/tickets/$GE_H2.md"
 
 GE_EST=$(gew --json plan estimate 2>/dev/null)
 GE_E1=$(ge_est "$GE_N1/$GE_n1"); GE_E2=$(ge_est "$GE_N2/$GE_n2a"); GE_E3=$(ge_est "$GE_N3/$GE_n3")
@@ -104,19 +99,19 @@ else
 fi
 
 # A deadline on work that waits: what it waits on goes first; it does not.
-GE_BEFORE=$(cat "$(tk "$GE_ROOT/docs/tickets/$GE_N1.md")")
+GE_BEFORE=$(cat "$GE_ROOT/docs/tickets/$GE_N1.md")
 GE_BAD=$(gew --json edit "$GE_N1" --due 2026-02-30 2>/dev/null); GE_BADRC=$?
 GE_BADRULE=$(ge_field "$GE_BAD" '",".join(d["rule"] for d in v["diagnostics"] if d["severity"] == "error")')
 gew edit "$GE_N4" --due 2026-10-20 >/dev/null 2>&1
 GE_ORDER=$(ge_field "$(gew --json evidence go --dry-run 2>/dev/null)" '" ".join(v["result"]["order"])')
-GE_DUE=$(grep -c '^due: "2026-10-20"$' "$(tk "$GE_ROOT/docs/tickets/$GE_N4.md")")
+GE_DUE=$(grep -c '^due: "2026-10-20"$' "$GE_ROOT/docs/tickets/$GE_N4.md")
 if [[ "${GE_ORDER%% *}" == "$GE_N3/$GE_n3" && "$GE_ORDER" != *"$GE_N4/$GE_n4"* && "$GE_DUE" == "1" ]]; then
     ge_ok "a deadline raises what it waits on" "$GE_N4 due 2026-10-20: $GE_N3/$GE_n3 starts first; $GE_N4 is not ready, so in no order"
 else
     ge_fail "a deadline raises what it waits on" "order '$GE_ORDER', due lines $GE_DUE"
 fi
 if [[ $GE_BADRC -eq 2 && "$GE_BADRULE" == "ticket.due-invalid" \
-    && "$(cat "$(tk "$GE_ROOT/docs/tickets/$GE_N1.md")")" == "$GE_BEFORE" ]]; then
+    && "$(cat "$GE_ROOT/docs/tickets/$GE_N1.md")" == "$GE_BEFORE" ]]; then
     ge_ok "a date that is no date is refused" "--due 2026-02-30: ticket.due-invalid, the document unchanged"
 else
     ge_fail "a date that is no date is refused" "exit $GE_BADRC, '$GE_BADRULE'"
@@ -126,19 +121,19 @@ fi
 read -r GE_C1 GE_c1 <<<"$(ge_new "Cycle one" -i c1)"
 read -r GE_C2 GE_c2 <<<"$(ge_new "Cycle two" -i c2)"
 gew add "$GE_C2" c3 --after "$GE_C1/$GE_c1" >/dev/null 2>&1
-GE_c3=$(sed -n 's/^- \[ \] c3 (\(i-[0-9a-f]*\), after .*)$/\1/p' "$(tk "$GE_ROOT/docs/tickets/$GE_C2.md")")
+GE_c3=$(sed -n 's/^- \[ \] c3 (\(i-[0-9a-f]*\), after .*)$/\1/p' "$GE_ROOT/docs/tickets/$GE_C2.md")
 cat >> "$GE_ROOT/openwarrant.toml" <<'EOF'
 
 [go]
 harness_argv = ["false"]
 EOF
-sed -i "s|^- \[ \] c1 ($GE_c1)\$|- [ ] c1 ($GE_c1, after $GE_C2/$GE_c3)|" "$(tk "$GE_ROOT/docs/tickets/$GE_C1.md")"
+sed -i "s|^- \[ \] c1 ($GE_c1)\$|- [ ] c1 ($GE_c1, after $GE_C2/$GE_c3)|" "$GE_ROOT/docs/tickets/$GE_C1.md"
 GE_GO=$(gew --json evidence go 2>/dev/null); GE_GORC=$?
 GE_GORULE=$(ge_field "$GE_GO" '",".join(d["rule"] + ":" + d["message"].split(" wait on")[0] for d in v["diagnostics"] if d["severity"] == "error")')
 GE_ESTRC=$(gew --json plan estimate >/dev/null 2>&1; echo $?)
 GE_DISPATCHED=$(cat "$GE_ROOT"/docs/tickets/*/journal.jsonl | grep -c '"type":"go.dispatched"')
 GE_WANT="graph.cycle:$(printf '%s\n' "$GE_C1/$GE_c1" "$GE_C2/$GE_c3" | sort | paste -sd, - | sed 's/,/, /')"
-sed -i "s|^- \[ \] c1 ($GE_c1, after $GE_C2/$GE_c3)\$|- [ ] c1 ($GE_c1)|" "$(tk "$GE_ROOT/docs/tickets/$GE_C1.md")"
+sed -i "s|^- \[ \] c1 ($GE_c1, after $GE_C2/$GE_c3)\$|- [ ] c1 ($GE_c1)|" "$GE_ROOT/docs/tickets/$GE_C1.md"
 GE_AFTER=$(gew --json evidence go --dry-run >/dev/null 2>&1; echo $?)
 if [[ $GE_GORC -eq 2 && "$GE_GORULE" == "$GE_WANT" && "$GE_ESTRC" == "2" && "$GE_DISPATCHED" == "0" && "$GE_AFTER" == "0" ]]; then
     ge_ok "a cycle is refused by name" "graph.cycle names both; go started nothing, estimate not ready; without the edge, accepted"
@@ -150,4 +145,3 @@ unset GE_ROOT GE_WAR GE_N1 GE_n1 GE_N2 GE_n2a GE_n2b GE_N3 GE_n3 GE_N4 GE_n4 GE_
     GE_H2 GE_f1 GE_f2 GE_E1 GE_E2 GE_E3 GE_SAMPLES GE_CP GE_ORDER GE_BEFORE GE_BAD GE_BADRC GE_BADRULE GE_DUE \
     GE_C1 GE_c1 GE_C2 GE_c2 GE_c3 GE_GO GE_GORC GE_GORULE GE_ESTRC GE_DISPATCHED GE_WANT GE_AFTER
 unset -f ge_ok ge_fail gew ge_field ge_new ge_est ge_plant
-unset OPENWARRANT_TICKET_LAYOUT

@@ -31,7 +31,7 @@ ft_commit() { git -C "$1" add -A >/dev/null 2>&1 && git -C "$1" -c user.email=pl
 ft_ticket() {
     mkdir -p "$FT_ROOT/docs/tickets"
     printf -- '---\nformat: openwarrant/1.0\nprofile: ticket\nalias: %s\nuuid: %s\nsummary: Plant work %s.\n%b---\n# Plant work %s\n\n## Checklist\n\n%b' \
-        "$1" "$2" "$1" "$3" "$1" "$4" > "$(tk "$FT_ROOT/docs/tickets/$1.md")"
+        "$1" "$2" "$1" "$3" "$1" "$4" > "$FT_ROOT/docs/tickets/$1.md"
 }
 FT_AT=2026-10-15T12:00:00Z
 ft_order() { ft_war "$FT_ROOT" --json next --at "$FT_AT" 2>/dev/null | python3 -c '

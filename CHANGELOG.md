@@ -52,16 +52,17 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
-- One layout for new work: `war create` writes a master,
+- The work layout, opt-in: with `[tickets] layout = "work"` (or
+  `OPENWARRANT_TICKET_LAYOUT=work`), `war create` writes a master,
   `docs/work/<w-id>/<id>-<slug>.md`, with its journal and check output beside
-  it, and every daily command, the shared register, the duplicate check, the
+  it, and the daily commands, the shared register, the duplicate check, the
   merge driver, `done_test`, `.openwarrant/next.md` and the ticket cache read
-  it as they read a `t-` ticket. `t-` tickets stay valid where they are.
-  `war create` and `war plan new` take their id on one path; `war plan new`
-  now refuses a likely duplicate too (`--force`), and a work order another
-  worktree holds is listed as elsewhere. A reopened ticket is announced
-  again. Plant 293. Scripts that read `docs/tickets/<id>.md` for a new ticket
-  must read the `source` that `war create --json` returns.
+  it as they read a `t-` ticket. The default is unchanged
+  (`docs/tickets/<t-id>.md`) until the whole battery passes on masters. An
+  older `war` refuses a repository that sets the key. `war create` and
+  `war plan new` take their id on one path; `war plan new` now refuses a
+  likely duplicate too (`--force`), and a work order another worktree holds is
+  listed as elsewhere. A reopened ticket is announced again. Plants 293, 295.
 - `war admin migrate` (without `--corpus`) moves tickets kept outside
   `docs/work/` into it as masters: ids kept, `git mv`, `--dry-run` prints the
   plan, and anything with a recorded act, a signed or verified tick, a

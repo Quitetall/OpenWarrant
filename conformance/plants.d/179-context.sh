@@ -22,11 +22,6 @@
 #   Format 1.0 work document without `summary:` is `format.field-missing`,
 #   and with one it is not.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== war context: the context compiler and its index (Format 1.0 s10) =="
 CX_TMP=$(mktemp -d)
 CX_ROOT=$(scratch_corpus CX)
@@ -113,12 +108,12 @@ else
 fi
 
 # --- targets ----------------------------------------------------------------
-cx_war context "$(tk "docs/tickets/$CX_TICKET.md")" > "$CX_TMP/path.md" 2>/dev/null; CX_PATH_RC=$?
+cx_war context "docs/tickets/$CX_TICKET.md" > "$CX_TMP/path.md" 2>/dev/null; CX_PATH_RC=$?
 # A directory ticket, in the clone: this tree's index stays as compiled.
 cx_clone() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR "$CX_WAR" --root "$CX_CLONE" "$@" </dev/null; }
 cx_clone create --legacy "A directory ticket" --item "Still resolves" >/dev/null 2>&1
 CX_LEGACY=$(basename "$(dirname "$(ls "$CX_CLONE"/docs/tickets/*/manifest.toml | head -1)")")
-cx_clone context "$(tk "docs/tickets/$CX_LEGACY/atoms/15-checklist.md")" > "$CX_TMP/legacy.md" 2>/dev/null; CX_LEGACY_RC=$?
+cx_clone context "docs/tickets/$CX_LEGACY/atoms/15-checklist.md" > "$CX_TMP/legacy.md" 2>/dev/null; CX_LEGACY_RC=$?
 CX_LEGACY_FIRST=$(awk '/^## Index/{getline; print; exit}' "$CX_TMP/legacy.md")
 cx_war context "docs/records/password-reset/10-records.md" --depth 0 > "$CX_TMP/rec.md" 2>/dev/null; CX_REC_RC=$?
 cx_war context "NOPE-404" > "$CX_TMP/nope.md" 2>"$CX_TMP/nope.err"; CX_NOPE_RC=$?
@@ -170,4 +165,3 @@ fi
 
 /usr/bin/rm -rf "$CX_TMP"
 unset CX_TMP CX_ROOT CX_WAR CX_ALIAS CX_TICKET CX_CLONE CX_IDX
-unset OPENWARRANT_TICKET_LAYOUT

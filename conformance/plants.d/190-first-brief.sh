@@ -195,7 +195,7 @@ fi
 # --- the list in AGENTS.md, for a harness with no hook ------------------------------
 fb_git() { git -C "$FB_ROOT" -c user.email=plant@invalid -c user.name=plant "$@"; }
 fb_block() { sed -n '/<!-- openwarrant:begin -->/,/<!-- openwarrant:end -->/p' "$FB_ROOT/AGENTS.md"; }
-fb_rows() { fb_block | grep -c '^- [tw]-'; }
+fb_rows() { fb_block | grep -c '^- t-'; }
 fb_outside() { sed '/<!-- openwarrant:begin -->/,/<!-- openwarrant:end -->/d' "$FB_ROOT/$1"; }
 printf '# Rules\n' > "$FB_ROOT/CLAUDE.md"
 fb_war admin agents-md --block >/dev/null 2>&1
@@ -207,7 +207,7 @@ fb_war admin agents-md --block --ready 3 >/dev/null 2>&1; FB_RC=$?
 FB_ADDED=$(( $(wc -c < "$FB_ROOT/AGENTS.md") - FB_PLAIN ))
 fb_outside AGENTS.md > "$FB_TMP/outside.1"
 if [[ $FB_RC -eq 0 && $(fb_rows) -eq 3 && $FB_ADDED -le 400 ]] && cmp -s "$FB_TMP/outside.0" "$FB_TMP/outside.1" \
-    && ! grep -q '^- [tw]-' "$FB_ROOT/CLAUDE.md"; then
+    && ! grep -q '^- t-' "$FB_ROOT/CLAUDE.md"; then
     fb_ok "ready list, AGENTS.md only" "$FB_ADDED bytes for 3 rows; outside the markers unmoved; CLAUDE.md none"
 else
     fb_fail "ready list, AGENTS.md only" "exit $FB_RC, $(fb_rows) rows, $FB_ADDED bytes: $(fb_block | tr '\n' '|' | cut -c1-500)"

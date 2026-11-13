@@ -19,11 +19,6 @@
 # resolved (submission.self-completion); a submission for a dispatch nobody
 # compiled (submission.unknown-dispatch). Each is set aside for a person.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== war go: external executors through the same refusals (M15) =="
 GX_ROOT=$(scratch_corpus GX)
 [[ -d "${GX_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -160,4 +155,3 @@ command rm -rf "$GX_TMP"
 unset GX_ROOT GX_TMP GX_WAR GX_H GX_D GX_R GX_F GX_G GX_OUT GX_RC GX_LANDED GX_TICKED GX_CREATE GX_VIEW \
     GX_BRIEF GX_BEADS GX_RULES
 unset -f gx_ok gx_fail gxw gx_field gx_new gx_sum
-unset OPENWARRANT_TICKET_LAYOUT

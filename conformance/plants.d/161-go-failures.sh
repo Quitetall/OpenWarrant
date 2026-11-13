@@ -24,11 +24,6 @@
 # attempt); a second `--retry` of a node not set aside is refused by name
 # (go.not-blocked).
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== war go: crashes, timeouts, conflicts, failed checks (M15) =="
 GF_ROOT=$(scratch_corpus GF)
 [[ -d "${GF_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -43,7 +38,7 @@ gf_field() { python3 -c "import json,sys; v=json.loads(sys.argv[1]); print($2)" 
 gf_new() { gf_field "$(gfw --json create "$@" 2>/dev/null)" 'v["result"]["id"] + "/" + v["result"]["items"][0]["id"]'; }
 # A note is a journal event in a single-file ticket (FORMAT-1.0 §11): the
 # document says what the work is, the journal what happened to it.
-gf_noted() { local notes; notes=$(grep '"type":"work.note_added"' "$(tk "$GF_ROOT/docs/tickets/$1/journal.jsonl")"); grep -q "$2" <<<"$notes"; }
+gf_noted() { local notes; notes=$(grep '"type":"work.note_added"' "$GF_ROOT/docs/tickets/$1/journal.jsonl"); grep -q "$2" <<<"$notes"; }
 
 GF_K=$(gf_new "Killed once" -i k1)
 GF_S=$(gf_new "Slow once" -i s1)
@@ -107,9 +102,9 @@ else
     gf_fail "a merge conflict is sent back" "$GF_CONFLICTS conflicts, $GF_XYL landed, shared '$GF_SHARED'"
 fi
 GF_CB=$(gf_get "v['back'].get('$GF_C')"); GF_CL=$(gf_get "v['landed'].get('$GF_C')")
-GF_CHECKRUN=$(grep -c '"type":"work.check_run"' "$(tk "$GF_ROOT/docs/tickets/${GF_C%/*}/journal.jsonl")")
+GF_CHECKRUN=$(grep -c '"type":"work.check_run"' "$GF_ROOT/docs/tickets/${GF_C%/*}/journal.jsonl")
 if [[ "$GF_CB" == "check-failed" && "$GF_CL" == "[2, 'observed']" && "$GF_CHECKRUN" == "1" ]] \
-    && grep -q '^- \[x\] c1 .*\[observed\]' "$(tk "$GF_ROOT/docs/tickets/${GF_C%/*}.md")"; then
+    && grep -q '^- \[x\] c1 .*\[observed\]' "$GF_ROOT/docs/tickets/${GF_C%/*}.md"; then
     gf_ok "a failed check ticks nothing" "$GF_C: check-failed (journalled), then observed when its test passed"
 else
     gf_fail "a failed check ticks nothing" "back '$GF_CB', landed '$GF_CL', $GF_CHECKRUN check runs"
@@ -124,7 +119,7 @@ GF_NB=$(gf_field "$GF_NEXT" '[b["command"] for b in v["result"].get("blocked", [
 GF_NREADY=$(gf_field "$GF_NEXT" 'sum(1 for r in v["result"].get("ready", []) if r["ticket"] == "'"${GF_P%/*}"'")')
 GF_NH=$(gfw next 2>/dev/null)
 if [[ "$GF_PB" == "True" && "$GF_LOCKS" == "0" && "$GF_NB" == "['war evidence go --retry $GF_P']" && "$GF_NREADY" == "0" ]] \
-    && grep -q '^- \[ \] p1' "$(tk "$GF_ROOT/docs/tickets/${GF_P%/*}.md")" \
+    && grep -q '^- \[ \] p1' "$GF_ROOT/docs/tickets/${GF_P%/*}.md" \
     && grep -q "^HUMAN  $GF_P" <<<"$GF_NH"; then
     gf_ok "attempts used up: set aside" "$GF_P open, no claim held, in war next for a person"
 else
@@ -145,4 +140,3 @@ unset GF_ROOT GF_TMP GF_WAR GF_FIX GF_K GF_S GF_X GF_Y GF_C GF_P GF_OUT GF_RC GF
     GF_CONFLICTS GF_XYL GF_LOSER GF_SHARED GF_CB GF_CL GF_CHECKRUN GF_PB GF_COMMON GF_LOCKS GF_NEXT GF_NB \
     GF_NREADY GF_NH GF_R1 GF_R1C GF_R2 GF_R2C GF_R2R
 unset -f gf_ok gf_fail gfw gf_field gf_new gf_noted gf_get
-unset OPENWARRANT_TICKET_LAYOUT

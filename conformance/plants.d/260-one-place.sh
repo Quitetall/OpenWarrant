@@ -34,7 +34,7 @@ op_war() {
     (cd "$dir" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_NO_PROJECTS=1 \
         OPENWARRANT_NO_UPDATE_CHECK=1 OPENWARRANT_ACTOR="$who" "$OP_BIN" "$@" 2>&1)
 }
-op_id() { sed -n 's/.*"id": "\([tw]-[0-9a-f]*\)".*/\1/p' | head -1; }
+op_id() { sed -n 's/.*"id": "\(t-[0-9a-f]*\)".*/\1/p' | head -1; }
 op_json() { python3 -c 'import json,sys
 v=json.load(sys.stdin)
 for k in sys.argv[1].split("."):
@@ -143,7 +143,7 @@ fi
 # ---- uncommitted work is refused at dispatch ---------------------------------
 OP_D=$(op_war "$OP_W" lead --json create "Not committed" --item "d" | op_id)
 OP_OUT=$(op_war "$OP_W" lead start --worktree "$OP_D" --as worker --print); OP_RC=$?
-if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "go.start-uncommitted" && op_has "$OP_OUT" "git add docs/work/$OP_D/$OP_D-not-committed.md"; then
+if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "go.start-uncommitted" && op_has "$OP_OUT" "git add docs/tickets/$OP_D.md"; then
     op_ok "uncommitted single file refused" "names the git add"
 else
     op_fail "uncommitted single file refused" "exit $OP_RC: $OP_OUT"
@@ -157,14 +157,14 @@ else
     op_fail "uncommitted master refused" "[$OP_M] exit $OP_RC: $OP_OUT"
 fi
 op_git -C "$OP_W" add -A && op_git -C "$OP_W" commit -qm d >/dev/null
-printf '\nEdited after the commit.\n' >> "$(tk "$OP_W/docs/tickets/$OP_D.md")"
+printf '\nEdited after the commit.\n' >> "$OP_W/docs/tickets/$OP_D.md"
 OP_OUT=$(op_war "$OP_W" lead start --worktree "$OP_D" --as worker --print); OP_RC=$?
 if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "go.start-uncommitted"; then
     op_ok "edited since commit refused" "go.start-uncommitted"
 else
     op_fail "edited since commit refused" "exit $OP_RC: $OP_OUT"
 fi
-op_git -C "$OP_W" checkout -q -- "docs/work/$OP_D/$OP_D-not-committed.md"
+op_git -C "$OP_W" checkout -q -- "docs/tickets/$OP_D.md"
 OP_OUT=$(op_war "$OP_W" lead start --worktree "$OP_D" --as worker --print); OP_RC=$?
 if [[ $OP_RC -eq 0 ]] && op_has "$OP_OUT" "work in "; then
     op_ok "committed work dispatches" "$OP_D"

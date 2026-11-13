@@ -12,11 +12,6 @@
 # second claim in the same worktree; and a claim on the item the pre-M11 lock
 # holds.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== concurrency: shared claims (M11) =="
 CC_ROOT=$(scratch_corpus CC)
 [[ -d "${CC_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -151,7 +146,7 @@ fi
 cc_lapse
 CC_OUT=$(cc_war "$CC_ROOT" claim "$CC_L/$CC_LA" --as ivy 2>&1); CC_S=$?
 CC_ERR=$(cc_war "$CC_ROOT" done "$CC_L/$CC_LA" --as hank 2>&1 >/dev/null); CC_S2=$?
-CC_J="$(tk "$CC_ROOT/docs/tickets/$CC_L/journal.jsonl")"
+CC_J="$CC_ROOT/docs/tickets/$CC_L/journal.jsonl"
 if [[ $CC_S -eq 0 && $CC_S2 -eq 2 ]] && grep -q 'reclaimed from hank' <<<"$CC_OUT" \
     && grep -q '"from":"hank","from_lease_until.*"work.claim_reclaimed"' "$CC_J" \
     && grep -q 'claimed by ivy' <<<"$CC_ERR"; then
@@ -191,7 +186,7 @@ cc_rev() { cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" "$1"; }
 CC_R0=$(cc_rev 'v["result"]["revision"]')
 CC_MODEL=$(cc_field "$(cc_json "$CC_ROOT" model)" '",".join(r["revision"] for r in v["result"]["records"] if r["id"] in ("'"$CC_K"'", "'"$CC_K/$CC_KA"'"))')
 CC_SHOWN=$(cc_rev '",".join([v["result"]["revision"]] + [i["revision"] for i in v["result"]["items"] if i["id"]=="'"$CC_KA"'"])')
-CC_EDITS0=$(grep -c '"work.edited"' "$(tk "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")")
+CC_EDITS0=$(grep -c '"work.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")
 CC_PIDS=(); CC_DIR=$(mktemp -d -p "$CC_TMP")
 for p in 0 1 3 4; do
     ( cc_war "$CC_ROOT" edit "$CC_K" --priority "$p" --if-rev "$CC_R0" --as "racer-$p" >"$CC_DIR/out.$p" 2>"$CC_DIR/err.$p"; echo $? >"$CC_DIR/rc.$p" ) &
@@ -204,14 +199,14 @@ for p in 0 1 3 4; do
     if grep -q 'work.stale-revision' "$CC_DIR/err.$p" && grep -q 'and it is now sha256:' "$CC_DIR/err.$p"; then CC_STALE=$((CC_STALE + 1)); fi
 done
 CC_PRIO=$(cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" 'v["result"]["ticket"]["priority"]')
-CC_EDITS=$(( $(grep -c '"work.edited"' "$(tk "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")") - CC_EDITS0 ))
+CC_EDITS=$(( $(grep -c '"work.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl") - CC_EDITS0 ))
 if [[ "$CC_SHOWN" == "$CC_MODEL" && ${#CC_WON} -eq 1 && $CC_STALE -eq 3 && "$CC_PRIO" == "$CC_WON" && $CC_EDITS -eq 1 ]]; then
     cc_ok "--if-rev: one write of four lands" "show's revisions are war model's; racer-$CC_WON won; 3 refused work.stale-revision naming the current revision; one ticket.edited"
 else
     cc_fail "--if-rev: one write of four lands" "show '$CC_SHOWN' model '$CC_MODEL' won '$CC_WON' stale $CC_STALE priority $CC_PRIO edits $CC_EDITS: $(cat "$CC_DIR"/err.* | head -2)"
 fi
 # The same race without --if-rev: every write exits 0, and the last one wins.
-CC_PIDS=(); CC_EDITS0=$(grep -c '"work.edited"' "$(tk "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")")
+CC_PIDS=(); CC_EDITS0=$(grep -c '"work.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")
 CC_FROM=$(cc_field "$(cc_json "$CC_ROOT" show "$CC_K")" 'v["result"]["ticket"]["priority"]')
 for p in 0 1 3 4; do
     [[ "$p" == "$CC_FROM" ]] && continue
@@ -220,7 +215,7 @@ for p in 0 1 3 4; do
 done
 for pid in "${CC_PIDS[@]}"; do wait "$pid"; done
 CC_OK2=$(cat "$CC_DIR"/rc2.* | grep -c '^0$')
-CC_EDITS=$(( $(grep -c '"work.edited"' "$(tk "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")") - CC_EDITS0 ))
+CC_EDITS=$(( $(grep -c '"work.edited"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl") - CC_EDITS0 ))
 if [[ $CC_OK2 -eq 3 && $CC_EDITS -ge 2 ]]; then
     cc_ok "without --if-rev: as before" "three unguarded edits all exit 0 ($CC_EDITS journalled); one priority survives, the others lost"
 else
@@ -230,12 +225,12 @@ fi
 cc_war "$CC_ROOT" claim "$CC_K/$CC_KA" --as lena >/dev/null 2>&1
 CC_IR=$(cc_rev '[i["revision"] for i in v["result"]["items"] if i["id"]=="'"$CC_KA"'"][0]')
 CC_KR=$(cc_rev 'v["result"]["revision"]')
-sed -i "s/^- \[ \] Guarded ($CC_KA)/- [ ] Guarded, reworded ($CC_KA)/" "$(tk "$CC_ROOT/docs/tickets/$CC_K.md")"
+sed -i "s/^- \[ \] Guarded ($CC_KA)/- [ ] Guarded, reworded ($CC_KA)/" "$CC_ROOT/docs/tickets/$CC_K.md"
 CC_ERR=$(cc_war "$CC_ROOT" done "$CC_K/$CC_KA" --as lena --if-rev "$CC_IR" 2>&1 >/dev/null); CC_S=$?
 CC_ERR2=$(cc_war "$CC_ROOT" note "$CC_K/$CC_KA" "stale" --as lena --if-rev "$CC_IR" 2>&1 >/dev/null); CC_S2=$?
 CC_ERR3=$(cc_war "$CC_ROOT" release "$CC_K/$CC_KA" --as lena --if-rev "$CC_IR" 2>&1 >/dev/null); CC_S3=$?
 CC_ERR4=$(cc_war "$CC_ROOT" add "$CC_K" "late" --as lena --if-rev "$CC_R0" 2>&1 >/dev/null); CC_S4=$?
-CC_UNTICKED=$(grep -c "^- \[ \] Guarded, reworded ($CC_KA)$" "$(tk "$CC_ROOT/docs/tickets/$CC_K.md")")
+CC_UNTICKED=$(grep -c "^- \[ \] Guarded, reworded ($CC_KA)$" "$CC_ROOT/docs/tickets/$CC_K.md")
 CC_HELD=0; [[ -f "$CC_COMMON/openwarrant/claims/$CC_K--$CC_KA.lock" ]] && CC_HELD=1
 CC_IR2=$(cc_rev '[i["revision"] for i in v["result"]["items"] if i["id"]=="'"$CC_KA"'"][0]')
 cc_war "$CC_ROOT" note "$CC_K/$CC_KA" "current" --as lena --if-rev "$CC_IR2" >/dev/null 2>&1; CC_S5=$?
@@ -260,8 +255,8 @@ CC_TX=$(mktemp -p "$CC_TMP")
 } > "$CC_TX"
 CC_MCP=$(cd "$CC_ROOT" && env -u OPENWARRANT_ACTOR python3 "$REPO_ROOT/conformance/fixtures/mcp/drive.py" "$CC_WAR" "$CC_TX" --json 2>/dev/null)
 if grep -q '"id":2.*work.stale-revision' <<<"$CC_MCP" && grep -q '"id":3.*"exit_code":0' <<<"$CC_MCP" \
-    && grep -q '"note":"fresh"' "$(tk "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")" \
-    && ! grep -q '"note":"stale"' "$(tk "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl")"; then
+    && grep -q '"note":"fresh"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl" \
+    && ! grep -q '"note":"stale"' "$CC_ROOT/docs/tickets/$CC_K/journal.jsonl"; then
     cc_ok "if_rev over MCP" "war_note: stale refused by name, current written"
 else
     cc_fail "if_rev over MCP" "$(head -c 400 <<<"$CC_MCP")"
@@ -294,7 +289,7 @@ cc_war "$CC_X/m1" claim "$CC_M/$CC_MA" --as solo >/dev/null 2>&1; CC_S=$?
 CC_OFF=$(cc_refs)
 cc_war "$CC_X/m1" release "$CC_M/$CC_MA" --as solo >/dev/null 2>&1
 for m in m1 m2; do printf '\n[claims]\nremote = "origin"\n' >> "$CC_X/$m/openwarrant.toml"; done
-cc_claimed() { grep -c '"work.claimed"' "$(tk "$CC_X/$1/docs/tickets/$CC_M/journal.jsonl")"; }
+cc_claimed() { grep -c '"work.claimed"' "$CC_X/$1/docs/tickets/$CC_M/journal.jsonl"; }
 CC_J1=$(cc_claimed m1); CC_J2=$(cc_claimed m2)
 CC_PIDS=()
 for n in 1 2 3 4; do
@@ -343,7 +338,7 @@ CC_C=$(git -C "$CC_X/$CC_WM" -c user.email=plant@invalid -c user.name=plant comm
 git -C "$CC_X/$CC_WM" push -q origin "$CC_C:refs/openwarrant/claims/$CC_M--$CC_MB" >/dev/null 2>&1
 CC_OUT=$(cc_war "$CC_X/$CC_LM" claim "$CC_M/$CC_MB" --as heir 2>&1); CC_S=$?
 CC_NOW=$(git -C "$CC_X/bare.git" log -1 --format=%B "refs/openwarrant/claims/$CC_M--$CC_MB" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["actor"])' 2>/dev/null)
-CC_JLINE=$(grep '"work.claim_reclaimed"' "$(tk "$CC_X/$CC_LM/docs/tickets/$CC_M/journal.jsonl")")
+CC_JLINE=$(grep '"work.claim_reclaimed"' "$CC_X/$CC_LM/docs/tickets/$CC_M/journal.jsonl")
 if [[ $CC_S -eq 0 && "$CC_NOW" == heir ]] && grep -q 'reclaimed from gone' <<<"$CC_OUT" \
     && grep -q '"from":"gone"' <<<"$CC_JLINE" && grep -q '"remote":"origin:refs/openwarrant/claims/' <<<"$CC_JLINE"; then
     cc_ok "a lapsed lease, reclaimed across" "the remote held gone's claim, its lease out; heir reclaimed it, journalled from gone"
@@ -447,7 +442,7 @@ MG_I1=$(cc_field "$MG_OUT" 'v["result"]["items"][0]["id"]')
 MG_I2=$(cc_field "$MG_OUT" 'v["result"]["items"][1]["id"]')
 cc_commit "$MG_ROOT" "a ticket"
 MG_BASE=$(git -C "$MG_ROOT" branch --show-current)
-MG_J="$(tk "$MG_ROOT/docs/tickets/$MG_T/journal.jsonl")"; MG_CL="$(tk "$MG_ROOT/docs/tickets/$MG_T.md")"
+MG_J="$MG_ROOT/docs/tickets/$MG_T/journal.jsonl"; MG_CL="$MG_ROOT/docs/tickets/$MG_T.md"
 MG_J0=$(wc -l <"$MG_J")
 mg_side() {
     cc_war "$MG_ROOT" claim "$MG_T/$2" --as "$1" >/dev/null 2>&1 && cc_war "$MG_ROOT" done "$MG_T/$2" --as "$1" >/dev/null 2>&1 \
@@ -491,4 +486,3 @@ if [[ $MG_S -ne 0 && "$MG_U" == *"$MG_T.md"* && "$MG_U" == *"journal.jsonl"* \
 else
     cc_fail "what a text merge would conflict" "text merge $MG_S conflicted '$MG_U'; two-way item $MG_S2: $MG_ERR"
 fi
-unset OPENWARRANT_TICKET_LAYOUT

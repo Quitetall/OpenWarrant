@@ -74,8 +74,8 @@ use crate::repo::{RepoError, Repository};
 
 pub use render::{Filter, description, list, notes, prime, show, tickets, tickets_filtered};
 
-/// Set to `tickets`: `war create` writes `<tickets>/<t-id>.md`, the layout
-/// before `docs/work/`, instead of a master.
+/// `work` or `tickets`: where `war create` writes, over `[tickets] layout`
+/// (for a test or a script that is about one layout).
 pub const LAYOUT_ENV: &str = "OPENWARRANT_TICKET_LAYOUT";
 
 /// Where tickets live unless `[tickets] dir` says otherwise.
@@ -181,6 +181,12 @@ pub struct Policy {
     /// session carries nothing. `false` turns it off.
     #[serde(default)]
     pub session_start: Option<bool>,
+    /// Where `war create` writes new work: `tickets` (the default), one
+    /// document `<dir>/<t-id>.md`; or `work`, a master
+    /// `docs/work/<w-id>/<id>-<slug>.md` with its state beside it
+    /// (docs/design/one-format.md). Either way every layout is read.
+    #[serde(default)]
+    pub layout: Option<String>,
     /// The repository's own test, as one shell command line. `war done` runs
     /// it, once per call, on anything no check of the ticket's own applies
     /// to: a pass ticks at `observed`, a fail or an UNKNOWN run ticks
@@ -465,6 +471,9 @@ pub struct Store {
     pub done_test: Option<String>,
     /// `[tickets] done_test_timeout`, in seconds.
     pub done_test_timeout: Option<u64>,
+    /// `[tickets] layout = "work"` (or [`LAYOUT_ENV`]): `war create` writes
+    /// masters in `docs/work/`.
+    pub layout_work: bool,
 }
 
 /// Now, in Unix seconds.
@@ -548,6 +557,14 @@ impl Store {
     /// Open the ticket store of `repo`, acting as `actor` when given.
     pub fn open(repo: &Repository, actor: Option<&str>) -> Result<Self, RepoError> {
         let (policy, claims_policy, preset) = policy_of(&repo.root)?;
+        if let Some(layout) = policy.layout.as_deref()
+            && !matches!(layout, "tickets" | "work")
+        {
+            return Err(RepoError::Message(format!(
+                "tickets.layout: `{layout}` is no layout; `[tickets] layout` is \"tickets\" \
+                 (the default) or \"work\""
+            )));
+        }
         let definition = ticket_definition(&repo.profiles)?;
         let resolve = |p: &str| {
             let p = Utf8PathBuf::from(p);
@@ -605,6 +622,12 @@ impl Store {
             },
             check_root: None,
             shared: false,
+            layout_work: std::env::var(LAYOUT_ENV)
+                .ok()
+                .map(|v| v.trim().to_owned())
+                .filter(|v| !v.is_empty())
+                .or_else(|| policy.layout.clone())
+                .is_some_and(|v| v == "work"),
             done_test: policy
                 .done_test
                 .map(|c| c.trim().to_owned())
@@ -2229,10 +2252,9 @@ fn create_with_encoding(
     // New work is a master, `docs/work/<w-id>/<id>-<slug>.md`, its state
     // beside it (one-format.md): the id is minted and taken on the one path
     // `war plan new` starts on. `--legacy` keeps a `t-` directory ticket.
-    // `OPENWARRANT_TICKET_LAYOUT=tickets` keeps the layout before
-    // `docs/work/`, one document `<tickets>/<t-id>.md`: for a script or a
-    // test that is about that layout, which stays readable and workable.
-    let single = !legacy && std::env::var(LAYOUT_ENV).is_ok_and(|v| v.trim() == "tickets");
+    // That is `[tickets] layout = "work"`; without it new work is one
+    // document `<tickets>/<t-id>.md`, as before.
+    let single = !legacy && !store.layout_work;
     let (dir, uuid, master) = if legacy || single {
         std::fs::create_dir_all(&store.dir)
             .map_err(io(format!("could not create {}", store.dir)))?;

@@ -12,6 +12,8 @@
 # Accepted: the same create with nothing in the way makes the ticket and the
 # ref is its own.
 
+# The work layout is opt-in (`[tickets] layout = "work"`); this plant is about it.
+export OPENWARRANT_TICKET_LAYOUT=work
 echo "== shared work: an id lost at the remote =="
 IT_WAR="$REPO_ROOT/${WAR#./}"
 it_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
@@ -80,3 +82,4 @@ else
 fi
 
 [[ -n "$IT_T" && "$IT_T" == */tmp.* ]] && /usr/bin/rm -rf "$IT_T"
+unset OPENWARRANT_TICKET_LAYOUT

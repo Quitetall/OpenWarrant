@@ -41,7 +41,7 @@ de_commit() { de_g add -A; de_g commit -qm "$1"; }
 de_start() { de_as "$1" "$DE_ROOT" --json start --worktree --print "$2" && de_field result.worktree; }
 de_merge() { git -C "$1" -c user.email=p@i -c user.name=p merge -q --no-edit main >/dev/null 2>&1; }
 de_commit_wt() { git -C "$1" -c user.email=p@i -c user.name=p commit -qam "$2"; }
-de_state() { (cd "$DE_ROOT" && git status --porcelain; cat "$1"/docs/tickets/*.md "$1"/docs/work/*/*.md "$1"/docs/tickets/*/journal.jsonl "$1"/docs/work/*/journal.jsonl 2>/dev/null) | sha256sum; }
+de_state() { (cd "$DE_ROOT" && git status --porcelain; cat "$1"/docs/tickets/*.md "$1"/docs/tickets/*/journal.jsonl 2>/dev/null) | sha256sum; }
 de_says() { grep -qF -- "$1" "$DE_T/err"; }
 de_open() { grep -qE -- "^- \[ \] " "$1"; }
 
@@ -190,7 +190,7 @@ DE_SAME=$(de_create "A scoped Warrant left alone" --path 'src/**' --tool Read --
 DE_NARROW=$(de_create "A narrowed Warrant" --path 'src/**' --tool Read --tool Grep --test true)
 de_commit 'scoped items'
 de_as sam "$DE_ROOT" start "$DE_TK"
-sed -i 's/^  - "\{0,1\}Read"\{0,1\}$/  - Read\n  - Bash/' "$(tk "$DE_ROOT/docs/tickets/$DE_TK.md")"
+sed -i 's/^  - "\{0,1\}Read"\{0,1\}$/  - Read\n  - Bash/' "$DE_ROOT/docs/tickets/$DE_TK.md"
 de_as sam "$DE_ROOT" done "$DE_TK" --note done; DE_RC=$?
 if [[ $DE_RC == 0 ]] && ! grep -q 'done\.' "$DE_T/err"; then
     de_ok "Ticket: a widening changes nothing" "exit 0, nothing said"
@@ -198,7 +198,7 @@ else
     de_fail "Ticket: a widening changes nothing" "exit $DE_RC: $(head -3 "$DE_T/err" | tr '\n' '|')"
 fi
 de_as sam "$DE_ROOT" start "$DE_WD"
-sed -i 's/^  - "\{0,1\}Read"\{0,1\}$/  - Read\n  - Bash/;s/^  - "\{0,1\}src\/\*\*"\{0,1\}$/  - "src\/**"\n  - "docs\/**"/' "$(tk "$DE_ROOT/docs/tickets/$DE_WD.md")"
+sed -i 's/^  - "\{0,1\}Read"\{0,1\}$/  - Read\n  - Bash/;s/^  - "\{0,1\}src\/\*\*"\{0,1\}$/  - "src\/**"\n  - "docs\/**"/' "$DE_ROOT/docs/tickets/$DE_WD.md"
 de_as sam "$DE_ROOT" start "$DE_WD"
 de_as sam "$DE_ROOT" done "$DE_WD" --note done; DE_RC=$?
 DE_J=$(grep -h '"work.scope_widened"' "$DE_ROOT"/docs/tickets/*"$DE_WD"*/journal.jsonl "$DE_ROOT"/docs/tickets/.journal/"$DE_WD"* 2>/dev/null | head -1)
@@ -217,7 +217,7 @@ else
     de_fail "an unchanged Warrant is not flagged" "exit $DE_RC: $(head -3 "$DE_T/err" | tr '\n' '|')"
 fi
 de_as sam "$DE_ROOT" start "$DE_NARROW"
-sed -i '/^  - "\{0,1\}Grep"\{0,1\}$/d' "$(tk "$DE_ROOT/docs/tickets/$DE_NARROW.md")"
+sed -i '/^  - "\{0,1\}Grep"\{0,1\}$/d' "$DE_ROOT/docs/tickets/$DE_NARROW.md"
 de_as sam "$DE_ROOT" done "$DE_NARROW" --note done; DE_RC=$?
 if [[ $DE_RC == 0 ]] && ! grep -q 'done\.' "$DE_T/err"; then
     de_ok "a narrowing is not a widening" "exit 0, nothing said"
@@ -263,7 +263,7 @@ else
 fi
 
 de_as oren "$DE_ROOT" start "$DE_O2"
-sed -i 's/^  - "\{0,1\}Read"\{0,1\}$/  - Read\n  - Bash/' "$(tk "$DE_ROOT/docs/tickets/$DE_O2.md")"
+sed -i 's/^  - "\{0,1\}Read"\{0,1\}$/  - Read\n  - Bash/' "$DE_ROOT/docs/tickets/$DE_O2.md"
 de_as oren "$DE_ROOT" start "$DE_O2"
 DE_BEFORE=$(de_state "$DE_ROOT")
 de_as oren "$DE_ROOT" --json done "$DE_O2/$DE_O2B" --note done; DE_RC=$?
@@ -298,7 +298,7 @@ de_human "$DE_ROOT" sign approve "$DE_O3" --ssh-sign --as Ada; DE_RC=$?
 [[ $DE_RC == 0 ]] || de_fail "a human signs the plan" "exit $DE_RC: $(head -3 "$DE_T/human.err" | tr '\n' '|')"
 de_as oren "$DE_ROOT" start "$DE_O3"
 de_as oren "$DE_ROOT" done "$DE_O3/$DE_O3B"; DE_RC=$?
-sed -i 's/the rest/the rest, amended/' "$(tk "$DE_ROOT/docs/tickets/$DE_O3.md")"
+sed -i 's/the rest/the rest, amended/' "$DE_ROOT/docs/tickets/$DE_O3.md"
 DE_BEFORE=$(de_state "$DE_ROOT")
 de_as oren "$DE_ROOT" done "$DE_O3/$DE_O3C"; DE_RC2=$?
 if [[ $DE_RC == 0 && $DE_RC2 == 2 ]] && de_says 'refused (done.order-amended):' && [[ $(de_state "$DE_ROOT") == "$DE_BEFORE" ]]; then
@@ -314,7 +314,7 @@ else
     de_fail "its new revision closes it" "$DE_RC/$DE_RC2: $(head -2 "$DE_T/err" | tr '\n' '|')"
 fi
 de_as oren "$DE_ROOT" start "$DE_O4"
-sed -i 's/the notes/the notes, amended/' "$(tk "$DE_ROOT/docs/tickets/$DE_O4.md")"
+sed -i 's/the notes/the notes, amended/' "$DE_ROOT/docs/tickets/$DE_O4.md"
 de_as oren "$DE_ROOT" done "$DE_O4/$DE_O4B"; DE_RC=$?
 if [[ $DE_RC == 0 ]] && ! de_says 'done.'; then
     de_ok "an unsigned Order may be amended" "nothing signed yet: exit 0"
@@ -330,7 +330,7 @@ DE_UM=$(de_create "A Warrant whose manifest goes unread" --test true)
 DE_US=$(de_create "A Warrant done with the switch on" --test true)
 DE_UL=$(de_create --legacy "A light Warrant of unknown level" -i "one")
 de_commit 'for the unknowns'
-mkdir -p "$(tk "$DE_ROOT/docs/tickets/$DE_UL/atoms/30-checks.md")"
+mkdir -p "$DE_ROOT/docs/tickets/$DE_UL/atoms/30-checks.md"
 for id in "$DE_UW" "$DE_UK" "$DE_UM" "$DE_US"; do de_as uma "$DE_ROOT" start "$id"; done
 DE_N="$DE_ROOT/.git/openwarrant/notices"
 mkdir -p "$DE_N"
@@ -380,10 +380,10 @@ de_as owner "$DE_ROOT" plan add "$DE_O5/$(de_item "$DE_O5" "the release")" --min
 DE_O5B=$(de_item "$DE_O5" "the notes")
 de_commit 'an order under the default'
 de_as dana "$DE_ROOT" start "$DE_O5"; DE_STARTED="$? $(head -c 300 "$DE_T/err")"
-DE_BEFORE=$(cksum <"$(tk "$DE_ROOT/docs/tickets/$DE_O5.md")")
+DE_BEFORE=$(cksum <"$DE_ROOT/docs/tickets/$DE_O5.md")
 de_as dana "$DE_ROOT" done "$DE_O5/$DE_O5B"; DE_RC=$?
 DE_ERR=$(cat "$DE_T/err")
-DE_SAME=$([[ $(cksum <"$(tk "$DE_ROOT/docs/tickets/$DE_O5.md")") == "$DE_BEFORE" ]] && echo same || echo moved)
+DE_SAME=$([[ $(cksum <"$DE_ROOT/docs/tickets/$DE_O5.md") == "$DE_BEFORE" ]] && echo same || echo moved)
 : >"$DE_ROOT/default-ok"
 de_as dana "$DE_ROOT" done "$DE_O5/$DE_O5B"; DE_RC2=$?
 if [[ $DE_RC == 2 && $DE_ERR == *ticket.check-failed* && $DE_SAME == same && $DE_RC2 == 0 ]] \

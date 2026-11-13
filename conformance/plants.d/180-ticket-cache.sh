@@ -25,11 +25,6 @@
 # - `war check`, `war admin host --export` and a hosted `war admin host` run
 #   never open it (no trace line), and the hosted request carries none of it.
 
-# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
-# `docs/work/`, which stays readable and workable: `war create` writes it here.
-# 293-create-master.sh runs the loop on a master.
-export OPENWARRANT_TICKET_LAYOUT=tickets
-
 echo "== ticket cache: used when unchanged, never trusted when it could be wrong =="
 TC_TMP=$(mktemp -d)
 TC_ROOT=$(scratch_corpus TC)
@@ -238,4 +233,3 @@ else
 fi
 
 command rm -rf "$TC_TMP" "$TC_ROOT"
-unset OPENWARRANT_TICKET_LAYOUT

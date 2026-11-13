@@ -42,7 +42,7 @@ fn milestone_import_preserves_originals_ids_and_local_edits() {
     let created = first["result"]["created"].as_array().unwrap();
     assert_eq!(created.len(), 2, "{first}");
     let id = created[0]["id"].as_str().unwrap();
-    let source = crate::work_paths::at(root.join(format!("docs/tickets/{id}.md")));
+    let source = root.join(format!("docs/tickets/{id}.md"));
     assert!(
         source.is_file(),
         "new imported work uses one Markdown source"
