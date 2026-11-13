@@ -214,8 +214,8 @@ else
 fi
 TH_C=$(th_war --json create "Scoped three" --item "c" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
 TH_D=$(th_war --json create "Scoped four" --item "d" 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["id"])')
-th_war admin claim "$TH_C" --as three --paths 'lib/**' >/dev/null 2>&1
-TH_OUT2=$(th_war admin claim "$TH_D" --as four --paths 'lib/a/**' 2>&1); TH_STATUS2=$?
+th_war admin claim "$TH_C" --as three --here --paths 'lib/**' >/dev/null 2>&1
+TH_OUT2=$(th_war admin claim "$TH_D" --as four --here --paths 'lib/a/**' 2>&1); TH_STATUS2=$?
 if [[ $TH_STATUS2 -ne 0 ]] && grep -q 'work.write-conflict' <<<"$TH_OUT2"; then
     th_ok "one checkout may not overlap" "work.write-conflict"
 else

@@ -107,6 +107,10 @@ fn fixture() -> Model {
                 lease_until_unix: Some(NOW + 222),
                 renewed_unix: Some(NOW - 4),
                 workspace: Some("/work/wt-a".to_owned()),
+                place: Some(
+                    "work in /work/wt-a (repo demo, branch war-go/t-1a2b3-i-1, from 1a2b3c4d5e6f)"
+                        .to_owned(),
+                ),
                 scope: vec!["src/a/**".to_owned()],
                 remote: None,
             },
@@ -117,6 +121,7 @@ fn fixture() -> Model {
                 lease_until_unix: Some(NOW - 60),
                 renewed_unix: None,
                 workspace: None,
+                place: None,
                 scope: vec!["src/a/b.rs".to_owned()],
                 remote: None,
             },
@@ -320,6 +325,27 @@ fn claims_show_recorded_tokens_and_recent_work() {
     let s = screen(&m);
     assert!(s.contains("t-1a2b3/i-1 2m 05s · 4242 tok"), "{s}");
     assert!(s.contains("recent t-77 · 9 tok recorded 2026-11-06"), "{s}");
+}
+
+/// A claim's detail names where its work is done in one line, and a lock
+/// without that record says UNKNOWN rather than a guess.
+#[test]
+fn a_claims_detail_names_its_place() {
+    let mut m = fixture();
+    m.watch_panel = Panel::Claims;
+    handle_key(&mut m, press(KeyCode::Enter));
+    let (_, text, _) = m.popup.take().expect("a claim's detail");
+    assert!(
+        text.contains(
+            "work in /work/wt-a (repo demo, branch war-go/t-1a2b3-i-1, from 1a2b3c4d5e6f)"
+        ),
+        "{text}"
+    );
+    m.snap.claims[0].place = None;
+    m.snap.claims[0].workspace = None;
+    handle_key(&mut m, press(KeyCode::Enter));
+    let (_, text, _) = m.popup.take().expect("a claim's detail");
+    assert!(text.contains("workspace: UNKNOWN"), "{text}");
 }
 
 #[test]

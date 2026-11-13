@@ -7,13 +7,83 @@ use serde::{Deserialize, Serialize};
 use super::{Store, Ticket};
 use crate::repo::RepoError;
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Coordination {
     pub workspace: String,
     pub session: String,
     pub base_revision: Option<String>,
     pub paths: Vec<String>,
     pub display_name: String,
+    /// The repository the work is in: `[project] name`, else the checkout's
+    /// directory. Absent on claims from before it was recorded.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub repo: Option<String>,
+    /// That repository's `origin` URL, without any credentials in it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub remote_url: Option<String>,
+    /// The branch checked out in `workspace`; `detached` for none.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub branch: Option<String>,
+}
+
+impl Coordination {
+    /// Where the work is done, in one line: the first line of the brief and
+    /// what every view of the claim says. What was not recorded is UNKNOWN.
+    #[must_use]
+    pub fn place(&self) -> String {
+        format!(
+            "work in {} (repo {}, branch {}, from {})",
+            self.workspace,
+            self.repo.as_deref().unwrap_or("UNKNOWN"),
+            self.branch.as_deref().unwrap_or("UNKNOWN"),
+            self.base_revision
+                .as_deref()
+                .map_or("UNKNOWN", |b| &b[..b.len().min(12)])
+        )
+    }
+
+    /// Record the repository, remote and branch of `workspace` (git reads
+    /// only; none of it is required).
+    pub fn locate(&mut self, store: &Store, workspace: &camino::Utf8Path) {
+        let git = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(workspace)
+                .env_remove("GIT_DIR")
+                .env_remove("GIT_WORK_TREE")
+                .stderr(std::process::Stdio::null())
+                .output()
+                .ok()
+                .filter(|o| o.status.success())
+                .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_owned())
+                .filter(|s| !s.is_empty())
+        };
+        self.branch = git(&["symbolic-ref", "--short", "-q", "HEAD"])
+            .or_else(|| git(&["rev-parse", "--verify", "-q", "HEAD"]).map(|_| "detached".into()));
+        self.remote_url =
+            git(&["config", "--get", "remote.origin.url"]).map(|u| without_userinfo(&u));
+        self.repo = Some(store.project.trim().to_owned())
+            .filter(|p| !p.is_empty())
+            .or_else(|| {
+                git(&["rev-parse", "--show-toplevel"])
+                    .and_then(|t| t.rsplit('/').next().map(str::to_owned))
+            });
+    }
+}
+
+/// A URL with any `user:secret@` taken out: a token in a remote must not reach
+/// a claim, a journal or a view.
+fn without_userinfo(url: &str) -> String {
+    match url.split_once("://") {
+        Some((scheme, rest)) => {
+            let host_end = rest.find('/').unwrap_or(rest.len());
+            match rest[..host_end].rfind('@') {
+                Some(at) => format!("{scheme}://{}", &rest[at + 1..]),
+                None => url.to_owned(),
+            }
+        }
+        None => url.to_owned(),
+    }
 }
 
 pub fn session() -> String {
@@ -126,6 +196,17 @@ fn normal(store: &Store, value: &str) -> Result<String, String> {
 }
 
 pub fn of(store: &Store, t: &Ticket, provided: &[String]) -> Result<Coordination, String> {
+    of_in(store, t, provided, &workspace(store))
+}
+
+/// [`of`], with the store's [`workspace`] given: a pass over every ticket
+/// resolves the root once, not once per ticket.
+pub fn of_in(
+    store: &Store,
+    t: &Ticket,
+    provided: &[String],
+    workspace: &str,
+) -> Result<Coordination, String> {
     let mut paths = provided.to_vec();
     if paths.is_empty() && t.format {
         let doc = openwarrant_core::format::parse(t.checklist_text.as_bytes());
@@ -150,10 +231,13 @@ pub fn of(store: &Store, t: &Ticket, provided: &[String]) -> Result<Coordination
     paths.dedup();
     let title = crate::interop::slug(&t.manifest.title);
     Ok(Coordination {
-        workspace: workspace(store),
+        workspace: workspace.to_owned(),
         session: session(),
         base_revision: super::ladder::head_commit(&store.root),
         paths,
+        repo: None,
+        remote_url: None,
+        branch: None,
         display_name: format!(
             "{}-worker-{}",
             title.chars().take(48).collect::<String>(),
@@ -307,7 +391,34 @@ mod holder_tests {
             base_revision: None,
             paths: vec![],
             display_name: String::new(),
+            repo: None,
+            remote_url: None,
+            branch: None,
         }
+    }
+
+    #[test]
+    fn a_remote_loses_its_credentials_and_a_place_says_unknown() {
+        assert_eq!(
+            super::without_userinfo("https://u:tok@github.com/o/r.git"),
+            "https://github.com/o/r.git"
+        );
+        assert_eq!(
+            super::without_userinfo("git@github.com:o/r.git"),
+            "git@github.com:o/r.git"
+        );
+        let mut c = claim("s", "/w");
+        assert_eq!(
+            c.place(),
+            "work in /w (repo UNKNOWN, branch UNKNOWN, from UNKNOWN)"
+        );
+        c.repo = Some("wmd".into());
+        c.branch = Some("agent/x".into());
+        c.base_revision = Some("1a2b3c4d5e6f7a8b".into());
+        assert_eq!(
+            c.place(),
+            "work in /w (repo wmd, branch agent/x, from 1a2b3c4d5e6f)"
+        );
     }
 
     #[test]

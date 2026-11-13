@@ -38,23 +38,49 @@ Notable changes to OpenWarrant. Format loosely follows
   anyway. Two creates of one title at the same instant leave one ticket. A
   done ticket never blocks. Plant 291. Existing scripts that create two open
   tickets with one title need `--force`.
+- One work order, one place. A claim records its repository, origin URL, worktree,
+  branch and base commit, and `war start` prints them as the brief's first line
+  (`work in <wt> (repo <name>, branch <b>, from <commit>)`), once; Mission Control's
+  claim detail shows it, and the JSON of `war status <id>` and `war status --next`
+  carries it, their text does not. `war start`,
+  `war done` and `war note` on work you hold from another worktree are refused
+  (`work.other-worktree`) naming it (another actor's claim is still refused by its
+  holder's name); claiming for another actor in a checkout where you
+  hold live work needs `--here` (`dispatch.here`); `war start hpr:t-...` is refused (`work.other-repo`)
+  naming that repository, its pin and where to work. Plant 260.
 
 ### Fixed
+
+- `war create` no longer slows down as tickets pile up. It rebuilt every ticket's block of
+  `docs/generated/llms.txt` after each create, reading every ticket; it now adds the new
+  ticket's block alone, and `--part-of` reads its parent rather than every ticket. A child
+  of a parent the index shows `done` still rebuilds the tickets' blocks, since the parent's
+  own line can move. The passes that judge every ticket's state (`war admin compile`,
+  `war check --generated`, the index refresh of `add`, `done` and `note`) look children and
+  blockers up in maps built once instead of scanning every ticket per ticket.
+- `war view ready` reads HEAD and resolves the repository root once, not once per ticket.
+  At 9,800 tickets it started `git rev-parse HEAD` about 9,400 times per run.
+- New ticket ids lengthen as the store grows, as documented. The count that sizes an id
+  saw only directory tickets, so a store of single-file tickets kept four-digit ids at any
+  size. Both encodings are counted now, from the directory listing alone.
+- `war authority` no longer reports an I/O error for a signature `ssh-keygen` rejects
+  before reading its input. The verifier's early exit broke the pipe the proposal was being
+  written to; the exit status now decides, and the answer is `authority-signature-invalid`.
+- The release workflow's IR parity step no longer fails when main's committed views lag the
+  masters. Each host compiles in a scratch worktree, the two hosts' `WAR.json` digests are
+  compared with each other, and resolved Warrants' digests with the committed files.
 
 - The managed AGENTS.md block again tells agents to run `war start` before reading
   anything else and not to read `docs/tickets/` directly. The shorter wording from #406
   named the directory as an alternative, and in the adoption study agents on that build
   read ticket files about four times as often, roughly 90k tokens per task.
-
-### Fixed
-
+- `war start --worktree` on a `docs/work/` master looked for a `manifest.toml` and
+  refused it as uncommitted; it now checks the master's document, and refuses one
+  edited since the base commit, as it does a single-file ticket.
 - Two `runtime_capture::protected_executable` tests failed on GitHub's `ubuntu-26.04`
   runners, where `/usr/bin/true` links to a multicall coreutils binary that the
   sealed-descriptor check rightly refuses as linked. The tests now use the real
   file and call it as `true`. The check itself is unchanged.
-
-### Fixed
-
 - MCP `war_start` always delivers its complete required context packet in both
   structured content and a text fallback. `json: false` cannot discard required
   rules. Claim-only replies and other tools keep their terse presentation.
@@ -65,7 +91,6 @@ Notable changes to OpenWarrant. Format loosely follows
   receive their actual record checks over MCP.
 - MCP report outcomes mark failed or unavailable checks with the tool error
   flag while retaining their named verdicts and diagnostics.
-
 - `war init` and `war admin agents-md --block` wrote the openwarrant block into a
   `CLAUDE.md` that already imports `AGENTS.md` (`@AGENTS.md`), so Claude Code read it
   twice. Such a `CLAUDE.md` now gets no block, a copy written before is removed, and

@@ -866,6 +866,11 @@ enum DailyCommand {
         /// With --claim: take a claim past its TTL. Journalled.
         #[arg(long, requires = "claim")]
         steal: bool,
+        /// With --claim and `--as` another actor: put that actor's work in
+        /// this checkout on purpose. Without it, that is refused: dispatch it
+        /// to a worktree of its own (`war start --worktree <id> --as <actor>`).
+        #[arg(long, requires = "claim")]
+        here: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -2190,6 +2195,11 @@ enum AdminCommand {
         /// Take a claim older than `[tickets] claim_ttl_minutes` (default 120). Journalled.
         #[arg(long)]
         steal: bool,
+        /// With `--as` another actor: put that actor's work in this checkout
+        /// on purpose. Without it, that is refused: dispatch it to a worktree
+        /// of its own (`war start --worktree <id> --as <actor>`).
+        #[arg(long)]
+        here: bool,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
         /// Act as of this time (RFC 3339) instead of now: the claim's
@@ -3340,6 +3350,26 @@ fn refresh_index_after(
     }
 }
 
+/// [`refresh_index_after`] for `war create`: the new ticket's block alone
+/// ([`context::refresh_index_created`]), so a create does not read every
+/// ticket to list one.
+fn refresh_index_after_create(repository: &repo::Repository, outcome: &ticket::Outcome) {
+    let Some(id) = outcome.result["id"]
+        .as_str()
+        .filter(|_| !outcome.is_refused())
+    else {
+        return refresh_index_after(repository, outcome, false);
+    };
+    if let Err(e) =
+        context::refresh_index_created(repository, id, outcome.result["part_of"].as_str())
+    {
+        eprintln!(
+            "warning (context-index.refresh): {e}; `war admin compile` rewrites {}",
+            context::INDEX_PATH
+        );
+    }
+}
+
 /// Print a ticket command's answer and return its exit code: the rendering
 /// (or the refusal, on stderr) for a person, the envelope under `--json`.
 /// `--at <RFC 3339>`: answer (or act) as of that time for the rest of this
@@ -3887,6 +3917,12 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 change,
                 clauses,
             } = *across;
+            // Where a create still reads every ticket (an issue's link, a
+            // done parent's index lines) the ticket cache may answer. Never
+            // with `--sign` or `--records`, which raise or write a record.
+            if !sign && !records {
+                ticket::cache::permit();
+            }
             let (repository, store) = ctx.tickets(actor.as_deref())?;
             // W6: a change request says what it is before anything is written.
             let (mut items, mut tests) = (items, tests);
@@ -3987,7 +4023,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             if sign {
                 outcome = ticket::parts::signed(&store, outcome)?;
             }
-            refresh_index_after(&repository, &outcome, false);
+            refresh_index_after_create(&repository, &outcome);
             Ok(ticket_answer(mode, "create", &outcome))
         }
         DailyCommand::Done {
@@ -4526,6 +4562,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             claim: true,
             paths,
             steal,
+            here,
             actor,
             ..
         } if !id.is_empty() => run_admin(
@@ -4534,6 +4571,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 target: id.join(" "),
                 paths,
                 steal,
+                here,
                 actor,
                 at: None,
             },
@@ -7080,6 +7118,10 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             Ok(EXIT_OK)
         }
         ViewCommand::Ready { actor } => {
+            // One-shot and read-only: the tree does not move under it, so
+            // HEAD is read once, not once per ticket (each row's scope
+            // names the base revision).
+            gate_cmd::source::remember_tree_reads();
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
             let outcome = ticket::ready_for(&store, Some(mode))?;
@@ -7688,12 +7730,36 @@ fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error:
             target,
             paths,
             steal,
+            here,
             actor,
             at,
         } => {
             answer_at(at.as_deref())?;
             ticket::cache::permit();
-            let (_, store) = ctx.tickets(actor.as_deref())?;
+            let (repository, store) = ctx.tickets(actor.as_deref())?;
+            // Claiming for another actor while your own work is live in
+            // this checkout is dispatching it beside yours: only when asked.
+            // `--as` alone names who you are, and a replay (`--at`)
+            // dispatches nothing.
+            let own = ticket::own_actor(&repository);
+            if !here
+                && at.is_none()
+                && actor.is_some()
+                && store.actor != own
+                && ticket::holds_here(&store, &own)
+            {
+                let refusal = ticket::Outcome::refused(
+                    "dispatch.here",
+                    target.clone(),
+                    format!(
+                        "claiming {target} for {} would put its work in this checkout, beside \
+                         {own}'s. Give it a worktree of its own: `war start --worktree {target} \
+                         --as {0}`; or put it here on purpose with `--here`",
+                        store.actor
+                    ),
+                );
+                return Ok(ticket_answer(mode, "claim", &refusal));
+            }
             Ok(ticket_answer(
                 mode,
                 "claim",

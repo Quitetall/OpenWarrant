@@ -65,7 +65,7 @@ jobs:
         with:
           # Full history, as the gate: the IR parity step runs `war compile`,
           # and at depth 1 the corpus status reads every gate receipt's reuse
-          # as UNKNOWN, which moves the committed projection.
+          # as UNKNOWN, which moves a resolved Warrant's committed projection.
           fetch-depth: 0
       - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
 
@@ -81,18 +81,32 @@ jobs:
 
       # §91.1 test 1 — two hosts, one IR. Each host compiles every Warrant
       # and lists the sha256 of every WAR.json; the publish job diffs the two
-      # lists against each other and against the committed files. Any
-      # difference fails the release: a digest that depends on the host is
-      # not a digest.
+      # lists against each other and checks the resolved Warrants' against the
+      # committed files. Any difference fails the release: a digest that
+      # depends on the host is not a digest.
+      #
+      # Views are written on main only, by the Views workflow, so this
+      # commit's committed copies may lag the masters (conformance/views.toml).
+      # The compile runs in a scratch worktree of this commit, which leaves the
+      # checkout the binary was built from untouched; `views.py fresh` refuses
+      # when it moved anything that is not a view, a resolved Warrant's
+      # committed projection included.
       - name: IR parity list
         shell: bash
         run: |
           set -euo pipefail
-          ./target/${{ matrix.target }}/release/war compile
-          find docs/warrants -name WAR.json | sort | xargs sha256sum > "ir-${{ matrix.target }}.sha256"
-          git diff --quiet -- docs/warrants || { echo "compile on ${{ matrix.target }} moved a committed projection" >&2; git --no-pager diff --stat -- docs/warrants; exit 1; }
+          war="$PWD/target/${{ matrix.target }}/release/war"
+          list="$PWD/ir-${{ matrix.target }}.sha256"
+          scratch="$RUNNER_TEMP/ir-parity"
+          git worktree add --quiet --detach "$scratch" HEAD
+          (
+            cd "$scratch"
+            python3 conformance/views.py fresh --war "$war"
+            find docs/warrants -name WAR.json | sort | xargs sha256sum > "$list"
+          )
+          git worktree remove --force "$scratch"
           # A list over nothing would compare equal to another list over nothing.
-          n=$(wc -l < "ir-${{ matrix.target }}.sha256")
+          n=$(wc -l < "$list")
           [[ "$n" -ge 1 ]] || { echo "no WAR.json compiled on ${{ matrix.target }}" >&2; exit 1; }
           echo "$n WAR.json digests listed"
 
@@ -155,9 +169,19 @@ jobs:
           lists=(dist/ir-*.sha256)
           [[ ${#lists[@]} -ge 2 ]] || { echo "fewer than two IR lists" >&2; exit 1; }
           for l in "${lists[@]}"; do diff -u "${lists[0]}" "$l"; done
-          # And against the committed tree: the release ships what is committed.
-          find docs/warrants -name WAR.json | sort | xargs sha256sum | diff -u "${lists[0]}" -
-          echo "IR is byte-identical on every host and matches the committed tree"
+          # And against the committed records: a resolved Warrant's WAR.json
+          # is part of its record, and the release ships it as committed. An
+          # unresolved Warrant's is a view, written on main by the Views
+          # workflow, so its committed copy may lag and is not compared.
+          records=""
+          while read -r sum path; do
+            if [[ -f "${path%/generated/WAR.json}/resolution.toml" ]]; then
+              records+="$sum  $path"$'\n'
+            fi
+          done < "${lists[0]}"
+          [[ -n "$records" ]] || { echo "no resolved Warrant's WAR.json listed" >&2; exit 1; }
+          printf '%s' "$records" | sha256sum --check --quiet
+          echo "IR is byte-identical on every host; $(printf '%s' "$records" | wc -l) resolved Warrants' WAR.json match the committed tree"
 
       - name: Verify the artifact round trip
         run: |

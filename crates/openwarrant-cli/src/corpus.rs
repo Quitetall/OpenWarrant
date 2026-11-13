@@ -217,6 +217,23 @@ impl Corpus {
         }
     }
 
+    /// A corpus over `repo` whose tickets and Format 1.0 documents are the
+    /// ones given, not read: what the index's refresh after `war create`
+    /// builds one ticket's block from ([`crate::context::refresh_index_created`])
+    /// without reading every other. Everything else is read on first use,
+    /// as in [`Self::new`].
+    #[must_use]
+    pub(crate) fn of_tickets(
+        repo: &Repository,
+        tickets: Tickets,
+        format_docs: crate::format_doc::FormatDocs,
+    ) -> Self {
+        let corpus = Self::new(repo);
+        let _ = corpus.tickets.set(Ok(tickets));
+        let _ = corpus.format_docs.set(format_docs);
+        corpus
+    }
+
     #[must_use]
     pub fn repo(&self) -> &Repository {
         &self.repo

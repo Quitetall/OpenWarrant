@@ -286,6 +286,30 @@ git, and before this was so, they lived in `.openwarrant/state/claims/`; a
 claim found there is still honoured from every worktree, and its holder can
 finish or release it. `[tickets] claims_dir` names one directory instead.
 
+One work order, one place. A claim records where its work is done: the
+repository (`[project] name`, and its `origin` URL without credentials), the
+worktree, the branch and the commit it started from. `war start` prints it as
+the brief's first line, once; Mission Control's claim detail shows the same
+line, and the JSON of `war status <id>` (`places`) and `war status --next`
+(`held`) carries it, while their text does not repeat it:
+
+```
+work in /src/wmd/.openwarrant/worktrees/t-1a2b (repo wmd, branch war-go/t-1a2b, from 1a2b3c4d5e6f)
+```
+
+A plain `war start` in a checkout records that checkout. While the lease is
+live, its holder's `war start`, `war done` and `war note` on that work from
+any other worktree are refused (`work.other-worktree`), naming the one to `cd`
+to; another actor is refused by the holder's name (`work.claimed-by-other`), as
+before; a read never is, and `war done --release` gives it back from anywhere. While you
+hold live work in this checkout, claiming for another actor here (`war admin
+claim <id> --as <other>`) dispatches it beside yours, and is refused
+(`dispatch.here`) unless asked for with `--here`; `war start --worktree <id>
+--as <other>` gives it a worktree of its own. `--as` alone only names who you
+are. Work of another repository (`war start hpr:t-abc`, through
+`[repos]`) is refused here (`work.other-repo`), naming that repository, the
+pin this one reads it at, and the command that starts it there.
+
 A claim is a lease. It carries `lease_until`, 30 minutes after it was taken
 (`[tickets] claim_lease_minutes`), and the holder renews it with
 `war admin heartbeat` and with every `war` command it runs, so an agent at work

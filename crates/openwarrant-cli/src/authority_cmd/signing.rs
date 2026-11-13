@@ -52,7 +52,7 @@ pub(super) fn verify(current: &Revision, record: &Signed) -> Result<()> {
         )
         .map_err(err)?;
         fs::write(&sig, signature).map_err(err)?;
-        let mut child = Command::new("/usr/bin/ssh-keygen")
+        let child = Command::new("/usr/bin/ssh-keygen")
             .env_clear()
             .env("PATH", "/usr/bin:/bin")
             .env("LC_ALL", "C")
@@ -65,17 +65,28 @@ pub(super) fn verify(current: &Revision, record: &Signed) -> Result<()> {
             .stderr(Stdio::null())
             .spawn()
             .map_err(err)?;
-        child
-            .stdin
-            .take()
-            .ok_or_else(|| err("authority-verify-stdin"))?
-            .write_all(&record.proposal.signing_bytes().map_err(err)?)
-            .map_err(err)?;
-        if !child.wait().map_err(err)?.success() {
+        if !fed(child, &record.proposal.signing_bytes().map_err(err)?)?.success() {
             return Err(err("authority-signature-invalid"));
         }
     }
     Ok(())
+}
+/// Write `input` to `child`'s stdin, close it, and wait: its exit status.
+///
+/// `ssh-keygen -Y verify` exits without reading stdin when the signature file
+/// does not parse, and the write then fails with `BrokenPipe`. That is the
+/// child's answer arriving early, not an I/O fault: the exit status judges.
+/// Any other write error is one, and the child is still reaped.
+fn fed(mut child: std::process::Child, input: &[u8]) -> Result<std::process::ExitStatus> {
+    let wrote = match child.stdin.take() {
+        Some(mut stdin) => stdin.write_all(input),
+        None => Ok(()),
+    };
+    let status = child.wait().map_err(err)?;
+    match wrote {
+        Err(e) if e.kind() != std::io::ErrorKind::BrokenPipe => Err(err(e)),
+        _ => Ok(status),
+    }
 }
 fn admission(current: &Revision, proposal: &Proposal, identities: &BTreeSet<String>) -> Result<()> {
     sdk::authorize_activation(current, proposal, identities).map_err(|e| {
@@ -163,6 +174,31 @@ pub(super) fn sign(
 #[cfg(test)]
 mod tests {
     use super::*;
+    /// A child that exits without reading its stdin (as `ssh-keygen` does on
+    /// a signature it cannot parse) is judged by its exit status. The input
+    /// is larger than a pipe holds, so the write cannot finish before the
+    /// child is gone and fails with `BrokenPipe` every time.
+    #[cfg(unix)]
+    #[test]
+    fn a_child_that_exits_before_reading_is_judged_by_its_status() {
+        let spawn = |program: &str| {
+            Command::new(program)
+                .stdin(Stdio::piped())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+                .unwrap()
+        };
+        let input = vec![b'x'; 4 << 20];
+        assert!(!fed(spawn("/bin/false"), &input).unwrap().success());
+        assert!(fed(spawn("/bin/true"), &input).unwrap().success());
+        // The refusal beside it: a child that reads everything and fails.
+        let mut reads = Command::new("/bin/sh");
+        reads
+            .args(["-c", "cat >/dev/null; exit 3"])
+            .stdin(Stdio::piped());
+        assert_eq!(fed(reads.spawn().unwrap(), &input).unwrap().code(), Some(3));
+    }
     use openwarrant_core::{attestation::base64_encode, contract::ActorKind};
     use ring::{
         digest,

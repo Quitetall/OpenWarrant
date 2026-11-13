@@ -483,6 +483,34 @@ fn date_of(secs: u64) -> String {
 /// working side by side in worktrees of one repository share its claims, and
 /// under one name each would take another's claim for its own (`war start`
 /// resumes what "you" hold).
+/// Who this process acts as when no `--as` is given: `OPENWARRANT_ACTOR`,
+/// else [`default_actor`].
+#[must_use]
+pub fn own_actor(repo: &Repository) -> String {
+    std::env::var("OPENWARRANT_ACTOR")
+        .ok()
+        .map(|a| ticket::one_line(&a))
+        .filter(|a| !a.is_empty())
+        .unwrap_or_else(|| default_actor(repo))
+}
+
+/// Whether `actor` holds live work taken in this checkout: a claim for
+/// another actor here would put that work beside it.
+#[must_use]
+pub fn holds_here(store: &Store, actor: &str) -> bool {
+    let now = now_secs();
+    let here = scopes::workspace(store);
+    store.claims().is_ok_and(|claims| {
+        claims.values().flatten().any(|c| {
+            c.actor == actor
+                && !c.lease_expired(now)
+                && c.coordination
+                    .as_ref()
+                    .is_some_and(|co| co.workspace == here)
+        })
+    })
+}
+
 fn default_actor(repo: &Repository) -> String {
     let performer = repo.performer();
     match repo.root.file_name() {
@@ -639,6 +667,24 @@ impl Store {
                     && !crate::format_doc::is_document_dir(path)
             })
             .collect())
+    }
+
+    /// How many tickets the directory's listing names, read from the names
+    /// alone: a directory ticket's directory is its id, and a Format 1.0
+    /// ticket is `<id>.md` (with its journal's directory `<id>` beside it),
+    /// so each id is counted once and no entry is stat'ed. What `war create`
+    /// sizes a new id by ([`ticket::ticket_id_len`]); a stray directory
+    /// named like a ticket counts, which can only lengthen an id.
+    pub(crate) fn ticket_count(&self) -> Result<usize, RepoError> {
+        let entries = self.entries()?;
+        let ids: BTreeSet<&str> = entries
+            .iter()
+            .filter_map(|path| path.file_name())
+            .filter_map(|name| {
+                format::single_file(name).or_else(|| ticket::is_ticket_id(name).then_some(name))
+            })
+            .collect();
+        Ok(ids.len())
     }
 
     /// Every entry of the ticket directory, sorted, before
@@ -1525,6 +1571,49 @@ fn first_by_id(tickets: &[Ticket]) -> std::collections::HashMap<&str, &Ticket> {
     by
 }
 
+/// What judging every ticket of `tickets` asks of the others, read once:
+/// each id's first ticket ([`first_by_id`]) and each ticket's children
+/// ([`children_of`]). [`Self::phase_of`] and [`Self::waiting_on`] answer
+/// what [`phase_of`] and [`waiting_on`] answer over the same tickets,
+/// without a scan of every ticket per question.
+pub struct Lookup<'a> {
+    by_id: std::collections::HashMap<&'a str, &'a Ticket>,
+    children: std::collections::HashMap<&'a str, Vec<&'a Ticket>>,
+}
+
+impl<'a> Lookup<'a> {
+    #[must_use]
+    pub fn of(tickets: &'a [Ticket]) -> Self {
+        let mut children: std::collections::HashMap<&str, Vec<&Ticket>> =
+            std::collections::HashMap::new();
+        for t in tickets {
+            if let Some(parent) = t.manifest.part_of.as_deref() {
+                children.entry(parent).or_default().push(t);
+            }
+        }
+        Self {
+            by_id: first_by_id(tickets),
+            children,
+        }
+    }
+
+    /// [`phase_of`] with these tickets.
+    #[must_use]
+    pub fn phase_of(&self, t: &Ticket, claims: &Claims) -> TicketState {
+        phase_within(t, &|id| self.children_of(id), claims, 0)
+    }
+
+    /// [`waiting_on`] over these tickets.
+    #[must_use]
+    pub fn waiting_on(&self, t: &Ticket, item: &Item) -> Vec<String> {
+        open_blockers_by(&|id| self.by_id.get(id).copied(), t, item)
+    }
+
+    fn children_of(&self, id: &str) -> Vec<&'a Ticket> {
+        self.children.get(id).cloned().unwrap_or_default()
+    }
+}
+
 /// Whether the ticket record `id` (`t-x` or `t-x/i-y`) is done; `None` when
 /// it names nothing. `t` is consulted first, as the ticket being read now.
 fn record_done<'a>(
@@ -1569,18 +1658,21 @@ pub(crate) fn state_of(t: &Ticket, claims: &BTreeMap<String, Option<claim::Claim
 /// claimed (or it is claimed itself); else open. Without `tickets`, or with
 /// no child, [`state_of`].
 pub fn phase_of(t: &Ticket, tickets: Option<&[Ticket]>, claims: &Claims) -> TicketState {
-    phase_within(t, tickets, claims, 0)
+    match tickets {
+        Some(all) => phase_within(t, &|id| children_of(all, id), claims, 0),
+        None => state_of(t, claims),
+    }
 }
 
-fn phase_within(
+/// [`phase_of`], the tickets `part_of` an id given by `children`.
+fn phase_within<'a>(
     t: &Ticket,
-    tickets: Option<&[Ticket]>,
+    children_of: &dyn Fn(&str) -> Vec<&'a Ticket>,
     claims: &Claims,
     depth: usize,
 ) -> TicketState {
     let own = state_of(t, claims);
-    let Some(all) = tickets else { return own };
-    let children = children_of(all, t.id());
+    let children = children_of(t.id());
     // A `part_of` cycle is refused (`ticket.part-of-cycle`); the depth only
     // keeps a refused one from recursing for ever.
     if children.is_empty() || depth > 64 {
@@ -1588,7 +1680,7 @@ fn phase_within(
     }
     let kids: Vec<TicketState> = children
         .iter()
-        .map(|c| phase_within(c, tickets, claims, depth + 1))
+        .map(|c| phase_within(c, children_of, claims, depth + 1))
         .collect();
     let own_items_done = t.checklist.items.iter().all(|i| i.done);
     if own_items_done && kids.iter().all(|k| *k == TicketState::Done) {
@@ -2012,11 +2104,12 @@ fn create_with_encoding(
     if let Some(refusal) = parts::refuse_tests(&args.tests) {
         return Ok(refusal);
     }
-    let needs_tickets = args.part_of.is_some() || args.issue.is_some();
-    let all = if needs_tickets {
-        store.load_all()?.0
-    } else {
-        Vec::new()
+    // An issue is looked for in every ticket; `--part-of` alone reads the
+    // tickets its query can name ([`Store::load_for`]), not every one.
+    let all = match (&args.issue, args.part_of.as_deref()) {
+        (Some(_), _) => store.load_all()?.0,
+        (None, Some(q)) => store.load_for(q)?.0,
+        (None, None) => Vec::new(),
     };
     let part_of = match args.part_of.as_deref() {
         None => None,
@@ -2049,7 +2142,7 @@ fn create_with_encoding(
     }
     let registry = store.registry();
     std::fs::create_dir_all(&store.dir).map_err(io(format!("could not create {}", store.dir)))?;
-    let existing = store.ticket_dirs()?.len();
+    let existing = store.ticket_count()?;
     let uuid = WarUuid::mint().to_string();
     // The id lengthens past a collision on this branch; across branches the
     // length rule keeps the chance of one under 1%.
@@ -2743,6 +2836,7 @@ pub fn ready_rows_at(
     let find = |id: &str| by_id.get(id).copied();
     // Read here, once: other repositories are read on one thread.
     let held = depends::held(store, tickets);
+    let workspace = scopes::workspace(store);
     // Each ticket's rows depend on it, the claims and the blockers alone:
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
@@ -2753,7 +2847,7 @@ pub fn ready_rows_at(
         {
             return rows;
         }
-        let Ok(candidate) = scopes::of(store, t, &[]) else {
+        let Ok(candidate) = scopes::of_in(store, t, &[], &workspace) else {
             return rows;
         };
         if claims
@@ -3066,6 +3160,9 @@ pub(crate) fn claim_scoped_at(
     paths: &[String],
     workspace: &Utf8Path,
 ) -> Result<Outcome, RepoError> {
+    if let Some(refusal) = other_repo(&store.root, query) {
+        return Ok(refusal);
+    }
     // R2: a ticket another worktree or clone holds is brought here first.
     shared::bring_here(store, query)?;
     let workspace = workspace
@@ -3140,6 +3237,22 @@ pub(crate) fn claim_scoped_at(
     };
     coordination.workspace = workspace.to_string();
     coordination.base_revision = ladder::head_commit(&workspace);
+    coordination.locate(store, &workspace);
+    // One work order, one place: work this actor holds from another
+    // worktree is continued there. Another actor's claim is refused by name
+    // below, as it always was.
+    if !steal
+        && let Some(there) = claimed_elsewhere(
+            &claims,
+            &store.actor,
+            t.id(),
+            item.as_deref(),
+            workspace.as_str(),
+            now,
+        )
+    {
+        return Ok(elsewhere_refusal(&what, "Continue it", &there));
+    }
     let mut overlaps = Vec::new();
     for old in claims.values().flatten() {
         let same_target =
@@ -3557,6 +3670,97 @@ pub(crate) fn claim_scoped_at(
     Ok(answer)
 }
 
+/// `query` names work of another repository (`hpr:t-abc`, through
+/// `[repos]`): the refusal that says which, at what pin, and where its work
+/// is done. `None` for work of this one.
+pub fn other_repo(root: &Utf8Path, query: &str) -> Option<Outcome> {
+    let crate::repos::Target::Named(name, rest) = crate::repos::classify(root, query) else {
+        return None;
+    };
+    let pin = crate::repos::locate(root, name).map_or_else(
+        |why| format!("{name} @ UNKNOWN ({why})"),
+        |l| crate::repos::read_line(&l),
+    );
+    let there = crate::repos::checkout(root, name).map_or_else(
+        || format!("<{name}'s checkout>"),
+        |p| p.canonicalize_utf8().unwrap_or(p).to_string(),
+    );
+    Some(Outcome::refused(
+        "work.other-repo",
+        query.to_owned(),
+        format!(
+            "{query} belongs to {name}, not this repository; this one reads it at {pin}. Work in \
+             a worktree of {name}, never this one: `cd {there} && war start --worktree {rest}`"
+        ),
+    ))
+}
+
+/// A live claim of `actor`'s on `ticket` (whole, or `item`) taken from a
+/// worktree other than `here` that still exists: where that actor's work is
+/// done. A lapsed lease, a claim held on another machine, or a worktree since
+/// removed holds no place. Another actor's claim is not this rule's: it is
+/// refused by its holder's name (`work.claimed-by-other`), wherever it is held.
+pub(crate) fn claimed_elsewhere(
+    claims: &Claims,
+    actor: &str,
+    ticket: &str,
+    item: Option<&str>,
+    here: &str,
+    now: u64,
+) -> Option<scopes::Coordination> {
+    claims
+        .values()
+        .flatten()
+        .filter(|c| {
+            c.actor == actor
+                && c.ticket == ticket
+                && (c.item.is_none() || item.is_none() || c.item.as_deref() == item)
+                && !c.lease_expired(now)
+                && c.elsewhere.is_none()
+        })
+        .filter_map(|c| c.coordination.as_deref())
+        .find(|co| co.workspace != here && Utf8Path::new(&co.workspace).is_dir())
+        .cloned()
+}
+
+/// The refusal of an act on work held from another worktree, naming it.
+fn elsewhere_refusal(what: &str, act: &str, there: &scopes::Coordination) -> Outcome {
+    Outcome::refused(
+        "work.other-worktree",
+        there.workspace.clone(),
+        format!(
+            "{what} is held from another worktree: {}. {act} there (`cd {}`), never from this \
+             checkout",
+            there.place(),
+            there.workspace
+        ),
+    )
+}
+
+/// `war done` and `war note` write to work held from another worktree: the
+/// refusal naming that worktree. A read is never refused.
+fn place_refusal(store: &Store, query: &str, act: &str) -> Result<Option<Outcome>, RepoError> {
+    let (tickets, _) = store.load_all()?;
+    let (index, item) = match resolve(&tickets, query) {
+        Ok(Target::Ticket(n)) => (n, None),
+        Ok(Target::Item(n, i)) => (n, Some(i)),
+        Err(_) => return Ok(None),
+    };
+    let t = &tickets[index];
+    let what = item
+        .as_ref()
+        .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
+    Ok(claimed_elsewhere(
+        &store.claims()?,
+        &store.actor,
+        t.id(),
+        item.as_deref(),
+        &scopes::workspace(store),
+        now_secs(),
+    )
+    .map(|there| elsewhere_refusal(&what, act, &there)))
+}
+
 /// Session and optional nonce fence managed callers independently of display names.
 fn owns_claim(store: &Store, claim: &claim::Claim) -> bool {
     claim.actor == store.actor
@@ -3583,6 +3787,22 @@ pub fn held_by_me(store: &Store) -> Result<Vec<String>, RepoError> {
     ids.sort();
     ids.dedup();
     Ok(ids)
+}
+
+/// Each live claim `store.actor` holds, by target, with where its work is
+/// done ([`scopes::Coordination::place`]); claims that recorded no place are
+/// left out.
+pub fn held_places(store: &Store) -> Vec<(String, String)> {
+    let now = now_secs();
+    let Ok(claims) = store.claims() else {
+        return Vec::new();
+    };
+    claims
+        .values()
+        .flatten()
+        .filter(|c| owns_claim(store, c) && !c.lease_expired(now))
+        .filter_map(|c| c.coordination.as_ref().map(|co| (c.target(), co.place())))
+        .collect()
 }
 
 /// What `war done` with no id closes: the one Warrant this actor holds.
@@ -3714,12 +3934,20 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         Ok(Target::Ticket(n) | Target::Item(n, _)) => n,
         Err(d) => return Ok(Outcome::from_diagnostic(d)),
     };
-    let workspace = store
+    // A resumption from another worktree is refused as a claim from one is.
+    if query.is_none()
+        && let Some(refusal) = place_refusal(store, tickets[index].id(), "Continue it")?
+    {
+        return Ok(refusal);
+    }
+    let held: Option<scopes::Coordination> = store
         .claims()?
         .values()
         .flatten()
         .find(|claim| claim.ticket == tickets[index].id() && owns_claim(store, claim))
-        .and_then(|claim| claim.coordination.as_ref())
+        .and_then(|claim| claim.coordination.as_deref().cloned());
+    let workspace = held
+        .as_ref()
         .map(|coordination| Utf8PathBuf::from(&coordination.workspace))
         .unwrap_or_else(|| {
             store
@@ -3763,12 +3991,24 @@ pub fn start_cmd(store: &Store, query: Option<&str>) -> Result<Outcome, RepoErro
         answer.result["changed"] =
             serde_json::to_value(&changes).map_err(|e| RepoError::Message(e.to_string()))?;
     }
+    // The brief's first line: where this work is done.
+    let place = held.map_or_else(
+        || {
+            let mut here = scopes::Coordination {
+                workspace: workspace.to_string(),
+                base_revision: ladder::head_commit(&workspace),
+                ..scopes::Coordination::default()
+            };
+            here.locate(store, &workspace);
+            here.place()
+        },
+        |c| c.place(),
+    );
+    answer.human = format!("{place}\n{}", answer.human);
+    answer.result["place"] = serde_json::json!(place);
     answer
         .human
         .push_str(&crate::hotline::start_line(store, id));
-    if workspace != store.root {
-        answer.human.push_str(&format!("\nworkspace: {workspace}"));
-    }
     Ok(answer)
 }
 
@@ -4591,6 +4831,9 @@ pub fn done_with(
     if_rev: Option<&str>,
     check: bool,
 ) -> Result<Outcome, RepoError> {
+    if let Some(refusal) = place_refusal(store, query, "Finish it")? {
+        return Ok(refusal);
+    }
     finish(
         store,
         query,
@@ -5890,6 +6133,9 @@ pub fn note(
     if let Some(refusal) = check_if_rev(store, t, item.as_deref(), &what, if_rev) {
         return Ok(refusal);
     }
+    if let Some(refusal) = place_refusal(store, query, "Note it")? {
+        return Ok(refusal);
+    }
     let body = text.trim();
     if body.is_empty() {
         return Ok(Outcome::refused(
@@ -6328,5 +6574,124 @@ mod claim_wording_tests {
         ] {
             assert!(said.contains(part), "{part}: {said}");
         }
+    }
+}
+
+#[cfg(test)]
+mod lookup_tests {
+    use super::*;
+
+    /// A ticket with `items` (`(id, done, after)`), `part_of` its parent.
+    fn ticket(id: &str, part_of: Option<&str>, items: &[(&str, bool, &[&str])]) -> Ticket {
+        let mut text = String::from("# Checklist\n\n");
+        for (item, done, after) in items {
+            let after = after.iter().filter_map(|b| Blocker::parse(b)).collect();
+            let mut one = Item::new(item, "an item", after);
+            one.done = *done;
+            text.push_str(&one.render());
+            text.push('\n');
+        }
+        let dir = Utf8PathBuf::from(format!("/nowhere/docs/tickets/{id}"));
+        Ticket {
+            repository_root: "/nowhere".into(),
+            manifest: TicketManifest {
+                schema: TICKET_SCHEMA.to_owned(),
+                id: id.to_owned(),
+                uuid: format!("uuid-of-{id}"),
+                title: format!("ticket {id}"),
+                summary: None,
+                profile: TICKET_PROFILE.to_owned(),
+                priority: 2,
+                created_at: "2026-11-12T00:00:00Z".to_owned(),
+                created_by: "test".to_owned(),
+                promoted_to: None,
+                kind: None,
+                labels: Vec::new(),
+                part_of: part_of.map(str::to_owned),
+                issue: None,
+                issue_url: None,
+                imported_from: None,
+                due: None,
+                atoms: Vec::new(),
+            },
+            intent_path: dir.join(INTENT_FILE),
+            checklist_path: dir.join("atoms/15-checklist.md"),
+            intent: String::new(),
+            checklist: ticket::parse(&text),
+            checklist_text: text,
+            revision: String::new(),
+            blocked: None,
+            format: false,
+            done_whole: false,
+            depends_on: Vec::new(),
+            dir,
+        }
+    }
+
+    /// The maps answer what the scans answer, for every ticket and item of a
+    /// set with epics three deep, done, open and part-done tickets, a
+    /// duplicate id (the first wins), blockers in the same ticket, in
+    /// another, on a whole ticket, and on one that does not exist.
+    #[test]
+    fn the_lookup_answers_what_the_scans_answer() {
+        let tickets = vec![
+            ticket("t-e10", None, &[]),
+            ticket(
+                "t-a10",
+                Some("t-e10"),
+                &[("i-001", true, &[]), ("i-002", false, &["i-001"])],
+            ),
+            ticket("t-a20", Some("t-e10"), &[("i-001", true, &[])]),
+            ticket(
+                "t-b10",
+                Some("t-a10"),
+                &[("i-001", false, &["t-a20", "t-a10/i-002", "t-000"])],
+            ),
+            ticket("t-e20", None, &[("i-001", true, &[])]),
+            ticket("t-c10", Some("t-e20"), &[("i-001", true, &[])]),
+            ticket("t-c20", Some("t-e20"), &[("i-001", true, &["t-c10/i-001"])]),
+            ticket("t-e30", None, &[]),
+            ticket(
+                "t-d10",
+                Some("t-e30"),
+                &[("i-001", false, &["t-dd0/i-001"])],
+            ),
+            ticket("t-dd0", None, &[("i-001", true, &[])]),
+            ticket("t-dd0", None, &[("i-001", false, &[])]),
+            ticket("t-f10", None, &[("i-001", false, &["t-f10/i-009"])]),
+        ];
+        let lookup = Lookup::of(&tickets);
+        let none = Claims::new();
+        let mut claimed = Claims::new();
+        claimed.insert(claim::lock_name("t-d10", None), None);
+        let mut phases = BTreeSet::new();
+        let mut blocked = 0;
+        for t in &tickets {
+            for claims in [&none, &claimed] {
+                let scanned = phase_of(t, Some(&tickets), claims);
+                assert_eq!(lookup.phase_of(t, claims), scanned, "{}", t.id());
+                phases.insert(format!("{scanned:?}"));
+            }
+            for item in &t.checklist.items {
+                let scanned = waiting_on(&tickets, t, item);
+                assert_eq!(lookup.waiting_on(t, item), scanned, "{}", t.id());
+                blocked += usize::from(!scanned.is_empty());
+            }
+        }
+        // The set is not one where every answer is the same.
+        assert_eq!(phases.len(), 3, "{phases:?}");
+        assert_eq!(blocked, 2, "t-b10 and t-f10 wait; nothing else does");
+        assert_eq!(lookup.phase_of(&tickets[0], &none), TicketState::InProgress);
+        assert_eq!(lookup.phase_of(&tickets[4], &none), TicketState::Done);
+        assert_eq!(lookup.phase_of(&tickets[7], &none), TicketState::Open);
+        assert_eq!(
+            lookup.phase_of(&tickets[7], &claimed),
+            TicketState::InProgress
+        );
+        assert_eq!(
+            lookup.waiting_on(&tickets[8], &tickets[8].checklist.items[0]),
+            Vec::<String>::new(),
+            "the first t-dd0 is done; the second is never read"
+        );
     }
 }

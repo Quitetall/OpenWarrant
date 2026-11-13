@@ -515,20 +515,14 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
         } else {
             continue;
         };
-        let bytes = match crate::vfs::read_regular(repo.root.as_std_path(), file.as_std_path()) {
-            Ok(bytes) => bytes,
-            Err(e) => {
-                out.faults.push(Fault {
-                    outcome: Outcome::Refusal,
-                    rule: "format.document-unreadable",
-                    file: repo.relative(&file),
-                    line: 1,
-                    message: format!("could not read the work document: {e}"),
-                });
+        let one = match work_document(repo, place, &alias, &file, &out.profiles) {
+            Ok(one) => one,
+            Err(fault) => {
+                out.faults.push(fault);
                 continue;
             }
         };
-        let source = repo.relative(&file);
+        let source = one.source.clone();
         if let Some(first) = seen.get(&alias) {
             out.faults.push(Fault {
                 outcome: Outcome::Refusal,
@@ -544,28 +538,69 @@ fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut For
             out.docs.retain(|d| d.source != first);
             continue;
         }
-        seen.insert(alias.clone(), source.clone());
-        let mut doc = format::parse_with(&bytes, &out.profiles, &source);
-        // §3.3: a document at a work-document path is a work document, so
-        // it declares `alias:`.
-        if !doc.refused() && !doc.unknown() && doc.alias.is_none() {
-            doc.findings.push(format::Finding {
-                outcome: Outcome::Refusal,
-                rule: "format.field-missing",
-                line: 1,
-                message: format!("a work document declares `alias:` (here, {alias})"),
-            });
-        }
+        seen.insert(alias.clone(), source);
         if crate::vfs::is_dir(&path) {
-            manifest_restates(repo, &path, &doc, out);
+            manifest_restates(repo, &path, &one.doc, out);
         }
-        out.docs.push(Loaded {
-            source,
-            place,
-            doc,
-            bytes,
+        out.docs.push(one);
+    }
+}
+
+/// The work document `file` of `alias`, read under `profiles`; the fault
+/// when it cannot be read.
+fn work_document(
+    repo: &Repository,
+    place: Place,
+    alias: &str,
+    file: &Utf8Path,
+    profiles: &Profiles,
+) -> Result<Loaded, Fault> {
+    let bytes =
+        crate::vfs::read_regular(repo.root.as_std_path(), file.as_std_path()).map_err(|e| {
+            Fault {
+                outcome: Outcome::Refusal,
+                rule: "format.document-unreadable",
+                file: repo.relative(file),
+                line: 1,
+                message: format!("could not read the work document: {e}"),
+            }
+        })?;
+    let source = repo.relative(file);
+    let mut doc = format::parse_with(&bytes, profiles, &source);
+    // §3.3: a document at a work-document path is a work document, so
+    // it declares `alias:`.
+    if !doc.refused() && !doc.unknown() && doc.alias.is_none() {
+        doc.findings.push(format::Finding {
+            outcome: Outcome::Refusal,
+            rule: "format.field-missing",
+            line: 1,
+            message: format!("a work document declares `alias:` (here, {alias})"),
         });
     }
+    Ok(Loaded {
+        source,
+        place,
+        doc,
+        bytes,
+    })
+}
+
+/// The single-file ticket `file` (`<tickets>/<alias>.md`) alone, read as
+/// [`load`] reads it among every document, under the repository's
+/// profiles; with `None`, the profiles and no document.
+#[must_use]
+pub(crate) fn ticket_alone(repo: &Repository, file: Option<(&str, &Utf8Path)>) -> FormatDocs {
+    let mut out = FormatDocs {
+        profiles: profiles(repo),
+        ..FormatDocs::default()
+    };
+    if let Some((alias, file)) = file {
+        match work_document(repo, Place::Ticket, alias, file, &out.profiles) {
+            Ok(one) => out.docs.push(one),
+            Err(fault) => out.faults.push(fault),
+        }
+    }
+    out
 }
 
 /// §4.2: a manifest beside the document holds no atoms and restates no key.
