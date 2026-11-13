@@ -206,8 +206,15 @@ brief; [TICKETS](TICKETS.md).)
 1. Claims the node, from its worktree (so the claim's journal line is on its
    branch), as the acting agent.
 2. Makes `.openwarrant/worktrees/<node>` on `war-go/<node>` from HEAD (or
-   `--base`), or resumes it. The Warrant has to be in that commit
-   (`go.start-uncommitted` otherwise).
+   `--base`), or resumes it. The Warrant's document (a single file, a
+   `docs/work/` master, or a legacy manifest) has to be in that commit as it
+   is in this checkout (`go.start-uncommitted` otherwise, with the `git add`
+   that fixes it). Work held from another worktree, or work of another
+   repository (`hpr:t-...`), is refused by name ([TICKETS](TICKETS.md)).
+   The brief's first line, and the output's, is where the work is done:
+   `work in <worktree> (repo <name>, branch war-go/<node>, from <commit>)`.
+   Mission Control's dispatch does the same; with its worktree turned off it
+   claims in this checkout with `--here`, the explicit ask.
 3. With `[go] allowed_acts = "projected"` (the default), writes the session's
    settings inside the worktree only: `.claude/settings.local.json` with the
    Warrant's declared tools, paths (`Edit(/src/**)`) and commands

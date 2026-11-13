@@ -69,6 +69,8 @@ pub struct Session {
 pub struct Started {
     pub schema: &'static str,
     pub node: String,
+    /// Where the work is done, in one line: the brief's first.
+    pub place: String,
     pub worktree: String,
     pub branch: String,
     pub base: String,
@@ -146,6 +148,12 @@ pub fn run(
             return Ok((report, serde_json::Value::Null, String::new()));
         }
     };
+    if let Some(refusal) = crate::ticket::other_repo(&repo.root, id) {
+        for d in refusal.report.diagnostics {
+            report.push(d);
+        }
+        return Ok((report, serde_json::Value::Null, String::new()));
+    }
     let root = repo.root.clone();
     let Some(top) = git::toplevel(&root) else {
         report.push(Diagnostic::error(
@@ -205,10 +213,15 @@ pub fn run(
         }
     } else {
         let alias = id.split('/').next().unwrap_or(id);
-        let dir = repo.warrant_dir(alias)?;
+        // A Format 1.0 Warrant (a master in docs/work/, a single file) is its
+        // one document; a legacy one its manifest.
+        let document = match crate::subject::find(repo, alias) {
+            Some(found) => found.file,
+            None => repo.warrant_dir(alias)?.join("manifest.toml"),
+        };
         (
             id.to_owned(),
-            dir.join("manifest.toml"),
+            document,
             packet::allowed_of_warrant(repo, alias),
             id.to_owned(),
         )
@@ -236,20 +249,21 @@ pub fn run(
         return Ok((report, serde_json::Value::Null, String::new()));
     }
 
+    // ... as it is here: a worker in the worktree reads that commit's bytes.
     if !resumed
-        && !git::git(
+        && (!git::git(
             &root,
             &["cat-file", "-e", &format!("{base}:{manifest_rel}")],
         )
-        .ok
+        .ok || !git::git(&top, &["diff", "--quiet", &base, "--", &manifest_rel]).ok)
     {
         report.push(Diagnostic::error(
             "go.start-uncommitted",
             repo.relative(&warrant_dir),
             format!(
-                "{node}'s Warrant is not in {base_rev} yet, and the worktree is made from that \
-                 commit. Commit {} first (`git add {0} && git commit`), then run `war start --worktree {node}` \
-                 again",
+                "{node}'s Warrant is not in {base_rev} as it is here, and the worktree is made \
+                 from that commit. Commit {} first (`git add {0} && git commit`), then run `war \
+                 start --worktree {node}` again",
                 repo.relative(&warrant_dir)
             ),
         ));
@@ -297,6 +311,16 @@ pub fn run(
         }
     };
     let mut claim_id = None;
+    // Where the work is done: the brief's first line.
+    let mut place = crate::ticket::scopes::Coordination {
+        workspace: wt_root
+            .canonicalize_utf8()
+            .unwrap_or_else(|_| wt_root.clone())
+            .to_string(),
+        base_revision: Some(base.clone()),
+        ..crate::ticket::scopes::Coordination::default()
+    };
+    place.locate(&store, &wt_root);
     if crate::ticket::is_ticket_ref(&node) {
         let claimed = crate::ticket::claim_scoped(&store, &node, false, &opts.paths)?;
         if claimed.is_refused() {
@@ -321,7 +345,14 @@ pub fn run(
             return Ok((report, serde_json::Value::Null, String::new()));
         }
         claim_id = claimed.result["claim"]["claim"].as_str().map(str::to_owned);
+        if let Ok(held) = serde_json::from_value::<crate::ticket::scopes::Coordination>(
+            claimed.result["coordination"].clone(),
+        ) && held.repo.is_some()
+        {
+            place = held;
+        }
     }
+    let place = place.place();
     // Legacy stages are carried in their parent's exact milestone source.
     // The full parent contract is conservative context for that stage.
     let context_target = if crate::ticket::is_ticket_ref(&node) {
@@ -453,14 +484,17 @@ pub fn run(
         wrote.push(session_path.to_string());
     }
     // The brief: the same context `war evidence go` hands a performer.
-    let mut brief = brief_for(
-        &node,
-        &title,
-        &worktree,
-        &branch,
-        &base,
-        &allowed,
-        claim_id.as_ref().map(|_| actor.as_str()),
+    let mut brief = format!(
+        "{place}\n{}",
+        brief_for(
+            &node,
+            &title,
+            &worktree,
+            &branch,
+            &base,
+            &allowed,
+            claim_id.as_ref().map(|_| actor.as_str()),
+        )
     );
     if !changes.is_empty() {
         brief.push('\n');
@@ -475,12 +509,11 @@ pub fn run(
             ("title", title.as_str()),
         ],
     );
-    let mut human = String::new();
+    let mut human = format!("{place}\n");
+    // The place line says where; this one only what happened.
     human.push_str(&format!(
-        "{} {node} in {} (branch {branch}, from {})\n",
+        "{} {node}\n",
         if resumed { "resumed" } else { "started" },
-        repo.relative(&worktree),
-        &base[..base.len().min(12)]
     ));
     match policy.acts {
         policy::Acts::Projected if wrote.iter().any(|w| w.ends_with("settings.local.json")) => {
@@ -564,6 +597,7 @@ pub fn run(
     let started = Started {
         schema: SCHEMA,
         node,
+        place,
         worktree: worktree.to_string(),
         branch,
         base,
@@ -595,12 +629,13 @@ fn brief_for(
     allowed: &packet::Allowed,
     actor: Option<&str>,
 ) -> String {
+    // The place line above the brief names the worktree, branch and commit;
+    // a tracked brief does not say them twice.
     let mut md = if let Some(actor) = actor {
         format!(
-            "# {title}\n\nTracked work `{node}`, claimed by `{actor}`, in its own worktree `{worktree}` \
-         (branch `{branch}`, from `{}`). When it is done: `war done {node} --note \"...\"`, or \
-         `war done {node} --check` to run its tests and tick it at observed.\n",
-            &base[..base.len().min(12)]
+            "# {title}\n\nTracked work `{node}`, claimed by `{actor}`, in the worktree above. \
+             When it is done: `war done {node} --note \"...\"`, or `war done {node} --check` \
+             to run its tests and tick it at observed.\n"
         )
     } else {
         let (alias, stage) = node.split_once('/').unwrap_or((node, "<stage>"));

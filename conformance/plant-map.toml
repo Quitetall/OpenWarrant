@@ -125,7 +125,10 @@ plants = ["*webui*.sh", "69-board-tree-reads.sh", "69-overview-tree-reads.sh", "
 [[rule]]
 name = "tui"
 paths = ["crates/openwarrant-cli/src/tui/**", "crates/openwarrant-cli/src/herdr.rs"]
-plants = ["97-tui.sh", "71-hub.sh", "191-tui-honest.sh", "199-tui-pty.sh", "220-session-usage.sh"]
+plants = [
+    "97-tui.sh", "71-hub.sh", "191-tui-honest.sh", "199-tui-pty.sh", "220-session-usage.sh",
+    "260-one-place.sh",
+]
 
 [[rule]]
 name = "session usage"
@@ -147,7 +150,7 @@ paths = [
     "crates/openwarrant-cli/src/graph.rs", "crates/openwarrant-cli/src/frontier.rs",
     "conformance/fixtures/go/**",
 ]
-plants = ["16?-go-*.sh", "86-run.sh"]
+plants = ["16?-go-*.sh", "86-run.sh", "260-one-place.sh"]
 
 [[rule]]
 name = "perform and run"
@@ -261,7 +264,10 @@ paths = [
     "crates/openwarrant-cli/src/ticket/change.rs",
     "docs/INTERFACES.md",
 ]
-plants = ["192-repos.sh", "197-repos-cargo-pin.sh", "198-two-party.sh", "191-interfaces.sh", "79-host.sh"]
+plants = [
+    "192-repos.sh", "197-repos-cargo-pin.sh", "198-two-party.sh", "191-interfaces.sh", "79-host.sh",
+    "260-one-place.sh",
+]
 
 [[rule]]
 name = "plan and intake"

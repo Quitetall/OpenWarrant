@@ -75,10 +75,11 @@ pub fn start(node: &str, actor: &str, paths: &[String], print: bool) -> Vec<Stri
     argv
 }
 
-/// `war admin claim <node>`: the work stays in this checkout.
+/// `war admin claim <node> --here`: the work stays in this checkout, asked
+/// for by turning the worktree off.
 #[must_use]
 pub fn claim_here(node: &str, actor: &str, paths: &[String]) -> Vec<String> {
-    let mut argv = words(&["admin", "claim", node, "--as", actor]);
+    let mut argv = words(&["admin", "claim", node, "--as", actor, "--here"]);
     if !paths.is_empty() {
         argv.push("--paths".to_owned());
         argv.extend(paths.iter().cloned());
