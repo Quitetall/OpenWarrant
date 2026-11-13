@@ -30,6 +30,8 @@ pub struct Brief {
     pub open_tickets: Option<usize>,
     /// Tickets the store could not parse, so not counted as open.
     pub unreadable_tickets: usize,
+    /// R2: ids two tickets share (`ticket.id-collision`); both are counted.
+    pub id_collisions: usize,
     pub ready_tickets: Option<usize>,
     pub ready_stages: Option<usize>,
     /// Open items of every encoding, by level.
@@ -104,7 +106,7 @@ impl Brief {
 
     fn read_tickets(&mut self, repo: &Repository) {
         let store = match ticket::Store::open(repo, None) {
-            Ok(store) => store,
+            Ok(store) => store.sharing(),
             Err(e) => {
                 self.unknown.push(format!("tickets: {e}"));
                 self.read_levels(&Work::read(repo));
@@ -118,7 +120,12 @@ impl Brief {
             return;
         }
         self.open_tickets = Some(work.tickets().iter().filter(|t| !t.is_done()).count());
-        self.unreadable_tickets = work.ticket_faults().len();
+        self.id_collisions = work
+            .ticket_faults()
+            .iter()
+            .filter(|f| f.rule == "ticket.id-collision")
+            .count();
+        self.unreadable_tickets = work.ticket_faults().len() - self.id_collisions;
         if let Some(why) = work.unread(Source::Claims) {
             self.unknown.push(format!("ready work: {why}"));
             return;
@@ -174,6 +181,13 @@ impl Brief {
         if self.unreadable_tickets > 0 {
             let _ = write!(out, ", {} unreadable", self.unreadable_tickets);
         }
+        if self.id_collisions > 0 {
+            let _ = write!(
+                out,
+                ", {} id shared by two tickets (`war view tickets` names them)",
+                self.id_collisions
+            );
+        }
         out.push('\n');
         let _ = writeln!(
             out,
@@ -222,6 +236,7 @@ mod tests {
             resolved: Some(0),
             open_tickets: Some(12),
             unreadable_tickets: 0,
+            id_collisions: 0,
             ready_tickets: Some(1),
             ready_stages: Some(3),
             levels: Some(LevelCounts {

@@ -742,6 +742,7 @@ pub fn idle_lines(n: &Next) -> Option<Vec<String>> {
 /// empty list presented as "nothing ready".
 pub fn ready_tickets(repo: &Repository, next: &mut Next) {
     let rows = crate::ticket::Store::open(repo, None).and_then(|store| {
+        let store = store.sharing();
         let (tickets, _faults) = store.load_all()?;
         crate::ticket::ready_rows(&store, &tickets)
     });

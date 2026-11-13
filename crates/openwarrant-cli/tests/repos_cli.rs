@@ -323,7 +323,14 @@ fn what_the_pin_does_not_hold_is_never_guessed_at() {
 
 /// A ticket of WMD's waiting on `target`.
 fn waiting(t: &Two, target: &str, more: &[&str]) -> String {
-    let mut args = vec!["create", "The engine feature", "--depends-on", target];
+    // One title for every waiting ticket of these tests: created outright.
+    let mut args = vec![
+        "create",
+        "The engine feature",
+        "--force",
+        "--depends-on",
+        target,
+    ];
     args.extend(more);
     let v = json(&t.wmd, "o", &args);
     assert_eq!(v["exit_code"], 0, "{v}");

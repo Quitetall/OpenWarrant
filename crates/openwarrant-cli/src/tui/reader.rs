@@ -565,7 +565,11 @@ fn read_in_stages(root: &Utf8Path, binary: &Row, mut early: impl FnMut(&Snapshot
         }
     };
     lap.mark("corpus, board, status");
-    let work = Work::read(&repo);
+    // R2: Mission Control lists the work other worktrees and clones hold.
+    let work = match crate::ticket::Store::open(&repo, None) {
+        Ok(store) => Work::read_with(&repo, &store.sharing()),
+        Err(_) => Work::read(&repo),
+    };
     for (source, what) in [
         (Source::Tickets, "the tickets"),
         (Source::Claims, "the claims"),
