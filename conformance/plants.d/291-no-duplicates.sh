@@ -26,7 +26,7 @@ nd_as() {
         >"$ND_T/out" 2>"$ND_T/err" </dev/null)
 }
 nd_id() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["id"])' "$ND_T/out"; }
-nd_count() { find "$ND_A/docs/tickets" "$ND_B/docs/tickets" -maxdepth 1 -name 't-*.md' 2>/dev/null | wc -l; }
+nd_count() { find "$ND_A/docs/work" "$ND_B/docs/work" -name '*.md' 2>/dev/null | wc -l; }
 ND_A="$ND_T/a" ND_B="$ND_T/b"
 
 mkdir -p "$ND_A"

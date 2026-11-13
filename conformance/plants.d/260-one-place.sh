@@ -143,7 +143,7 @@ fi
 # ---- uncommitted work is refused at dispatch ---------------------------------
 OP_D=$(op_war "$OP_W" lead --json create "Not committed" --item "d" | op_id)
 OP_OUT=$(op_war "$OP_W" lead start --worktree "$OP_D" --as worker --print); OP_RC=$?
-if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "go.start-uncommitted" && op_has "$OP_OUT" "$(tk "git add docs/tickets/$OP_D.md")"; then
+if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "go.start-uncommitted" && op_has "$OP_OUT" "git add docs/work/$OP_D/$OP_D-not-committed.md"; then
     op_ok "uncommitted single file refused" "names the git add"
 else
     op_fail "uncommitted single file refused" "exit $OP_RC: $OP_OUT"
@@ -164,7 +164,7 @@ if [[ $OP_RC -ne 0 ]] && op_has "$OP_OUT" "go.start-uncommitted"; then
 else
     op_fail "edited since commit refused" "exit $OP_RC: $OP_OUT"
 fi
-op_git -C "$OP_W" checkout -q -- "$(tk "docs/tickets/$OP_D.md")"
+op_git -C "$OP_W" checkout -q -- "docs/work/$OP_D/$OP_D-not-committed.md"
 OP_OUT=$(op_war "$OP_W" lead start --worktree "$OP_D" --as worker --print); OP_RC=$?
 if [[ $OP_RC -eq 0 ]] && op_has "$OP_OUT" "work in "; then
     op_ok "committed work dispatches" "$OP_D"

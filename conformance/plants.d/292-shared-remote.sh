@@ -50,7 +50,7 @@ sr_as one "$SR_1" --json create "Ship the audit log" --item "write it"; SR_RC=$?
 SR_REF="refs/openwarrant/tickets/$SR_ID"
 SR_TITLE=$(git -C "$SR_BARE" log -1 --format=%B "$SR_REF" 2>/dev/null \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["title"])' 2>/dev/null)
-SR_BLOB=$(git -C "$SR_BARE" show "$SR_REF:$SR_ID.md" 2>/dev/null | grep -c '^# Ship the audit log')
+SR_BLOB=$(git -C "$SR_BARE" show "$SR_REF:$SR_ID-ship-the-audit-log.md" 2>/dev/null | grep -c '^# Ship the audit log')
 if [[ $SR_RC == 0 && -n "$SR_ID" && "$SR_TITLE" == "Ship the audit log" && $SR_BLOB == 1 ]]; then
     sr_ok "a new ticket is a ref" "refs/openwarrant/tickets/<id>: its record in the commit message, its document a blob"
 else
@@ -83,7 +83,7 @@ fi
 # --- the same title in clone 2 is refused, naming clone 1's ---------------------------
 sr_as two "$SR_2" create "Ship the audit log"; SR_RC=$?
 if [[ $SR_RC != 0 ]] && grep -q "ticket.duplicate.*$SR_ID (\"Ship the audit log\").*remote origin" "$SR_T/err" \
-    && [[ $(find "$SR_2/docs/tickets" -name 't-*.md' 2>/dev/null | wc -l) == 0 ]]; then
+    && [[ $(find "$SR_2/docs/work" -name '*.md' 2>/dev/null | wc -l) == 0 ]]; then
     sr_ok "a duplicate across clones" "refused in clone 2 naming clone 1's ticket on the remote; nothing written"
 else
     sr_fail "a duplicate across clones" "exit $SR_RC: $(head -c 300 "$SR_T/err")"

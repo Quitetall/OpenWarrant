@@ -26,6 +26,10 @@
 # ticket.no-drafter); and applying the same proposal again
 # (record.duplicate-id, once per record).
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== from a sentence to typed records (OW-WAR-0148 M7) =="
 PL_ROOT=$(scratch_corpus PL)
 [[ -d "${PL_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -241,3 +245,4 @@ fi
 command rm -rf "$PL_TMP"
 corpus_gone "$PL_ROOT"
 unset PL_ROOT PL_TMP PL_WAR PL_FX PL_SENT PL_TK PL_REC
+unset OPENWARRANT_TICKET_LAYOUT

@@ -28,6 +28,10 @@
 # kept (record.relation-target-unknown, model.relation-target-unknown); and
 # `war impact` on an unknown id (impact.unknown-record).
 
+# This plant is about tickets kept as `docs/tickets/<t-id>.md`, the layout before
+# `docs/work/`, which stays readable and workable: `war create` writes it here.
+export OPENWARRANT_TICKET_LAYOUT=tickets
+
 echo "== records and typed relations (OW-WAR-0148 M3) =="
 RP_ROOT=$(scratch_corpus RP)
 [[ -d "${RP_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
@@ -325,3 +329,4 @@ fi
 command rm -rf "$RP_TMP"
 corpus_gone "$RP_ROOT"
 unset RP_ROOT RP_TMP RP_WAR RP_REC RP_REV0 RP_T RP_I
+unset OPENWARRANT_TICKET_LAYOUT

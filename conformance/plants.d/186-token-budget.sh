@@ -38,7 +38,7 @@ TB_PRIME=$(tb_war view prime 2>&1)
 TB_PRIME_B=$(printf '%s' "$TB_PRIME" | wc -c)
 TB_PRIME_MAX=$(( 600 + 200 * TB_N ))
 if [[ $TB_PRIME_B -le $TB_PRIME_MAX ]] && ! grep -q 'MARKER-' <<<"$TB_PRIME" \
-    && [[ $(grep -c '^- t-' <<<"$TB_PRIME") -eq $TB_N ]]; then
+    && [[ $(grep -c '^- [tw]-' <<<"$TB_PRIME") -eq $TB_N ]]; then
     tb_ok "prime is one line a Warrant" "$TB_PRIME_B bytes for $TB_N (budget $TB_PRIME_MAX); no Warrant's text"
 else
     tb_fail "prime is one line a Warrant" "$TB_PRIME_B bytes (budget $TB_PRIME_MAX); markers: $(grep -o 'MARKER-[0-9]*-[A-Z]*' <<<"$TB_PRIME" | tr '\n' ' ')"

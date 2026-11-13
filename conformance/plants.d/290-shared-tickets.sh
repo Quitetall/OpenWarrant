@@ -61,7 +61,7 @@ fi
 
 # --- an id the register holds is not minted again ---------------------------------
 sw_as alice "$SW_A" --json create "A second, unrelated thing"; SW_ID2=$(sw_id)
-SW_NAMES=$(find "$SW_REG" -maxdepth 1 -type f -name 't-*' ! -name '*~*' | wc -l)
+SW_NAMES=$(find "$SW_REG" -maxdepth 1 -type f -name '[tw]-*' ! -name '*~*' | wc -l)
 if [[ -n "$SW_ID2" && "$SW_ID2" != "$SW_ID" && $SW_NAMES == 2 && -f "$SW_REG/$SW_ID" && -f "$SW_REG/$SW_ID2" ]]; then
     sw_ok "one id, one ticket" "each id is one name in the clone's register, taken as a claim takes a lock"
 else
@@ -116,8 +116,10 @@ fi
 # --- one id, two tickets: flagged, not hidden ---------------------------------------
 sw_as alice "$SW_A" --json create "Only A has this one"; SW_ID3=$(sw_id)
 sw_as bob "$SW_B" view tickets; SW_CLEAN=$(grep -c 'ticket.id-collision' "$SW_T/err")
+SW_SRC="$(tk "$SW_A/docs/tickets/$SW_ID3.md")"; SW_DST="$SW_B/${SW_SRC#"$SW_A"/}"
+mkdir -p "$(dirname "$SW_DST")"
 sed -e 's/^uuid: .*/uuid: 01a1d2f8-0000-7000-8000-000000000009/' -e 's/Only A has this one/A stranger under the same id/' \
-    "$(tk "$SW_A/docs/tickets/$SW_ID3.md")" >"$(tk "$SW_B/docs/tickets/$SW_ID3.md")"
+    "$SW_SRC" >"$SW_DST"
 sw_as bob "$SW_B" view tickets; cp "$SW_T/err" "$SW_T/collision"; cp "$SW_T/out" "$SW_T/listed"
 sw_as bob "$SW_B" status
 if [[ $SW_CLEAN == 0 ]] && grep -q "ticket.id-collision.*$SW_ID3.*A stranger under the same id.*Only A has this one" "$SW_T/collision" \
