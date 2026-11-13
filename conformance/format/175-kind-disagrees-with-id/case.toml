@@ -1,0 +1,5 @@
+id = "175-kind-disagrees-with-id"
+kind = "refuse"
+section = "4.6"
+rule = "format.kind-mismatch"
+says = """A `kind` key that disagrees with the id is refused (`format.kind-mismatch`)."""

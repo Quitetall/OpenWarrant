@@ -12,10 +12,10 @@
 [F] t-0d61d/CHK-reset · check · - · reset tests pass · docs/tickets/t-0d61d.md:20
 [F] REQ-reset-1 · requirement · - · a reset link works once · SPEC.md:16
 [F] CON-1 · constraint · - · no new datastore · SPEC.md:21
-[F] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 [F] doc:SPEC.md · spec · - · Account service · SPEC.md:1
-[F] OW-WAR-0150 · warrant · open · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
+[F] OW-WAR-0150/OBL-001 · obligation · - · a consumed link is refused · docs/warrants/OW-WAR-0150.md:20
 [F] CSQ-1 · consequence · - · the token table needs a sweeper · SPEC.md:32
+[F] OW-WAR-0150 · warrant · open · Reset links are single use · docs/warrants/OW-WAR-0150.md:1
 
 ## Records
 > t-0d61d · ticket · docs/tickets/t-0d61d.md:1 · sha256:1913e182884c
@@ -71,15 +71,6 @@ constrains REQ-reset-1
 
 <!-- /rec -->
 
-> OW-WAR-0150/OBL-001 · obligation · docs/warrants/OW-WAR-0150.md:20 · sha256:fd56c1e72596
-<!-- rec OW-WAR-0150/OBL-001 docs/warrants/OW-WAR-0150.md:20 sha256:fd56c1e72596c93f106973891f68e4a34486a2c351e52e0d512861f388d04783 -->
-## OBL-001 · obligation — a consumed link is refused
-scope: the reset endpoint, one consumed link.
-evidence: the second use answers 410.
-refusal: a fresh link is accepted.
-evaluates REQ-reset-1
-<!-- /rec -->
-
 > doc:SPEC.md · spec · SPEC.md:1 · sha256:123d49465d23
 ---
 format: openwarrant/1.0
@@ -91,6 +82,20 @@ summary: Password reset for the account service.
 # Account service
 
 
+> OW-WAR-0150/OBL-001 · obligation · docs/warrants/OW-WAR-0150.md:20 · sha256:fd56c1e72596
+<!-- rec OW-WAR-0150/OBL-001 docs/warrants/OW-WAR-0150.md:20 sha256:fd56c1e72596c93f106973891f68e4a34486a2c351e52e0d512861f388d04783 -->
+## OBL-001 · obligation — a consumed link is refused
+scope: the reset endpoint, one consumed link.
+evidence: the second use answers 410.
+refusal: a fresh link is accepted.
+evaluates REQ-reset-1
+<!-- /rec -->
+
+> CSQ-1 · consequence · SPEC.md:32 · sha256:faa0b685c248
+<!-- rec CSQ-1 SPEC.md:32 sha256:faa0b685c24813c48716a6eeb546db7c8793ea4766e8c7fa37c52609e03a3047 -->
+## CSQ-1 · consequence — the token table needs a sweeper
+<!-- /rec -->
+
 > OW-WAR-0150 · warrant · docs/warrants/OW-WAR-0150.md:1 · sha256:a9af8262ddec
 ---
 format: openwarrant/1.0
@@ -101,9 +106,4 @@ summary: Reset links are single use.
 ---
 # Reset links are single use
 
-
-> CSQ-1 · consequence · SPEC.md:32 · sha256:faa0b685c248
-<!-- rec CSQ-1 SPEC.md:32 sha256:faa0b685c24813c48716a6eeb546db7c8793ea4766e8c7fa37c52609e03a3047 -->
-## CSQ-1 · consequence — the token table needs a sweeper
-<!-- /rec -->
 

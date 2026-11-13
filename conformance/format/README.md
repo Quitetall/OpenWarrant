@@ -6,7 +6,7 @@ derived from a sentence of the specification. None was derived from a tool's
 output. Another implementation of the format can run these cases to show
 that it reads documents the way the specification says.
 
-The corpus follows draft 3, revision 3 (`1.0.0-draft.3`).
+The corpus follows draft 3, revision 4 (`1.0.0-draft.3`).
 
 Licence: the corpus, `reader.py`, `context.py`, `tracker.py` and `run.py`
 are Apache-2.0, the same as the schemas. The specification's text is
