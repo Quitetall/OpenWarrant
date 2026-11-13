@@ -98,6 +98,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- The "Native performer controls" workflow (Linux and macOS) compiles the views
+  before it runs, as fast CI's plants job does. It had failed on every run since
+  views left pull requests (2026-11-07): its positive control is `war check
+  --generated`, which reported seven drifted views. All 21 performer controls
+  passed throughout. On failure it now prints the end of each log, and its path
+  filter includes `conformance/views.py` and `conformance/views.toml`.
 - Plant 45's timing probe closes the tickets it makes in this repository
   before removing them. Removing the files alone left their announcements in
   the clone's shared register, so a second run in the same checkout was refused
