@@ -825,6 +825,7 @@ pub fn apply(
     plan: &Plan,
     drafter: Option<&str>,
     proposal_json: &str,
+    force: bool,
 ) -> Result<Result<Applied, crate::ticket::Outcome>, RepoError> {
     use std::io::Write as _;
     let file: Utf8PathBuf = repo.root.join(&plan.path);
@@ -889,7 +890,7 @@ pub fn apply(
         issue: None,
         scope: crate::ticket::Scope::default(),
         tests: Vec::new(),
-        force: false,
+        force,
     };
     let outcome = match crate::ticket::create(store, &args) {
         Ok(o) => o,
@@ -1202,7 +1203,7 @@ pub fn run_plan(
         ));
     }
     let store = crate::ticket::Store::open(repo, None)?;
-    match apply(repo, &store, &plan, drafter.as_deref(), &json)? {
+    match apply(repo, &store, &plan, drafter.as_deref(), &json, false)? {
         Ok(applied) => Ok(answer(
             mode,
             "plan.records-apply",
@@ -1224,6 +1225,8 @@ pub fn run_plan(
 /// records it implements, from one sentence. The caller's `--item`s join
 /// the drafted ones, implementing nothing; `--body` leads the ticket's body;
 /// `--priority` wins.
+// One argument per `war create --records` option; `force` (R2) is the eighth.
+#[allow(clippy::too_many_arguments)]
 pub fn run_create(
     repo: &Repository,
     store: &crate::ticket::Store,
@@ -1232,6 +1235,7 @@ pub fn run_create(
     extra_items: &[String],
     body: Option<&str>,
     priority: Option<u8>,
+    force: bool,
 ) -> Result<crate::ticket::Outcome, RepoError> {
     let refused = |report: Report, result: serde_json::Value| crate::ticket::Outcome {
         human: report
@@ -1290,7 +1294,7 @@ pub fn run_create(
     if priority.is_some() {
         plan.priority = priority;
     }
-    match apply(repo, store, &plan, Some(&run.name), &json)? {
+    match apply(repo, store, &plan, Some(&run.name), &json, force)? {
         Ok(applied) => Ok(crate::ticket::Outcome {
             report: Report::default(),
             human: human(&applied),

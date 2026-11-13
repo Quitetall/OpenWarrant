@@ -216,7 +216,8 @@ fi
 # 7. `war create --draft --records`: the ticket and the records it
 #    implements from one sentence, in the area named.
 pl_reset
-PL_C=$(pl_war --json create "$PL_SENT" --draft --records --area email-reset 2>/dev/null)
+# The sentence is already an open ticket (step 4): created outright (R2).
+PL_C=$(pl_war --json create "$PL_SENT" --draft --records --area email-reset --force 2>/dev/null)
 PL_CJ=$(python3 -c '
 import json, sys
 v = json.load(sys.stdin)

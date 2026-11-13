@@ -3980,6 +3980,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     &items,
                     body.as_deref(),
                     priority,
+                    force,
                 )?;
                 refresh_index_after(&repository, &outcome, true);
                 return Ok(ticket_answer(mode, "create", &outcome));

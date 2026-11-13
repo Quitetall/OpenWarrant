@@ -68,6 +68,8 @@ const TITLE_LOCK_SECS: u64 = 30;
 /// The share of the longer title's words the shorter must cover for two
 /// titles to read as one piece of work ([`alike`]).
 pub const CLOSE: f64 = 0.6;
+/// The fewest words the shorter title must hold for the two to be close.
+pub const CLOSE_WORDS: usize = 3;
 
 /// Where a ticket this checkout lacks lives.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -952,8 +954,9 @@ pub enum Alike {
 /// Whether `a` and `b` read as one piece of work, by word overlap.
 ///
 /// The same content words is [`Alike::Same`]. Otherwise the two are close
-/// when one title's words are all among the other's and cover at least
-/// [`CLOSE`] of them: a rewording adds or drops words. Two titles that each
+/// when one title's words (at least [`CLOSE_WORDS`]) are all among the
+/// other's and cover at least [`CLOSE`] of them: a rewording adds or drops
+/// words. Two titles that each
 /// hold a word the other lacks are distinct work however much else they
 /// share ("Add CSV export" and "Add JSON export" differ in the one word
 /// that matters), so a plain Jaccard score, which reads those as 0.5 and
@@ -981,7 +984,9 @@ pub fn alike(a: &str, b: &str) -> Option<Alike> {
         .all(|(w, n)| large.get(w).is_some_and(|m| m >= n));
     #[allow(clippy::cast_precision_loss)]
     let share = size(small) as f64 / size(large) as f64;
-    (within && share >= CLOSE).then_some(Alike::Close(share))
+    // Two words are too few to call a third an elaboration: "Fix bug" is
+    // not "Fix login bug".
+    (within && size(small) >= CLOSE_WORDS && share >= CLOSE).then_some(Alike::Close(share))
 }
 
 /// One creator per title at a time: a lock in the register named by a hash
@@ -1191,6 +1196,9 @@ mod tests {
                 false,
             ),
             ("Refactor", "Refactor the parser", false),
+            // Two words are too few for a third to be an elaboration.
+            ("Fix bug", "Fix login bug", false),
+            ("The engine feature", "The tested engine feature", false),
             // Known miss: a synonym is a substitution like any other.
             (
                 "Refuse duplicate tickets",
