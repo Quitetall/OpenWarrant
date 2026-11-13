@@ -1542,7 +1542,7 @@ fn touched_blocks(
     let mut files = Vec::new();
     {
         let mut by_id = std::collections::HashMap::with_capacity(tickets.len());
-        for t in tickets {
+        for t in tickets.iter().filter(|t| t.elsewhere.is_none()) {
             by_id.entry(t.id()).or_insert(t);
         }
         let mut at = Some(id);
@@ -1567,7 +1567,14 @@ fn touched_blocks(
     if !docs.faults.is_empty() {
         return None;
     }
-    let corpus = crate::corpus::Corpus::of_tickets(repo, (tickets.to_vec(), Vec::new()), docs);
+    // The index is this checkout's tickets: one another worktree or clone
+    // holds (listed for the ticket loop) is no part of a compilation here.
+    let here: Vec<crate::ticket::Ticket> = tickets
+        .iter()
+        .filter(|t| t.elsewhere.is_none())
+        .cloned()
+        .collect();
+    let corpus = crate::corpus::Corpus::of_tickets(repo, (here, Vec::new()), docs);
     let model = crate::model::build_tickets(&corpus, false).ok()?;
     let blocks = index_blocks(&adapter::graph(&corpus, &model));
     chain
