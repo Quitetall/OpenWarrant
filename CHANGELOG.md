@@ -8,7 +8,7 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
-- FORMAT-1.0 revision 4, proposed (OW-ADR-0034, `status: proposed`; the editor
+- FORMAT-1.0 revision 4, proposed (OW-ADR-0035, `status: proposed`; the editor
   accepts it): new items are masters `docs/work/<id>/<id>-<slug>.md` with `w-`/`d-`
   hash ids, `spec` and `roadmap` are the only fixed ids, human numbers are display
   ordinals, and work orders and documents stand on one four-tier ladder (§4.6).

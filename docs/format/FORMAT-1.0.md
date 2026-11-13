@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.3`, revision 4). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. Revision 4 (OW-ADR-0034, proposed) adds masters in `docs/work/`, hash ids and the ladder of 4.6; the editor's acceptance of that ADR is a separate act. |
+| Status | **Draft** (`1.0.0-draft.3`, revision 4). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. Revision 4 (OW-ADR-0035, proposed) adds masters in `docs/work/`, hash ids and the ladder of 4.6; the editor's acceptance of that ADR is a separate act. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
