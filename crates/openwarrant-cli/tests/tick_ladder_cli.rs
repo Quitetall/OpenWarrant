@@ -511,3 +511,98 @@ fn the_bridge_does_nothing_for_a_task_that_names_nothing() {
             .unwrap();
     assert!(checklist.contains("- [x] one"), "{checklist}");
 }
+
+/// `[tickets] done_test` on directory (legacy) tickets: with no test of its
+/// own the repository's decides the tick, and the journal backs the marker;
+/// a ticket with its own test keeps today's plain `war done` and the default
+/// is not run; a minimum of observed is reached by a passing default and
+/// refused by a failing one.
+#[test]
+fn the_repository_default_ticks_a_directory_warrant_at_observed() {
+    let root = scratch("default");
+    let count = root.with_extension("count");
+    let runs = || {
+        std::fs::read_to_string(&count)
+            .unwrap_or_default()
+            .lines()
+            .count()
+    };
+    let config = root.join("openwarrant.toml");
+    let mut toml = std::fs::read_to_string(&config).unwrap();
+    toml.push_str(&format!(
+        "\n[tickets]\ndone_test = \"echo run >> {} && test -f ok\"\n",
+        count.display()
+    ));
+    std::fs::write(&config, toml).unwrap();
+    let make = |title: &str| {
+        json(&root, &["create", "--legacy", title])["result"]["id"]
+            .as_str()
+            .unwrap()
+            .to_owned()
+    };
+
+    // Failing: nothing ticked. Passing: observed, backed by the journal.
+    let plain = make("Plain work");
+    assert!(war(&root, &["claim", &plain]).status.success());
+    let refused = json(&root, &["done", &plain]);
+    assert_eq!(refused["exit_code"], 2, "{refused}");
+    assert!(rules(&refused).contains(&"ticket.check-failed".to_owned()));
+    let checklist = |t: &str| {
+        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")))
+            .unwrap_or_default()
+    };
+    assert!(!checklist(&plain).contains("[x]"), "{}", checklist(&plain));
+    std::fs::write(root.join("ok"), "").unwrap();
+    let done = war(&root, &["done", &plain]);
+    assert!(done.status.success(), "{}", text(&done));
+    assert!(
+        text(&done).contains("ticked at observed: default passed"),
+        "{}",
+        text(&done)
+    );
+    assert!(
+        checklist(&plain).contains("[observed]"),
+        "{}",
+        checklist(&plain)
+    );
+    let checked = json(&root, &["check"]);
+    assert!(
+        !rules(&checked).iter().any(|r| r.contains("tick-unbacked")),
+        "{checked}"
+    );
+    assert_eq!(runs(), 2);
+
+    // Its own test takes precedence: a plain done is the claimed tick it
+    // was, and the default is not run.
+    let own = make("Work with its own test");
+    json(&root, &["add", &own, "--test", "true", "--name", "unit"]);
+    assert!(war(&root, &["claim", &own]).status.success());
+    let done = war(&root, &["done", &own]);
+    assert!(
+        done.status.success() && text(&done).contains("ticked as claimed: nothing was checked"),
+        "{}",
+        text(&done)
+    );
+    assert_eq!(runs(), 2, "the default ran for a ticket with its own test");
+
+    // A minimum of observed: the default reaches it, and a failing one does not.
+    let t = make("Release");
+    let added = json(
+        &root,
+        &["add", &t, "--milestone", "Beta ships", "--min", "observed"],
+    );
+    let target = format!("{t}/{}", added["result"]["item"].as_str().unwrap());
+    assert!(war(&root, &["claim", &target]).status.success());
+    std::fs::remove_file(root.join("ok")).unwrap();
+    let refused = json(&root, &["done", &target]);
+    assert!(
+        rules(&refused).contains(&"ticket.check-failed".to_owned()),
+        "{refused}"
+    );
+    std::fs::write(root.join("ok"), "").unwrap();
+    let ok = json(&root, &["done", &target]);
+    assert_eq!(ok["exit_code"], 0, "{ok}");
+    assert_eq!(ok["result"]["level"], "observed", "{ok}");
+    std::fs::remove_dir_all(&root).ok();
+    std::fs::remove_file(&count).ok();
+}

@@ -55,17 +55,29 @@ n=$(timeout 30 "$WAR" admin agents-md --block --stdout 2>/dev/null | b); row "ma
 # Text against envelope, the same question asked twice of the same state.
 timeout 30 "$WAR" create "measure one" >/dev/null
 timeout 30 "$WAR" create "measure two" >/dev/null
+timeout 30 "$WAR" create "measure three" >/dev/null
 for c in status check; do
     t=$(timeout 30 "$WAR" "$c" 2>/dev/null | b || true)
     j=$(timeout 30 "$WAR" --json "$c" 2>/dev/null | b || true)
     row "war $c: text / --json" "$t / $j" "$((t / 4)) / $((j / 4))"
 done
+# What answers "what is next" before it is asked: the overview, the ready rows
+# alone, and the file an instruction-loading harness reads (n/a: not in this build).
+t=$(timeout 30 "$WAR" view prime 2>/dev/null | b)
+r=$(timeout 30 "$WAR" view prime --ready 2>/dev/null | b || true)
+[[ $r -gt 0 ]] || r="n/a"
+row "war view prime: overview / --ready" "$t / $r" "$((t / 4)) / $([[ $r == n/a ]] && echo n/a || echo $((r / 4)))"
 t=$(OPENWARRANT_ACTOR=agent-a timeout 30 "$WAR" start 2>/dev/null | b)
+if [[ -f .openwarrant/next.md ]]; then
+    n=$(b < .openwarrant/next.md); row ".openwarrant/next.md, a held brief" "$n" $((n / 4))
+else
+    row ".openwarrant/next.md, a held brief" "n/a" "n/a"
+fi
 j=$(OPENWARRANT_ACTOR=agent-b timeout 30 "$WAR" --json start 2>/dev/null | b)
 row "war start: text / --json" "$t / $j" "$((t / 4)) / $((j / 4))"
 t=$(OPENWARRANT_ACTOR=agent-a timeout 30 "$WAR" done --note m 2>/dev/null | b)
 j=$(OPENWARRANT_ACTOR=agent-b timeout 30 "$WAR" --json done --note m 2>/dev/null | b)
-row "war done: text / --json" "$t / $j" "$((t / 4)) / $((j / 4))"
+row "war done, naming the next: text / --json" "$t / $j" "$((t / 4)) / $((j / 4))"
 
 # What one MCP reply costs: the default, and the envelope when asked.
 for tool in war_status war_check; do

@@ -355,6 +355,23 @@ docs/tickets/ directly: it costs far more. Close it with your last test run:
 The sections of these files are also records that plans can cite
 (`md:CLAUDE.md#testing`); [docs/TYPES.md](TYPES.md) has the details.
 
+## opencode: the work before the first turn
+
+A harness that loads instruction files needs no hook. `war` keeps
+`.openwarrant/next.md` current in each worktree: the brief of the work the
+acting agent holds, else the ready rows, within 6,144 bytes. Point opencode at
+it in `opencode.json` at the repository root:
+
+```json
+{ "$schema": "https://opencode.ai/config.json", "instructions": [".openwarrant/next.md"] }
+```
+
+`war create`, `start`, `done` and a release rewrite the file, and it is removed
+when nothing is held or ready (opencode skips a missing file). It is never
+committed: the clone's `.git/info/exclude` names it, and it is in no `war`
+dirt check. docs/TICKETS.md, "For agents", says what else answers "what is
+next" without a call.
+
 ## Signing setup: `war admin doctor`
 
 Ordinary work needs no signing setup. When a person wants to sign off with

@@ -937,7 +937,12 @@ fn head_commit_read(root: &camino::Utf8Path) -> Option<String> {
         .filter(|s| !s.is_empty())
 }
 
-fn definition(t: &Ticket, name: &str, cmd: &str) -> openwarrant_core::gate::GateDefinition {
+fn definition(
+    t: &Ticket,
+    name: &str,
+    cmd: &str,
+    timeout_secs: Option<u64>,
+) -> openwarrant_core::gate::GateDefinition {
     openwarrant_core::gate::GateDefinition {
         gate_id: format!("{}.{name}", t.id()),
         version: "check".to_owned(),
@@ -952,7 +957,7 @@ fn definition(t: &Ticket, name: &str, cmd: &str) -> openwarrant_core::gate::Gate
         provenance: openwarrant_core::gate::GateProvenance::default(),
         argv: vec!["sh".to_owned(), "-c".to_owned(), cmd.to_owned()],
         mutating: false,
-        timeout_secs: None,
+        timeout_secs,
     }
 }
 
@@ -962,6 +967,7 @@ fn run_one(
     t: &Ticket,
     name: &str,
     cmd: &str,
+    timeout_secs: Option<u64>,
 ) -> (
     openwarrant_core::GateRun,
     String,
@@ -970,7 +976,7 @@ fn run_one(
     Option<String>,
 ) {
     let dir = repo.root.join(OUTPUT_DIR).join(t.id());
-    let def = definition(t, name, cmd);
+    let def = definition(t, name, cmd, timeout_secs);
     let started = Instant::now();
     let run = crate::gate_cmd::run_gate(&def, repo, &dir);
     let ms = started.elapsed().as_millis();
@@ -1014,7 +1020,7 @@ pub fn run_checks(
     };
     let mut round = round;
     for test in tests {
-        let (run, _, output, ms, digest) = run_one(repo, t, &test.name, &test.cmd);
+        let (run, _, output, ms, digest) = run_one(repo, t, &test.name, &test.cmd, None);
         // M11: a long run keeps this agent's leases fresh, one touch per lock.
         store.renew_held(None);
         let (status, reason) = status_of(&run);
@@ -1058,7 +1064,7 @@ fn measure(
     commit: Option<&str>,
     round: &str,
 ) -> Result<Run, RepoError> {
-    let (run, stdout, output, ms, digest) = run_one(repo, t, &kpi.name, &kpi.cmd);
+    let (run, stdout, output, ms, digest) = run_one(repo, t, &kpi.name, &kpi.cmd, None);
     let (status, reason) = status_of(&run);
     // A command that did not complete with exit 0 measured nothing: UNKNOWN,
     // never a value. One that did, and printed no number, is UNKNOWN too.
@@ -1399,6 +1405,21 @@ pub fn check_for_tick(
             .unwrap_or_else(|| store.root.clone()),
     ))?;
     let round = run_checks(store, &repo, t, item, checks)?;
+    let file = store.rel(&t.dir.join(ticks::CHECKS_FILE));
+    judge_round(store, t, item, what, round, file)
+}
+
+/// A round that ran: `Ok(Ok(round))` when nothing that decides failed or
+/// could not be established, else the refusal, with the round journalled as
+/// `work.check_run`. `file` is where what ran is declared.
+fn judge_round(
+    store: &Store,
+    t: &Ticket,
+    item: Option<&str>,
+    what: &str,
+    round: CheckRound,
+    file: String,
+) -> Result<Result<CheckRound, Box<Outcome>>, RepoError> {
     let failed = round.failed();
     let unknown = round.unknown();
     let mut report = crate::diagnostic::Report::default();
@@ -1433,7 +1454,6 @@ pub fn check_for_tick(
             CheckRound::describe(&failed)
         )
     };
-    let file = store.rel(&t.dir.join(ticks::CHECKS_FILE));
     report.push(if failed.is_empty() {
         Diagnostic::unknown("ticket.check-unknown", file, message.clone())
     } else {
@@ -1449,6 +1469,163 @@ pub fn check_for_tick(
             "checks": round,
         }),
     })))
+}
+
+/// The name the repository's default test runs under.
+pub const DEFAULT_NAME: &str = "default";
+
+/// Whether the ticket declares a check of its own that applies to `item`
+/// (`None`: the document itself): a `CHK-*` record that evaluates it or the
+/// whole document, gating or not, or a test or KPI of a directory ticket's
+/// checks file. Where one does, the ticket's author said what checks the
+/// work, and `[tickets] done_test` stands aside.
+#[must_use]
+pub fn has_own_check(t: &Ticket, item: Option<&str>) -> bool {
+    if t.format {
+        let target = item.map(|i| format!("{}/{i}", t.id()));
+        return super::checks::of_ticket(t).iter().any(|c| {
+            c.evaluates
+                .iter()
+                .any(|e| e == t.id() || Some(e) == target.as_ref())
+        });
+    }
+    let checks = checks_of(t);
+    let (tests, kpis) = checks.for_item(item);
+    !tests.is_empty() || !kpis.is_empty()
+}
+
+/// A passing default round `t`'s journal already holds for exactly these
+/// bytes: the last `work.item_done` whose `default` names this command and
+/// this source basis. Only a pass is ever kept there.
+fn default_reused(t: &Ticket, cmd: &str, basis: &super::source_basis::Basis) -> Option<CheckRound> {
+    let journal = crate::journal_cmd::load(&t.dir).ok()?;
+    let want = serde_json::to_value(basis).ok()?;
+    journal.events.iter().rev().find_map(|e| {
+        if e.event_type != super::event::ITEM_DONE {
+            return None;
+        }
+        let p: serde_json::Value = serde_json::from_str(&e.payload).ok()?;
+        let d = p.get("default")?;
+        if d.get("cmd")?.as_str()? != cmd || d.get("source_basis")? != &want {
+            return None;
+        }
+        let r = p.get("runs")?.as_array()?.first()?;
+        let s = |k: &str| r.get(k).and_then(|v| v.as_str()).map(str::to_owned);
+        (r.get("verdict")?.as_str()? == "pass").then_some(())?;
+        Some(CheckRound {
+            run: p.get("run")?.as_str()?.to_owned(),
+            runs: vec![Run {
+                kind: "test",
+                name: DEFAULT_NAME.to_owned(),
+                cmd: cmd.to_owned(),
+                item: None,
+                verdict: "pass",
+                gating: true,
+                status: s("status")?,
+                reason: None,
+                value: None,
+                target: None,
+                direction: None,
+                mode: None,
+                duration_ms: r
+                    .get("duration_ms")
+                    .and_then(serde_json::Value::as_u64)
+                    .map_or(0, u128::from),
+                stdout_sha256: s("stdout_sha256"),
+                output: s("output")?,
+            }],
+            commit: p.get("commit").and_then(|v| v.as_str()).map(str::to_owned),
+        })
+    })
+}
+
+/// What a default round adds to the `work.item_done` it backs: the command
+/// and the bytes it ran on, which is what a later `war done` compares.
+pub struct DefaultRound {
+    pub round: CheckRound,
+    /// `{cmd, source_basis}`; `source_basis` absent when it could not be read.
+    pub record: serde_json::Value,
+    /// The pass was read from the journal: nothing changed since it ran.
+    pub reused: bool,
+}
+
+/// `[tickets] done_test`, the repository's own test, run for `what`: once
+/// per `war done`, whatever it ticks. `Ok(Ok(round))` on a pass; a fail
+/// (`ticket.check-failed`) or a run that could not be established (UNKNOWN,
+/// `ticket.check-unknown`) is the refusal, journalled as `work.check_run`,
+/// and ticks nothing. The caller asks only where no check of the ticket's
+/// own applies ([`has_own_check`]) and the key is set.
+///
+/// A pass is reused, not rerun, only when this ticket's journal holds one
+/// for the same command over the same source basis
+/// ([`super::source_basis::capture`]: HEAD, every tracked difference and every
+/// new file git does not ignore, the ticket's own ticks aside). A basis that
+/// cannot be read is never equal to another, so the test runs.
+pub fn run_default(
+    store: &Store,
+    t: &Ticket,
+    what: &str,
+    cmd: &str,
+) -> Result<Result<DefaultRound, Box<Outcome>>, RepoError> {
+    let repo = Repository::discover(Some(
+        store
+            .check_root
+            .clone()
+            .unwrap_or_else(|| store.root.clone()),
+    ))?;
+    let basis = super::source_basis::capture(&repo.root, &t.dir).ok();
+    let mut record = serde_json::json!({"cmd": cmd});
+    if let Some(b) = &basis {
+        record["source_basis"] = serde_json::to_value(b).unwrap_or_default();
+        if let Some(round) = default_reused(t, cmd, b) {
+            return Ok(Ok(DefaultRound {
+                round,
+                record,
+                reused: true,
+            }));
+        }
+    }
+    let mut round = CheckRound {
+        run: openwarrant_core::WarUuid::mint().to_string(),
+        runs: Vec::new(),
+        commit: head_commit(&repo.root),
+    };
+    // Its output is disposable state, never a change to the checkout.
+    crate::go::git::exclude(&repo.root, OUTPUT_DIR);
+    let (run, _, output, ms, digest) =
+        run_one(&repo, t, DEFAULT_NAME, cmd, store.done_test_timeout);
+    store.renew_held(None);
+    let (status, reason) = status_of(&run);
+    let verdict = match run.verdict {
+        openwarrant_core::Verdict::Pass if run.satisfies_required_pass() => "pass",
+        openwarrant_core::Verdict::Fail => "fail",
+        _ => "unknown",
+    };
+    round.runs.push(Run {
+        kind: "test",
+        name: DEFAULT_NAME.to_owned(),
+        cmd: cmd.to_owned(),
+        item: None,
+        verdict,
+        gating: true,
+        status,
+        reason,
+        value: None,
+        target: None,
+        direction: None,
+        mode: None,
+        duration_ms: ms,
+        stdout_sha256: digest,
+        output,
+    });
+    let file = crate::init::CONFIG_FILE.to_owned();
+    Ok(
+        judge_round(store, t, None, what, round, file)?.map(|round| DefaultRound {
+            round,
+            record,
+            reused: false,
+        }),
+    )
 }
 
 /// `war done <item> --check` on an item already done: run its checks, and

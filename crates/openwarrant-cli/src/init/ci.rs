@@ -61,6 +61,26 @@ pub fn detected_tests(root: &Utf8Path) -> Vec<String> {
     found
 }
 
+/// The one command `war done` runs for `root` (`[tickets] done_test`), from
+/// [`detected_tests`]. Several build systems are joined with `&&`: done means
+/// none of the repository's suites broke, and taking only the first would
+/// leave the others unasked while the tick read `observed`. The dependency
+/// install a CI runner needs first (`npm ci`, `npm install`) is left out: a
+/// working checkout has its dependencies, and `war done` is no place to
+/// reinstall them.
+#[must_use]
+pub fn detected_done_test(root: &Utf8Path) -> Option<String> {
+    let tests: Vec<String> = detected_tests(root)
+        .into_iter()
+        .map(|t| {
+            t.strip_prefix("npm ci && ")
+                .or_else(|| t.strip_prefix("npm install && "))
+                .map_or(t.clone(), str::to_owned)
+        })
+        .collect();
+    (!tests.is_empty()).then(|| tests.join(" && "))
+}
+
 /// The workflow's bytes: a pure function of the commands and `war`'s version.
 #[must_use]
 pub fn workflow(tests: &[String], version: &str) -> String {

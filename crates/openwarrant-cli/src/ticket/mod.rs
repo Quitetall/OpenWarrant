@@ -45,6 +45,7 @@ pub mod ladder;
 mod legacy_completion;
 pub mod live;
 pub mod merge;
+pub mod next_file;
 pub mod parts;
 pub mod prompt;
 pub mod remote;
@@ -174,6 +175,17 @@ pub struct Policy {
     /// session carries nothing. `false` turns it off.
     #[serde(default)]
     pub session_start: Option<bool>,
+    /// The repository's own test, as one shell command line. `war done` runs
+    /// it, once per call, on anything no check of the ticket's own applies
+    /// to: a pass ticks at `observed`, a fail or an UNKNOWN run ticks
+    /// nothing. Unset (or the line deleted), `war done` ticks as claimed.
+    /// `war init` records the one it detects; `war init --done-test` sets it.
+    #[serde(default)]
+    pub done_test: Option<String>,
+    /// How many seconds `done_test` may run before it reads UNKNOWN
+    /// (default: the gate runner's, 600).
+    #[serde(default)]
+    pub done_test_timeout: Option<u64>,
 }
 
 /// `[tickets] claim_lease_minutes` in whole seconds; a negative or
@@ -432,6 +444,11 @@ pub struct Store {
     /// worktree that holds the node's work, while the tick is written here.
     /// `None` everywhere else.
     pub check_root: Option<Utf8PathBuf>,
+    /// `[tickets] done_test`: what `war done` runs when the ticket declares
+    /// no check of its own ([`ladder::run_default`]). `None`: nothing.
+    pub done_test: Option<String>,
+    /// `[tickets] done_test_timeout`, in seconds.
+    pub done_test_timeout: Option<u64>,
 }
 
 /// Now, in Unix seconds.
@@ -571,6 +588,11 @@ impl Store {
                 Level::Claimed
             },
             check_root: None,
+            done_test: policy
+                .done_test
+                .map(|c| c.trim().to_owned())
+                .filter(|c| !c.is_empty()),
+            done_test_timeout: policy.done_test_timeout.filter(|s| *s > 0),
         })
     }
 
@@ -4847,9 +4869,23 @@ fn finish(
             Some(Err(refusal)) => return Ok(*refusal),
         }
     }
-    let check = !matches!(how, How::Claimed);
     // OW-WAR-0148 M13: the level this tick reaches, and the least it must.
     let checks = ladder::checks_of(t);
+    // `[tickets] done_test`: where no check of the ticket's own applies, the
+    // repository's test decides the tick. Not run for a tick `observed`
+    // could not earn anyway.
+    let mut default = None;
+    if matches!(how, How::Claimed)
+        && let Some(cmd) = store.done_test.as_deref()
+        && !ladder::has_own_check(t, item_id.as_deref())
+        && ladder::minimum(store, t, &checks, item_id.as_deref()).0 <= Level::Observed
+    {
+        match ladder::run_default(store, t, &what, cmd)? {
+            Ok(d) => default = Some(d),
+            Err(refusal) => return Ok(*refusal),
+        }
+    }
+    let check = !matches!(how, How::Claimed) || default.is_some();
     let reach = if check {
         Level::Observed
     } else {
@@ -4867,7 +4903,13 @@ fn finish(
         .map_or_else(Vec::new, |id| ladder::left_for_a_person(store, t, Some(id)));
     if !for_a_person.is_empty()
         && matches!(how, How::Claimed | How::Check)
-        && let Err(refusal) = signature_trigger(store, t, &for_a_person, matches!(how, How::Check))?
+        && let Err(refusal) = signature_trigger(
+            store,
+            t,
+            &for_a_person,
+            matches!(how, How::Check),
+            default.is_some(),
+        )?
     {
         return Ok(*refusal);
     }
@@ -4882,7 +4924,7 @@ fn finish(
         auto_claimed = Some(claimed.result.get("claim").cloned().unwrap_or_default());
     }
     let round = match how {
-        How::Claimed => None,
+        How::Claimed => default.as_ref().map(|d| d.round.clone()),
         How::Ran(round) => Some(round),
         How::Check => match ladder::check_for_tick(store, t, item_id.as_deref(), &checks, &what)? {
             Ok(round) => Some(round),
@@ -4997,6 +5039,9 @@ fn finish(
         payload["commit"] = serde_json::json!(r.commit);
         payload["run"] = serde_json::json!(r.run);
     }
+    if let Some(d) = &default {
+        payload["default"] = d.record.clone();
+    }
     store.journal(&t, event::ITEM_DONE, &payload)?;
     hand_over(store, &t, &for_a_person)?;
     let t = if whole_doc {
@@ -5041,8 +5086,9 @@ fn finish(
     // Every tick says how it was earned (OW-WAR-0148 M13).
     match &round {
         Some(r) => human.push_str(&format!(
-            "\nticked at observed: {} passed",
-            ladder::passed_names(r)
+            "\nticked at observed: {} passed{}",
+            ladder::passed_names(r),
+            reused_note(default.as_ref())
         )),
         None => human.push_str("\nticked as claimed: nothing was checked"),
     }
@@ -5050,6 +5096,7 @@ fn finish(
     // issue, say so there when write-back is configured.
     let mut issue_report = None;
     let mut unknown = None;
+    let mut next = None;
     if !for_a_person.is_empty() {
         human.push_str(&format!("\n{}", waits_on_a_person(&t, &for_a_person)));
     } else if state == TicketState::Done
@@ -5061,8 +5108,10 @@ fn finish(
         human.push_str(&line);
         issue_report = Some(report);
         unknown = diag;
+        next = next_ready(store);
     } else if state == TicketState::Done {
         human.push_str(&format!("\n{} is done: every item is ticked", t.id()));
+        next = next_ready(store);
     } else if let Ok(rows) = ready_rows(store, std::slice::from_ref(&t))
         && let Some(next) = rows.first()
     {
@@ -5085,6 +5134,7 @@ fn finish(
     if let Some(r) = &round {
         result["checks"] = serde_json::to_value(r).unwrap_or_default();
     }
+    say_next(next, &mut human, &mut result);
     if let Some(c) = auto_claimed {
         result["auto_claimed"] = c;
     }
@@ -5105,6 +5155,32 @@ fn finish(
     }
     enforce::landed(store, &t, &what, gate, &mut out)?;
     Ok(out)
+}
+
+/// What a reused default pass adds to the line that names it.
+fn reused_note(default: Option<&ladder::DefaultRound>) -> &'static str {
+    if default.is_some_and(|d| d.reused) {
+        " (not rerun: nothing changed since it passed)"
+    } else {
+        ""
+    }
+}
+
+/// The first ready Warrant, once the one just finished is done: its id and
+/// title. `None` when nothing is ready, or the ready set could not be read
+/// (the tick is written either way, and `war start` says why).
+fn next_ready(store: &Store) -> Option<(String, String)> {
+    let (tickets, _) = store.load_all().ok()?;
+    let rows = ready_rows(store, &tickets).ok()?;
+    rows.first().map(|r| (r.ticket.clone(), r.title.clone()))
+}
+
+/// `next: <id> <title> (`war start <id>`)`, so the agent need not ask.
+fn say_next(next: Option<(String, String)>, human: &mut String, result: &mut serde_json::Value) {
+    if let Some((id, title)) = next {
+        human.push_str(&format!("\nnext: {id} {title} (`war start {id}`)"));
+        result["next"] = serde_json::json!(id);
+    }
 }
 
 /// What `war done` says when an Order now waits on a person: one line, with
@@ -5149,12 +5225,14 @@ fn hand_over(store: &Store, t: &Ticket, items: &[String]) -> Result<(), RepoErro
 /// What decides an Order beyond the items an agent ticks: checks on the
 /// document as a whole and on each item left for a person. Each must pass
 /// before the Order reaches its signer; a tick of the agent's own items never
-/// ran them. `Ok(Ok(round))` names the last that ran.
+/// ran them. `Ok(Ok(round))` names the last that ran. `default_ran`: this
+/// `war done` already ran `[tickets] done_test`, which runs once per call.
 fn signature_trigger(
     store: &Store,
     t: &Ticket,
     items: &[String],
     all: bool,
+    default_ran: bool,
 ) -> Result<Result<Option<ladder::CheckRound>, Box<Outcome>>, RepoError> {
     let mut round = None;
     if t.format {
@@ -5173,6 +5251,21 @@ fn signature_trigger(
                 Ok(r) => round = Some(r),
                 Err(refusal) => return Ok(Err(refusal)),
             }
+        }
+    }
+    // `[tickets] done_test`: an Order nothing of its own decides reaches its
+    // signer only past the repository's test, unless this `war done` already
+    // ran it.
+    if round.is_none()
+        && !default_ran
+        && let Some(cmd) = store.done_test.as_deref()
+        && !std::iter::once(None)
+            .chain(items.iter().map(|i| Some(i.as_str())))
+            .any(|i| ladder::has_own_check(t, i))
+    {
+        match ladder::run_default(store, t, t.id(), cmd)? {
+            Ok(d) => round = Some(d.round),
+            Err(refusal) => return Ok(Err(refusal)),
         }
     }
     Ok(Ok(round))
@@ -5309,6 +5402,22 @@ fn finish_ticket(
     let checks = ladder::checks_of(&t);
     let checking = matches!(how, How::Check);
     let judged_here = matches!(how, How::Claimed | How::Check);
+    // `[tickets] done_test`, once for the whole call: it decides every open
+    // item no check of the ticket's own applies to.
+    let by_default = |id: &String| {
+        !ladder::has_own_check(&t, Some(id))
+            && ladder::minimum(store, &t, &checks, Some(id)).0 <= Level::Observed
+    };
+    let mut default = None;
+    if matches!(how, How::Claimed)
+        && let Some(cmd) = store.done_test.as_deref()
+        && open.iter().any(by_default)
+    {
+        match ladder::run_default(store, &t, &what, cmd)? {
+            Ok(d) => default = Some(d),
+            Err(refusal) => return Ok(*refusal),
+        }
+    }
     let mut whole_round = match how {
         How::Ran(round) => Some(round),
         How::Claimed | How::Check => None,
@@ -5331,12 +5440,14 @@ fn finish_ticket(
         }
     }
     if !for_a_person.is_empty() && judged_here && whole_round.is_none() {
-        match signature_trigger(store, &t, &for_a_person, checking)? {
+        match signature_trigger(store, &t, &for_a_person, checking, default.is_some())? {
             Ok(round) => whole_round = round,
             Err(refusal) => return Ok(*refusal),
         }
     }
     let mut ticks_of: Vec<(String, Option<ladder::CheckRound>)> = Vec::new();
+    // The items the default round ticks.
+    let mut defaulted: Vec<String> = Vec::new();
     for id in &open {
         let mut round = whole_round.clone();
         if t.format && judged_here && checked_first != Some(id) {
@@ -5345,6 +5456,12 @@ fn finish_ticket(
                 Some(Ok(r)) => round = Some(r),
                 Some(Err(refusal)) => return Ok(*refusal),
             }
+        }
+        if round.is_none()
+            && let Some(d) = default.as_ref().filter(|_| by_default(id))
+        {
+            round = Some(d.round.clone());
+            defaulted.push(id.clone());
         }
         let reach = if round.is_some() {
             Level::Observed
@@ -5415,6 +5532,9 @@ fn finish_ticket(
             payload["commit"] = serde_json::json!(r.commit);
             payload["run"] = serde_json::json!(r.run);
         }
+        if let Some(d) = default.as_ref().filter(|_| defaulted.contains(id)) {
+            payload["default"] = d.record.clone();
+        }
         store.journal(&t, event::ITEM_DONE, &payload)?;
     }
     hand_over(store, &t, &for_a_person)?;
@@ -5456,6 +5576,12 @@ fn finish_ticket(
         human.push_str("\nnothing of yours was left to tick");
     } else if observed.is_empty() {
         human.push_str("\nticked as claimed: nothing was checked");
+    } else if defaulted.len() == ticks_of.len() {
+        human.push_str(&format!(
+            "\nticked at observed: {} passed{}",
+            ladder::DEFAULT_NAME,
+            reused_note(default.as_ref())
+        ));
     } else {
         human.push_str(&format!("\nticked at observed: {}", observed.join(", ")));
     }
@@ -5487,6 +5613,12 @@ fn finish_ticket(
         result["level"] = serde_json::Value::Null;
     }
     awaiting_fields(&t, &for_a_person, &mut result);
+    if let Some(d) = default.as_ref().filter(|_| !defaulted.is_empty()) {
+        result["checks"] = serde_json::to_value(&d.round).unwrap_or_default();
+    }
+    if state == TicketState::Done {
+        say_next(next_ready(store), &mut human, &mut result);
+    }
     if let Some(c) = auto_claimed {
         result["auto_claimed"] = c;
     }

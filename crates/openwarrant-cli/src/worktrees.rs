@@ -228,6 +228,7 @@ fn ignored_disposable(path: &Utf8Path, file: &str) -> bool {
     if file == ".openwarrant/session.json"
         || file == ".openwarrant/start.log"
         || file == ".openwarrant/go-packet.json"
+        || file == crate::ticket::next_file::FILE
         || file.starts_with(".openwarrant/state/checks/")
     {
         return true;

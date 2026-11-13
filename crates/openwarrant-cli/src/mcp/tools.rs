@@ -1826,6 +1826,11 @@ impl WarServer {
             let answer = run(&s);
             // W3: a write looks for changes under running agents.
             crate::ticket::live::after_served_write(&s, command);
+            if matches!(command, "create" | "start" | "done" | "release")
+                && let Ok(o) = &answer
+            {
+                crate::ticket::next_file::after(&s, o);
+            }
             answer
         });
         match outcome {
