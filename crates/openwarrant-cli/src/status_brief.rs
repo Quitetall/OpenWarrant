@@ -99,7 +99,7 @@ impl Brief {
 
     fn read_tickets(&mut self, repo: &Repository) {
         let store = match ticket::Store::open(repo, None) {
-            Ok(store) => store,
+            Ok(store) => store.sharing(),
             Err(e) => {
                 self.unknown.push(format!("tickets: {e}"));
                 self.read_levels(&Work::read(repo));

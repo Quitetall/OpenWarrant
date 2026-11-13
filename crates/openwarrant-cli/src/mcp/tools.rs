@@ -1826,6 +1826,7 @@ impl WarServer {
     ) -> ToolResult {
         // M11: every ticket tool call renews the acting agent's leases.
         let outcome = crate::ticket::Store::open(&self.repo, actor).and_then(|s| {
+            let s = s.sharing();
             s.renew_all();
             let answer = run(&s);
             // W3: a write looks for changes under running agents.

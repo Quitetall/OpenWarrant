@@ -17,7 +17,9 @@
 //! - **Seen everywhere.** [`add_elsewhere`] adds to what a store loads every
 //!   registered ticket this checkout has no file for, marked with where it
 //!   lives ([`Place`]). A local file with the same UUID wins; a different
-//!   UUID under one id is `ticket.id-collision`, naming both.
+//!   UUID under one id is `ticket.id-collision`, naming both. Only a store
+//!   a command of the ticket loop opened asks for them ([`Store::sharing`]):
+//!   what is compiled, exported or judged reads this checkout's files alone.
 //! - **Worked anywhere.** [`bring_here`] writes an elsewhere ticket's
 //!   document into this worktree at the same path; the two branches then
 //!   merge item by item (`merge.rs`).
@@ -725,7 +727,7 @@ pub(super) fn bring_here(store: &Store, query: &str) -> Result<(), RepoError> {
     if store.remote.is_none() && ids.iter().all(|id| held_here(id)) {
         return Ok(());
     }
-    let (tickets, _) = store.load_all()?;
+    let (tickets, _) = store.load_all_shared()?;
     let Ok(Target::Ticket(n) | Target::Item(n, _)) = super::resolve(&tickets, query) else {
         return Ok(());
     };
@@ -1024,7 +1026,7 @@ pub(super) fn duplicate(
         part_of: Option<String>,
         place: String,
     }
-    let (tickets, _) = store.load_all()?;
+    let (tickets, _) = store.load_all_shared()?;
     let mut open: Vec<Open> = tickets
         .iter()
         .filter(|t| !t.is_done())

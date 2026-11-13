@@ -7,7 +7,7 @@ and keep their report envelope's command name.
 | Daily command | Purpose |
 | --- | --- |
 | `war init` | Set up a repository |
-| `war create "Outcome"` | Create one Markdown Warrant with a stable ID |
+| `war create "Outcome"` | Create one Markdown Warrant with a stable ID; every worktree sees it at once. A likely duplicate of open work is refused by name (`--force` creates anyway) |
 | `war start` | Claim ready work and receive its context |
 | `war done --note "Result"` | Record completion under the declared conditions |
 | `war status` | Read progress |
@@ -209,7 +209,7 @@ runs plus the two it needs between them. The CLI's folds are arguments:
 
 | Tool | CLI | Folded in, as arguments |
 | --- | --- | --- |
-| `war_create` | `war create` | |
+| `war_create` | `war create` | `force` (create despite `ticket.duplicate`) |
 | `war_start` | `war start` | `claim`, `paths`, `steal` (`war_claim`) |
 | `war_done` | `war done` | `release`, `reopen` with `reason` |
 | `war_status` | `war status` | `next` (`war_next`), `ready` (`war_ready`), `target` with `view` (`war_show`) |

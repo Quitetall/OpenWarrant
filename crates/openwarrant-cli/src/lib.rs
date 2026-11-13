@@ -3565,7 +3565,8 @@ impl Ctx {
     ) -> Result<(repo::Repository, ticket::Store), Box<dyn std::error::Error>> {
         let repository = repo::Repository::discover(self.root.clone())?;
         projects::touch(&repository.root);
-        let store = ticket::Store::open(&repository, actor)?;
+        // R2: the ticket loop lists the work other worktrees and clones hold.
+        let store = ticket::Store::open(&repository, actor)?.sharing();
         store.renew_all();
         Ok((repository, store))
     }

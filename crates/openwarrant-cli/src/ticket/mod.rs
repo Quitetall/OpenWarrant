@@ -438,6 +438,12 @@ pub struct Store {
     /// worktree that holds the node's work, while the tick is written here.
     /// `None` everywhere else.
     pub check_root: Option<Utf8PathBuf>,
+    /// R2: whether [`Self::load_all`] also lists the tickets this checkout
+    /// has no file for, which the clone's register or the claims remote
+    /// announce ([`shared`]). Off unless a command of the ticket loop asks
+    /// ([`Self::sharing`]): what is compiled, exported or judged reads this
+    /// checkout's files alone.
+    pub shared: bool,
 }
 
 /// Now, in Unix seconds.
@@ -549,7 +555,22 @@ impl Store {
                 Level::Claimed
             },
             check_root: None,
+            shared: false,
         })
+    }
+
+    /// This store, listing shared work too ([`Self::shared`]): for the views
+    /// and acts of the ticket loop.
+    #[must_use]
+    pub fn sharing(mut self) -> Self {
+        self.shared = true;
+        self
+    }
+
+    /// [`Self::load_all`], with the tickets held elsewhere whatever
+    /// [`Self::shared`] says.
+    pub(crate) fn load_all_shared(&self) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
+        self.load_through(cache::Cache::open(self).as_ref(), true)
     }
 
     /// `path` relative to the root, for messages.
@@ -761,7 +782,10 @@ impl Store {
     }
 
     fn load_every(&self, cached: bool) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
-        self.load_through(cache::Cache::open(self).filter(|_| cached).as_ref(), cached)
+        self.load_through(
+            cache::Cache::open(self).filter(|_| cached).as_ref(),
+            cached && self.shared,
+        )
     }
 
     /// Every readable ticket and a diagnostic per unreadable one, through

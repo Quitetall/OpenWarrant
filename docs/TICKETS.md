@@ -371,16 +371,82 @@ moves) and compares what each of its claims watches. A claim it does not
 concern hears nothing. A lease that runs out on B (its holder stopped renewing)
 is taken on A by a plain `war start`.
 
+### Shared work
+
+Tickets are files in git, so a ticket made on one branch reaches another
+only by a merge. Until then the clone announces it: `war create` registers
+the new ticket under git's common directory
+(`<common>/openwarrant/tickets/<id>`, beside the claims), with its title,
+where it lives and its document.
+
+- **Every worktree has it at once.** `war status` counts it, and `war view
+  prime`, `ready`, `next`, `tickets` and Mission Control list it by title,
+  marked `elsewhere: worktree <path> (branch <name>)`. Nothing is committed
+  or fetched for that.
+- **An id is one ticket's.** The register gives an id out once per clone, as
+  a claim's lock is given. Two tickets under one id (two UUIDs, from a merge
+  or another clone) are flagged `ticket.id-collision`, naming both; the one
+  in this checkout stays listed.
+- **`war start <id>` works it anywhere.** On a ticket held elsewhere it first
+  writes the document into this worktree at the same path (`war done`,
+  `war plan add` and `war plan note` do the same). Both branches then carry
+  one ticket, and the merge driver below merges the two copies item by item.
+- **Kept current, then retired.** Each `war done`, `war plan add` or
+  `war plan note` refreshes the entry. It is dropped when the ticket is done,
+  or once its file is on the default branch, where everyone has it through
+  git.
+- **Other clones.** With `[claims] remote` the entry is also a ref,
+  `refs/openwarrant/tickets/<id>`: a commit whose message is the record and
+  whose tree holds the document. Its first push expects no ref, so the remote
+  settles which clone an id belongs to (`ticket.id-taken` for the loser, which
+  creates again). Other clones list it as `elsewhere: remote <name>`, read at
+  most once per `remote_ttl`. With no remote nothing asks the network. A
+  remote that cannot be read is `UNKNOWN`
+  (`work.claims-remote-unknown` names the tickets too, and `war status`
+  prints `Ready: ?`), never an empty list. A create the remote could not be
+  told of still makes the ticket, with a `ticket.unannounced` warning.
+
+**No duplicates.** `war create` refuses a title that is, or reads as, an open
+ticket's, wherever that ticket lives:
+
+```
+$ war create "Add export to CSV"
+refused (ticket.duplicate): "Add export to CSV" is the same work as t-d5d7 ("Add CSV export"),
+open in worktree /src/app-a (branch main) (docs/tickets/t-d5d7.md). `war start t-d5d7` works on
+it; `--force` creates this one anyway
+```
+
+Titles are compared by their words: lowercased, without filler words (`the`,
+`to`, `for`, ...) and without `-s`, `-ed`, `-ing` endings. The same words in
+any order are the same work. Otherwise two titles read as one when every word
+of one is in the other and covers at least 60% of it, so a rewording that
+adds or drops words is caught. Two titles that each hold a word the other
+lacks are distinct work, however much else they share: "Add CSV export" and
+"Add JSON export" are both created. A synonym is therefore not caught
+("Reject duplicates" beside "Refuse duplicates"). A done ticket never blocks,
+tickets under two different epics are not compared, and `war create --force`
+(MCP: `force: true`) creates anyway. Two agents creating one title at the
+same instant leave one ticket: a short lock named by the title's words lets
+one through, and the other is refused naming it.
+
+`war plan new` registers its work order's id the same way. A work order
+another worktree holds counts for the duplicate check but is not listed until
+it is merged.
+
 ### Branches that merge
 
 Two agents on two branches tick two adjacent items, each add an item and a
 note: git's text merge reads two touching edits and stops. Ticket files keep
 their layout; `.gitattributes` names a merge driver for them
-(`docs/tickets/*/atoms/*.md merge=war-ticket`), and `war admin merge-ticket`
+(`docs/tickets/*.md merge=war-ticket`, and the same for `docs/work/`), and
+`war admin merge-ticket`
 merges a checklist item by item (keyed by id) and an intent's appended notes
 side by side, under one `## Notes` heading. One item changed two different
 ways is not merged for you: the driver leaves git's conflict markers and
-stops the merge (`ticket.merge-conflict`). Journals are append-only lines and
+stops the merge (`ticket.merge-conflict`). One ticket added on both branches
+(`war start` on a ticket held elsewhere) has no common ancestor in git; what
+the two copies still agree on stands in for it, so a tick on one side and a
+new item on the other both survive. Journals are append-only lines and
 merge with git's built-in `merge=union`. `war init` writes both
 `.gitattributes` lines and configures the driver for its clone; in a clone
 made since, run `war admin merge-ticket --install` once. Without the driver git
