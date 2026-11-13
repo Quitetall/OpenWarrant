@@ -3030,11 +3030,19 @@ pub(crate) fn claim_scoped_at(
     coordination.workspace = workspace.to_string();
     coordination.base_revision = ladder::head_commit(&workspace);
     coordination.locate(store, &workspace);
-    // One work order, one place: work held from another worktree is
-    // continued there, by whoever holds it.
+    // One work order, one place: work this actor holds from another
+    // worktree is continued there. Another actor's claim is refused by name
+    // below, as it always was.
     if !steal
         && let Some(there) =
-            claimed_elsewhere(&claims, t.id(), item.as_deref(), workspace.as_str(), now)
+        claimed_elsewhere(
+            &claims,
+            &store.actor,
+            t.id(),
+            item.as_deref(),
+            workspace.as_str(),
+            now,
+        )
     {
         return Ok(elsewhere_refusal(&what, "Continue it", &there));
     }
@@ -3480,11 +3488,14 @@ pub fn other_repo(root: &Utf8Path, query: &str) -> Option<Outcome> {
     ))
 }
 
-/// A live claim on `ticket` (whole, or `item`) taken from a worktree other
-/// than `here` that still exists: where that work is done. A lapsed lease, a
-/// claim held on another machine, or a worktree since removed holds no place.
+/// A live claim of `actor`'s on `ticket` (whole, or `item`) taken from a
+/// worktree other than `here` that still exists: where that actor's work is
+/// done. A lapsed lease, a claim held on another machine, or a worktree since
+/// removed holds no place. Another actor's claim is not this rule's: it is
+/// refused by its holder's name (`work.claimed-by-other`), wherever it is held.
 pub(crate) fn claimed_elsewhere(
     claims: &Claims,
+    actor: &str,
     ticket: &str,
     item: Option<&str>,
     here: &str,
@@ -3494,7 +3505,8 @@ pub(crate) fn claimed_elsewhere(
         .values()
         .flatten()
         .filter(|c| {
-            c.ticket == ticket
+            c.actor == actor
+                && c.ticket == ticket
                 && (c.item.is_none() || item.is_none() || c.item.as_deref() == item)
                 && !c.lease_expired(now)
                 && c.elsewhere.is_none()
@@ -3533,6 +3545,7 @@ fn place_refusal(store: &Store, query: &str, act: &str) -> Result<Option<Outcome
         .map_or_else(|| t.id().to_owned(), |i| format!("{}/{i}", t.id()));
     Ok(claimed_elsewhere(
         &store.claims()?,
+        &store.actor,
         t.id(),
         item.as_deref(),
         &scopes::workspace(store),

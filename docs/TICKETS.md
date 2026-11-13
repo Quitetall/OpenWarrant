@@ -298,9 +298,10 @@ work in /src/wmd/.openwarrant/worktrees/t-1a2b (repo wmd, branch war-go/t-1a2b, 
 ```
 
 A plain `war start` in a checkout records that checkout. While the lease is
-live, `war start`, `war done` and `war note` on that work from any other
-worktree are refused (`work.other-worktree`), naming the one to `cd` to; a
-read never is, and `war done --release` gives it back from anywhere. While you
+live, its holder's `war start`, `war done` and `war note` on that work from
+any other worktree are refused (`work.other-worktree`), naming the one to `cd`
+to; another actor is refused by the holder's name (`work.claimed-by-other`), as
+before; a read never is, and `war done --release` gives it back from anywhere. While you
 hold live work in this checkout, claiming for another actor here (`war admin
 claim <id> --as <other>`) dispatches it beside yours, and is refused
 (`dispatch.here`) unless asked for with `--here`; `war start --worktree <id>
