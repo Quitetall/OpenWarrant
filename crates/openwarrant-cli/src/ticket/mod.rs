@@ -3034,8 +3034,7 @@ pub(crate) fn claim_scoped_at(
     // worktree is continued there. Another actor's claim is refused by name
     // below, as it always was.
     if !steal
-        && let Some(there) =
-        claimed_elsewhere(
+        && let Some(there) = claimed_elsewhere(
             &claims,
             &store.actor,
             t.id(),
