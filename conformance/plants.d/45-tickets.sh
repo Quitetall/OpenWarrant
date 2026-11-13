@@ -536,15 +536,31 @@ for cmd in "create Timing-probe-2 --item x" "ready" "claim $TKR/$TKR_I" "done $T
     [[ $rc -eq 0 && $ms -lt 2000 ]] || TK_SLOW="$TK_SLOW ${cmd%% *}(${ms}ms,exit $rc)"
 done
 # Remove every ticket this block made; nothing else under docs/tickets moves.
+# Each is closed first: `war create` announced it in the clone's shared
+# register (under git's common directory), and closing it is what retires
+# that. A file removed alone left the announcement, every worktree of the
+# clone listed the probe as open elsewhere, and the next run of this block was
+# refused `ticket.duplicate` (which 62-battery-env, running this file twice,
+# reported as unequal totals). An announcement the close left (a start this
+# checkout refused) is named in the failure and removed, so one bad run does
+# not fail the next.
+TK_REG="$(cd "$REPO_ROOT" && git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/openwarrant/tickets"
+TK_LEFT=""
 for d in "$TK_REAL_DIR"/t-*.md; do
-    [[ -f "$d" ]] && grep -q '^# Timing\(-probe-2\| probe (plant 45)\)$' "$d" && command rm -rf "$d" "${d%.md}"
+    [[ -f "$d" ]] && grep -q '^# Timing\(-probe-2\| probe (plant 45)\)$' "$d" || continue
+    TK_PID=$(basename "$d" .md)
+    rw start "$TK_PID" >/dev/null 2>&1; rw done "$TK_PID" >/dev/null 2>&1
+    command rm -rf "$d" "${d%.md}"
+    for e in "$TK_REG/$TK_PID" "$TK_REG/$TK_PID"~*; do
+        [[ -e "$e" ]] && TK_LEFT="$TK_LEFT ${e##*/}" && command rm -f "$e"
+    done
 done
 [[ $TK_HAD_DIR -eq 0 ]] && rmdir "$TK_REAL_DIR" 2>/dev/null
 [[ $TK_HAD_CLAIMS -eq 0 ]] && command rm -rf "$REPO_ROOT/.openwarrant/state/claims"
 [[ $TK_HAD_INDEX -eq 1 ]] && command cp -f "$TK_INDEX_KEPT" "$TK_INDEX"
 command rm -f "$TK_INDEX_KEPT"
-if [[ -n "$TKR" && -z "$TK_SLOW" ]]; then
+if [[ -n "$TKR" && -z "$TK_SLOW" && -z "$TK_LEFT" ]]; then
     tk_ok "each ticket command < 2 s here" "$TK_TIMES"
 else
-    tk_fail "each ticket command < 2 s here" "slow or failed:$TK_SLOW; all:$TK_TIMES"
+    tk_fail "each ticket command < 2 s here" "slow or failed:$TK_SLOW; left in the shared register after done:${TK_LEFT:- none}; all:$TK_TIMES"
 fi

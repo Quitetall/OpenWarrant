@@ -141,6 +141,7 @@ paths = ["crates/openwarrant-cli/src/mcp/**", "conformance/fixtures/mcp/**", "to
 plants = [
     "72-mcp.sh", "66-json.sh", "73-plugin.sh", "73-capabilities.sh", "230-mcp-lean.sh",
     "45-tickets.sh", "54-intake.sh", "100-concurrency.sh", "101-agent-text.sh", "196-order-signer.sh",
+    "62-battery-env.sh",
 ]
 
 [[rule]]
@@ -178,7 +179,7 @@ plants = [
     "62-verifier.sh", "47-bundle-output.sh", "84-bundle-budget.sh", "84-budget-dispatch.sh",
     "84-direct-verdicts.sh", "84-verify-bundle.sh", "84-local-verifier-transport.sh",
     "55-evidence-verifications.sh", "56-acceptance-validity.sh", "57-teams.sh",
-    "69-idempotency.sh", "83-dispatch-admission.sh",
+    "69-idempotency.sh", "83-dispatch-admission.sh", "62-battery-env.sh",
 ]
 
 [[rule]]
@@ -399,8 +400,18 @@ plants = [
     "100-concurrency.sh", "102-concurrency-stress.sh", "103-one-noun.sh", "132-first-done.sh",
     "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh", "210-two-machines.sh",
     "290-shared-tickets.sh", "291-no-duplicates.sh", "292-shared-remote.sh",
-    "280-done-default.sh", "281-next-without-asking.sh", "310-field-report.sh",
+    "280-done-default.sh", "281-next-without-asking.sh", "62-battery-env.sh",
+    "310-field-report.sh",
 ]
+
+# 62-battery-env.sh runs these two files inside itself, twice each in one
+# checkout: a change to either is a change to it. It is also named wherever
+# they are (tickets, mcp, verifier and bundles), so the code that can break
+# them selects it too.
+[[rule]]
+name = "plants another plant runs"
+paths = ["conformance/plants.d/45-tickets.sh", "conformance/plants.d/62-verifier.sh"]
+plants = ["62-battery-env.sh"]
 
 [[rule]]
 name = "evidence, delivery and preparation"
