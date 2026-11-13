@@ -182,7 +182,7 @@ fn named(tickets: &[Ticket], prompt: &str) -> BTreeSet<usize> {
 }
 
 /// `text` within `budget` bytes, cut at a line, and how many bytes went.
-fn fitted(text: &str, budget: usize) -> (&str, usize) {
+pub(super) fn fitted(text: &str, budget: usize) -> (&str, usize) {
     if text.len() <= budget {
         return (text, 0);
     }

@@ -635,6 +635,100 @@ pub fn set_claims_remote(root: &Utf8Path, remote: &str) -> Result<String, InitEr
     Ok(line)
 }
 
+/// What `war init` was asked about `[tickets] done_test`.
+#[derive(Debug, Clone, Copy)]
+pub enum DoneTest<'a> {
+    /// `--done-test <COMMAND>`.
+    Named(&'a str),
+    /// `--done-test`: the test found in the repository, refused when none is.
+    Detected,
+    /// A first plain `war init`: the test found, and nothing when none is.
+    IfDetected,
+}
+
+/// `[tickets] done_test` in `openwarrant.toml`: the command `war done` runs
+/// on work that declares no check of its own. Sets the key in an existing
+/// `[tickets]` table, else appends the table; the rest of the file keeps its
+/// bytes. Returns the lines to print (none when nothing was found to record).
+pub fn set_done_test(root: &Utf8Path, asked: DoneTest<'_>) -> Result<Vec<String>, InitError> {
+    let config_path = root.join(CONFIG_FILE);
+    let fail = |why: String| InitError::Io {
+        context: format!("could not set [tickets] done_test in {config_path}"),
+        source: std::io::Error::other(why),
+    };
+    let cmd = match asked {
+        DoneTest::Named(cmd) => cmd.trim().to_owned(),
+        DoneTest::Detected | DoneTest::IfDetected => match ci::detected_done_test(root) {
+            Some(cmd) => cmd,
+            None if matches!(asked, DoneTest::IfDetected) => return Ok(Vec::new()),
+            None => {
+                return Err(fail(
+                    "no test command was found in this repository; name one: `war init \
+                     --done-test \"<command>\"`"
+                        .to_owned(),
+                ));
+            }
+        },
+    };
+    if cmd.is_empty() || cmd.contains(['\r', '\n']) {
+        return Err(fail(format!(
+            "{cmd:?}: a test is one command line; put a longer one in a script"
+        )));
+    }
+    let text = fs::read_to_string(&config_path).map_err(|e| fail(e.to_string()))?;
+    let key = format!("done_test = {}", toml::Value::String(cmd.clone()));
+    let mut lines: Vec<String> = text.lines().map(str::to_owned).collect();
+    match lines.iter().position(|l| l.trim() == "[tickets]") {
+        Some(h) => {
+            let end = lines[h + 1..]
+                .iter()
+                .position(|l| l.trim_start().starts_with('['))
+                .map_or(lines.len(), |n| h + 1 + n);
+            let at = lines[h + 1..end].iter().position(|l| {
+                l.split_once('=')
+                    .is_some_and(|(k, _)| k.trim() == "done_test")
+            });
+            match at {
+                Some(n) => lines[h + 1 + n] = key,
+                None => lines.insert(h + 1, key),
+            }
+        }
+        None => {
+            if lines.last().is_some_and(|l| !l.trim().is_empty()) {
+                lines.push(String::new());
+            }
+            lines.push("[tickets]".to_owned());
+            lines.push(key);
+        }
+    }
+    let mut out = lines.join("\n");
+    out.push('\n');
+    let read: toml::Value = toml::from_str(&out).map_err(|e| {
+        fail(format!(
+            "the rewritten file would not read ({e}); nothing was written"
+        ))
+    })?;
+    if read
+        .get("tickets")
+        .and_then(|c| c.get("done_test"))
+        .and_then(toml::Value::as_str)
+        != Some(cmd.as_str())
+    {
+        return Err(fail(
+            "the rewritten file does not read [tickets] done_test back; nothing was written"
+                .to_owned(),
+        ));
+    }
+    if out != text {
+        fs::write(&config_path, &out).map_err(|e| fail(e.to_string()))?;
+    }
+    Ok(vec![format!(
+        "[tickets] done_test = {}: `war done` runs it and ticks at observed when it passes, \
+         nothing when it fails; delete the line to turn it off",
+        toml::Value::String(cmd)
+    )])
+}
+
 /// `war init --vibe | --team | --regulated` (OW-WAR-0148 M14): after the
 /// plain init, `[preset]` and `[roles]` appended to `openwarrant.toml` with
 /// the preset's defaults; `--team` and `--regulated` also write the signing

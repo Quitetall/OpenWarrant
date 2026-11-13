@@ -371,4 +371,26 @@ else
     de_fail "an unread level is UNKNOWN" "exit $DE_RC: $(head -2 "$DE_T/err" | tr '\n' '|')"
 fi
 
+# ---- alpha.8 R1: the default test decides the tick, never the level's rule ------------------------
+# An unchanged Order with `[tickets] done_test`: failing, its free item is refused
+# and the tree is as it was; passing, it closes at observed and still waits on a person.
+printf '\n[tickets]\ndone_test = "test -f default-ok"\n' >>"$DE_ROOT/openwarrant.toml"
+DE_O5=$(de_create "An Order under the default" --path 'default/**' --tool Read -i "the release" -i "the notes")
+de_as owner "$DE_ROOT" plan add "$DE_O5/$(de_item "$DE_O5" "the release")" --min signed
+DE_O5B=$(de_item "$DE_O5" "the notes")
+de_commit 'an order under the default'
+de_as dana "$DE_ROOT" start "$DE_O5"; DE_STARTED="$? $(head -c 300 "$DE_T/err")"
+DE_BEFORE=$(cksum <"$DE_ROOT/docs/tickets/$DE_O5.md")
+de_as dana "$DE_ROOT" done "$DE_O5/$DE_O5B"; DE_RC=$?
+DE_ERR=$(cat "$DE_T/err")
+DE_SAME=$([[ $(cksum <"$DE_ROOT/docs/tickets/$DE_O5.md") == "$DE_BEFORE" ]] && echo same || echo moved)
+: >"$DE_ROOT/default-ok"
+de_as dana "$DE_ROOT" done "$DE_O5/$DE_O5B"; DE_RC2=$?
+if [[ $DE_RC == 2 && $DE_ERR == *ticket.check-failed* && $DE_SAME == same && $DE_RC2 == 0 ]] \
+    && grep -qF 'ticked at observed: default passed' "$DE_T/out" && grep -qF 'waits on a person' "$DE_T/out"; then
+    de_ok "the default test holds an Order's tick" "failing: exit 2, nothing ticked; passing: observed, and it waits on a person"
+else
+    de_fail "the default test holds an Order's tick" "start $DE_STARTED; $DE_RC ($DE_SAME) $DE_RC2: $(head -2 "$DE_T/out" "$DE_T/err" | tr '\n' '|' | cut -c1-300)"
+fi
+
 /usr/bin/rm -rf "$DE_T"
