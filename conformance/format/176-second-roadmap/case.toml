@@ -1,0 +1,5 @@
+id = "176-second-roadmap"
+kind = "refuse"
+section = "4.6"
+rule = "format.document-duplicate"
+says = """A second Roadmap, a work order of profile `roadmap` that is not `roadmap`, is refused (`format.document-duplicate`)"""

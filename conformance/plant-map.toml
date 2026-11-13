@@ -105,7 +105,12 @@ paths = [
     "conformance/views.py", "conformance/views.toml", "conformance/views-publish.sh",
     ".github/workflows/views.yml", "conformance/ci-local.sh",
 ]
-plants = ["240-views.sh"]
+plants = ["240-views.sh", "271-master-views.sh"]
+
+[[rule]]
+name = "the views of the masters"
+paths = ["crates/openwarrant-cli/src/views.rs"]
+plants = ["240-views.sh", "271-master-views.sh"]
 
 # ---- command modules, each with the plants that drive it --------------------
 
@@ -202,7 +207,7 @@ paths = [
 ]
 plants = [
     "100-format-tracking.sh", "106-format-checks.sh", "178-*.sh", "182-format-schemas.sh",
-    "183-format-corpus.sh", "184-*.sh",
+    "183-format-corpus.sh", "184-*.sh", "270-ladder.sh",
 ]
 
 [[rule]]
@@ -234,7 +239,7 @@ paths = [
 ]
 plants = [
     "82-context.sh", "179-context.sh", "184-format-context-apply.sh", "186-token-budget.sh",
-    "188-live-updates.sh",
+    "188-live-updates.sh", "270-ladder.sh",
 ]
 
 [[rule]]
