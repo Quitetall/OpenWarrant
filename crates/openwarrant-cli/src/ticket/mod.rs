@@ -113,6 +113,10 @@ pub struct Bookkeeping {
     /// one: its manifest, journal, intent and checklist. Anything else a
     /// person keeps in a ticket's directory is not named.
     pub files: Vec<String>,
+    /// The tickets kept as masters, by id: `docs/work/<id>/` holds such a
+    /// ticket's one document and its journal, and those two are the loop's.
+    /// A work order that is no ticket is not listed: it is a source.
+    pub masters: Vec<String>,
 }
 
 /// The journal event types a ticket records, by their Format 1.0 names
@@ -691,6 +695,19 @@ impl Store {
                 // OW-WAR-0148 M13: the optional parts `war plan add` writes.
                 ticks::CHECKS_FILE.to_owned(),
             ],
+            masters: self
+                .master_entries()
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|dir| {
+                    format::document_of(dir).is_some_and(|file| {
+                        std::fs::read_to_string(file).is_ok_and(|text| {
+                            crate::format_doc::frontmatter_profile(&text) == Some("ticket")
+                        })
+                    })
+                })
+                .filter_map(|dir| dir.file_name().map(str::to_owned))
+                .collect(),
         }
     }
 
@@ -1404,6 +1421,17 @@ fn master_ticket(s: &str) -> bool {
     };
     if work.join(head).is_dir() {
         return is_ticket(head);
+    }
+    // A ticket another worktree announced and this checkout has no file for
+    // yet: the clone's register says what it is.
+    if let Some(layout) = claim::git_layout(root)
+        && let Ok(bytes) = std::fs::read(layout.common_dir.join(shared::SUBDIR).join(head))
+        && let Ok(entry) = serde_json::from_slice::<shared::Entry>(&bytes)
+    {
+        return entry
+            .files
+            .get(&entry.path)
+            .is_some_and(|text| crate::format_doc::frontmatter_profile(text) == Some("ticket"));
     }
     // A prefix of an id, as every ticket command takes one.
     std::fs::read_dir(&work).is_ok_and(|entries| {

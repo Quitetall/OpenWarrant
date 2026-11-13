@@ -15,6 +15,7 @@
 # `format.document-duplicate`, and the ticket is not worked.
 
 # The work layout is opt-in (`[tickets] layout = "work"`); this plant is about it.
+CM_LAYOUT_WAS=${OPENWARRANT_TICKET_LAYOUT-}
 export OPENWARRANT_TICKET_LAYOUT=work
 echo "== one layout: war create writes a master =="
 CM_WAR="$REPO_ROOT/${WAR#./}"
@@ -132,4 +133,4 @@ else
 fi
 
 [[ -n "$CM_T" && "$CM_T" == */tmp.* ]] && /usr/bin/rm -rf "$CM_T"
-unset OPENWARRANT_TICKET_LAYOUT
+if [[ -n "$CM_LAYOUT_WAS" ]]; then export OPENWARRANT_TICKET_LAYOUT="$CM_LAYOUT_WAS"; else unset OPENWARRANT_TICKET_LAYOUT; fi

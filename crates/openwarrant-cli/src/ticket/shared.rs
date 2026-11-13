@@ -685,6 +685,7 @@ pub(super) fn sync(store: &Store, t: &Ticket, event_type: &str) {
         }
     }
     sweep(store, &reg);
+    drop_deleted(store);
 }
 
 /// The work orders (`war plan new`: masters that are no ticket) another
@@ -1113,6 +1114,34 @@ impl Drop for TitleLock {
     }
 }
 
+/// Drop the entries this worktree registered whose ticket was deleted by
+/// hand: the worktree is on the branch it registered on, and the file is in
+/// neither the working tree nor HEAD. A branch switch retires nothing: on
+/// another branch the file's absence says only that this branch lacks it.
+pub(crate) fn drop_deleted(store: &Store) {
+    let Some(reg) = store.registry() else {
+        return;
+    };
+    let Some(top) = reg.toplevel.as_deref() else {
+        return;
+    };
+    let here = super::live::checked_out(top);
+    for e in reg.entries() {
+        if e.root != reg.root.as_str()
+            || e.state == "creating"
+            || e.branch.is_none()
+            || e.branch != here
+            || store.root.join(&e.path).exists()
+        {
+            continue;
+        }
+        // `Some(None)`: git answered, and HEAD has no such file.
+        if super::live::blob(&store.root, "HEAD", &format!("./{}", e.path)) == Some(None) {
+            retire(store, &reg, &e);
+        }
+    }
+}
+
 /// The refusal for a new ticket titled `title` that is, or reads as, an
 /// open one: this checkout's, a registered one, or one another clone
 /// announced. Tickets under two different parents are never compared: "Write
@@ -1128,6 +1157,7 @@ pub(crate) fn duplicate(
         part_of: Option<String>,
         place: String,
     }
+    drop_deleted(store);
     let (tickets, _) = store.load_all_shared()?;
     let mut open: Vec<Open> = tickets
         .iter()
