@@ -108,6 +108,16 @@ else
     ci_fail "a changed document is checked" "exit $CI_DOC: $(head -c 300 "$CI_T/doc.out")"
 fi
 
+# alpha.8 R1: the same detection gives `war done` its default test. The Rust
+# repository above has it recorded; the plain one, with nothing to find, has
+# no key.
+if grep -q '^done_test = "cargo test"$' "$CI_T/rust/openwarrant.toml" \
+    && ! grep -q 'done_test' "$CI_T/plain/openwarrant.toml"; then
+    ci_ok "init records the found test" 'done_test = "cargo test" where Cargo.toml is; no key where nothing is'
+else
+    ci_fail "init records the found test" "$(grep -H done_test "$CI_T"/rust/openwarrant.toml "$CI_T"/plain/openwarrant.toml | tr '\n' '|')"
+fi
+
 CI_R="$CI_T/plain"
 printf 'mine\n' > "$CI_R/$CI_F"
 CI_ERR=$(ciw init --ci 2>&1); CI_S=$?

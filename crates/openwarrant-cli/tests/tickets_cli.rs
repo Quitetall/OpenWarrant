@@ -850,6 +850,115 @@ fn mcp_ticket_tools_read_like_the_cli_and_refuse_a_misnamed_parameter() {
     let _ = std::fs::remove_dir_all(&root);
 }
 
+/// The most `war done` prints when it finishes a ticket and names the next
+/// (titles of 60 characters): about 80 tokens.
+const DONE_BUDGET: usize = 320;
+/// The most bare `war status` prints with ready work named: about 160 tokens.
+const STATUS_BUDGET: usize = 640;
+
+/// What is next is said without asking, and inside a stated byte budget:
+/// `war done` names the next ready ticket and nothing when none is, `war
+/// status` names two ready tickets however many there are, `war view prime
+/// --ready` is the ready rows alone, and `.openwarrant/next.md` follows
+/// create, start and done without ever reading as a change to the checkout.
+#[test]
+fn done_and_status_name_what_is_next_inside_their_budgets() {
+    let root = scratch("next");
+    let said = |o: &Output| String::from_utf8_lossy(&o.stdout).into_owned();
+    let next_md = root.join(".openwarrant/next.md");
+    let dirt = || {
+        let o = Command::new("git")
+            .args(["status", "--porcelain", "--untracked-files=all"])
+            .current_dir(&root)
+            .output()
+            .unwrap();
+        String::from_utf8_lossy(&o.stdout).into_owned()
+    };
+    assert!(!next_md.exists(), "nothing is tracked yet");
+    let title = |n: usize| format!("Ticket {n} {}", "x".repeat(51));
+    let ids: Vec<String> = (1..=4)
+        .map(|n| {
+            json(&root, &["create", &title(n)])["result"]["id"]
+                .as_str()
+                .unwrap()
+                .to_owned()
+        })
+        .collect();
+    // Created: the ready rows, and not a change to the checkout.
+    let ready = std::fs::read_to_string(&next_md).unwrap();
+    assert!(
+        ready.starts_with("OpenWarrant: nothing is held here.") && ready.contains(&ids[3]),
+        "{ready}"
+    );
+    assert!(!dirt().contains("next.md"), "{}", dirt());
+
+    let status = said(&war(&root, &["status"]));
+    assert_eq!(status.matches("`war start t-").count(), 2, "{status}");
+    assert!(
+        status.len() <= STATUS_BUDGET,
+        "{} bytes\n{status}",
+        status.len()
+    );
+    let rows = said(&war(&root, &["view", "prime", "--ready"]));
+    assert_eq!(rows.lines().count(), 4, "{rows}");
+    assert!(
+        rows.lines().all(|l| l.contains("`war start t-")) && !rows.contains("How to work"),
+        "{rows}"
+    );
+
+    // Started: the brief of what this actor holds.
+    let started = json(&root, &["start", "--as", "ann"]);
+    let held = started["result"]["ticket"]
+        .as_str()
+        .or_else(|| started["result"]["id"].as_str())
+        .map(str::to_owned)
+        .unwrap_or_else(|| {
+            ids.iter()
+                .find(|id| started.to_string().contains(id.as_str()))
+                .unwrap()
+                .clone()
+        });
+    let brief = std::fs::read_to_string(&next_md).unwrap();
+    assert!(
+        brief.starts_with(&format!("OpenWarrant: ann holds {held};")) && brief.len() <= 6144,
+        "{brief}"
+    );
+    assert!(!dirt().contains("next.md"), "{}", dirt());
+
+    // Done: the next ready one, named with the command that takes it.
+    let done = said(&war(&root, &["done", "--as", "ann", "--note", "did it"]));
+    let next = done
+        .lines()
+        .find_map(|l| l.strip_prefix("next: "))
+        .unwrap_or_else(|| panic!("no next line: {done}"));
+    let next_id = next.split(' ').next().unwrap().to_owned();
+    assert!(
+        ids.contains(&next_id)
+            && next_id != held
+            && next.ends_with(&format!("(`war start {next_id}`)")),
+        "{done}"
+    );
+    assert!(done.len() <= DONE_BUDGET, "{} bytes\n{done}", done.len());
+    let after = std::fs::read_to_string(&next_md).unwrap();
+    assert!(
+        after.starts_with("OpenWarrant: nothing is held here."),
+        "{after}"
+    );
+
+    // The rest, then the last: nothing is next, and the file is gone.
+    let mut last = String::new();
+    for _ in 0..3 {
+        assert!(war(&root, &["start", "--as", "ann"]).status.success());
+        last = said(&war(&root, &["done", "--as", "ann"]));
+    }
+    assert!(
+        last.starts_with("done t-") && !last.contains("next:"),
+        "{last}"
+    );
+    assert!(!next_md.exists(), "nothing is held or ready");
+    let _ = std::fs::remove_dir_all(&root);
+}
+
 fn walk(dir: &Path) -> Vec<String> {
     let mut out = Vec::new();
     for entry in std::fs::read_dir(dir).into_iter().flatten().flatten() {

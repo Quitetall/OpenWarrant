@@ -2138,6 +2138,35 @@ impl Run<'_> {
                     return self.send_back(l, "check-failed", detail, seconds, tokens);
                 }
             }
+        } else if let Some(cmd) = self.store.done_test.clone().filter(|_| {
+            !crate::ticket::ladder::has_own_check(&t, l.part.as_deref())
+                && crate::ticket::ladder::minimum(&self.store, &t, &checks, l.part.as_deref()).0
+                    <= openwarrant_core::ticks::Level::Observed
+        }) {
+            // `[tickets] done_test`: the repository's own test, where the
+            // work is, as `war done` runs it for work with no check of its own.
+            self.store.check_root = (!shared).then(|| l.program.clone());
+            let r = crate::ticket::ladder::run_default(&self.store, &t, &l.node, &cmd);
+            self.store.check_root = None;
+            match r? {
+                Ok(d) => Some(d.round),
+                Err(refusal) => {
+                    let rule = refusal
+                        .report
+                        .diagnostics
+                        .iter()
+                        .find(|d| d.severity != crate::diagnostic::Severity::Pass)
+                        .map_or("ticket.check-failed", |d| d.rule.as_str())
+                        .to_owned();
+                    let detail = format!("{rule}: {}", refusal.human);
+                    self.report.push(Diagnostic::warn(
+                        "go.check-failed",
+                        l.node.clone(),
+                        detail.clone(),
+                    ));
+                    return self.send_back(l, "check-failed", detail, seconds, tokens);
+                }
+            }
         } else {
             None
         };

@@ -387,6 +387,7 @@ plants = [
     "45-tickets.sh", "55-ticket-projections.sh", "55-evidence-tickets.sh", "76-ticket-features.sh",
     "100-concurrency.sh", "102-concurrency-stress.sh", "103-one-noun.sh", "132-first-done.sh",
     "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh", "210-two-machines.sh",
+    "280-done-default.sh", "281-next-without-asking.sh",
 ]
 
 [[rule]]
@@ -428,7 +429,7 @@ name = "init and adoption"
 paths = ["crates/openwarrant-cli/src/init/**", "docs/ADOPTING.md", "scripts/release-1.0-wizard.sh"]
 plants = [
     "59-adoption.sh", "75-init-program.sh", "92-wizard.sh", "99-init.sh", "192-init-schemas.sh",
-    "193-init-ci.sh",
+    "193-init-ci.sh", "280-done-default.sh",
 ]
 
 [[rule]]

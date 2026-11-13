@@ -1469,6 +1469,7 @@ fn bare_status_is_a_few_lines_and_verbose_is_the_projection() {
             "Warrants: {warrants}, 0 resolved\n\
              Tickets: 1 open\n\
              Ready: 1 ticket, 0 stages\n\
+             \x20 {open:<10} p2  Still open  (the Warrant is the work)  `war start {open}`\n\
              Open by level: 1 Ticket\n\
              Awaiting a signature: 0\n\
              Blocking questions: 0\n\
@@ -1535,4 +1536,109 @@ fn every_section_an_author_wrote_reaches_the_brief_once() {
         assert_eq!(brief.matches("the owner answered").count(), 1, "{brief}");
         assert_eq!(brief.matches("## Checklist").count(), 0, "{brief}");
     }
+}
+
+/// The daily loop in a repository whose test `war init` found: init records
+/// it, a failing test refuses `war done` and ticks nothing, a passing one
+/// ticks at observed, and `--done-test` replaces it in place. A repository
+/// with no test to find gets no key and the claimed tick it always had.
+#[test]
+fn init_records_the_repository_test_and_done_is_checked_by_default() {
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    std::fs::write(root.join("Makefile"), "test:\n\ttest -f ok\n").unwrap();
+    let init = war(root, &["init", "--namespace", "DT"]);
+    assert_eq!(init["exit_code"], 0, "{init}");
+    assert!(
+        init["notes"].as_array().unwrap().iter().any(|n| n
+            .as_str()
+            .unwrap()
+            .starts_with("[tickets] done_test = \"make test\"")
+            && n.as_str()
+                .unwrap()
+                .contains("delete the line to turn it off")),
+        "{init}"
+    );
+    let config = || std::fs::read_to_string(root.join("openwarrant.toml")).unwrap();
+    assert!(
+        config().contains("[tickets]\ndone_test = \"make test\"\n"),
+        "{}",
+        config()
+    );
+
+    let id = war(root, &["create", "Checked work"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    assert_eq!(war(root, &["start", &id])["exit_code"], 0);
+    let refused = war(root, &["done", &id]);
+    assert_ne!(refused["exit_code"], 0, "{refused}");
+    assert!(
+        refused["diagnostics"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|d| d["rule"] == "ticket.check-failed"),
+        "{refused}"
+    );
+    assert_ne!(war(root, &["view", "show", &id])["result"]["state"], "done");
+    std::fs::write(root.join("ok"), "").unwrap();
+    let done = war(root, &["done", &id]);
+    assert_eq!(done["exit_code"], 0, "{done}");
+    assert_eq!(done["result"]["level"], "observed", "{done}");
+    assert_eq!(
+        done["result"]["checks"]["runs"][0]["name"], "default",
+        "{done}"
+    );
+
+    // Replaced in place on a repository already set up; twice is the same bytes.
+    let set = war(root, &["init", "--done-test", "sh -c 'exit 0'"]);
+    assert_eq!(set["exit_code"], 0, "{set}");
+    assert!(
+        config().contains("done_test = \"sh -c 'exit 0'\"\n") && !config().contains("make test")
+    );
+    let once = config();
+    assert_eq!(
+        war(root, &["init", "--done-test", "sh -c 'exit 0'"])["exit_code"],
+        0
+    );
+    assert_eq!(config(), once);
+    // With no command it is the one found.
+    assert_eq!(war(root, &["init", "--done-test"])["exit_code"], 0);
+    assert!(
+        config().contains("done_test = \"make test\"\n"),
+        "{}",
+        config()
+    );
+
+    // Nothing to find: no key, the claimed tick, and `--done-test` alone refused.
+    let dir = tempfile::tempdir().unwrap();
+    let root = dir.path();
+    assert_eq!(war(root, &["init", "--namespace", "DT"])["exit_code"], 0);
+    let config = std::fs::read_to_string(root.join("openwarrant.toml")).unwrap();
+    assert!(
+        !config.contains("done_test") && !config.contains("[tickets]"),
+        "{config}"
+    );
+    let id = war(root, &["create", "Plain work"])["result"]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    assert_eq!(war(root, &["start", &id])["exit_code"], 0);
+    let done = war(root, &["done", &id]);
+    assert_eq!(done["result"]["level"], "claimed", "{done}");
+    let out = Command::new(env!("CARGO_BIN_EXE_war"))
+        .args(["--root", root.to_str().unwrap(), "init", "--done-test"])
+        .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
+        .output()
+        .unwrap();
+    assert!(!out.status.success(), "{out:?}");
+    assert!(
+        String::from_utf8_lossy(&out.stderr).contains("no test command was found"),
+        "{out:?}"
+    );
+    assert_eq!(
+        std::fs::read_to_string(root.join("openwarrant.toml")).unwrap(),
+        config
+    );
 }

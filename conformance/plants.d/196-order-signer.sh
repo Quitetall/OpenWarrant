@@ -258,4 +258,22 @@ else
     os_fail "war_create takes sign" "$(head -c 300 <<<"$OS_MCP")"
 fi
 
+# ---- alpha.8 R1: the default test stands before the queue, never in place of the signer -----
+printf '\n[tickets]\ndone_test = "test -f default-ok"\n' >>"$OS_ROOT/openwarrant.toml"
+OS_G=$(os_create "An Order under the default test" --sign --item one)
+os_as agent start "$OS_G"
+os_as agent done "$OS_G"; OS_RC=$?
+OS_ERR=$(cat "$OS_T/err")
+os_listed "$OS_G"; OS_QUEUED=$?
+: >"$OS_ROOT/default-ok"
+os_as agent done "$OS_G"; OS_RC2=$?
+OS_OUT=$(cat "$OS_T/out")
+if [[ $OS_RC == 2 && $OS_ERR == *ticket.check-failed* && $OS_QUEUED != 0 && $OS_RC2 == 0 \
+    && $OS_OUT == *"ticked at observed: default passed"* && $OS_OUT == *"$OS_G waits on a person"* ]] \
+    && os_listed "$OS_G" && [[ $(os_open "$OS_G") == 1 ]]; then
+    os_ok "the default test, then the signer" "failing: not queued; passing: the agent's item observed, the Order queued, its signature item open"
+else
+    os_fail "the default test, then the signer" "exit $OS_RC (queued $OS_QUEUED) then $OS_RC2: $(head -c 300 <<<"$OS_OUT$OS_ERR")"
+fi
+
 /usr/bin/rm -rf "$OS_T"

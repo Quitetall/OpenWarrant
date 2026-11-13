@@ -604,3 +604,177 @@ fn the_watcher_fires_commits_and_the_hook_is_never_someone_elses() {
     assert_eq!(v["result"]["written"], false, "{v}");
     std::fs::remove_dir_all(&root).ok();
 }
+
+/// `[tickets] done_test = cmd` appended to the scratch repository's config.
+fn set_default(root: &Path, cmd: &str) {
+    let path = root.join("openwarrant.toml");
+    let mut text = std::fs::read_to_string(&path).unwrap();
+    text.push_str(&format!("\n[tickets]\ndone_test = {cmd:?}\n"));
+    std::fs::write(path, text).unwrap();
+}
+
+fn said(o: &Output) -> String {
+    format!(
+        "{}{}",
+        String::from_utf8_lossy(&o.stdout),
+        String::from_utf8_lossy(&o.stderr)
+    )
+}
+
+/// `[tickets] done_test`: the repository's own test decides a tick that no
+/// check of the ticket's own applies to. A pass ticks at observed; a fail
+/// ticks nothing; the ticket's own check takes precedence; no key is today's
+/// claimed tick.
+#[test]
+fn done_runs_the_repository_default_where_the_ticket_declares_no_check() {
+    let root = scratch("default");
+    ticket(
+        &root,
+        "## CHK-a · check — the flag is there\nrun: test -f flag\nevaluates i-0c01\n",
+    );
+    set_default(&root, "test -f ok");
+    commit(&root, "ticket");
+    assert!(
+        war(&root, Some("bob"), &["claim", "t-0c01"])
+            .status
+            .success()
+    );
+    // The default fails: nothing ticked, the run journalled.
+    let v = json(&root, Some("bob"), &["done", "t-0c01/i-0c02"]);
+    assert!(rules(&v).contains(&"ticket.check-failed".to_owned()), "{v}");
+    assert!(
+        doc(&root).contains("- [ ] second (i-0c02)"),
+        "{}",
+        doc(&root)
+    );
+    assert_eq!(of_type(&events(&root), "work.check_run").len(), 1);
+    // It passes: ticked at observed, and said so.
+    std::fs::write(root.join("ok"), "").unwrap();
+    let o = war(&root, Some("bob"), &["done", "t-0c01/i-0c02"]);
+    assert!(o.status.success(), "{}", said(&o));
+    assert!(
+        said(&o).contains("ticked at observed: default passed"),
+        "{}",
+        said(&o)
+    );
+    assert!(
+        doc(&root).contains("- [x] second (i-0c02) — done by bob, ")
+            && doc(&root).contains("[observed]"),
+        "{}",
+        doc(&root)
+    );
+    // The ticket's own check decides its item: the default (which passes)
+    // does not stand in for it, and is not run for it.
+    let v = json(&root, Some("bob"), &["done", "t-0c01/i-0c01"]);
+    assert!(rules(&v).contains(&"check.failed".to_owned()), "{v}");
+    assert!(doc(&root).contains("- [ ] first (i-0c01)"));
+    std::fs::write(root.join("flag"), "").unwrap();
+    let v = json(&root, Some("bob"), &["done", "t-0c01/i-0c01"]);
+    assert_eq!(v["exit_code"], 0, "{v}");
+    let ev = events(&root);
+    let dones = of_type(&ev, "work.item_done");
+    let default_of = |item: &str| {
+        dones
+            .iter()
+            .find(|e| e["payload"]["item"] == item)
+            .map(|e| e["payload"]["default"].clone())
+            .unwrap()
+    };
+    assert_eq!(default_of("i-0c02")["cmd"], "test -f ok");
+    assert!(default_of("i-0c01").is_null(), "{}", default_of("i-0c01"));
+    std::fs::remove_dir_all(&root).ok();
+
+    // No key: the tick is claimed, in the words it always had.
+    let root = scratch("no-default");
+    ticket(&root, "");
+    commit(&root, "ticket");
+    assert!(
+        war(&root, Some("bob"), &["claim", "t-0c01"])
+            .status
+            .success()
+    );
+    let o = war(&root, Some("bob"), &["done", "t-0c01/i-0c02"]);
+    assert!(
+        said(&o).contains("ticked as claimed: nothing was checked"),
+        "{}",
+        said(&o)
+    );
+    assert!(!doc(&root).contains("[observed]"));
+    std::fs::remove_dir_all(&root).ok();
+}
+
+/// The default runs once per `war done`, and a pass is reused only while
+/// nothing changed: an edit between two items runs it again.
+#[test]
+fn the_default_runs_once_per_done_and_again_after_any_change() {
+    let runs = |count: &Path| {
+        std::fs::read_to_string(count)
+            .unwrap_or_default()
+            .lines()
+            .count()
+    };
+    let setup = |tag: &str| {
+        let root = scratch(tag);
+        let count = root.with_extension("count");
+        ticket(&root, "");
+        set_default(&root, &format!("echo run >> {}", count.display()));
+        commit(&root, "ticket");
+        assert!(
+            war(&root, Some("bob"), &["claim", "t-0c01"])
+                .status
+                .success()
+        );
+        (root, count)
+    };
+    // Both items in one call: one run, both observed.
+    let (root, count) = setup("default-once");
+    let o = war(&root, Some("bob"), &["done", "t-0c01"]);
+    assert!(o.status.success(), "{}", said(&o));
+    assert!(
+        said(&o).contains("ticked at observed: default passed"),
+        "{}",
+        said(&o)
+    );
+    assert_eq!(runs(&count), 1);
+    assert_eq!(
+        doc(&root).matches("[observed]").count(),
+        2,
+        "{}",
+        doc(&root)
+    );
+    std::fs::remove_dir_all(&root).ok();
+    std::fs::remove_file(&count).ok();
+
+    // Item by item with nothing changed between: the pass is reused, and said.
+    let (root, count) = setup("default-reuse");
+    assert!(
+        war(&root, Some("bob"), &["done", "t-0c01/i-0c01"])
+            .status
+            .success()
+    );
+    let o = war(&root, Some("bob"), &["done", "t-0c01/i-0c02"]);
+    assert!(o.status.success(), "{}", said(&o));
+    assert!(said(&o).contains("not rerun"), "{}", said(&o));
+    assert_eq!(runs(&count), 1);
+    assert_eq!(doc(&root).matches("[observed]").count(), 2);
+    std::fs::remove_dir_all(&root).ok();
+    std::fs::remove_file(&count).ok();
+
+    // An edit between: it runs again.
+    let (root, count) = setup("default-rerun");
+    assert!(
+        war(&root, Some("bob"), &["done", "t-0c01/i-0c01"])
+            .status
+            .success()
+    );
+    std::fs::write(root.join("new.txt"), "changed").unwrap();
+    let o = war(&root, Some("bob"), &["done", "t-0c01/i-0c02"]);
+    assert!(
+        o.status.success() && !said(&o).contains("not rerun"),
+        "{}",
+        said(&o)
+    );
+    assert_eq!(runs(&count), 2);
+    std::fs::remove_dir_all(&root).ok();
+    std::fs::remove_file(&count).ok();
+}

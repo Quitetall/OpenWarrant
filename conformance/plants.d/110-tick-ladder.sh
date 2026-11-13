@@ -397,6 +397,33 @@ ssh-agent -k >/dev/null 2>&1 || true
 if [[ -n "$TL_OLD_SOCK" ]]; then export SSH_AUTH_SOCK="$TL_OLD_SOCK"; else unset SSH_AUTH_SOCK; fi
 unset SSH_AGENT_PID
 
+# ---- 9. the repository's own test ([tickets] done_test, alpha.8 R1) ------------
+# gate.sh fails unless TL_GATE=0. A Warrant with no test of its own is ticked
+# at observed only when it passes; one with its own test is decided by that.
+printf '\n[tickets]\ndone_test = "sh gate.sh"\n' >> "$PLANT_ROOT/openwarrant.toml"
+TL_DT=$(tl_id "$(tlw create "Checked by default" --item "the work" 2>&1)")
+tlw claim "$TL_DT" >/dev/null 2>&1
+TL_DF=$(tlw done "$TL_DT" 2>&1); TL_DF_RC=$?
+TL_DF_CL=$(tl_cl "$TL_DT")
+TL_DP=$(TL_GATE=0 tlw done "$TL_DT" 2>&1); TL_DP_RC=$?
+TL_DSHOW=$(tlw show "$TL_DT" 2>&1)
+if [[ $TL_DF_RC -eq 2 ]] && grep -qF 'ticket.check-failed' <<<"$TL_DF" && ! grep -qF '[x]' <<<"$TL_DF_CL" \
+    && [[ $TL_DP_RC -eq 0 ]] && grep -qF 'ticked at observed: default passed' <<<"$TL_DP" \
+    && grep -qF '(observed)' <<<"$TL_DSHOW"; then
+    tl_ok "the default test decides a plain tick" "failing: refused, nothing ticked; passing: observed in every view"
+else
+    tl_fail "the default test decides a plain tick" "$TL_DF_RC/$TL_DP_RC: $(head -c 200 <<<"$TL_DP")"
+fi
+TL_DO=$(tl_id "$(tlw create "With its own test" --test true 2>&1)")
+tlw claim "$TL_DO" >/dev/null 2>&1
+TL_DOO=$(tlw done "$TL_DO" 2>&1); TL_DO_RC=$?
+if [[ $TL_DO_RC -eq 0 ]] && ! grep -q 'default' <<<"$TL_DOO"; then
+    tl_ok "its own test takes precedence" "the failing default was not asked"
+else
+    tl_fail "its own test takes precedence" "$TL_DO_RC: $(head -c 200 <<<"$TL_DOO")"
+fi
+unset TL_DSHOW TL_DT TL_DF TL_DF_RC TL_DF_CL TL_DP TL_DP_RC TL_DO TL_DOO TL_DO_RC
+
 command rm -rf "$TL_TMP"
 corpus_gone "$PLANT_ROOT"
 unset PLANT_ROOT TL_TMP TL_CREATE TL_T TL_ADD TL_ADD_RC TL_FAIL TL_FAIL_RC TL_CL_AFTER_FAIL TL_OK TL_OK_RC \

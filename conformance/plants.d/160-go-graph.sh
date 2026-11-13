@@ -194,7 +194,38 @@ else
     ga_fail "work lands on war-go/integration" "$GA_WORK on integration, $GA_HEAD_WORK on HEAD, $GA_TREES worktrees"
 fi
 
+# ---- alpha.8 R1: `[tickets] done_test` runs where the node's work is -----------------
+# A node with no check of its own lands at observed when the repository's test
+# passes in its worktree, and is sent back, unticked, when it fails.
+ga_default() { python3 - "$GA_ROOT/openwarrant.toml" "$1" <<'PY'
+import re, sys
+p, cmd = sys.argv[1], sys.argv[2]
+s = open(p).read()
+s = re.sub(r"\n\[tickets\]\ndone_test = .*\n", "\n", s)
+i = s.find("\n[go]\n")
+open(p, "w").write(s[:i] + '\n[tickets]\ndone_test = "' + cmd + '"\n' + s[i:])
+PY
+}
+ga_default "true"
+read -r GA_E GA_e1 <<<"$(ga_new "Epsilon" -i e1)"
+ga_commit "epsilon"
+GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null)
+GA_EOBS=$(grep -c "^- \[x\] e1 .*\[observed\]" "$GA_ROOT/docs/tickets/$GA_E.md")
+ga_default "false"
+read -r GA_Z GA_z1 <<<"$(ga_new "Zeta" -i z1)"
+ga_commit "zeta"
+GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null)
+GA_ZRULES=$(ga_field "$GA_OUT" '",".join(sorted({d["rule"] for d in v["diagnostics"]}))')
+GA_ZOPEN=$(grep -c "^- \[ \] z1" "$GA_ROOT/docs/tickets/$GA_Z.md")
+if [[ "$GA_EOBS" == "1" && "$GA_ZOPEN" == "1" && "$GA_ZRULES" == *go.check-failed* ]]; then
+    ga_ok "the default test runs where the work is" "passing: landed at observed; failing: go.check-failed, not ticked"
+else
+    ga_fail "the default test runs where the work is" "e1 observed $GA_EOBS, z1 open $GA_ZOPEN, rules '$GA_ZRULES'"
+fi
+
 command rm -rf "$GA_TMP"
+unset -f ga_default
+unset GA_E GA_e1 GA_Z GA_z1 GA_EOBS GA_ZRULES GA_ZOPEN
 unset GA_ROOT GA_TMP GA_WAR GA_FIX GA_ECHO GA_OUT GA_RC GA_RULES GA_DISPATCHED GA_PERF GA_PRC GA_PRULES \
     GA_STOP GA_LANDED GA_TICKED GA_STAGES GA_S1 GA_S2 GA_EDGES GA_ITEMS GA_ORDER GA_BAD GA_VIOL GA_STARTED \
     GA_NEDGES GA_PEAK GA_RPEAK GA_WORK GA_HEAD_WORK GA_TREES \
