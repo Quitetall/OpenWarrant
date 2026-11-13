@@ -195,6 +195,57 @@ pub fn corpus_timeline_json_with(
     ))
 }
 
+/// The timeline as the status page embeds it: every event's identity, class,
+/// actor and day, but not its payload. The payload is the journal line, which
+/// is in the repository beside the page (`warrant` and `id` locate it), and
+/// the page never reads it. Embedding it doubled the projection: the timeline
+/// is about 25 MB of payloads, and the page carried the timeline a second time.
+#[derive(Serialize)]
+struct ViewEvent<'a> {
+    occurred_at: &'a str,
+    warrant: &'a str,
+    id: &'a str,
+    event_type: &'a str,
+    class: &'a str,
+    actor_ref: &'a str,
+}
+
+#[derive(Serialize)]
+struct TimelineView<'a> {
+    schema: &'a str,
+    events: Vec<ViewEvent<'a>>,
+    days: &'a [Day],
+    by_type: &'a BTreeMap<String, usize>,
+    warrants: usize,
+    malformed_timestamps: usize,
+}
+
+/// The timeline for the status page: [`corpus_timeline_json_with`] without
+/// payloads. The committed `CORPUS_TIMELINE.json` keeps them.
+pub fn corpus_timeline_view_json_with(corpus: &crate::corpus::Corpus) -> Result<String, RepoError> {
+    let t = build_timeline_with(corpus)?;
+    let view = TimelineView {
+        schema: &t.schema,
+        events: t
+            .events
+            .iter()
+            .map(|e| ViewEvent {
+                occurred_at: &e.occurred_at,
+                warrant: &e.warrant,
+                id: &e.id,
+                event_type: &e.event_type,
+                class: &e.class,
+                actor_ref: &e.actor_ref,
+            })
+            .collect(),
+        days: &t.days,
+        by_type: &t.by_type,
+        warrants: t.warrants,
+        malformed_timestamps: t.malformed_timestamps,
+    };
+    canonical(&view, "the status page's timeline")
+}
+
 /// The pending projection, with its path.
 pub fn corpus_pending_json(repo: &Repository) -> Result<(Utf8PathBuf, String), RepoError> {
     corpus_pending_json_with(&crate::corpus::Corpus::new(repo))
