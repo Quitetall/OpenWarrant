@@ -20,6 +20,10 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- The managed AGENTS.md block again tells agents to run `war start` before reading
+  anything else and not to read `docs/tickets/` directly. The shorter wording from #406
+  named the directory as an alternative, and in the adoption study agents on that build
+  read ticket files about four times as often, roughly 90k tokens per task.
 - `war start --worktree` on a `docs/work/` master looked for a `manifest.toml` and
   refused it as uncommitted; it now checks the master's document, and refuses one
   edited since the base commit, as it does a single-file ticket.
