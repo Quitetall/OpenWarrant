@@ -1631,22 +1631,46 @@ pub fn is_ticket_ref(s: &str) -> bool {
     s.starts_with("t-") || s.starts_with("i-") || master_ticket(s)
 }
 
-/// The repository this process serves, for [`is_ticket_ref`]: set once, by
-/// the command line and by the MCP server ([`serve`]).
-static SERVED: std::sync::OnceLock<Utf8PathBuf> = std::sync::OnceLock::new();
+/// The repository this process serves, for [`is_ticket_ref`]: named once, by
+/// the command line and by the MCP server ([`serve`]). `None` inside: looked
+/// for from the current directory, and no `openwarrant.toml` found.
+static SERVED: std::sync::OnceLock<Option<Utf8PathBuf>> = std::sync::OnceLock::new();
+
+/// [`serve`] was called with no root: the first `w-` id asked about looks
+/// from the current directory.
+static SERVE_FROM_CWD: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 
 /// Name the repository this process serves: `root`, else the nearest
-/// directory from the current one up that holds `openwarrant.toml`.
+/// directory from the current one up that holds `openwarrant.toml`. That
+/// search is not made here but by the first `w-` id asked about ([`served`]):
+/// this runs before the command is known, and a command that serves no
+/// repository (`war host`, a pure function of its request) asks the system
+/// for nothing, the working directory included (79-host.sh).
 pub fn serve(root: Option<&Utf8Path>) {
-    let found = root.map(Utf8Path::to_owned).or_else(|| {
-        let cwd = Utf8PathBuf::from_path_buf(std::env::current_dir().ok()?).ok()?;
-        cwd.ancestors()
-            .find(|d| d.join(crate::init::CONFIG_FILE).is_file())
-            .map(Utf8Path::to_owned)
-    });
-    if let Some(found) = found {
-        let _ = SERVED.set(found);
+    match root {
+        Some(root) => {
+            let _ = SERVED.set(Some(root.to_owned()));
+        }
+        None => SERVE_FROM_CWD.store(true, std::sync::atomic::Ordering::Relaxed),
     }
+}
+
+/// The repository [`serve`] named, looked for now if it named none.
+fn served() -> Option<&'static Utf8Path> {
+    if let Some(found) = SERVED.get() {
+        return found.as_deref();
+    }
+    if !SERVE_FROM_CWD.load(std::sync::atomic::Ordering::Relaxed) {
+        return None;
+    }
+    SERVED
+        .get_or_init(|| {
+            let cwd = Utf8PathBuf::from_path_buf(std::env::current_dir().ok()?).ok()?;
+            cwd.ancestors()
+                .find(|d| d.join(crate::init::CONFIG_FILE).is_file())
+                .map(Utf8Path::to_owned)
+        })
+        .as_deref()
 }
 
 /// Whether `s` (`w-x` or `w-x/i-y`) names a ticket kept as a master: a `w-`
@@ -1657,7 +1681,7 @@ fn master_ticket(s: &str) -> bool {
     if !ticket::is_work_id(head) {
         return false;
     }
-    let Some(root) = SERVED.get() else {
+    let Some(root) = served() else {
         return false;
     };
     let work = root.join(crate::subject::WORK_ROOT);
