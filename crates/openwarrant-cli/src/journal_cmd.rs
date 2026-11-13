@@ -985,7 +985,9 @@ pub fn check_work(root: &Utf8Path, dirs: &[(String, camino::Utf8PathBuf)], repor
             .map_or_else(|_| p.to_string(), ToString::to_string)
     };
     let changed: std::collections::BTreeSet<String> = {
+        let index = crate::go::git::read_index(root);
         let out = crate::go::git::observing(&mut std::process::Command::new("git"))
+            .envs(crate::go::git::index_env(index.as_ref()))
             .args(["diff", "--name-only", "--no-renames", "-z", "HEAD", "--"])
             .args(
                 dirs.iter()

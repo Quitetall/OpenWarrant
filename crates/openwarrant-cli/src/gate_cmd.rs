@@ -983,7 +983,6 @@ pub mod source {
     ) -> Result<Vec<u8>, String> {
         let index = private_index.then(|| ReadIndex::new(root)).transpose()?;
         let mut command = Command::new("git");
-        crate::go::git::observing(&mut command);
         if let Some(index) = &index {
             command.env("GIT_INDEX_FILE", index.0.join("index"));
         }
@@ -992,8 +991,8 @@ pub mod source {
             .arg(root.as_str())
             .args(args)
             // These are observations, including during a mutating gate
-            // command. Git must not refresh index stat data as a side effect
-            // (`observing`, above: `git diff` ignores GIT_OPTIONAL_LOCKS).
+            // command. Git must not refresh index stat data as a side effect.
+            .env("GIT_OPTIONAL_LOCKS", "0")
             .output()
             .map_err(|e| format!("git could not be run: {e}"))?;
         if !out.status.success() {
@@ -1009,10 +1008,15 @@ pub mod source {
     /// Git's exact-content filtering can refresh index stat data even with
     /// optional locks disabled. Give worktree diffs a private copy, removed
     /// after the process ends. Hosted observations never create this scratch.
-    struct ReadIndex(PathBuf);
+    pub(crate) struct ReadIndex(PathBuf);
 
     impl ReadIndex {
-        fn new(root: &Utf8Path) -> Result<Self, String> {
+        /// The copy: what `GIT_INDEX_FILE` names for the reading child.
+        pub(crate) fn file(&self) -> PathBuf {
+            self.0.join("index")
+        }
+
+        pub(crate) fn new(root: &Utf8Path) -> Result<Self, String> {
             let paths = tree_read(format!("index-path\0{root}"), || {
                 let bytes = git_uncached(root, &["rev-parse", "--git-path", "index"], false)?;
                 let path = std::str::from_utf8(&bytes)

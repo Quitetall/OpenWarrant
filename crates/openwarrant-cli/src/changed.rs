@@ -91,7 +91,9 @@ fn git_names(
     if literal.is_empty() && globs.is_empty() {
         return Some(Vec::new());
     }
+    let index = crate::go::git::read_index(&repo.root);
     let out = crate::go::git::observing(&mut std::process::Command::new("git"))
+        .envs(crate::go::git::index_env(index.as_ref()))
         .args(args)
         .arg("--")
         .args(literal.iter().map(|s| format!(":(literal){s}")))

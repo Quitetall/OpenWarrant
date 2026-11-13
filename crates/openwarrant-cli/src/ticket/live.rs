@@ -1168,7 +1168,12 @@ fn bounded_diff(n: &Notice) -> String {
         args.push(to);
     }
     args.extend(["--", n.path.as_deref().unwrap_or(&n.source)]);
+    // A diff to the working tree reads through a private index.
+    let index = (n.to.is_none() && n.path.is_none())
+        .then(|| crate::go::git::read_index(Utf8Path::new(&n.checkout)))
+        .flatten();
     let Ok(out) = crate::go::git::observing(&mut std::process::Command::new("git"))
+        .envs(crate::go::git::index_env(index.as_ref()))
         .args(args)
         .stderr(std::process::Stdio::null())
         .output()

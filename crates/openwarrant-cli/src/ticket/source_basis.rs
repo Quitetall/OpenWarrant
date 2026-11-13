@@ -218,7 +218,7 @@ pub fn capture(root: &Utf8Path, evidence: &Utf8Path) -> Result<Basis, String> {
         // observed for this one.
         let mut args = vec!["diff", "--name-only", "-z", "HEAD", "--", "."];
         args.extend(excluded.iter().map(String::as_str));
-        let dirty = crate::go::git::git_raw(root, &args)
+        let dirty = crate::go::git::git_raw_reading(root, &args)
             .map_err(|e| format!("local source diff unavailable: {e:?}"))?;
         if !dirty.success {
             return Err(format!(
@@ -243,7 +243,7 @@ pub fn capture(root: &Utf8Path, evidence: &Utf8Path) -> Result<Basis, String> {
             ".",
         ];
         args.extend(excluded.iter().map(String::as_str));
-        let diff = crate::go::git::git_raw(root, &args)
+        let diff = crate::go::git::git_raw_reading(root, &args)
             .map_err(|e| format!("local source diff unavailable: {e:?}"))?;
         if !diff.success {
             return Err(format!(

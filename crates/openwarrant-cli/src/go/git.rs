@@ -65,23 +65,63 @@ pub(crate) fn git_raw(
     observe_git(dir, args, &[])
 }
 
-/// Make `cmd` a git child that only looks. Read paths must leave
-/// `.git/index` byte-identical, and git rewrites it opportunistically:
-/// `git status` when a tracked file's stat data moved, which
-/// `GIT_OPTIONAL_LOCKS=0` turns off, and `git diff` against the working
-/// tree, which ignores that variable and stops only for
-/// `diff.autoRefreshIndex=false`. Both are set through the environment, so
-/// they hold wherever the arguments put the subcommand; a caller's own
-/// `GIT_CONFIG_COUNT` entries are kept.
+/// Make `cmd` a git child that takes no optional lock: `git status` then
+/// leaves `.git/index` alone when a tracked file's stat data has moved.
+/// `git diff` against the working tree ignores this and refreshes the index
+/// all the same; such a read is given a private copy ([`read_index`]).
 pub fn observing(cmd: &mut Command) -> &mut Command {
-    let n = std::env::var("GIT_CONFIG_COUNT")
-        .ok()
-        .and_then(|n| n.parse::<usize>().ok())
-        .unwrap_or(0);
     cmd.env("GIT_OPTIONAL_LOCKS", "0")
-        .env("GIT_CONFIG_COUNT", (n + 1).to_string())
-        .env(format!("GIT_CONFIG_KEY_{n}"), "diff.autoRefreshIndex")
-        .env(format!("GIT_CONFIG_VALUE_{n}"), "false")
+}
+
+/// A private copy of `root`'s index for a read of the working tree (`git
+/// diff <commit>`, `git status`): git may refresh the copy as it likes, the
+/// answer is the one the real index gives, and `.git/index` keeps its bytes.
+/// Hold it until the child has ended; pass [`index_env`] to the child.
+/// `None` when no copy could be made: the read then goes to the real index.
+#[must_use]
+pub(crate) fn read_index(root: &Utf8Path) -> Option<crate::gate_cmd::source::ReadIndex> {
+    crate::gate_cmd::source::ReadIndex::new(root).ok()
+}
+
+/// `GIT_INDEX_FILE` for a child reading through `index`.
+#[must_use]
+pub(crate) fn index_env(
+    index: Option<&crate::gate_cmd::source::ReadIndex>,
+) -> Vec<(&'static str, std::path::PathBuf)> {
+    index
+        .map(|i| ("GIT_INDEX_FILE", i.file()))
+        .into_iter()
+        .collect()
+}
+
+/// [`git_raw`] for a read of the working tree, through a private index.
+pub(crate) fn git_raw_reading(
+    dir: &Utf8Path,
+    args: &[&str],
+) -> Result<
+    crate::runtime_capture::process::Completed,
+    openwarrant_core::document::runtime::ProviderFailure,
+> {
+    let index = read_index(dir);
+    let file = index
+        .as_ref()
+        .map(|i| i.file().to_string_lossy().into_owned());
+    match &file {
+        Some(file) => observe_git(dir, args, &[("GIT_INDEX_FILE", file)]),
+        None => observe_git(dir, args, &[]),
+    }
+}
+
+/// [`git`] for a read of the working tree, through a private index.
+pub fn git_reading(dir: &Utf8Path, args: &[&str]) -> Ran {
+    let index = read_index(dir);
+    let file = index
+        .as_ref()
+        .map(|i| i.file().to_string_lossy().into_owned());
+    match &file {
+        Some(file) => git_env(dir, args, &[("GIT_INDEX_FILE", file)]),
+        None => git(dir, args),
+    }
 }
 
 fn observe_git(
@@ -93,8 +133,6 @@ fn observe_git(
     openwarrant_core::document::runtime::ProviderFailure,
 > {
     let mut cmd = Command::new("git");
-    // No call here needs git's opportunistic index refresh, and the reads
-    // among them must not make one.
     observing(&mut cmd);
     cmd.args([
         "-c",
