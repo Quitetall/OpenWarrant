@@ -950,3 +950,61 @@ ticked"), where alpha.7 records the item done; and the brief file is in the seed
 checks were added: init's own key against the seed's one key, with no item ticked at
 observed during seeding, and the switch off leaving no key. Still owed, as before: one
 short session on the endpoint showing opencode loads the brief file at startup.
+
+### Setup note to amendment 8 (2026-11-13): the `next` of the first run, and what was checked on it
+
+Written and pushed before the run it describes.
+
+**`next` is main at `d088e6cd6`** (`d088e6cd6849cb227ad9977b8959907f025a82a5`; since
+`764736059`: #422 shared tickets and the duplicate refusal, #424 field fixes, #425 the
+read-path speedups, #426 and #428 the opt-in `docs/work` layout). Release build,
+`/mnt/4tb/tmp/openwarrant-adoption/tools/war-d088e6cd6/war`; it reports `war 1.0.0-alpha.7
+(unreleased, commit d088e6cd6849)`, sha256
+`185ef12bbf3009794ca328e8148c54c42ce5fccbfb668122b61309b421667c3b`, plugin ref `d088e6cd6`.
+Every `@next` arm of `oc-a8-1` uses it. The run waits for the full gate on that commit
+(Actions run 43510274570) to conclude success.
+
+**Checked on it, no model.** `run.py a8-check`: 28 passed, 1 skipped (the model check
+below), 0 failed. No harness change was needed for this build:
+
+- *The duplicate refusal.* `war create` now refuses a title that reads as an open ticket's.
+  Both backlogs were seeded with every ticket open (the relay's seed) and with T1 to T7
+  done: all 11 tickets were created each time, with no refusal and no `--force`. The seeder
+  titles a ticket `<id>: <title>`, so every title holds a word no other has (`T8`, `K10`),
+  which the rule reads as distinct work.
+- *The default actor's announcement.* The seeder, the tracker reader and the fixtures all
+  set `OPENWARRANT_ACTOR`, so `war` has no default actor to announce to them; and with no
+  actor set, `war view tickets --json` still writes only its JSON envelope to stdout, which
+  the tracker parses.
+- *Seed parity*, alpha.7 against `next`, per-seeding ids named (tally's T8 cell, and both
+  backlogs fully open). Every ticket document is the same. The differences are: the
+  `AGENTS.md` block `war init` writes (three lines reworded); `[tickets] done_test` in
+  `openwarrant.toml`; `.openwarrant/next.md`, untracked; two `docs/work` lines in
+  `.gitattributes`; and, in the journals of tickets the seeder closed, two fields `next`
+  adds to each `work.claimed` event (`coordination.branch`, `coordination.repo`). The same
+  events are journalled, in the same numbers.
+
+**opencode 2.2.1 restored.** The study's copy of the pinned agent
+(`tools/opencode/2.2.1/opencode`) was gone from the scratch tools directory, and the
+owner's install, which `prepare` copies from, has moved to 2.2.7. The pin holds: the
+published package `@opencode/cli-linux-x64@2.2.1` was fetched from the npm registry, its
+tarball checked against the registry's sha512 integrity, and its binary put back in place
+(it reports `opencode v2.2.1`; sha256
+`32e95ec126d416ab833094447cf590290e17dd028a68b122b94d3539795c0dae`). No hash of the earlier
+copy was ever recorded, so that it is the same bytes rests on the version and the
+registry, not on a comparison.
+
+**The owed model check, done.** The endpoint was up on 2026-11-13 and its model list
+reports no price for `deepseek-ai/DeepSeek-V4.1-Flash`, as before. Two sessions of one
+model call each, in the study's sandbox on tally's T8 cell (not study cells, scratch
+roots): asked, without tools, whether its startup instructions hold a passage beginning
+"OpenWarrant:", `openwarrant-brief@next` quoted `.openwarrant/next.md` whole, naming the
+file (`/work/repo/.openwarrant/next.md`) and its three ready tickets by id;
+`openwarrant@next`, the same seed without the `instructions` entry, answered `NONE`.
+Neither called a tool. opencode loads the file at startup, and only for the brief arm.
+
+**The run, `oc-a8-1`:** replicate 1 of `plans/oc-a8-directed.json`, 88 directed cells
+(`plain`, `openwarrant@a7`, `openwarrant@next`, `openwarrant-brief@next` on the 22 items),
+opencode 2.2.1 with `lithosai/deepseek-ai/DeepSeek-V4.1-Flash`, `--turns 60 --jobs 3`,
+`ADOPTION_OW_DONE_TEST` on, one `systemd-run --user` unit, run root in `/dev/shm`. Replicate
+2 is not started with it: the owner decides after this one.
