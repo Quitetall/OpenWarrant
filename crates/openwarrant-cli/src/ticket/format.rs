@@ -56,7 +56,9 @@ pub fn is_document_path(place: &str) -> bool {
         }
     });
     let name = path.rsplit('/').next().unwrap_or(path);
-    name == INNER || single_file(name).is_some()
+    name == INNER
+        || single_file(name).is_some()
+        || (name.ends_with(".md") && Utf8Path::new(path).starts_with(crate::subject::WORK_ROOT))
 }
 
 /// The document of a Format 1.0 ticket whose evidence directory is `dir`:
@@ -322,6 +324,14 @@ impl Store {
                 if crate::vfs::exists(&inner) {
                     found.push(self.rel(&inner));
                 }
+            }
+        }
+        // A master, `docs/work/<id>/<id>-<slug>.md`.
+        for path in self.master_entries()? {
+            if path.file_name().is_some_and(|n| n.starts_with(prefix))
+                && let Some(file) = document_of(&path)
+            {
+                found.push(self.rel(&file));
             }
         }
         Ok(match found.as_mut_slice() {

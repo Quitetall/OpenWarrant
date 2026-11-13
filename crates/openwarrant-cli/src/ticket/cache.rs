@@ -715,7 +715,12 @@ impl Cache {
             // Unusual or unnamed: exactly the uncached read.
             return Got::plain(Some(store.load_format(file, alias)));
         };
-        let dir = store.dir.join(alias);
+        // A master keeps its state beside it; any other document, under
+        // the ticket directory.
+        let dir = match file.parent() {
+            Some(parent) if name.starts_with(crate::subject::WORK_ROOT) => parent.to_owned(),
+            _ => store.dir.join(alias),
+        };
         let shard = shard_of(name);
         let old = &shards[shard];
         if let Some((_, tr, jr)) = old.get(name)
@@ -865,7 +870,15 @@ fn hit(root: &Utf8Path, dir: &Utf8Path, stamp: Stamp, bytes: &[u8]) -> Option<Ti
 
 /// The name a document's entry is found by: its path under the store.
 fn document_name<'a>(store: &Store, file: &'a Utf8Path) -> Option<&'a str> {
-    file.strip_prefix(&store.dir).ok().map(Utf8Path::as_str)
+    if let Ok(under) = file.strip_prefix(&store.dir) {
+        return Some(under.as_str());
+    }
+    // A master: its path under the root, `docs/work/<id>/<id>-<slug>.md`,
+    // which no name under the ticket directory can be.
+    file.strip_prefix(&store.root)
+        .ok()
+        .filter(|p| p.starts_with(crate::subject::WORK_ROOT))
+        .map(Utf8Path::as_str)
 }
 
 /// The Format 1.0 ticket an entry holds, when its sources stat as they did:

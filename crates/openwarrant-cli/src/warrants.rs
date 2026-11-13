@@ -236,6 +236,15 @@ pub fn document_rows(repo: &Repository) -> (Vec<Row>, Vec<Diagnostic>) {
         })
         .collect();
     for loaded in &docs.docs {
+        // A ticket kept as a master is the ticket store's row, not a second
+        // one here.
+        if loaded.doc.profile == "ticket"
+            && loaded
+                .source
+                .starts_with(&format!("{}/", crate::subject::WORK_ROOT))
+        {
+            continue;
+        }
         let Some(id) = loaded.doc.alias.clone().filter(|_| loaded.admitted()) else {
             // The same as an unworkable ticket document: not worked, and
             // said, with what is wrong with it.

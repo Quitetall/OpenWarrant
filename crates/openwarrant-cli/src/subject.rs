@@ -304,39 +304,73 @@ pub fn master_path(repo: &Repository, id: &str, title: &str) -> Utf8PathBuf {
     }
 }
 
-/// `war plan new <title>`: a new master, `docs/work/<id>/<id>-<slug>.md`, its
-/// id `w-` and the hash of a fresh UUIDv7 (merge-safe; two branches never take one).
-/// The bytes are those `war plan new --format 1.0` writes, with this id.
-pub fn create_master(
-    repo: &Repository,
-    title: &str,
-    delivery: bool,
-) -> Result<(String, Utf8PathBuf), RepoError> {
-    let title = title.trim();
-    if title.is_empty() || title.contains('\n') {
-        return Err(RepoError::Message(
-            "new.title: a work order needs a one-line title".to_owned(),
-        ));
+/// [`master_path`] under a root, for a caller with no [`Repository`].
+#[must_use]
+pub fn master_path_at(root: &Utf8Path, id: &str, title: &str) -> Utf8PathBuf {
+    let dir = root.join(WORK_ROOT).join(id);
+    let slug = slug(title);
+    if SINGLETONS.contains(&id) || slug.is_empty() {
+        dir.join(format!("{id}.md"))
+    } else {
+        dir.join(format!("{id}-{slug}.md"))
     }
-    let taken = all(repo).len() + count_entries(&work_root(repo));
-    // R2: the id is taken in the clone's register too, so no two worktrees
-    // mint one (`ticket::shared`).
-    let store = crate::ticket::Store::open(repo, None).ok();
-    let registry = store.as_ref().and_then(crate::ticket::Store::registry);
+}
+
+/// A new master's id, taken: its directory made, and its name held in the
+/// clone's register (`ticket::shared`) when there is one.
+pub struct Reserved {
+    pub id: String,
+    pub uuid: String,
+    /// `docs/work/<id>/`: made, and empty.
+    pub dir: Utf8PathBuf,
+    /// Where its document goes: `<dir>/<id>-<slug>.md`.
+    pub path: Utf8PathBuf,
+    registry: Option<crate::ticket::shared::Registry>,
+    entry: Option<crate::ticket::shared::Entry>,
+}
+
+impl Reserved {
+    /// Give the id back: the document was not written.
+    pub fn release(&self) {
+        let _ = std::fs::remove_dir(&self.dir);
+        if let Some(reg) = &self.registry {
+            reg.release(&self.id, &self.uuid);
+        }
+    }
+}
+
+/// Mint a `w-` id for new work titled `title` and take it: the one path
+/// `war create` and `war plan new` both start on. The id is the hash of a
+/// fresh UUIDv7, lengthened past a collision. It is taken only when no root
+/// in `guard` holds it, the clone's register gives it, and
+/// `docs/work/<id>/` is made by this call. `taken`: how many items there
+/// are, for the id's length.
+pub fn reserve_master(
+    store: &crate::ticket::Store,
+    guard: &[Utf8PathBuf],
+    taken: usize,
+    title: &str,
+) -> Result<Reserved, RepoError> {
+    let registry = store.registry();
+    let work = store.root.join(WORK_ROOT);
+    std::fs::create_dir_all(&work).map_err(|source| RepoError::Io {
+        context: format!("could not create {work}"),
+        source,
+    })?;
     for attempt in 0..16usize {
         let uuid = openwarrant_core::WarUuid::mint().to_string();
         let len = openwarrant_core::ticket::ticket_id_len(taken) + attempt / 4;
         let id = openwarrant_core::ticket::hash_id("w-", &uuid, len);
-        if roots(repo).iter().any(|r| {
+        if guard.iter().any(|r| {
             crate::vfs::exists(r.join(&id)) || crate::vfs::exists(r.join(format!("{id}.md")))
         }) {
             continue;
         }
-        let path = master_path(repo, &id, title);
-        let dir = path.parent().unwrap_or(&path).to_owned();
+        let path = master_path_at(&store.root, &id, title);
+        let dir = work.join(&id);
         let mut entry = None;
-        if let (Some(reg), Some(store)) = (&registry, &store) {
-            let stub = reg.stub(&id, &uuid, title, &store.actor, &repo.relative(&path));
+        if let Some(reg) = &registry {
+            let stub = reg.stub(&id, &uuid, title, &store.actor, &store.rel(&path));
             match reg.reserve(&stub) {
                 Ok(true) => entry = Some(stub),
                 Ok(false) => continue,
@@ -348,38 +382,25 @@ pub fn create_master(
                 }
             }
         }
-        let release = || {
-            if let Some(reg) = &registry {
-                reg.release(&id, &uuid);
-            }
+        let reserved = Reserved {
+            id,
+            uuid,
+            dir,
+            path,
+            registry: registry.clone(),
+            entry,
         };
-        std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
-            context: format!("could not create {dir}"),
-            source,
-        })?;
-        let text = crate::new::format_template(&id, &uuid, title, delivery);
-        match std::fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&path)
-        {
-            Ok(mut file) => {
-                use std::io::Write as _;
-                file.write_all(text.as_bytes())
-                    .map_err(|source| RepoError::Io {
-                        context: format!("could not write {path}"),
-                        source,
-                    })?;
-                if let (Some(reg), Some(mut entry)) = (&registry, entry) {
-                    reg.fill(&mut entry, delivery, &text);
+        match std::fs::create_dir(&reserved.dir) {
+            Ok(()) => return Ok(reserved),
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {
+                if let Some(reg) = &reserved.registry {
+                    reg.release(&reserved.id, &reserved.uuid);
                 }
-                return Ok((id, path));
             }
-            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => release(),
             Err(source) => {
-                release();
+                reserved.release();
                 return Err(RepoError::Io {
-                    context: format!("could not create {path}"),
+                    context: format!("could not create {}", reserved.dir),
                     source,
                 });
             }
@@ -388,6 +409,54 @@ pub fn create_master(
     Err(RepoError::Message(
         "new.id: could not mint an unused id after 16 attempts".to_owned(),
     ))
+}
+
+/// `war plan new <title>`: a new master, `docs/work/<id>/<id>-<slug>.md`, its
+/// id `w-` and the hash of a fresh UUIDv7 (merge-safe; two branches never take one).
+/// The bytes are those `war plan new --format 1.0` writes, with this id.
+///
+/// As `war create` does, it holds the title's lock and refuses a title that
+/// is, or reads as, open work's (`ticket.duplicate`, the `Err` inside);
+/// `force` creates anyway.
+pub fn create_master(
+    repo: &Repository,
+    title: &str,
+    delivery: bool,
+    force: bool,
+) -> Result<Result<(String, Utf8PathBuf), crate::ticket::Outcome>, RepoError> {
+    let title = title.trim();
+    if title.is_empty() || title.contains('\n') {
+        return Err(RepoError::Message(
+            "new.title: a work order needs a one-line title".to_owned(),
+        ));
+    }
+    let taken = all(repo).len() + count_entries(&work_root(repo));
+    let store = crate::ticket::Store::open(repo, None)?;
+    let _one_title = crate::ticket::shared::TitleLock::take(&store, title);
+    if !force && let Some(refusal) = crate::ticket::shared::duplicate(&store, title, None)? {
+        return Ok(Err(refusal));
+    }
+    let mut reserved = reserve_master(&store, &roots(repo), taken, title)?;
+    let text = crate::new::format_template(&reserved.id, &reserved.uuid, title, delivery);
+    let written = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&reserved.path)
+        .and_then(|mut file| {
+            use std::io::Write as _;
+            file.write_all(text.as_bytes())
+        });
+    if let Err(source) = written {
+        reserved.release();
+        return Err(RepoError::Io {
+            context: format!("could not write {}", reserved.path),
+            source,
+        });
+    }
+    if let (Some(reg), Some(mut entry)) = (&reserved.registry, reserved.entry.take()) {
+        reg.fill(&mut entry, delivery, &text);
+    }
+    Ok(Ok((reserved.id, reserved.path)))
 }
 
 fn count_entries(dir: &Utf8Path) -> usize {

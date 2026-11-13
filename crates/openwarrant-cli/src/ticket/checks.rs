@@ -1055,7 +1055,7 @@ pub fn cited_work(root: &Utf8Path, sha: &str) -> Vec<String> {
     let mut cited: Vec<String> = Vec::new();
     for word in String::from_utf8_lossy(&out.stdout)
         .split(|c: char| !(c.is_ascii_alphanumeric() || c == '-'))
-        .filter(|w| openwarrant_core::ticket::is_ticket_id(w))
+        .filter(|w| openwarrant_core::ticket::is_light_id(w))
     {
         if !cited.iter().any(|c| c == word) {
             cited.push(word.to_owned());

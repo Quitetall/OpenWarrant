@@ -221,9 +221,10 @@ pub fn is_target(target: &str) -> bool {
         return crate::instruction::is_section_id(target);
     }
     match target.split_once('/') {
-        None => is_record_id(target) || is_ticket_id(target, 't'),
+        None => is_record_id(target) || is_ticket_id(target, 't') || is_ticket_id(target, 'w'),
         Some((a, b)) => {
-            (is_record_id(a) && is_record_id(b)) || (is_ticket_id(a, 't') && is_ticket_id(b, 'i'))
+            (is_record_id(a) && is_record_id(b))
+                || ((is_ticket_id(a, 't') || is_ticket_id(a, 'w')) && is_ticket_id(b, 'i'))
         }
     }
 }

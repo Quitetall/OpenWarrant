@@ -145,6 +145,7 @@ pub struct WarServer {
 impl WarServer {
     #[must_use]
     pub fn new(repo: Repository, opts: Options) -> Self {
+        crate::ticket::serve(Some(&repo.root));
         let mut tool_router = Self::tool_router();
         if !opts.all {
             for t in tool_router.list_all() {
