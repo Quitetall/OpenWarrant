@@ -19,6 +19,7 @@ import json
 import os
 import re
 import subprocess
+import tomllib
 from pathlib import Path
 
 ARMS = ("plain", "plans", "speckit", "beads", "openwarrant", "jira")
@@ -383,13 +384,37 @@ def tickets_config(repo: Path, line: str) -> None:
         path.write_text(text + f"\n[tickets]\n{line}\n")
 
 
+_DONE_TEST_LINE = re.compile(r"^done_test\s*=.*\n", re.M)
+
+
+def strip_done_test(repo: Path) -> str | None:
+    """Take out the `done_test` line `war init` wrote, and return its command. A `war` that has the
+    key records the test it finds in the repository on a plain `war init` (tally: `python -m
+    pytest`; knightlm: `cargo test --locked`); deleting the line is the product's way to turn it
+    off. The seeder takes it out so that closing the earlier items runs no test, and
+    `write_done_test` sets the key once seeding is over. An older `war` wrote none: nothing changes."""
+    path = repo / "openwarrant.toml"
+    text = path.read_text()
+    m = _DONE_TEST_LINE.search(text)
+    if not m:
+        return None
+    path.write_text(_DONE_TEST_LINE.sub("", text))
+    return tomllib.loads(m.group(0))["done_test"]
+
+
 def write_done_test(repo: Path, backlog: dict, env: dict) -> None:
     """Amendment 8: `[tickets] done_test`, when the run asks for it for this arm (STUDY_OW_DONE_TEST,
-    set by run.py for `@next` arms only: an older `war` refuses the key). Written after the seeder
-    has closed the earlier items, so seeding itself runs no test."""
+    set by run.py for `@next` arms only: an older `war` refuses the key). Set through `war init
+    --done-test`, the product's own way to set or replace it, to the repository's visible test
+    command, and last: after the seeder has closed the earlier items, so seeding itself runs no test.
+    With the switch off, or for a repository the study names no command for, there is no key."""
     cmd = done_test_command(backlog) if env.get("STUDY_OW_DONE_TEST") == "1" else None
-    if cmd:
-        tickets_config(repo, "done_test = " + json.dumps(cmd))
+    if not cmd:
+        return
+    _run([env["STUDY_WAR"], "init", "--root", ".", "--done-test", cmd], repo, env)
+    have = tomllib.loads((repo / "openwarrant.toml").read_text()).get("tickets", {}).get("done_test")
+    if have != cmd:
+        raise RuntimeError(f"war init --done-test left done_test = {have!r}, not {cmd!r}")
 
 
 def setup_openwarrant(repo: Path, backlog: dict, env: dict) -> None:
@@ -401,6 +426,7 @@ def setup_openwarrant(repo: Path, backlog: dict, env: dict) -> None:
     _run([war, "init", "--root", "."], repo, env)
     if "<!-- openwarrant:begin -->" not in target.read_text():
         raise RuntimeError(f"war init did not add its block to {target.name}")
+    strip_done_test(repo)
     if env.get("ADOPTION_OW_SESSION_START") == "1":
         # The opt-in session hook (`[tickets] session_start`), when the run enables it.
         tickets_config(repo, "session_start = true")

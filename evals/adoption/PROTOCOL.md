@@ -901,3 +901,52 @@ customer, the gates, the registry, the turn caps and argv (the adoption argv sti
 USD 8 a session), and an adoption cell at 25 turns. The sections that run cells with fixture
 authors and workers (binaries, isolation, the spec matrix, the control) were not rerun: the
 machine's build slots were taken. They are owed before the spec study's next run.
+
+### Setup note to amendment 8 (2026-11-13): checked on a `war` that has both features
+
+Made with no run live and no model called. Main at `764736059` (#421) has `[tickets]
+done_test` (and `done_test_timeout`) and `.openwarrant/next.md`. A release build of it,
+`/mnt/4tb/tmp/openwarrant-adoption/tools/war-764736059/war`, reports `war 1.0.0-alpha.7
+(unreleased, commit 764736059d1f)`, sha256
+`98ecd5f1be71e7cfbf178b4ed369e9a623d90cb5cebe45aa5a6bf0165f286841`. It is the build the
+checks below ran on, not the build the runs will measure: shared tickets and read-path
+speedups are still landing, so `@next` in the measured runs will be a later main, recorded
+when it is built as amendment 6 recorded its own, with `a8-check` run again on it.
+
+**Where the harness did not match the product, and what changed** (`arms.py`):
+
+- *`war init` records a test itself.* On this build a plain `war init` writes
+  `done_test` with the test it finds: `python -m pytest` for tally (from `pyproject.toml`),
+  `cargo test --locked` for knightlm. Amendment 8 assumed init wrote no `[tickets]` table.
+  Left alone, the seeder would have closed the earlier items with that key in place, running
+  the suite on the host once for each, and would then have added a second `done_test` line,
+  which is not valid TOML. Now `setup_openwarrant` takes init's line out (`strip_done_test`;
+  deleting the line is the product's way to turn it off), the earlier items are closed with
+  no key, and `write_done_test` sets the key last.
+- *The key is set through the product.* `write_done_test` runs `war init --done-test
+  "<command>"`, which sets or replaces the key in a repository already set up, and checks it
+  reads back, instead of appending text to `openwarrant.toml`.
+- *Which command.* The seed carries the command of the project facts, as amendment 8 fixed
+  it (`python3 -m pytest -q`; `cargo test --workspace --locked -j 2`), not the one init
+  finds. They run the same suites; the facts' is the one every arm is told, and knightlm's
+  keeps the `-j 2` the facts ask for on a shared machine. So `next`'s key is what `war init
+  --done-test "<the project's test command>"` gives, one step past a plain `war init`.
+- *The switch off now removes something.* With `ADOPTION_OW_DONE_TEST=0` init's own line is
+  taken out and none is set: `next` without the feature, where before it was `next` as it
+  came.
+
+Nothing changed for the brief: `war` writes `.openwarrant/next.md` on create, start, done
+and release, untracked (the clone's `.git/info/exclude` names it) and per worktree, so the
+seeded repository of every `@next` arm holds it (for tally's T8 cell, 450 bytes: the three
+ready tickets). Only `openwarrant-brief@next` loads it. A parallel cell's worktrees would
+start without it until a `war` command runs in them; the plans hold directed cells only.
+
+**`run.py a8-check` on this build:** 28 passed, 1 skipped, 0 failed. The four skips of
+2026-11-12 that needed the product now pass: `next`'s seed carries the key and `war` reads
+its tickets; the reference solution is recorded done (ticked at observed, the journal
+naming `python3 -m pytest -q`); over a failing visible suite `war done` refuses ("was not
+ticked at observed: default (`python3 -m pytest -q`) exited non-zero ... Nothing was
+ticked"), where alpha.7 records the item done; and the brief file is in the seed. Two
+checks were added: init's own key against the seed's one key, with no item ticked at
+observed during seeding, and the switch off leaving no key. Still owed, as before: one
+short session on the endpoint showing opencode loads the brief file at startup.

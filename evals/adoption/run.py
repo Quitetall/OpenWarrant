@@ -1549,10 +1549,27 @@ def cmd_a8_check(args) -> None:
             skip(name, f"this `next` ({build}) does not read `[tickets] done_test`; owed when the product has the key")
     elif knows:
         seed_repo("tally", new, scratch / "next", done, layout)
-        cfg = tomllib.loads((scratch / "next" / "openwarrant.toml").read_text())
+        text = (scratch / "next" / "openwarrant.toml").read_text()
+        cfg = tomllib.loads(text)
         check("next's seed carries done_test and its `war` reads it",
               cfg.get("tickets", {}).get("done_test") == cmds["tally"] and feature_problems([new], "opencode") == []
               and all(v is not None for v in arms.tracker(new, scratch / "next", tally, tools(new)).values()), build)
+        # `war init` on this build records the test it finds. The seed must hold one key, the facts'
+        # command, and closing the earlier items must have run nothing.
+        materialize("tally", scratch / "init")
+        subprocess.run([nxt, "init", "--root", "."], cwd=scratch / "init", env=arms.seed_env({}), check=True,
+                       capture_output=True, timeout=120)
+        found = arms.strip_done_test(scratch / "init")
+        tickets_text = "".join(f.read_text() for f in sorted((scratch / "next" / "docs" / "tickets").rglob("*")) if f.is_file())
+        check("`war init` finds a test of its own; the seed holds one key, the facts' command, and seeding ran no test",
+              bool(found) and text.count("done_test") == 1 and "observed" not in tickets_text
+              and not list((scratch / "next").rglob("test_zz*")),
+              f"init found {found!r}; the seed holds {cfg['tickets']['done_test']!r}")
+        with env(ADOPTION_OW_DONE_TEST="0"):
+            seed_repo("tally", new, scratch / "next-off", done, layout)
+            check("the switch off: `next`'s seed has no done_test, though `war init` wrote one",
+                  "done_test" not in (scratch / "next-off" / "openwarrant.toml").read_text()
+                  and all(v is not None for v in arms.tracker(new, scratch / "next-off", tally, tools(new)).values()))
         c = {"scenario": "directed", "repo": "tally", "arm": new, "item": "T8", "rep": 1}
         r = run_cell(f"{rid}-next-reference", c, "fixture-reference", "fixture")
         check("with done_test, the reference solution is recorded done",
