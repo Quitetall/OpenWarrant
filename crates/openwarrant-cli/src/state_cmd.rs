@@ -172,6 +172,20 @@ pub fn ticket_holding(
     tickets: Option<&[Ticket]>,
     claims: &Claims,
 ) -> Vec<Holding> {
+    let lookup = tickets.map(ticket::Lookup::of);
+    ticket_holding_in(caps, t, lookup.as_ref(), claims)
+}
+
+/// [`ticket_holding`], the other tickets given as a [`ticket::Lookup`]
+/// built once: what a pass over every ticket calls, so the pass reads each
+/// ticket's children and blockers from maps rather than scanning every
+/// ticket per ticket.
+pub fn ticket_holding_in(
+    caps: Capabilities,
+    t: &Ticket,
+    tickets: Option<&ticket::Lookup<'_>>,
+    claims: &Claims,
+) -> Vec<Holding> {
     let mut out = Vec::new();
     if !caps.has(openwarrant_core::Capability::Claims) {
         return out;
@@ -181,7 +195,10 @@ pub fn ticket_holding(
     let tid = t.id();
     out.push(Holding {
         record: tid.to_owned(),
-        state: match ticket::phase_of(t, tickets, claims) {
+        state: match tickets.map_or_else(
+            || ticket::phase_of(t, None, claims),
+            |all| all.phase_of(t, claims),
+        ) {
             ticket::TicketState::Open => FixedState::Open,
             ticket::TicketState::InProgress => FixedState::InProgress,
             ticket::TicketState::Done => FixedState::Done,
@@ -220,7 +237,7 @@ pub fn ticket_holding(
         }
         if !item.done
             && let Some(all) = tickets
-            && !ticket::waiting_on(all, t, item).is_empty()
+            && !all.waiting_on(t, item).is_empty()
         {
             out.push(Holding {
                 record: record.clone(),
@@ -697,9 +714,10 @@ pub fn model_states(corpus: &Corpus) -> Result<BTreeSet<crate::model::State>, Re
     {
         let claims = held.unwrap_or_default();
         let caps = store.definition.capabilities();
+        let lookup = ticket::Lookup::of(tickets);
         for t in tickets {
             out.extend(
-                ticket_holding(caps, t, Some(tickets), &claims)
+                ticket_holding_in(caps, t, Some(&lookup), &claims)
                     .iter()
                     .map(fixed_state),
             );
@@ -1060,9 +1078,10 @@ pub fn document_states(
     if let Ok(store) = ticket::Store::open(corpus.repo(), None) {
         let caps = store.definition.capabilities();
         let none = Claims::new();
+        let lookup = ticket::Lookup::of(&tickets);
         for t in &tickets {
             out.extend(
-                ticket_holding(caps, t, Some(&tickets), &none)
+                ticket_holding_in(caps, t, Some(&lookup), &none)
                     .iter()
                     .map(fixed_state),
             );
