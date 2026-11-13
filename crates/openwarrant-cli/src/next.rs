@@ -143,6 +143,16 @@ pub struct Next {
     /// single-file Warrant, or one read in place. Absent when there is none.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub elsewhere: Vec<Elsewhere>,
+    /// What this actor holds, and where its work is done, one line each.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub held: Vec<Held>,
+}
+
+/// A claim of this actor's, with its place.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct Held {
+    pub target: String,
+    pub place: String,
 }
 
 /// One open item outside the ticket loop and the Warrant acts.
@@ -475,6 +485,7 @@ pub fn derive(
         release: None,
         blocked: Vec::new(),
         elsewhere: Vec::new(),
+        held: Vec::new(),
     }
 }
 
@@ -680,6 +691,14 @@ fn judged(
     }
     elsewhere_items(repo, &mut next);
     claims_remote(repo, &mut next);
+    if crate::vfs::is_disk()
+        && let Ok(store) = crate::ticket::Store::open(repo, None)
+    {
+        next.held = crate::ticket::held_places(&store)
+            .into_iter()
+            .map(|(target, place)| Held { target, place })
+            .collect();
+    }
     if next.actions.is_empty() && next.ready.is_empty() {
         // M9: an empty list is said as what it means for ordinary work. A
         // ticket store that could not be read counts as tracked: "nothing
@@ -956,6 +975,8 @@ const BRIEF_PER_ACT: usize = 3;
 #[must_use]
 pub fn render(n: &Next) -> String {
     let mut s = String::new();
+    // `held` stays in the JSON: `war start` prints the place once, and a
+    // line on every `--next` costs each agent that reads it.
     // One line per ready Warrant, not per item: `war start` takes it whole
     // and prints its items; the JSON keeps a row per item.
     let mut order: Vec<&str> = Vec::new();
@@ -1140,6 +1161,7 @@ mod tests {
             release: None,
             blocked: Vec::new(),
             elsewhere: Vec::new(),
+            held: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &report);
         let offered: Vec<&str> = next.actions.iter().map(|a| a.command.as_str()).collect();
@@ -1171,6 +1193,7 @@ mod tests {
             release: None,
             blocked: Vec::new(),
             elsewhere: Vec::new(),
+            held: Vec::new(),
         };
         apply_questions(&mut next, &frontier, &crate::diagnostic::Report::default());
         assert!(next.actions.is_empty());
@@ -1293,6 +1316,7 @@ mod tests {
             release: None,
             blocked: Vec::new(),
             elsewhere: Vec::new(),
+            held: Vec::new(),
         };
         let out = render(&next);
         let claim = out
@@ -1325,6 +1349,7 @@ mod tests {
             release: None,
             blocked: Vec::new(),
             elsewhere: Vec::new(),
+            held: Vec::new(),
         };
         let out = render(&next);
         // M9: the first line is permission, the second the reason, the third
@@ -1366,6 +1391,7 @@ mod tests {
             release: None,
             blocked: Vec::new(),
             elsewhere: Vec::new(),
+            held: Vec::new(),
         };
         order(&mut next);
         assert_eq!(next.actions[0].actor, Actor::Agent);

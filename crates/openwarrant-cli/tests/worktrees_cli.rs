@@ -218,7 +218,22 @@ fn native_worktree_start_delivers_context_and_preserves_its_session() {
     let mut body = std::fs::read_to_string(&native_source).unwrap();
     body.push_str("\nWorkspace-specific current implementation context.\n");
     std::fs::write(&native_source, body).unwrap();
-    let resumed = war(root, &["start", id, "--as", "isolated-builder"]);
+    // One work order, one place: from the checkout it was dispatched from,
+    // the resumption is refused and names the worktree; there, it resumes.
+    let elsewhere = war(root, &["start", id, "--as", "isolated-builder"]);
+    assert_eq!(elsewhere["exit_code"], 2, "{elsewhere}");
+    assert_eq!(elsewhere["diagnostics"][0]["rule"], "work.other-worktree");
+    assert!(
+        elsewhere["diagnostics"][0]["message"]
+            .as_str()
+            .unwrap()
+            .contains(worktree),
+        "{elsewhere}"
+    );
+    let resumed = war(
+        Path::new(worktree),
+        &["start", id, "--as", "isolated-builder"],
+    );
     assert_eq!(resumed["exit_code"], 0, "{resumed}");
     assert_eq!(resumed["result"]["workspace"], worktree);
     assert!(

@@ -1439,6 +1439,91 @@ pub fn refresh_index(
     Ok(true)
 }
 
+/// [`refresh_index`] after `war create` made the ticket `id` (`part_of`
+/// its parent, when it has one): the same file, without reading every
+/// other ticket, so a create costs the same beside ten tickets or ten
+/// thousand.
+///
+/// A new ticket adds one block, its own, built here by the functions a
+/// full build runs over a corpus that holds this ticket alone. No other
+/// block moves, with one exception. A ticket's line shows its own fields
+/// and its phase, and a phase reads only the tickets `part_of` it
+/// ([`crate::ticket::phase_of`]), so only the new ticket's ancestors can
+/// move. A new ticket is open, and an open child leaves a parent that is
+/// open or in progress as it was; then nothing above the parent moves
+/// either. A parent the index shows `done` may stop being done, and its
+/// own parents with it: that case, a parent the index does not list, a
+/// ticket that is not a directory ticket or `<id>.md`, and anything else
+/// unexpected are answered by [`refresh_index`], which reads everything.
+pub fn refresh_index_created(
+    repo: &crate::repo::Repository,
+    id: &str,
+    part_of: Option<&str>,
+) -> Result<bool, Box<dyn std::error::Error>> {
+    let path = repo.root.join(INDEX_PATH);
+    if !path.is_file() {
+        return Ok(false);
+    }
+    let current = crate::vfs::read_to_string(&path)?;
+    let Some((header, mut blocks)) = split_index(&current) else {
+        return Err(format!("{INDEX_PATH} does not split into its blocks").into());
+    };
+    if part_of.is_some_and(|parent| !shown_open(&current, parent)) {
+        return refresh_index(repo, false);
+    }
+    let Some(block) = created_block(repo, id) else {
+        return refresh_index(repo, false);
+    };
+    if blocks.insert(block.0, block.1).is_some() {
+        // A block already there under the new ticket's source: not a create.
+        return refresh_index(repo, false);
+    }
+    let contents: String = std::iter::once(header)
+        .chain(blocks.into_values())
+        .collect();
+    let before = crate::compile::atomic::prestate(&path)?;
+    crate::compile::atomic::write_if(&path, &contents, &before)?;
+    Ok(true)
+}
+
+/// Whether `index` lists the ticket `id` with a state other than `done`.
+fn shown_open(index: &str, id: &str) -> bool {
+    let line = format!("- {id} · ticket · ");
+    index
+        .lines()
+        .find_map(|l| l.strip_prefix(&line))
+        .and_then(|rest| rest.split(" · ").next())
+        .is_some_and(|state| state != "done")
+}
+
+/// The index block of the ticket `id` alone (its source and the block),
+/// as a full build writes it; `None` unless it is a directory ticket or a
+/// single-file document that reads as exactly one block.
+fn created_block(repo: &crate::repo::Repository, id: &str) -> Option<(String, String)> {
+    let store = crate::ticket::Store::open(repo, None).ok()?;
+    let dir = store.dir.join(id);
+    let document = crate::ticket::format::document_of(&dir);
+    let single = store.dir.join(format!("{id}.md"));
+    let docs = match &document {
+        Some(doc) if *doc == single => {
+            crate::format_doc::ticket_alone(repo, Some((id, doc.as_path())))
+        }
+        Some(_) => return None,
+        None => crate::format_doc::ticket_alone(repo, None),
+    };
+    if !docs.faults.is_empty() {
+        return None;
+    }
+    let ticket = store.load(&dir).ok()?;
+    let corpus = crate::corpus::Corpus::of_tickets(repo, (vec![ticket], Vec::new()), docs);
+    let model = crate::model::build_tickets(&corpus, false).ok()?;
+    let mut blocks = index_blocks(&adapter::graph(&corpus, &model)).into_iter();
+    match (blocks.next(), blocks.next()) {
+        (Some(one), None) => Some(one),
+        _ => None,
+    }
+}
+
 /// A target as the compiler reads it: an absolute path inside the
 /// repository becomes repository-relative, so the packet never carries a
 /// machine's path; anything else is unchanged.
