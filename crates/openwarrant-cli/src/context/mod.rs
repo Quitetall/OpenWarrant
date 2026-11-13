@@ -1498,7 +1498,7 @@ pub fn refresh_index_created(
 /// their phases need the others) and
 /// only those tickets' documents: no other document is parsed, digested or
 /// read back for its spans. A chain that names a ticket this store does not
-/// hold, a document that is not `<id>.md`, and anything else unexpected are
+/// hold, a document that is neither `<id>.md` nor a master, and anything else unexpected are
 /// answered by [`refresh_index`]. Whether the file was written.
 pub fn refresh_index_touched(
     repo: &crate::repo::Repository,
@@ -1531,7 +1531,8 @@ pub fn refresh_index_touched(
 /// The index blocks of the ticket `id` and of each ticket up its `part_of`
 /// chain (and of every directory ticket, which the tickets themselves
 /// carry), as a full build writes them; `None` when the chain cannot be
-/// followed in this store or one of its documents is not `<id>.md`.
+/// followed in this store or one of its documents is neither `<id>.md` nor
+/// a master.
 fn touched_blocks(
     repo: &crate::repo::Repository,
     id: &str,
@@ -1554,11 +1555,16 @@ fn touched_blocks(
             }
             chain.push(one.to_owned());
             if t.format {
+                // One document, one block: `<tickets>/<id>.md`, or a master,
+                // `docs/work/<id>/<id>-<slug>.md` (as `created_block`).
                 let single = store.dir.join(format!("{one}.md"));
-                if t.checklist_path != single {
+                let work = repo.root.join(crate::subject::WORK_ROOT).join(one);
+                let master =
+                    work != store.dir.join(one) && t.checklist_path.parent() == Some(&*work);
+                if t.checklist_path != single && !master {
                     return None;
                 }
-                files.push((one.to_owned(), single));
+                files.push((one.to_owned(), t.checklist_path.clone()));
             }
             at = t.manifest.part_of.as_deref();
         }

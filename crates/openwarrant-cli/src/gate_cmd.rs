@@ -751,13 +751,20 @@ pub mod source {
             return true;
         }
         // A ticket kept as a master (one-format.md): its one document, at
-        // the top of `docs/work/<id>/`, and its journal.
+        // the top of `docs/work/<id>/` and named by the id
+        // (`subject::document_in`), and its journal. Another file a person
+        // keeps beside it, `design.md` say, stays bound.
         if let Some((id, file)) =
             under(path, crate::subject::WORK_ROOT).and_then(|r| r.split_once('/'))
         {
+            let document = file.strip_suffix(".md").is_some_and(|stem| {
+                !stem.contains('/')
+                    && stem
+                        .strip_prefix(id)
+                        .is_some_and(|slug| slug.is_empty() || slug.starts_with('-'))
+            });
             return tickets.masters.iter().any(|m| m == id)
-                && (file == crate::journal_cmd::FILE
-                    || (!file.contains('/') && file.ends_with(".md")));
+                && (file == crate::journal_cmd::FILE || document);
         }
         let Some(rest) = tickets.dir.as_deref().and_then(|d| under(path, d)) else {
             return false;
@@ -799,6 +806,11 @@ pub mod source {
         roadmap: String,
         gates: String,
         projection_dirs: Vec<String>,
+        /// Whether the repository has masters (`docs/work/`): then `war admin
+        /// compile` writes their views (`crate::views`), and those are
+        /// projections like the rest. Without one it writes none, and a
+        /// `docs/ROADMAP.md` there is a file a person keeps.
+        master_views: bool,
         /// `None` when the `[tickets]` table cannot be read: then no ticket
         /// file is skipped, and the tree stays bound to all of them.
         tickets: Option<crate::ticket::Bookkeeping>,
@@ -824,6 +836,7 @@ pub mod source {
                     format!("{}/generated", p.sas),
                     generated_parent,
                 ],
+                master_views: crate::vfs::exists(repo.root.join(crate::subject::WORK_ROOT)),
                 tickets: crate::ticket::Store::open(repo, None)
                     .ok()
                     .map(|s| s.bookkeeping()),
@@ -840,6 +853,15 @@ pub mod source {
                 .projection_dirs
                 .iter()
                 .any(|d| under(path, d).is_some())
+            {
+                return true;
+            }
+            // The views of the masters: a compile after a run rewrites them,
+            // and that is no change to what the run read.
+            if self.master_views
+                && (path == crate::views::ROADMAP
+                    || path == crate::views::HISTORY
+                    || under(path, crate::views::PAGES).is_some())
             {
                 return true;
             }
@@ -2099,7 +2121,12 @@ mod source_tests {
         // nothing of a work order that is no ticket.
         assert!(t("docs/work/w-3c16/w-3c16-a-title.md"));
         assert!(t("docs/work/w-3c16/journal.jsonl"));
+        assert!(t("docs/work/w-3c16/w-3c16.md"));
         assert!(!t("docs/work/w-3c16/evidence/notes.md"));
+        // A file a person keeps beside the document is no bookkeeping, as
+        // `docs/tickets/<id>/notes.txt` is none.
+        assert!(!t("docs/work/w-3c16/design.md"));
+        assert!(!t("docs/work/w-3c16/w-3c16b.md"));
         assert!(!t("docs/work/w-9999/w-9999-an-order.md"));
         assert!(!t("docs/work/w-9999/journal.jsonl"));
         for p in [

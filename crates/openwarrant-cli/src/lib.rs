@@ -3401,7 +3401,7 @@ fn refresh_index_after_touching(
         .iter()
         .find_map(|key| outcome.result[*key].as_str())
         .map(|record| record.split('/').next().unwrap_or(record))
-        .filter(|id| openwarrant_core::ticket::is_ticket_id(id));
+        .filter(|id| openwarrant_core::ticket::is_light_id(id));
     let Some(id) = named else {
         return refresh_index_after(repository, outcome, false);
     };

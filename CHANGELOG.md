@@ -8,6 +8,19 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Tickets kept as masters (`[tickets] layout = "work"`), where they differed from
+  `docs/tickets/`:
+  - A compile after a gate run no longer stales the run's receipt. The views of the
+    masters (`docs/ROADMAP.md`, `docs/HISTORY.md`, `docs/pages/`) are projections, and
+    the evidence tree rule now skips them wherever the repository has a `docs/work/`.
+    A verdict read `unknown` in `war plan impact` for that reason.
+  - A file a person keeps beside a master (`docs/work/<id>/design.md`) is bound to a
+    receipt, as one in `docs/tickets/<id>/` is. Every top-level `.md` there was taken
+    for the ticket's own document.
+  - `war add`, `done`, `note`, `start` and `plan promote` on a `w-` id rebuild that
+    ticket's lines of `docs/generated/llms.txt` and its parents'. They rebuilt every
+    ticket's, because the id was tested as `t-` only.
+
 - `war host` is a function of its request again: since `docs/work` became opt-in, every
   `war` asked for the working directory and looked up from it for `openwarrant.toml`
   before it knew its command, which the full gate's purity check refused. That search is
@@ -38,6 +51,7 @@ Notable changes to OpenWarrant. Format loosely follows
   duplicate check made, plus the new ticket.
 
 ### Added
+
 
 - `war done` checks by default. `[tickets] done_test` names the repository's own
   test; a plain `war done` runs it, once per call, on anything no check of the
