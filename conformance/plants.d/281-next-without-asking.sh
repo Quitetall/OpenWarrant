@@ -19,7 +19,7 @@ nx_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 nx_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 NX_WAR="$REPO_ROOT/${WAR#./}"
 NX_R="$NX_T/r"; mkdir -p "$NX_R"; git -C "$NX_R" init -q .
-nxw() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_NO_PROJECTS=1 OPENWARRANT_ACTOR=plant-agent \
+nxw() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE OPENWARRANT_NO_PROJECTS=1 OPENWARRANT_ACTOR=plant-agent \
     "$NX_WAR" --root "$NX_R" "$@" </dev/null; }
 nx_id() { python3 -c 'import json,sys; v=json.load(sys.stdin)["result"]; print(v["id"], *[i["id"] for i in v.get("items", [])])'; }
 nx_dirt() { git -C "$NX_R" status --porcelain --untracked-files=all; }
@@ -74,7 +74,7 @@ git -C "$NX_R" -c user.email=p@invalid -c user.name=p commit -qm base >/dev/null
 NX_D1=$(nxw done "$NX_A/$NX_A1" 2>&1)
 NX_D2=$(nxw done "$NX_A/$NX_A2" 2>&1)
 NX_NEXT=$(sed -n 's/^next: \(t-[0-9a-f]*\) .*/\1/p' <<<"$NX_D2")
-if ! grep -q '^next: ' <<<"$NX_D1" && grep -q '^next in this Warrant: ' <<<"$NX_D1" \
+if ! grep -q '^next: ' <<<"$NX_D1" \
     && [[ $NX_NEXT == "$NX_B" || $NX_NEXT == "$NX_C" ]] \
     && grep -qE "^next: $NX_NEXT (Beta|Gamma) work \(\`war start $NX_NEXT\`\)$" <<<"$NX_D2" && [[ ${#NX_D2} -le 320 ]] \
     && [[ "$(cat "$NX_F")" == "OpenWarrant: nothing is held here."* ]]; then

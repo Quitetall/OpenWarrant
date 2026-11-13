@@ -22,7 +22,7 @@ DT_T=$(mktemp -d)
 dt_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 dt_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
 DT_WAR="$REPO_ROOT/${WAR#./}"
-dtw() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID OPENWARRANT_NO_PROJECTS=1 OPENWARRANT_ACTOR=plant-agent \
+dtw() { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE OPENWARRANT_NO_PROJECTS=1 OPENWARRANT_ACTOR=plant-agent \
     "$DT_WAR" --root "$DT_R" "$@" </dev/null; }
 dt_id() { python3 -c 'import json,sys; v=json.load(sys.stdin)["result"]; print(v["id"], *[i["id"] for i in v.get("items", [])])'; }
 dt_runs() { if [[ -f "$DT_T/count" ]]; then wc -l < "$DT_T/count" | tr -d ' '; else echo 0; fi; }
