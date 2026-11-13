@@ -19,3 +19,5 @@ docs/warrants/OW-WAR-0076/evidence/sdk-author/** -text
 docs/tickets/*/atoms/*.md merge=war-ticket
 docs/tickets/*.md merge=war-ticket
 docs/tickets/*/ticket.md merge=war-ticket
+docs/work/*.md merge=war-ticket
+docs/work/*/*.md merge=war-ticket

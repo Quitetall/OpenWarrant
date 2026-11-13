@@ -803,6 +803,10 @@ enum DailyCommand {
         /// agent may ask for this; only a person can give it (`war sign`).
         #[arg(long, conflicts_with = "legacy")]
         sign: bool,
+        /// Create it although an open ticket's title is, or reads as, this
+        /// one's (`ticket.duplicate` names that ticket).
+        #[arg(long)]
+        force: bool,
         /// Make the Warrant from GitHub issue <N>, read once through
         /// `[intake] fetch_argv`; the Warrant records the link. With
         /// `[intake.writeback]` set, finishing it comments on and closes the issue.
@@ -3869,6 +3873,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             across,
             tests,
             sign,
+            force,
             issue,
             issue_file,
             implements,
@@ -3970,6 +3975,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     clauses,
                 },
                 tests,
+                force,
             };
             let mut outcome = if legacy {
                 ticket::create_legacy(&store, &args)?

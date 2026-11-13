@@ -80,6 +80,9 @@ pub struct CreateParams {
     /// A person signs it off at the end (an Order).
     #[serde(default)]
     pub sign: bool,
+    /// Create despite a likely duplicate.
+    #[serde(default)]
+    pub force: bool,
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -1445,6 +1448,7 @@ impl WarServer {
                 commands: p.commands,
             },
             tests: p.tests,
+            force: p.force,
         };
         self.ticket("create", p.actor.as_deref(), |s| {
             let created = crate::ticket::create(s, &args)?;

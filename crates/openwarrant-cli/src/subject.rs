@@ -315,6 +315,10 @@ pub fn create_master(
         ));
     }
     let taken = all(repo).len() + count_entries(&work_root(repo));
+    // R2: the id is taken in the clone's register too, so no two worktrees
+    // mint one (`ticket::shared`).
+    let store = crate::ticket::Store::open(repo, None).ok();
+    let registry = store.as_ref().and_then(crate::ticket::Store::registry);
     for attempt in 0..16usize {
         let uuid = openwarrant_core::WarUuid::mint().to_string();
         let len = openwarrant_core::ticket::ticket_id_len(taken) + attempt / 4;
@@ -326,6 +330,25 @@ pub fn create_master(
         }
         let path = master_path(repo, &id, title);
         let dir = path.parent().unwrap_or(&path).to_owned();
+        let mut entry = None;
+        if let (Some(reg), Some(store)) = (&registry, &store) {
+            let stub = reg.stub(&id, &uuid, title, &store.actor, &repo.relative(&path));
+            match reg.reserve(&stub) {
+                Ok(true) => entry = Some(stub),
+                Ok(false) => continue,
+                Err(source) => {
+                    return Err(RepoError::Io {
+                        context: format!("could not register {id} in {}", reg.dir),
+                        source,
+                    });
+                }
+            }
+        }
+        let release = || {
+            if let Some(reg) = &registry {
+                reg.release(&id, &uuid);
+            }
+        };
         std::fs::create_dir_all(&dir).map_err(|source| RepoError::Io {
             context: format!("could not create {dir}"),
             source,
@@ -343,10 +366,14 @@ pub fn create_master(
                         context: format!("could not write {path}"),
                         source,
                     })?;
+                if let (Some(reg), Some(mut entry)) = (&registry, entry) {
+                    reg.fill(&mut entry, delivery, &text);
+                }
                 return Ok((id, path));
             }
-            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => {}
+            Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => release(),
             Err(source) => {
+                release();
                 return Err(RepoError::Io {
                     context: format!("could not create {path}"),
                     source,

@@ -44,6 +44,8 @@ pub const GITATTRIBUTES: &str = "\
 docs/tickets/*/atoms/*.md merge=war-ticket
 docs/tickets/*.md merge=war-ticket
 docs/tickets/*/ticket.md merge=war-ticket
+docs/work/*.md merge=war-ticket
+docs/work/*/*.md merge=war-ticket
 ";
 
 /// How a merge came out.
@@ -65,10 +67,21 @@ pub fn merge(path: &str, base: &str, ours: &str, theirs: &str) -> Merged {
         return Merged::Appends(ours.to_owned());
     }
     let checklist = super::format::is_document_path(path)
+        || Utf8Path::new(path).starts_with(crate::subject::WORK_ROOT)
         || Utf8Path::new(path)
             .file_name()
             .is_some_and(|n| n.contains("checklist") || n.contains(CHECKLIST_ROLE));
     if checklist {
+        // R2: one ticket brought into two worktrees (`war start` on a ticket
+        // held elsewhere) is added on both branches, so git has no base.
+        // What both sides still agree on stands in for it.
+        let common;
+        let base = if base.is_empty() && same_document(ours, theirs) {
+            common = common_base(ours, theirs);
+            common.as_str()
+        } else {
+            base
+        };
         return match items(base, ours, theirs) {
             Ok(m) => Merged::Items(m),
             Err(why) => Merged::Text(why),
@@ -123,6 +136,54 @@ fn prose<'a>(l: &Lines<'a>) -> Vec<&'a str> {
         .filter(|(id, _)| id.is_none())
         .map(|(_, line)| *line)
         .collect()
+}
+
+/// Whether two documents are one ticket: the same `uuid` in their
+/// frontmatter. Two tickets that only share an id are not.
+fn same_document(ours: &str, theirs: &str) -> bool {
+    let uuid = |text: &str| {
+        openwarrant_core::format::parse(text.as_bytes())
+            .fields
+            .get("uuid")
+            .and_then(|v| v.as_str())
+            .map(|s| s.trim().to_owned())
+            .filter(|s| !s.is_empty())
+    };
+    uuid(ours).is_some_and(|u| Some(u) == uuid(theirs))
+}
+
+/// A base for two copies of one document that git has no common ancestor
+/// for: the lines before either side's first difference, and, of the items
+/// both hold, each as both hold it or, where one side ticked it, as it was
+/// before (an item is written open). An item the two sides hold differently
+/// in any other way is left out, so [`items`] reads it as changed on both
+/// sides and leaves it to git.
+fn common_base(ours: &str, theirs: &str) -> String {
+    let (Ok(a), Ok(b)) = (lines(ours), lines(theirs)) else {
+        return String::new();
+    };
+    let done = |line: &str| ticket::parse(line).items.first().is_some_and(|i| i.done);
+    let (pa, pb) = (prose(&a), prose(&b));
+    let shared = pa.iter().zip(&pb).take_while(|(x, y)| x == y).count();
+    let mut out: Vec<&str> = Vec::new();
+    let mut prose_seen = 0;
+    for (id, line) in &a.order {
+        match id {
+            None => {
+                if prose_seen < shared {
+                    out.push(line);
+                }
+                prose_seen += 1;
+            }
+            Some(id) => match b.by_id.get(id) {
+                Some(other) if other == line => out.push(line),
+                Some(other) if done(line) && !done(other) => out.push(other),
+                Some(other) if done(other) && !done(line) => out.push(line),
+                _ => {}
+            },
+        }
+    }
+    out.concat()
 }
 
 fn items(base: &str, ours: &str, theirs: &str) -> Result<String, String> {
@@ -376,6 +437,44 @@ mod tests {
         assert!(matches!(
             merge("docs/tickets/t-43c0.md", &base, &ours, &reworded),
             Merged::Text(why) if why.contains("i-0001")
+        ));
+    }
+
+    /// R2: `war start` on a ticket held elsewhere writes the same document
+    /// on a second branch, so the merge is add/add with no base.
+    #[test]
+    fn one_document_added_on_both_branches_merges_item_by_item() {
+        let doc = |one: &str, two: &str, tail: &str| {
+            format!(
+                "---\nformat: openwarrant/1.0\nprofile: ticket\nalias: t-43c0\nuuid: 019a0000-0000-7000-8000-000000000001\n---\n# T\n\n## Checklist\n\n- [{one}] first `i-0001`\n- [{two}] second `i-0002`\n{tail}"
+            )
+        };
+        // Ours ticked the first item and added a third; theirs ticked the
+        // second.
+        let ours = doc("x", " ", "- [ ] third `i-0003`\n");
+        let theirs = doc(" ", "x", "");
+        let Merged::Items(m) = merge("docs/tickets/t-43c0.md", "", &ours, &theirs) else {
+            panic!("add/add of one document is left to git");
+        };
+        assert_eq!(m, doc("x", "x", "- [ ] third `i-0003`\n"));
+        // Ours appended a note; theirs ticked an item.
+        let noted = doc(" ", " ", "\n## Notes\n\n- a note\n");
+        let Merged::Items(m) = merge("docs/tickets/t-43c0.md", "", &noted, &theirs) else {
+            panic!("a note on one side and a tick on the other is left to git");
+        };
+        assert_eq!(m, doc(" ", "x", "\n## Notes\n\n- a note\n"));
+        // The refusals: one item reworded two ways, and two tickets that
+        // only share an id, stay git's to flag.
+        let reworded = theirs.replace("second", "second, reworded");
+        let other = ours.replace("second", "second, differently");
+        assert!(matches!(
+            merge("docs/tickets/t-43c0.md", "", &other, &reworded),
+            Merged::Text(_)
+        ));
+        let stranger = theirs.replace("000000000001", "000000000002");
+        assert!(matches!(
+            merge("docs/tickets/t-43c0.md", "", &ours, &stranger),
+            Merged::Text(_)
         ));
     }
 

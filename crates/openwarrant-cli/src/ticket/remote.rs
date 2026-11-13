@@ -246,6 +246,119 @@ fn commit_of(root: &Utf8Path, message: &str) -> Result<String, String> {
     Ok(commit.stdout.trim().to_owned())
 }
 
+/// Where the tickets one clone announces to the others live (R2).
+pub const TICKET_PREFIX: &str = "refs/openwarrant/tickets/";
+
+/// [`commit_of`] with a tree: each `(name, text)` a blob at the tree's top,
+/// `message` on the commit. What a ticket is announced as: its record in the
+/// message, its document a blob any git can read.
+pub fn commit_with_blobs(
+    root: &Utf8Path,
+    message: &str,
+    blobs: &[(String, String)],
+) -> Result<String, String> {
+    let mut listing = String::new();
+    for (name, text) in blobs {
+        let blob = git(
+            root,
+            &["hash-object", "-w", "--stdin"],
+            Some(text.as_bytes()),
+        )?;
+        if !blob.ok {
+            return Err(first_line(&blob.stderr));
+        }
+        listing.push_str(&format!("100644 blob {}\t{name}\n", blob.stdout.trim()));
+    }
+    let tree = git(root, &["mktree"], Some(listing.as_bytes()))?;
+    if !tree.ok {
+        return Err(first_line(&tree.stderr));
+    }
+    let commit = git(
+        root,
+        &[
+            "commit-tree",
+            "--no-gpg-sign",
+            tree.stdout.trim(),
+            "-m",
+            message,
+        ],
+        None,
+    )?;
+    if !commit.ok {
+        return Err(first_line(&commit.stderr));
+    }
+    Ok(commit.stdout.trim().to_owned())
+}
+
+/// Every ref under `prefix` the remote holds, as `(commit, ref)`: one
+/// `ls-remote`, inside a view's deadline.
+pub fn list_refs(
+    root: &Utf8Path,
+    remote: &str,
+    prefix: &str,
+) -> Result<Vec<(String, String)>, String> {
+    let pattern = format!("{prefix}*");
+    let listed = git_within(root, &["ls-remote", remote, &pattern], None, VIEW_DEADLINE)?;
+    if !listed.ok {
+        return Err(first_line(&listed.stderr));
+    }
+    Ok(listed
+        .stdout
+        .lines()
+        .filter_map(|l| l.split_once('\t'))
+        .filter(|(_, r)| r.starts_with(prefix))
+        .map(|(c, r)| (c.to_owned(), r.to_owned()))
+        .collect())
+}
+
+/// Fetch the commits of `refs` from `remote`, into no ref of this clone.
+pub fn fetch_refs(root: &Utf8Path, remote: &str, refs: &[&str]) -> Result<(), String> {
+    if refs.is_empty() {
+        return Ok(());
+    }
+    let mut args = vec![
+        "fetch",
+        "--quiet",
+        "--no-tags",
+        "--no-write-fetch-head",
+        remote,
+    ];
+    args.extend(refs);
+    let fetched = git_within(root, &args, None, VIEW_DEADLINE)?;
+    if fetched.ok {
+        Ok(())
+    } else {
+        Err(first_line(&fetched.stderr))
+    }
+}
+
+/// The message of `commit`, when this clone has it.
+pub fn message_of(root: &Utf8Path, commit: &str) -> Result<Option<String>, String> {
+    let shown = git(root, &["cat-file", "commit", commit], None)?;
+    Ok(shown.ok.then(|| {
+        shown
+            .stdout
+            .split_once("\n\n")
+            .map_or("", |(_, m)| m)
+            .trim()
+            .to_owned()
+    }))
+}
+
+/// The blob `name` at the top of `commit`'s tree.
+pub fn blob_of(root: &Utf8Path, commit: &str, name: &str) -> Result<String, String> {
+    let shown = git(
+        root,
+        &["cat-file", "blob", &format!("{commit}:{name}")],
+        None,
+    )?;
+    if shown.ok {
+        Ok(shown.stdout)
+    } else {
+        Err(first_line(&shown.stderr))
+    }
+}
+
 /// Leave a notice for the other clones. A ref that is there already holds the
 /// same change: it is named by it, and a lost race changes nothing.
 pub fn publish_notice(root: &Utf8Path, remote: &str, key: &str, body: &str) -> Result<(), String> {
