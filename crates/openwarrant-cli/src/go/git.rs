@@ -65,6 +65,25 @@ pub(crate) fn git_raw(
     observe_git(dir, args, &[])
 }
 
+/// Make `cmd` a git child that only looks. Read paths must leave
+/// `.git/index` byte-identical, and git rewrites it opportunistically:
+/// `git status` when a tracked file's stat data moved, which
+/// `GIT_OPTIONAL_LOCKS=0` turns off, and `git diff` against the working
+/// tree, which ignores that variable and stops only for
+/// `diff.autoRefreshIndex=false`. Both are set through the environment, so
+/// they hold wherever the arguments put the subcommand; a caller's own
+/// `GIT_CONFIG_COUNT` entries are kept.
+pub fn observing(cmd: &mut Command) -> &mut Command {
+    let n = std::env::var("GIT_CONFIG_COUNT")
+        .ok()
+        .and_then(|n| n.parse::<usize>().ok())
+        .unwrap_or(0);
+    cmd.env("GIT_OPTIONAL_LOCKS", "0")
+        .env("GIT_CONFIG_COUNT", (n + 1).to_string())
+        .env(format!("GIT_CONFIG_KEY_{n}"), "diff.autoRefreshIndex")
+        .env(format!("GIT_CONFIG_VALUE_{n}"), "false")
+}
+
 fn observe_git(
     dir: &Utf8Path,
     args: &[&str],
@@ -74,6 +93,9 @@ fn observe_git(
     openwarrant_core::document::runtime::ProviderFailure,
 > {
     let mut cmd = Command::new("git");
+    // No call here needs git's opportunistic index refresh, and the reads
+    // among them must not make one.
+    observing(&mut cmd);
     cmd.args([
         "-c",
         "commit.gpgSign=false",

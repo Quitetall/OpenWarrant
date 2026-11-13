@@ -983,6 +983,7 @@ pub mod source {
     ) -> Result<Vec<u8>, String> {
         let index = private_index.then(|| ReadIndex::new(root)).transpose()?;
         let mut command = Command::new("git");
+        crate::go::git::observing(&mut command);
         if let Some(index) = &index {
             command.env("GIT_INDEX_FILE", index.0.join("index"));
         }
@@ -991,8 +992,8 @@ pub mod source {
             .arg(root.as_str())
             .args(args)
             // These are observations, including during a mutating gate
-            // command. Git must not refresh index stat data as a side effect.
-            .env("GIT_OPTIONAL_LOCKS", "0")
+            // command. Git must not refresh index stat data as a side effect
+            // (`observing`, above: `git diff` ignores GIT_OPTIONAL_LOCKS).
             .output()
             .map_err(|e| format!("git could not be run: {e}"))?;
         if !out.status.success() {

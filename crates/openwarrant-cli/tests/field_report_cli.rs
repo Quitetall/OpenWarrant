@@ -424,3 +424,62 @@ fn a_default_actor_name_is_said_and_a_chosen_one_is_not() {
         let _ = war_env(r, &["done", &t[0], "--release"], &env);
     }
 }
+
+/// PR #424's fast CI: a read verb rewrote `.git/index`. Git refreshes it on
+/// `status` and on a working-tree `diff` when a tracked file's stat data moved
+/// and its bytes did not; here one always has.
+#[test]
+fn read_verbs_leave_the_index_bytes_alone() {
+    let root = repo();
+    let r = root.path();
+    single_file_warrant(r);
+    let t = ticket(r, "Checked", &["one"], "PP-PHASE-3", &["REQ-ws-1"]);
+    let (out, code) = human(
+        r,
+        &["plan", "add", &t[0], "--test", "sh ok.sh", "--name", "t"],
+    );
+    assert_eq!(code, 0, "{out}");
+    commit(r);
+    assert_eq!(human(r, &["check", "run"]).1, 0);
+    commit(r);
+    let touch = |name: &str| {
+        let file = std::fs::File::options()
+            .write(true)
+            .open(r.join(name))
+            .unwrap();
+        let later = std::time::SystemTime::now() + std::time::Duration::from_secs(5);
+        file.set_modified(later).unwrap();
+    };
+    let index = || std::fs::read(r.join(".git/index")).unwrap();
+    for name in ["src.txt", "SPEC.md", "ok.sh"] {
+        touch(name);
+    }
+    let before = index();
+    for verb in [
+        &["status"][..],
+        &["status", "--verbose"],
+        &["check"],
+        &["check", "evaluate"],
+        &["view", "next"],
+        &["view", "prime"],
+        &["view", "show", &t[0]],
+        &["view", "context", "--index"],
+        &["context", &t[0]],
+        &["plan", "frontier", "--all"],
+        &["plan", "estimate"],
+        &["plan", "roadmap"],
+    ] {
+        let _ = human(r, verb);
+        assert!(
+            index() == before,
+            "`war {}` rewrote .git/index",
+            verb.join(" ")
+        );
+    }
+    // The refusal: git asked the same way without the guard does rewrite it.
+    git(r, &["diff", "--quiet", "HEAD"]);
+    assert!(
+        index() != before,
+        "the touched files did not make git refresh the index"
+    );
+}

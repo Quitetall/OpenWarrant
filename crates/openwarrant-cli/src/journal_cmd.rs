@@ -832,7 +832,7 @@ fn committed(repo: &Repository, rel: &str) -> Option<String> {
     {
         return answer;
     }
-    let out = std::process::Command::new("git")
+    let out = crate::go::git::observing(&mut std::process::Command::new("git"))
         .args(["show", &format!("HEAD:{rel}")])
         .current_dir(&repo.root)
         .output()
@@ -985,7 +985,7 @@ pub fn check_work(root: &Utf8Path, dirs: &[(String, camino::Utf8PathBuf)], repor
             .map_or_else(|_| p.to_string(), ToString::to_string)
     };
     let changed: std::collections::BTreeSet<String> = {
-        let out = std::process::Command::new("git")
+        let out = crate::go::git::observing(&mut std::process::Command::new("git"))
             .args(["diff", "--name-only", "--no-renames", "-z", "HEAD", "--"])
             .args(
                 dirs.iter()
@@ -1033,7 +1033,7 @@ pub fn check_work(root: &Utf8Path, dirs: &[(String, camino::Utf8PathBuf)], repor
         if !changed.contains(&rel) {
             continue;
         }
-        let Some(base) = std::process::Command::new("git")
+        let Some(base) = crate::go::git::observing(&mut std::process::Command::new("git"))
             .args(["show", &format!("HEAD:{rel}")])
             .current_dir(root)
             .output()
@@ -1285,7 +1285,7 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let root = Utf8Path::from_path(temp.path()).unwrap();
         let git = |args: &[&str]| {
-            let out = std::process::Command::new("git")
+            let out = crate::go::git::observing(&mut std::process::Command::new("git"))
                 .current_dir(root)
                 .args(["-c", "user.name=t", "-c", "user.email=t@t"])
                 .args(args)

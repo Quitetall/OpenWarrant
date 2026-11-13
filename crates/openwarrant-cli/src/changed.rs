@@ -91,7 +91,7 @@ fn git_names(
     if literal.is_empty() && globs.is_empty() {
         return Some(Vec::new());
     }
-    let out = std::process::Command::new("git")
+    let out = crate::go::git::observing(&mut std::process::Command::new("git"))
         .args(args)
         .arg("--")
         .args(literal.iter().map(|s| format!(":(literal){s}")))
@@ -114,7 +114,7 @@ fn git_names(
 }
 
 fn is_commit(repo: &Repository, rev: &str) -> bool {
-    std::process::Command::new("git")
+    crate::go::git::observing(&mut std::process::Command::new("git"))
         .args([
             "rev-parse",
             "--verify",

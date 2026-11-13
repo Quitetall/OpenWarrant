@@ -87,6 +87,13 @@ Notable changes to OpenWarrant. Format loosely follows
   Fast CI now selects 62-battery-env when 45-tickets.sh, 62-verifier.sh, or the
   ticket, MCP or verifier code changes: a changed plant file can match a rule
   of `plant-map.toml`.
+- A read verb no longer rewrites `.git/index`. `git diff` against the working
+  tree refreshes the index when a tracked file's stat data moved, and it
+  ignores `GIT_OPTIONAL_LOCKS=0`, which the gate's observations already set;
+  only `diff.autoRefreshIndex=false` stops it. Every git child a read path
+  spawns now carries both (`go::git::observing`). The control behind plant 69
+  touches a tracked file first, so the write happens every time instead of on
+  a timing, and shows that unguarded git does rewrite the index.
 - From the first field report on alpha.7 (a project with a roadmap, a spec and
   one single-file delivery Warrant):
   - `war check run <alias>`, `<alias>/<CHK-id>` and `<CHK-id>` run the checks of a

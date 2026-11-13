@@ -734,7 +734,7 @@ fn valid_github_identity(repository: &str) -> bool {
 }
 
 fn git(repo: &Repository, args: &[&str]) -> Result<String, RepoError> {
-    let output = Command::new("git")
+    let output = crate::go::git::observing(&mut Command::new("git"))
         .arg("-C")
         .arg(repo.root.as_str())
         .args(args)
@@ -758,7 +758,7 @@ fn git(repo: &Repository, args: &[&str]) -> Result<String, RepoError> {
 }
 
 fn git_z(repo: &Repository, args: &[&str]) -> Result<Vec<String>, RepoError> {
-    let output = Command::new("git")
+    let output = crate::go::git::observing(&mut Command::new("git"))
         .arg("-C")
         .arg(repo.root.as_str())
         .args(args)
@@ -1148,7 +1148,7 @@ mod tests {
         }
 
         fn run_git(root: &Path, args: &[&str]) {
-            let output = Command::new("git")
+            let output = crate::go::git::observing(&mut Command::new("git"))
                 .arg("-C")
                 .arg(root)
                 .args(args)
@@ -1163,7 +1163,7 @@ mod tests {
         }
 
         fn git_output(root: &Path, args: &[&str]) -> String {
-            let output = Command::new("git")
+            let output = crate::go::git::observing(&mut Command::new("git"))
                 .arg("-C")
                 .arg(root)
                 .args(args)

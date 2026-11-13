@@ -80,7 +80,7 @@ pub fn working_tree(dir: &Utf8Path) -> String {
     ] {
         out.push_str(title);
         out.push('\n');
-        match std::process::Command::new("git")
+        match crate::go::git::observing(&mut std::process::Command::new("git"))
             .args(args)
             .current_dir(dir)
             .output()
