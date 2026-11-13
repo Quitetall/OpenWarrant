@@ -52,6 +52,9 @@ fn run_with(bin: &Path, root: &Path, args: &[&str], env: &[(&str, &str)]) -> Out
         .env("OPENWARRANT_NO_PROJECTS", "1")
         .env("OPENWARRANT_NO_UPDATE_CHECK", "1")
         .env("OPENWARRANT_ACTOR", "cache-test")
+        // These tests name the files of `docs/tickets/`: a manifest, both
+        // forms of one alias. The master test sets `work` in `env`.
+        .env("OPENWARRANT_TICKET_LAYOUT", "tickets")
         .env_remove("SSH_AUTH_SOCK")
         .env_remove("OPENWARRANT_NO_CACHE")
         .env_remove(TRACE)
