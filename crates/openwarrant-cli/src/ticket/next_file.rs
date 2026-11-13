@@ -15,7 +15,7 @@
 //! several actors in one worktree it follows whoever acted last.
 
 use super::prompt::{BRIEF_BUDGET, fitted};
-use super::{RepoError, Store, Target, held_by_me, ready_lines, ready_rows, render, resolve};
+use super::{RepoError, Store, Target, held_by_me, ready_lines, render, resolve};
 
 /// Where it lives, relative to the root.
 pub const FILE: &str = ".openwarrant/next.md";
@@ -24,11 +24,13 @@ pub const FILE: &str = ".openwarrant/next.md";
 /// ready.
 pub fn text(store: &Store) -> Result<Option<String>, RepoError> {
     let held = held_by_me(store)?;
-    let (tickets, _) = store.load_all()?;
+    // The act this follows is written: its other readers share this reading.
+    let after = store.after_act()?;
+    let tickets = &after.tickets;
     if let Some(id) = held.first()
-        && let Ok(Target::Ticket(n) | Target::Item(n, _)) = resolve(&tickets, id)
+        && let Ok(Target::Ticket(n) | Target::Item(n, _)) = resolve(tickets, id)
     {
-        let brief = render::brief(store, &tickets, &tickets[n], &store.actor);
+        let brief = render::brief(store, tickets, &tickets[n], &store.actor);
         let head = format!(
             "OpenWarrant: {} holds {id}; carry on with it (no `war start` needed).",
             store.actor
@@ -40,13 +42,13 @@ pub fn text(store: &Store) -> Result<Option<String>, RepoError> {
         let tail = if cut == 0 { "" } else { cut_note.as_str() };
         return Ok(Some(format!("{head}\n\n{kept}{tail}\n")));
     }
-    let rows = ready_rows(store, &tickets)?;
+    let rows = after.ready(store)?;
     if rows.is_empty() {
         return Ok(None);
     }
     let head = "OpenWarrant: nothing is held here. Ready work, first to take first; `war start` \
                 takes it and prints only what it needs.";
-    let lines = ready_lines(&rows);
+    let lines = ready_lines(rows);
     let more = "\n… more: `war view prime --ready`";
     let (kept, cut) = fitted(lines.trim_end(), BRIEF_BUDGET - head.len() - more.len() - 3);
     let tail = if cut == 0 { "" } else { more };

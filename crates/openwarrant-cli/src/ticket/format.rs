@@ -352,6 +352,12 @@ impl Store {
         dirs_to_look_in: &dyn Fn(&Utf8Path) -> bool,
     ) -> Vec<Result<(String, Utf8PathBuf), Diagnostic>> {
         let mut found: Vec<(String, Utf8PathBuf)> = Vec::new();
+        // The directories that may hold a `ticket.md`, each asked on the
+        // disk across threads rather than one after another: one `stat`
+        // per ticket is most of this function at ten thousand tickets.
+        // `found` is sorted below, so the order they are added in is not
+        // the order of the answer.
+        let mut inner: Vec<(&str, Utf8PathBuf)> = Vec::new();
         for path in entries {
             let Some(name) = path.file_name() else {
                 continue;
@@ -380,10 +386,13 @@ impl Store {
             } else if let Some(alias) = single_file(name) {
                 found.push((alias.to_owned(), path.clone()));
             } else if ticket::is_ticket_id(name) && dirs_to_look_in(path) {
-                let inner = path.join(INNER);
-                if crate::vfs::exists(&inner) {
-                    found.push((name.to_owned(), inner));
-                }
+                inner.push((name, path.join(INNER)));
+            }
+        }
+        let held = crate::vfs::map_ordered(&inner, 256, |(_, file)| crate::vfs::exists(file));
+        for ((name, file), held) in inner.into_iter().zip(held) {
+            if held {
+                found.push((name.to_owned(), file));
             }
         }
         found.sort();

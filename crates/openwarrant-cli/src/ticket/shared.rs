@@ -1036,7 +1036,13 @@ pub enum Alike {
 /// tells it from CSV for JSON.
 #[must_use]
 pub fn alike(a: &str, b: &str) -> Option<Alike> {
-    let (x, y) = (content_words(a), content_words(b));
+    alike_to(&content_words(a), a, b)
+}
+
+/// [`alike`], with `a`'s [`content_words`] given: a title compared with
+/// every open one is read into its words once.
+fn alike_to(x: &BTreeMap<String, usize>, a: &str, b: &str) -> Option<Alike> {
+    let y = &content_words(b);
     if x.is_empty() || y.is_empty() {
         let plain = |s: &str| super::words_of(s).join(" ");
         return (plain(a) == plain(b) && !plain(a).is_empty()).then_some(Alike::Same);
@@ -1045,11 +1051,7 @@ pub fn alike(a: &str, b: &str) -> Option<Alike> {
         return Some(Alike::Same);
     }
     let size = |m: &BTreeMap<String, usize>| m.values().sum::<usize>();
-    let (small, large) = if size(&x) <= size(&y) {
-        (&x, &y)
-    } else {
-        (&y, &x)
-    };
+    let (small, large) = if size(x) <= size(y) { (x, y) } else { (y, x) };
     let within = small
         .iter()
         .all(|(w, n)| large.get(w).is_some_and(|m| m >= n));
@@ -1151,14 +1153,29 @@ pub(crate) fn duplicate(
     title: &str,
     part_of: Option<&str>,
 ) -> Result<Option<Outcome>, RepoError> {
+    // Before the reading: an entry whose ticket was deleted by hand must not
+    // be listed as elsewhere, nor block its title.
+    drop_deleted(store);
+    let (tickets, faults) = store.load_all_shared()?;
+    let found = duplicate_among(store, title, part_of, &tickets);
+    // What follows the create reads these again, plus the ticket it writes.
+    store.remember_before_create(tickets, faults);
+    found
+}
+
+/// [`duplicate`], among `tickets` already read.
+fn duplicate_among(
+    store: &Store,
+    title: &str,
+    part_of: Option<&str>,
+    tickets: &[Ticket],
+) -> Result<Option<Outcome>, RepoError> {
     struct Open {
         id: String,
         title: String,
         part_of: Option<String>,
         place: String,
     }
-    drop_deleted(store);
-    let (tickets, _) = store.load_all_shared()?;
     let mut open: Vec<Open> = tickets
         .iter()
         .filter(|t| !t.is_done())
@@ -1174,16 +1191,24 @@ pub(crate) fn duplicate(
         .collect();
     // What the register holds that is no listed ticket: one still being
     // created, or a work order `war plan new` made in another worktree.
+    // Only those are read: an entry is a file of its own, and a store of
+    // ten thousand tickets registers ten thousand ([`Registry::entries`]
+    // reads every one).
     if let Some(reg) = store.registry() {
-        for e in reg.entries() {
-            if !tickets.iter().any(|t| t.id() == e.id) {
-                open.push(Open {
-                    place: format!("{} ({})", e.place().describe(), e.path),
-                    id: e.id,
-                    title: e.title,
-                    part_of: e.part_of,
-                });
-            }
+        let listed: std::collections::HashSet<&str> = tickets.iter().map(Ticket::id).collect();
+        let (ids, _) = reg.listing();
+        for e in ids
+            .iter()
+            .filter(|id| !listed.contains(id.as_str()))
+            .filter_map(|id| reg.read(id))
+            .filter(|e| e.below == reg.below)
+        {
+            open.push(Open {
+                place: format!("{} ({})", e.place().describe(), e.path),
+                id: e.id,
+                title: e.title,
+                part_of: e.part_of,
+            });
         }
     }
     // The work orders this checkout holds that are no ticket (`war plan
@@ -1203,13 +1228,14 @@ pub(crate) fn duplicate(
             }
         }
     }
+    let words = content_words(title);
     let found = open
         .iter()
         .filter(|o| match (part_of, o.part_of.as_deref()) {
             (Some(a), Some(b)) => a == b,
             _ => true,
         })
-        .filter_map(|o| alike(title, &o.title).map(|how| (o, how)))
+        .filter_map(|o| alike_to(&words, title, &o.title).map(|how| (o, how)))
         .max_by(|a, b| {
             let rank = |h: &Alike| match h {
                 Alike::Same => 2.0,

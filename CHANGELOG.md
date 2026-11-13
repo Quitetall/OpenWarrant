@@ -6,6 +6,31 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Fixed
+
+- `war status --ready` and `war status --next` no longer slow down with the number of
+  tickets the way they did. At 9,800 tickets `ready` took 2 to 4 seconds and now takes
+  about a tenth of a second; the answers are the same, row for row. What changed: who
+  waits on a person and whose scope conflicts are asked only of the tickets that can
+  answer other than "ready"; whose claim is whose is read once, not once per ticket; an
+  epic is found in a set rather than by scanning every ticket per ticket; each directory
+  entry is stat'ed once, not twice; `next` no longer opens every ticket to list the
+  Warrants kept elsewhere. `OPENWARRANT_READY_REFERENCE=1` reads the ready set the old
+  way, for comparison.
+- `war add`, `done`, `note`, `start` and `plan promote` rebuild the acted-on ticket's
+  lines of `docs/generated/llms.txt` and its parents', not every ticket's. `war done
+  --reopen` now refreshes the index at all: it left a reopened ticket shown as done.
+- The duplicate check of `war create` reads only the register entries that are not
+  already listed tickets. It read every entry's file, one per ticket ever created here,
+  and looked each up by scanning every ticket.
+- Commands that build the model (`war start`, `war context`) read HEAD once, and only
+  when a document has a check. They ran `git rev-parse HEAD` once per ticket document:
+  about 19,600 processes for one `war start` at 9,800 tickets.
+- After `create`, `start`, `done` and a release, the line naming what is next,
+  `.openwarrant/next.md` and the index refresh share one reading of the tickets instead
+  of reading every ticket once each. After a create that reading is the one its
+  duplicate check made, plus the new ticket.
+
 ### Added
 
 - `war done` checks by default. `[tickets] done_test` names the repository's own

@@ -198,6 +198,18 @@ pub fn left_for_a_person(store: &Store, t: &Ticket, except: Option<&str>) -> Vec
 /// or added since takes the Order out of the queue until the next `war done`.
 #[must_use]
 pub fn awaiting_signature(store: &Store, t: &Ticket) -> Vec<String> {
+    // Only an open item can wait on a person ([`left_for_a_person`] names
+    // open items, or none), so a ticket with none is not asked and its
+    // journal not read: most tickets, in a pass over every one.
+    if !t.checklist.items.iter().any(|i| !i.done) {
+        return Vec::new();
+    }
+    awaiting_signature_asked(store, t)
+}
+
+/// [`awaiting_signature`], asked of the journal whatever the checklist says.
+#[must_use]
+pub fn awaiting_signature_asked(store: &Store, t: &Ticket) -> Vec<String> {
     let handed = crate::vfs::read_to_string(t.dir.join(crate::journal_cmd::FILE))
         .is_ok_and(|text| text.contains(event::AWAITS_SIGNATURE));
     if !handed {

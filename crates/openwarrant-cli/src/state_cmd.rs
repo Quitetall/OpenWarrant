@@ -514,11 +514,14 @@ pub fn last_runs_where(
 fn failing(corpus: &Corpus) -> Vec<Holding> {
     let repo = corpus.repo();
     let mut out = Vec::new();
+    // HEAD is read once, and only when a document has a check to judge: a
+    // `git rev-parse` per document is one process per ticket, which at ten
+    // thousand tickets was most of every command that builds the model.
+    let head_once = std::cell::OnceCell::new();
     for d in corpus.format_docs().docs.iter().filter(|d| d.admitted()) {
         let Some(alias) = d.doc.alias.as_deref() else {
             continue;
         };
-        let head = crate::ticket::ladder::head_commit(&repo.root);
         // Each check with its current revision: a run on an older one says
         // nothing about it now (§11.1, §12).
         let checks: BTreeMap<&str, String> = d
@@ -538,6 +541,8 @@ fn failing(corpus: &Corpus) -> Vec<Holding> {
         if checks.is_empty() {
             continue;
         }
+        let head: &Option<String> =
+            head_once.get_or_init(|| crate::ticket::ladder::head_commit(&repo.root));
         let source = repo.root.join(&d.source);
         let dir = match source.file_name() {
             Some("warrant.md" | "ticket.md") => source.parent().map(Utf8Path::to_owned),

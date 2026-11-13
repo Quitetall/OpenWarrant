@@ -275,8 +275,13 @@ pub struct Work {
 }
 
 /// The repository-relative documents the corpus compiles.
+/// Where the documents a formal act takes are, among the roots
+/// [`crate::warrants::document_rows`] reads (`docs/work/` and the Warrants'
+/// directory): the rows [`Work::elsewhere`] drops are those rows, so a
+/// subject in the ticket store, which holds none of them, is never asked
+/// for, and its ten thousand documents are not opened to find out.
 fn subject_places(repo: &Repository) -> std::collections::BTreeSet<String> {
-    crate::subject::all(repo)
+    crate::subject::all_in(&[crate::subject::work_root(repo), repo.warrants_dir()])
         .iter()
         .map(|f| repo.relative(&f.file))
         .collect()

@@ -673,9 +673,17 @@ impl Cache {
 
     fn one(&self, store: &Store, dir: &Utf8PathBuf, shards: &[Shard]) -> Got {
         let manifest = dir.join("manifest.toml");
-        let (Some(name), Some(Seen::File(stamp))) = (dir.file_name(), seen(&manifest)) else {
-            // Absent, unusual or unnamed: exactly the uncached read.
-            return Got::plain(crate::vfs::is_file(&manifest).then(|| store.load(dir)));
+        // One `stat` answers both questions: whether there is a manifest to
+        // read at all (`vfs::is_file`: a regular file, any error is no), and
+        // how it stats. Most entries are a document or its journal's
+        // directory and hold none.
+        let stamp = match std::fs::metadata(&manifest) {
+            Ok(m) if m.is_file() => Stamp::of(&m),
+            _ => return Got::plain(None),
+        };
+        let (Some(name), Some(stamp)) = (dir.file_name(), stamp) else {
+            // Unusual or unnamed: exactly the uncached read.
+            return Got::plain(Some(store.load(dir)));
         };
         let shard = shard_of(name);
         let old = &shards[shard];

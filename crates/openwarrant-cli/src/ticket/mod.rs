@@ -421,6 +421,26 @@ impl TicketState {
     }
 }
 
+/// The tickets as they are once an invocation's act has been written, and
+/// the ready set over them: read once and shared by what follows the act
+/// (the line naming what is next, `.openwarrant/next.md`, the index's
+/// refresh), which each read every ticket before.
+pub struct AfterAct {
+    pub tickets: Vec<Ticket>,
+    pub faults: Vec<Diagnostic>,
+    ready: std::sync::OnceLock<Result<Vec<ReadyRow>, String>>,
+}
+
+impl AfterAct {
+    /// [`ready_rows`] over these tickets, once.
+    pub fn ready(&self, store: &Store) -> Result<&[ReadyRow], RepoError> {
+        self.ready
+            .get_or_init(|| ready_rows(store, &self.tickets).map_err(|e| e.to_string()))
+            .as_deref()
+            .map_err(|e| RepoError::Message(e.clone()))
+    }
+}
+
 /// The repository's tickets, their claims, and who is acting.
 pub struct Store {
     pub root: Utf8PathBuf,
@@ -436,6 +456,12 @@ pub struct Store {
     layout: Option<claim::GitLayout>,
     /// Every worktree's own claims directory, from before M11: read lazily.
     legacy_dirs: std::sync::OnceLock<Vec<Utf8PathBuf>>,
+    /// What the reads that follow this invocation's act share
+    /// ([`Self::after_act`]).
+    after_act: std::sync::OnceLock<AfterAct>,
+    /// What `war create` read to look for a duplicate, kept for
+    /// [`Self::after_create`].
+    before_create: std::sync::Mutex<Option<(Vec<Ticket>, Vec<Diagnostic>)>>,
     pub ttl_secs: u64,
     /// M11: a claim's lease, in seconds.
     pub lease_secs: u64,
@@ -737,6 +763,8 @@ impl Store {
             tree_claims_dir,
             layout,
             legacy_dirs: std::sync::OnceLock::new(),
+            after_act: std::sync::OnceLock::new(),
+            before_create: std::sync::Mutex::new(None),
             // FORMAT-1.0 §11.3: `[claims]` holds both; `[tickets]`, where
             // they were before, is read when `[claims]` says nothing.
             ttl_secs: claims_policy
@@ -1032,6 +1060,71 @@ impl Store {
         })
     }
 
+    /// Keep what `war create` read before it wrote anything (every ticket,
+    /// as [`Self::load_all`] reads them for a store that lists shared work),
+    /// for [`Self::after_create`].
+    pub(crate) fn remember_before_create(&self, tickets: Vec<Ticket>, faults: Vec<Diagnostic>) {
+        if self.shared
+            && let Ok(mut kept) = self.before_create.lock()
+        {
+            *kept = Some((tickets, faults));
+        }
+    }
+
+    /// After `war create` wrote the ticket `id` and nothing else: the
+    /// tickets as they now are, for [`Self::after_act`], without reading
+    /// every one again. They are the tickets the duplicate check read, a
+    /// moment before, and the new one read from its files, in id order: a
+    /// create writes no other ticket. Without that reading (`--force`, a
+    /// store that lists no shared work, an order that is not by id) nothing
+    /// is kept and [`Self::after_act`] reads.
+    pub fn after_create(&self, id: &str) {
+        let kept = self.before_create.lock().ok().and_then(|mut k| k.take());
+        let Some((mut tickets, faults)) = kept else {
+            return;
+        };
+        if self.after_act.get().is_some() || !tickets.is_sorted_by(|a, b| a.id() < b.id()) {
+            return;
+        }
+        let Err(at) = tickets.binary_search_by(|t| t.id().cmp(id)) else {
+            return;
+        };
+        let Ok(new) = self.load(&self.dir.join(id)) else {
+            return;
+        };
+        tickets.insert(at, new);
+        cache::permit();
+        let _ = self.after_act.set(AfterAct {
+            tickets,
+            faults,
+            ready: std::sync::OnceLock::new(),
+        });
+    }
+
+    /// Every ticket, read once for whatever follows this invocation's act.
+    ///
+    /// Call it only after the act's last write to a ticket's document, its
+    /// checklist or a claim: the first call reads ([`Self::load_all`]), and
+    /// every later call on this store answers from that reading. What an act
+    /// still journals after it (a usage report, a widening) names no item's
+    /// state and no claim, so it moves nothing read here. A store serves one
+    /// invocation (the CLI's command, one MCP tool call). From here on the
+    /// process may read tickets through the ticket cache ([`cache::permit`]).
+    pub fn after_act(&self) -> Result<&AfterAct, RepoError> {
+        if let Some(read) = self.after_act.get() {
+            return Ok(read);
+        }
+        // The act is judged and written; what follows are views of the
+        // ticket loop, which the ticket cache may answer.
+        cache::permit();
+        let (tickets, faults) = self.load_all()?;
+        Ok(self.after_act.get_or_init(|| AfterAct {
+            tickets,
+            faults,
+            ready: std::sync::OnceLock::new(),
+        }))
+    }
+
     /// Every readable ticket, and a diagnostic per unreadable one.
     pub fn load_all(&self) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
         self.load_every(true)
@@ -1084,20 +1177,25 @@ impl Store {
         // A directory no directory ticket was read from may hold a Format
         // 1.0 `ticket.md` (FORMAT-1.0 §4.1); a manifest beside one holds
         // tool settings only (§4.2), so it is read as no directory ticket.
-        let mut look: BTreeSet<&Utf8Path> = BTreeSet::new();
+        // By the path's text: every path here is one of `entries`, so two
+        // are the same path exactly when their text is, and a set of paths
+        // compares them component by component on every insert and lookup
+        // (most of this function at ten thousand tickets).
+        let mut look: std::collections::HashSet<&str> =
+            std::collections::HashSet::with_capacity(entries.len());
         for (dir, one) in entries.iter().zip(loaded) {
             match one {
                 Some(Ok(t)) => tickets.push(t),
                 Some(Err(_)) if crate::vfs::exists(dir.join(format::INNER)) => {
-                    look.insert(dir);
+                    look.insert(dir.as_str());
                 }
                 Some(Err(d)) => faults.push(d),
                 None => {
-                    look.insert(dir);
+                    look.insert(dir.as_str());
                 }
             }
         }
-        let mut documents = self.format_documents(&entries, &|d| look.contains(d));
+        let mut documents = self.format_documents(&entries, &|d| look.contains(d.as_str()));
         // The masters in `docs/work/` (one-format.md) are listed on their
         // own and read through the same cache: an entry is keyed by the
         // document's path under the root, and judged by its own stat.
@@ -3135,6 +3233,17 @@ pub fn ready_rows_with(
     ready_rows_at(store, tickets, claims, now_secs())
 }
 
+/// Set to anything but `0` or nothing: the ready set is built by asking every
+/// ticket what the fast path asks only of the tickets that can answer other
+/// than "ready" (who waits on a person, whose scope is refused or conflicts),
+/// with nothing read once for all of them. The answer is the same; a test
+/// compares the two (conformance/plants.d/301-ready-fast.sh).
+pub const READY_REFERENCE_ENV: &str = "OPENWARRANT_READY_REFERENCE";
+
+fn env_on(name: &str) -> bool {
+    std::env::var_os(name).is_some_and(|v| !v.is_empty() && v != "0")
+}
+
 /// [`ready_rows`] over claims already read, as of `now`: a pure function of
 /// the tickets (documents and journals), the claims, the time (FORMAT-1.0
 /// §11.5) and, for a ticket that declares a dependency beyond its repository
@@ -3168,30 +3277,63 @@ pub fn ready_rows_at(
     // Read here, once: other repositories are read on one thread.
     let held = depends::held(store, tickets);
     let workspace = scopes::workspace(store);
+    let reference = env_on(READY_REFERENCE_ENV);
+    // The scopes another holder declared in this workspace, read once: whose
+    // claim is whose is the same question for every ticket. One that
+    // declared nothing conflicts with nothing (`scopes::undeclared`).
+    let others: Vec<&scopes::Coordination> = claims
+        .values()
+        .flatten()
+        .filter(|c| !owns_claim(store, c))
+        .filter_map(|c| c.coordination.as_deref())
+        .filter(|other| other.workspace == workspace && !scopes::undeclared(other))
+        .collect();
     // Each ticket's rows depend on it, the claims and the blockers alone:
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
         let mut rows = Vec::new();
-        if t.is_done()
-            || held.contains_key(t.id())
-            || !ladder::awaiting_signature(store, t).is_empty()
-        {
+        if t.is_done() || held.contains_key(t.id()) {
             return rows;
         }
-        let Ok(candidate) = scopes::of_in(store, t, &[], &workspace) else {
-            return rows;
-        };
-        if claims
-            .values()
-            .flatten()
-            .filter(|c| !owns_claim(store, c))
-            .filter_map(|c| c.coordination.as_ref())
-            .any(|other| {
-                other.workspace == candidate.workspace
-                    && scopes::conflict(&candidate, other).is_some()
-            })
-        {
-            return rows;
+        if reference {
+            // The plain reading, asked of every ticket ([`READY_REFERENCE_ENV`]).
+            if !ladder::awaiting_signature_asked(store, t).is_empty() {
+                return rows;
+            }
+            let Ok(candidate) = scopes::of(store, t, &[]) else {
+                return rows;
+            };
+            if claims
+                .values()
+                .flatten()
+                .filter(|c| !owns_claim(store, c))
+                .filter_map(|c| c.coordination.as_ref())
+                .any(|other| {
+                    other.workspace == candidate.workspace
+                        && scopes::conflict(&candidate, other).is_some()
+                })
+            {
+                return rows;
+            }
+        } else {
+            // Only a ticket with an open item is asked whether it waits on
+            // a person (`ladder::awaiting_signature`).
+            if !ladder::awaiting_signature(store, t).is_empty() {
+                return rows;
+            }
+            // A ticket that declares no paths has a scope that is never
+            // refused and conflicts with nothing (`scopes::declares_none`).
+            if !scopes::declares_none(t) {
+                let Ok(candidate) = scopes::of_in(store, t, &[], &workspace) else {
+                    return rows;
+                };
+                if others
+                    .iter()
+                    .any(|other| scopes::conflict(&candidate, other).is_some())
+                {
+                    return rows;
+                }
+            }
         }
         let whole = claim_on(&claims, t.id(), None);
         let whole_stale: Takeable = match whole {
@@ -5635,8 +5777,7 @@ fn reused_note(default: Option<&ladder::DefaultRound>) -> &'static str {
 /// title. `None` when nothing is ready, or the ready set could not be read
 /// (the tick is written either way, and `war start` says why).
 fn next_ready(store: &Store) -> Option<(String, String)> {
-    let (tickets, _) = store.load_all().ok()?;
-    let rows = ready_rows(store, &tickets).ok()?;
+    let rows = store.after_act().ok()?.ready(store).ok()?;
     rows.first().map(|r| (r.ticket.clone(), r.title.clone()))
 }
 

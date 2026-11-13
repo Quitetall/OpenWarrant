@@ -369,6 +369,12 @@ pub fn ticket_nodes(
             Some(c) => Some(c.actor.clone()),
         }
     };
+    // The epics: every id some ticket names `part_of`, read once rather
+    // than one scan of every ticket per ticket without items.
+    let parents: BTreeSet<&str> = tickets
+        .iter()
+        .filter_map(|x| x.manifest.part_of.as_deref())
+        .collect();
     for t in tickets {
         let tid = t.id().to_owned();
         if let Some(parent) = &t.manifest.part_of {
@@ -410,12 +416,11 @@ pub fn ticket_nodes(
         if t.checklist.items.is_empty() {
             // The Warrant is its own work, unless it is an epic worked
             // through its child Warrants (as `war view ready` reads it).
-            let children = crate::ticket::children_of(tickets, &tid);
             let mut n = base(
                 Kind::Warrant,
                 tid.clone(),
                 String::new(),
-                children.is_empty(),
+                !parents.contains(tid.as_str()),
             );
             if t.is_done() {
                 n.state = State::Done;
