@@ -1060,10 +1060,9 @@ pub fn corpus_status_html_with(corpus: &Corpus) -> Result<(Utf8PathBuf, String),
             None
         }
     };
-    let timeline = sibling(
-        "CORPUS_TIMELINE.json",
-        crate::timeline::corpus_timeline_json_with(corpus),
-    );
+    // The page embeds the timeline without payloads (timeline.rs); the file
+    // on disk keeps them.
+    let timeline = crate::timeline::corpus_timeline_view_json_with(corpus).ok();
     let pending = sibling(
         "CORPUS_PENDING.json",
         crate::timeline::corpus_pending_json_with(corpus),
