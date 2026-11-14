@@ -123,7 +123,8 @@ got=$(ld_rule format.document-duplicate)
 # One design at tier 3 and one ADR at tier 2, both implementing REQ-ld-1,
 # reached from the requirement at distance 1 (in:implements from an interface
 # is not walked, so the target is a ticket that implements the requirement and
-# depends on both).
+# depends on both), under `--preset agent`: agent.min, the default for a
+# ticket, does not walk `depends_on`.
 /usr/bin/rm -rf "$LD_ROOT/docs/work/w-1a2b3" "$LD_ROOT/docs/work/d-4c5d6" "$LD_ROOT/docs/work/d-0a1b2" "$LD_ROOT/docs/work/d-7e8f9"
 ld_doc d-11111 d-11111-low.md guide "" "## Body
 Low."
@@ -139,7 +140,7 @@ ld_doc w-33333 w-33333-target.md ticket "depends_on:
   - d-11111
   - d-22222" "## Checklist
 - [ ] Do it (i-c03)"
-ld_order() { ld context w-33333 --budget 100000 2>/dev/null | grep -E '^\[[FS]\] d-(11111|22222) ' | cut -c5-11 | tr '\n' ' '; }
+ld_order() { ld context w-33333 --preset agent --budget 100000 2>/dev/null | grep -E '^\[[FS]\] d-(11111|22222) ' | cut -c5-11 | tr '\n' ' '; }
 first=$(ld_order)
 if [[ "$first" == "d-22222 d-11111 " ]]; then
     ld_ok "context ranks tier 2 over tier 4" "$first"

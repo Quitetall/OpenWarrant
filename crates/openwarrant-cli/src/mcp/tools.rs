@@ -253,7 +253,7 @@ pub struct ContextParams {
     /// Tokens (4 bytes each) when `budget` is absent.
     #[serde(default)]
     pub tokens: Option<usize>,
-    /// Relation steps; default 3.
+    /// Relation steps; default 2 for a work item (agent.min), else 3.
     #[serde(default)]
     pub depth: Option<usize>,
     /// Refuse rather than list a record by summary only.
@@ -1288,13 +1288,8 @@ impl WarServer {
     )]
     fn war_context(&self, Parameters(p): Parameters<ContextParams>) -> ToolResult {
         let corpus = crate::corpus::held(&self.repo);
-        let mut opts = crate::context::Options::with(
-            crate::context::Preset::builtin(crate::context::DEFAULT_PRESET)
-                .unwrap_or_else(|| unreachable!("the default preset is built in")),
-            p.budget,
-            p.tokens,
-            p.depth,
-        );
+        // The CLI's default: agent.min for a work item, agent otherwise.
+        let mut opts = crate::context::Options::unasked(p.budget, p.tokens, p.depth);
         opts.strict = p.strict;
         // W6: another repository's target reads through its pin, or says why
         // it could not.

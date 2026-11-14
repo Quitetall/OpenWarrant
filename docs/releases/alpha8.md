@@ -26,9 +26,21 @@ What is new for a user:
   is answered at its own level and routed to the orchestrators. Each work order names
   its repository, worktree, branch and base commit, and `war start` refuses work held
   from another worktree or repository, naming it.
+- **Smaller context by default.** `war context <work item>` returns the work, the records
+  it links (requirements, constraints, decisions, obligations) and its parent's intent.
+  Completed sibling phases, rejected options and spec frontmatter are left out; on a
+  phased roadmap a packet went from 7,912 to 3,487 bytes. `--preset agent` or `--full`
+  gives the old, wider walk.
+- **Close at the first passing test.** Agent text now says to close work the first time
+  its test passes, before docs or lint polish, instead of "with your last test run". In
+  the study, agents that waited for their "last" run hit the turn cap with the work done
+  and never closed it. `war done` still runs the test and refuses if it fails.
+- **The actor comes from the harness.** With no `OPENWARRANT_ACTOR`, `war` names the
+  agent after its harness (Claude Code, Codex, opencode, Gemini CLI, Cursor), says so,
+  and `war start` and `war done` agree on it.
 - **Views are generated on main only.** Pull requests carry no generated views.
 - **Speed at scale.** `war create` stays fast at about 10,000 tickets, and the read path
-  (`ready`, `next`) is several times faster. The status page embeds its timeline without
+  (`ready`, `next`) is several times faster, within 100 and 150 ms at that size. The status page embeds its timeline without
   payloads (27 MB down to 1.8 MB).
 
 Fixed since alpha.7 (from a field report):
@@ -40,6 +52,8 @@ Fixed since alpha.7 (from a field report):
 - Running a check twice with no edits no longer reports `check.source-stale`.
 - `war done <ticket> --check` raises an earlier `claimed` tick to `observed`.
 - `war view show` names the real file and the real phase title.
+- A claim read while another clone renews it no longer reads UNKNOWN (`git cat-file …:
+  bad file`); `war` lists the claim again and reads it as it is now.
 
 Compatibility: `[tickets] done_test` is a new key, and the policy file rejects unknown
 keys, so alpha.7 refuses a repository that sets it; `[tickets] layout` is new too. The default layout changed: with no setting, `war create` now writes

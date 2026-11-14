@@ -40,9 +40,11 @@ TYPE_RANK = ["warrant/ticket", "section", "item", "requirement", "outcome", "con
 # walk `core`; one with steps of its own names its walk after itself.
 BUILTIN = {
     "agent": {"walk": "core", "steps": CORE_STEPS, "depth": 3, "budget": 16000},
+    # The default for a work document or an item of one: depth 2, and the
+    # parent's intent at distance 1 by the step `parent-intent`.
     "agent.min": {"walk": "agent.min", "steps": ["out:implements", "in:constrains", "in:evaluates"],
-                  "depth": 1, "budget": 4000, "omit_fields": ["rationale"],
-                  "omit_types": ["option", "consequence"]},
+                  "depth": 2, "budget": 16000, "omit_fields": ["rationale"],
+                  "omit_types": ["option", "consequence"], "parent_intent": True},
     "human": {"walk": "core", "steps": CORE_STEPS, "depth": 3, "budget": None, "editable": True,
               "own_first": True},
     "review": {"walk": "review", "steps": ["in:evaluates", "out:evaluates"], "depth": 2,
@@ -232,6 +234,24 @@ def walk(repo, zero, pair, steps, depth, omit_types, diags):
     return dist, via
 
 
+def parent_intents(repo, roots, wdoc):
+    """10.4 `parent-intent`: each `part_of` target of a work document root, by its
+    `S-intent` when it is a work document with one, else itself."""
+    out = {}
+    if wdoc is None or roots != [wdoc.alias]:
+        return out
+    works = {d.alias for d in repo.docs if d.is_work and not (d.refused or d.unknown)}
+    for r in repo.relations + repo.containment:
+        if r["from"] != wdoc.alias or r["kind"] != "part_of":
+            continue
+        t = reader.resolve_ref(repo, r["to"])
+        if t is None:
+            continue
+        intent = f"{t}/S-intent"
+        out.setdefault(intent if t in works and intent in repo.by_id else t, wdoc.alias)
+    return out
+
+
 def strip_fields(text: str, rec: dict, omit: list[str]) -> str:
     """agent.min: the record's text without the left-out fields (and their continuations)."""
     if not omit or rec["type"] in ("section", "item") or "_span" not in rec:
@@ -253,9 +273,14 @@ def strip_fields(text: str, rec: dict, omit: list[str]) -> str:
     return "\n".join(out)
 
 
-def compile_packet(root, target, preset_name="agent", budget=None, depth=None, at=None,
+def compile_packet(root, target, preset_name=None, budget=None, depth=None, at=None,
                    as_json=False):
     repo = reader.load_repository(root)
+    if preset_name is None:
+        # 10.4: without --preset, agent.min for a work document or an item of
+        # one, agent for any other target.
+        probe = DocumentStates(root).repo
+        preset_name = "agent.min" if resolve_target(probe, root, target)[3] is not None else "agent"
     preset = dict(BUILTIN.get(preset_name) or {})
     if not preset:
         preset = profile_preset(repo, preset_name)
@@ -282,6 +307,14 @@ def compile_packet(root, target, preset_name="agent", budget=None, depth=None, a
         zero = [wdoc.alias] + [r["id"] for r in wdoc.records if r["type"] == "item"]
     omit_types = preset.get("omit_types", [])
     dist, via = walk(repo, zero, pair, preset["steps"], preset["depth"], omit_types, diags)
+    if preset.get("parent_intent") and preset["depth"] >= 1:
+        # At distance 1, walked no further.
+        for pid, f in sorted(parent_intents(repo, roots, wdoc).items(), key=lambda x: x[0].encode()):
+            if repo.by_id[pid]["type"] in omit_types:
+                continue
+            if pid not in dist or dist[pid] > 1:
+                dist[pid] = 1
+                via[pid] = ("parent-intent", f)
     recs = [repo.by_id[r] for r in dist]
 
     # 4.6: the tier of the item holding each record, by source; after 4 when unread.
@@ -438,7 +471,7 @@ def main(argv):
     ap.add_argument("--budget", type=int)
     ap.add_argument("--tokens", type=int)
     ap.add_argument("--depth", type=int)
-    ap.add_argument("--preset", default="agent")
+    ap.add_argument("--preset")
     ap.add_argument("--at")
     ap.add_argument("--json", action="store_true")
     a = ap.parse_args(argv[1:])

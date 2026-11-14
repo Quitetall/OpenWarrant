@@ -15,8 +15,9 @@
 # least 500 resolved); this file does not replace it, and neither file's
 # numbers move the other's.
 #
-# Each row is at most 50 ms median, wall clock per process, for a release
-# build. `{ready}` in an argv is the first row of `war view ready --json`,
+# Each row's limit is its median, wall clock per process, for a release
+# build: `ready` 100 ms and `next` 150 ms (the owner, 2026-11-14, replacing
+# 50 ms after 84 and 123 ms were measured at 9,800 tickets), `claim` 50 ms. `{ready}` in an argv is the first row of `war view ready --json`,
 # read before each run and not timed, so every `claim` run takes the item an
 # agent would take next rather than renewing the one it already holds.
 #
@@ -36,12 +37,12 @@ statistic = "median"
 [[command]]
 id = "ready"
 argv = ["view", "ready"]
-limit_ms = 50
+limit_ms = 100
 
 [[command]]
 id = "next"
 argv = ["next"]
-limit_ms = 50
+limit_ms = 150
 
 [[command]]
 id = "claim"

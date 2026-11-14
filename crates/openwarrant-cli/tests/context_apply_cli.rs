@@ -150,17 +150,26 @@ fn index_line<'a>(md: &'a str, id: &str) -> Option<&'a str> {
 #[test]
 fn every_preset_names_itself_and_its_walk_and_an_unknown_preset_is_refused() {
     let root = scratch("presets");
-    let agent = ok(&war(&root, &["context", "t-0d61d/i-4d11"]));
+    let agent = ok(&war(
+        &root,
+        &["context", "t-0d61d/i-4d11", "--preset", "agent"],
+    ));
     assert!(
         header(&agent).contains("· budget 16000 · depth 3 · preset agent (walk core) ·"),
         "{agent}"
+    );
+    // Without --preset an item is agent.min's (section 10.4).
+    let unasked = ok(&war(&root, &["context", "t-0d61d/i-4d11"]));
+    assert!(
+        header(&unasked).contains("· budget 16000 · depth 2 · preset agent.min (walk agent.min) ·"),
+        "{unasked}"
     );
     let min = ok(&war(
         &root,
         &["context", "SPEC.md", "--preset", "agent.min"],
     ));
     assert!(
-        header(&min).contains("· budget 4000 · depth 1 · preset agent.min (walk agent.min) ·"),
+        header(&min).contains("· budget 16000 · depth 2 · preset agent.min (walk agent.min) ·"),
         "{min}"
     );
     // agent.min leaves out options and cuts rationale; agent keeps both.

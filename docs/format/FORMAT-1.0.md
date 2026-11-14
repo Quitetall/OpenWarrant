@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| Status | **Draft** (`1.0.0-draft.3`, revision 4). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. Revision 4 (OW-ADR-0035, proposed) adds masters in `docs/work/`, hash ids and the ladder of 4.6; the editor's acceptance of that ADR is a separate act. |
+| Status | **Draft** (`1.0.0-draft.3`, revision 4). Directed by the owner 2026-10-11 and 2026-10-12; not yet accepted. Revision 4 (OW-ADR-0035, proposed) adds masters in `docs/work/`, hash ids, the ladder of 4.6 and `agent.min` as the context default for work (10.4); the editor's acceptance of that ADR is a separate act. |
 | Decision record | OW-ADR-0032 |
 | Licence | Text: CC-BY-4.0 (`docs/format/LICENSE`). Grammar, schemas and examples: Apache-2.0 |
 | Governance | `docs/format/GOVERNANCE.md` |
@@ -811,8 +811,11 @@ emits the context an agent needs for a target, as a pure function of the
 documents. Identical arguments and identical input files MUST produce
 identical output bytes. It MUST NOT read clocks, the environment, claim
 locks, anything outside the working tree or any path the repository's
-version control ignores, and MUST NOT depend on directory order. `--tokens n` means `--budget 4n`. Defaults: budget 16000
-bytes, depth 3.
+version control ignores, and MUST NOT depend on directory order. `--tokens n` means `--budget 4n`. Without `--preset`, the
+preset is chosen by 10.4 (`agent.min` for a work document or an item of
+one, `agent` otherwise); without `--budget`, `--tokens` or `--depth`, the
+preset's own apply (16000 bytes for both; depth 3 for `agent`, 2 for
+`agent.min`).
 
 **1. Roots.** By the target's shape: an item id, the item, and at
 distance 1 its document's `S-intent` (without one, the document's record),
@@ -912,17 +915,30 @@ person who needs everything the document type holds.
 A preset is profile data (7.5) and declares: the walk and its steps; the
 depth; the budget, or `none`; the record types and field names it leaves
 out; whether its records are **editable** (10.5); and whether it **reads
-state**. Without `--preset` the preset is `agent`. A preset that walks
+state**. Without `--preset` the preset is `agent.min` for a work document
+or an item of one, and `agent` for any other target. A work document or
+item is a target that step 1 of 10.3 resolves to one (an alias,
+`war://<uuid>`, an item id, or the path of a work document); `--budget`,
+`--tokens` and `--depth` apply to whichever preset it is. A tool MAY
+offer `--full`: without `--preset`, the `agent` preset with no budget. A preset that walks
 the core steps names its walk `core`; one with steps of its own names its
 walk after itself.
 
 | preset | for | selection |
 |---|---|---|
-| `agent` | an agent doing the work | 10.3 exactly: core walk, depth 3, budget 16000 |
-| `agent.min` | a tight window | depth 1 over `out:implements`, `in:constrains` and `in:evaluates`; leaves out `option` and `consequence` records, and cuts each `rationale` field (its line and continuations) from the text it gives, the `>` line still naming the source revision; budget 4000 |
+| `agent` | an agent that needs the neighbourhood | 10.3 exactly: core walk, depth 3, budget 16000 |
+| `agent.min` | an agent doing the work (the default for a work document or item) | depth 2 over `out:implements`, `in:constrains` and `in:evaluates`, and the parent's intent (below); leaves out `option` and `consequence` records, and cuts each `rationale` field (its line and continuations) from the text it gives, the `>` line still naming the source revision; budget 16000 |
 | `human` | a person reading and working | the core walk, depth 3, no budget, every record `[F]`, editable; the work document's own units first in document order, then the rest in 10.3's order |
 | `review` | a reviewer or verifier | depth 2 over `in:evaluates` (obligations and checks of the target) then `out:evaluates` (what they evaluate), no budget; reads state |
 | `resume` | whoever picks the work up | the target's record and items, the core walk to depth 1, no budget; reads state; rendered as below |
+
+**Parent intent.** For a work document root, `agent.min` also gives, at
+distance 1 by the step `parent-intent` from the document, the target of
+each of its `part_of` relations: that target's `S-intent` when it is a
+work document with one, else the target's own record. Such a record is
+walked no further, so the parent's other members (completed sibling
+phases or tickets) and what the parent depends on are not selected. A
+record the walk already reached at distance 1 keeps its via.
 
 **`resume` rendering.** After each item's `>` line comes one state line:
 `state <primary>[ · holder <actor> · lease <until>][ · by <actor> ·
@@ -1504,6 +1520,9 @@ Each is deliberate (OW-ADR-0032).
     display ordinals in generated views (4.1, 4.3, 5).
 21. Work orders and documents stand on one four-tier ladder, with one Spec
     and one Roadmap per repository (4.6).
+22. `war context` on a work document or item gives by default the work,
+    the records it links and its parent's intent (`agent.min`, 10.4), not
+    the depth-3 neighbourhood.
 
 ## Appendix A. Grammar (normative)
 

@@ -461,15 +461,23 @@ pub fn read_claims(root: &Utf8Path, remote: &str) -> Result<Vec<RemoteClaim>, St
     let mut out = Vec::new();
     for (commit, refname) in refs {
         let shown = git(root, &["cat-file", "commit", &commit], None)?;
-        if !shown.ok {
-            return Err(first_line(&shown.stderr));
-        }
-        let message = shown
-            .stdout
-            .split_once("\n\n")
-            .map_or("", |(_, m)| m)
-            .trim();
-        let claim = serde_json::from_str::<Claim>(message).ok().map(|mut c| {
+        let claim = if shown.ok {
+            let message = shown
+                .stdout
+                .split_once("\n\n")
+                .map_or("", |(_, m)| m)
+                .trim();
+            serde_json::from_str::<Claim>(message).ok()
+        } else {
+            // The ref moved after `ls-remote` (renewed, reclaimed or
+            // released), so the fetch brought its new commit and not the
+            // one listed: read the ref as it is now.
+            match read(root, remote, &refname)? {
+                Held::Absent => continue,
+                Held::At(_, claim) => claim.map(|c| *c),
+            }
+        };
+        let claim = claim.map(|mut c| {
             c.elsewhere = Some(remote.to_owned());
             c
         });
@@ -659,19 +667,50 @@ pub enum Held {
     At(String, Option<Box<Claim>>),
 }
 
+/// How many times [`read`] reads a ref that moved while it was read.
+const MOVED_READS: usize = 3;
+
 /// Read `refname` on `remote`, fetching its commit when this clone lacks it.
+///
+/// A fetch by ref name brings the ref's commit at the time of the fetch.
+/// When another clone moved the ref after `ls-remote` listed it (a renewal,
+/// a reclaim, a release), the listed commit never arrives and `git cat-file`
+/// reads `bad file` (plant 102 under load, 2026-11-14). That is established
+/// by listing the ref again: when it names another commit, or none, the ref
+/// is read again as it now is. A ref that moved on every one of
+/// [`MOVED_READS`] reads stays unanswered, never a granted claim; a commit
+/// that cannot be read while the ref still names it is the error it was.
 pub fn read(root: &Utf8Path, remote: &str, refname: &str) -> Result<Held, String> {
+    let mut moved = String::new();
+    for _ in 0..MOVED_READS {
+        match read_once(root, remote, refname)? {
+            Ok(held) => return Ok(held),
+            Err(why) => moved = why,
+        }
+    }
+    Err(format!(
+        "{refname} moved on the remote on each of {MOVED_READS} reads (last: {moved})"
+    ))
+}
+
+/// The commit `refname` names on `remote` now, `None` when it is absent.
+fn listed(root: &Utf8Path, remote: &str, refname: &str) -> Result<Option<String>, String> {
     let listed = git(root, &["ls-remote", remote, refname], None)?;
     if !listed.ok {
         return Err(first_line(&listed.stderr));
     }
-    let Some(commit) = listed
+    Ok(listed
         .stdout
         .lines()
         .find_map(|l| l.split_once('\t').filter(|(_, r)| *r == refname))
-        .map(|(sha, _)| sha.to_owned())
-    else {
-        return Ok(Held::Absent);
+        .map(|(sha, _)| sha.to_owned()))
+}
+
+/// One read of [`read`]: `Ok(Err(why))` when the ref moved while it was
+/// read, so the commit listed is not the ref's any more.
+fn read_once(root: &Utf8Path, remote: &str, refname: &str) -> Result<Result<Held, String>, String> {
+    let Some(commit) = listed(root, remote, refname)? else {
+        return Ok(Ok(Held::Absent));
     };
     let have = git(
         root,
@@ -692,22 +731,41 @@ pub fn read(root: &Utf8Path, remote: &str, refname: &str) -> Result<Held, String
             None,
         )?;
         if !fetched.ok {
-            return Err(first_line(&fetched.stderr));
+            let why = first_line(&fetched.stderr);
+            // Released after it was listed: the fetch finds no such ref.
+            if listed_moved(root, remote, refname, &commit)? {
+                return Ok(Err(why));
+            }
+            return Err(why);
         }
     }
     let shown = git(root, &["cat-file", "commit", &commit], None)?;
     if !shown.ok {
-        return Err(first_line(&shown.stderr));
+        let why = first_line(&shown.stderr);
+        if listed_moved(root, remote, refname, &commit)? {
+            return Ok(Err(why));
+        }
+        return Err(why);
     }
     let message = shown
         .stdout
         .split_once("\n\n")
         .map_or("", |(_, m)| m)
         .trim();
-    Ok(Held::At(
+    Ok(Ok(Held::At(
         commit,
         serde_json::from_str::<Claim>(message).ok().map(Box::new),
-    ))
+    )))
+}
+
+/// Whether `refname` names a commit other than `commit` now (or none).
+fn listed_moved(
+    root: &Utf8Path,
+    remote: &str,
+    refname: &str,
+    commit: &str,
+) -> Result<bool, String> {
+    Ok(listed(root, remote, refname)?.as_deref() != Some(commit))
 }
 
 #[cfg(test)]
