@@ -30,6 +30,12 @@ Notable changes to OpenWarrant. Format loosely follows
     view ready` opens no document (it opened none before either, after reading each
     twice to find it), and `war create` opens none where it opened each about five
     times. One listing per master directory remains, which `docs/tickets/` does not pay.
+  - `war create` in the work layout takes as long as in `docs/tickets/`: at 9,800
+    tickets (debug build) about 210 ms in each, where masters took 340 to 440 ms. What
+    follows a create (the next line, `.openwarrant/next.md`) now reuses the duplicate
+    check's reading for a master too; it read every ticket again. Listing a directory of
+    documents sorts by file name once, not by comparing whole paths: about 100 ms of the
+    Warrant list's walk of `docs/work/` at 9,800.
   - One master directory with two documents claiming its id is refused by name
     (`format.document-duplicate`) and the other tickets are still listed. It emptied
     the whole list.

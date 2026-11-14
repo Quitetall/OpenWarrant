@@ -9,7 +9,9 @@
 # Accepted: a warm `war view ready` over three masters opens none of their
 # documents and lists each directory once; `war create` beside them opens none
 # either (its duplicate check lists the work orders that are no ticket, and
-# the tickets it has read are not opened again to learn they are none).
+# the tickets it has read are not opened again to learn they are none), and
+# lists each master directory once: what follows the create reuses the
+# duplicate check's reading.
 # Refused: a master edited in place, its mtime put back, is opened and its new
 # title listed; a second document claiming the id is opened too, and the
 # ticket is not listed (format.document-duplicate).
@@ -54,10 +56,18 @@ else
     mr_traced create "Delta master" --item "one of Delta"; MR_RC=$?
     # Its own new document aside: the three that were there.
     MR_CREATE_DOCS=$(grep -c '^docs/work/w-[0-9a-f]*/w-[^/]*-\(alpha\|bravo\|charlie\)-master\.md$' "$MR_T/opens")
-    if [[ $MR_RC -eq 0 && $MR_CREATE_DOCS -eq 0 ]]; then
-        mr_ok "create opens no other master" "the duplicate check and what is next read none of the three"
+    # The tickets are read once, by the duplicate check, and what follows the
+    # create (the next line, next.md) reuses that reading: each of the three
+    # directories is listed once. Read again, each was listed twice.
+    MR_CREATE_DIRS=$(mr_dirs)
+    MR_NEW=$(grep -l '^# Delta master' "$MR_R"/docs/work/*/*.md 2>/dev/null | head -1)
+    MR_NEW_ID=$(basename "$(dirname "${MR_NEW:-x/x}")")
+    MR_OTHER_DIRS=$(grep -c "^docs/work/w-[0-9a-f]*\$" "$MR_T/opens")
+    MR_OTHER_DIRS=$(( MR_OTHER_DIRS - $(grep -cx "docs/work/$MR_NEW_ID" "$MR_T/opens") ))
+    if [[ $MR_RC -eq 0 && $MR_CREATE_DOCS -eq 0 && $MR_OTHER_DIRS -le 3 ]]; then
+        mr_ok "create opens no other master" "the duplicate check and what is next read none of the three, and list each once ($MR_OTHER_DIRS)"
     else
-        mr_fail "create opens no other master" "exit $MR_RC, $MR_CREATE_DOCS open(s) of the three: $(head -c 200 "$MR_T/err")"
+        mr_fail "create opens no other master" "exit $MR_RC, $MR_CREATE_DOCS open(s) of the three, $MR_OTHER_DIRS listing(s) of their directories (want 3): $(head -c 200 "$MR_T/err")"
     fi
 
     # Refused: an in-place edit with its mtime put back is read, and seen.
@@ -93,7 +103,7 @@ PY
     fi
     [[ -n "$MR_T" && "$MR_T" == */tmp.* ]] && /usr/bin/rm -rf "$MR_T"
     corpus_gone "$MR_R"
-    unset MR_T MR_R MR_ENV MR_N MR_WARM_DOCS MR_WARM_DIRS MR_LISTED MR_RC MR_CREATE_DOCS MR_DOC MR_MTIME MR_EDIT_DOCS \
+    unset MR_T MR_R MR_ENV MR_N MR_WARM_DOCS MR_WARM_DIRS MR_LISTED MR_RC MR_CREATE_DOCS MR_CREATE_DIRS MR_NEW MR_NEW_ID MR_OTHER_DIRS MR_DOC MR_MTIME MR_EDIT_DOCS \
         MR_DUP_DOCS MR_CHECK
 fi
 unset MR_WAR

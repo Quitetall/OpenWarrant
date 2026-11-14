@@ -1089,7 +1089,10 @@ impl Store {
         let Err(at) = tickets.binary_search_by(|t| t.id().cmp(id)) else {
             return;
         };
-        let Ok(new) = self.load(&self.dir.join(id)) else {
+        // A master keeps its state in `docs/work/<id>/`, not the ticket
+        // directory: read where it is, or nothing is kept and every ticket
+        // is read again.
+        let Ok(new) = self.load(&self.state_dir(id)) else {
             return;
         };
         tickets.insert(at, new);

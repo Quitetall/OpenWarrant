@@ -154,7 +154,10 @@ fn sorted_entries(dir: &Utf8Path) -> Vec<Utf8PathBuf> {
                 .collect()
         })
         .unwrap_or_default();
-    out.sort();
+    // Every entry is a child of `dir`: path order is the order of the last
+    // component's bytes, read once per entry rather than walked out of both
+    // paths per comparison (`ticket::Store::entries`).
+    out.sort_by_cached_key(|p| p.file_name().map(str::to_owned));
     out
 }
 
