@@ -520,6 +520,7 @@ fi
 # (`docs/generated/llms.txt`, t-ca38) are put back; the corpus is untouched.
 TK_REAL_DIR="$REPO_ROOT/docs/tickets"
 TK_HAD_DIR=0; [[ -d "$TK_REAL_DIR" ]] && TK_HAD_DIR=1
+TK_HAD_WORK=0; [[ -d "$REPO_ROOT/docs/work" ]] && TK_HAD_WORK=1
 TK_HAD_CLAIMS=0; [[ -d "$REPO_ROOT/.openwarrant/state/claims" ]] && TK_HAD_CLAIMS=1
 TK_INDEX="$REPO_ROOT/docs/generated/llms.txt"; TK_INDEX_KEPT=$(mktemp)
 TK_HAD_INDEX=0; [[ -f "$TK_INDEX" ]] && TK_HAD_INDEX=1 && command cp -f "$TK_INDEX" "$TK_INDEX_KEPT"
@@ -535,7 +536,8 @@ for cmd in "create Timing-probe-2 --item x" "ready" "claim $TKR/$TKR_I" "done $T
     TK_TIMES="$TK_TIMES ${cmd%% *}=${ms}ms"
     [[ $rc -eq 0 && $ms -lt 2000 ]] || TK_SLOW="$TK_SLOW ${cmd%% *}(${ms}ms,exit $rc)"
 done
-# Remove every ticket this block made; nothing else under docs/tickets moves.
+# Remove every ticket this block made, in whichever layout it was written;
+# nothing else under docs/tickets or docs/work moves.
 # Each is closed first: `war create` announced it in the clone's shared
 # register (under git's common directory), and closing it is what retires
 # that. A file removed alone left the announcement, every worktree of the
@@ -546,16 +548,19 @@ done
 # not fail the next.
 TK_REG="$(cd "$REPO_ROOT" && git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)/openwarrant/tickets"
 TK_LEFT=""
-for d in "$TK_REAL_DIR"/t-*.md; do
+TK_WORK_DIR="$REPO_ROOT/docs/work"
+for d in "$TK_REAL_DIR"/t-*.md "$TK_WORK_DIR"/w-*/w-*.md; do
     [[ -f "$d" ]] && grep -q '^# Timing\(-probe-2\| probe (plant 45)\)$' "$d" || continue
-    TK_PID=$(basename "$d" .md)
+    # A master's id is its directory's name, and the directory is all of it.
+    if [[ "$d" == "$TK_WORK_DIR"/* ]]; then TK_PID=$(basename "$(dirname "$d")"); else TK_PID=$(basename "$d" .md); fi
     rw start "$TK_PID" >/dev/null 2>&1; rw done "$TK_PID" >/dev/null 2>&1
-    command rm -rf "$d" "${d%.md}"
+    if [[ "$d" == "$TK_WORK_DIR"/* ]]; then command rm -rf "$(dirname "$d")"; else command rm -rf "$d" "${d%.md}"; fi
     for e in "$TK_REG/$TK_PID" "$TK_REG/$TK_PID"~*; do
         [[ -e "$e" ]] && TK_LEFT="$TK_LEFT ${e##*/}" && command rm -f "$e"
     done
 done
 [[ $TK_HAD_DIR -eq 0 ]] && rmdir "$TK_REAL_DIR" 2>/dev/null
+[[ $TK_HAD_WORK -eq 0 ]] && rmdir "$TK_WORK_DIR" 2>/dev/null
 [[ $TK_HAD_CLAIMS -eq 0 ]] && command rm -rf "$REPO_ROOT/.openwarrant/state/claims"
 [[ $TK_HAD_INDEX -eq 1 ]] && command cp -f "$TK_INDEX_KEPT" "$TK_INDEX"
 command rm -f "$TK_INDEX_KEPT"
