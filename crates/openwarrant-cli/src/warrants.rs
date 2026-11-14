@@ -222,7 +222,16 @@ fn recorded_phase(dir: &Utf8Path) -> Result<Option<String>, RepoError> {
 /// With no journal yet it is a `draft`: nothing has happened to it.
 #[must_use]
 pub fn document_rows(repo: &Repository) -> (Vec<Row>, Vec<Diagnostic>) {
-    let docs = crate::format_doc::warrant_documents(repo);
+    document_rows_but(repo, &|_| false)
+}
+
+/// [`document_rows`], opening no master whose id `known_ticket` names
+/// ([`crate::format_doc::warrant_documents_but`]).
+pub fn document_rows_but(
+    repo: &Repository,
+    known_ticket: &dyn Fn(&str) -> bool,
+) -> (Vec<Row>, Vec<Diagnostic>) {
+    let docs = crate::format_doc::warrant_documents_but(repo, known_ticket);
     let mut rows = Vec::new();
     let mut faults: Vec<Diagnostic> = docs
         .faults

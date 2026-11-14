@@ -20,6 +20,19 @@ Notable changes to OpenWarrant. Format loosely follows
   - `war add`, `done`, `note`, `start` and `plan promote` on a `w-` id rebuild that
     ticket's lines of `docs/generated/llms.txt` and its parents'. They rebuilt every
     ticket's, because the id was tested as `t-` only.
+  - Reading them costs less. Which file of `docs/work/<id>/` is the document, and
+    that it is a ticket's, is settled from one listing of the directory and one reading
+    of the file, across threads; it was a listing and two readings, one master after
+    another. A document the ticket cache holds unchanged is not opened at all. The
+    lists of Warrants (`war create`'s duplicate check, `war view next`, `war view
+    warrants`) no longer parse a ticket kept as a master to learn it is no Warrant, and
+    the duplicate check opens none it has already read. At 9,800 masters, a warm `war
+    view ready` opens no document (it opened none before either, after reading each
+    twice to find it), and `war create` opens none where it opened each about five
+    times. One listing per master directory remains, which `docs/tickets/` does not pay.
+  - One master directory with two documents claiming its id is refused by name
+    (`format.document-duplicate`) and the other tickets are still listed. It emptied
+    the whole list.
 - `tools/scale/synth-corpus.sh --tickets` accepts the `w-` id `war create` prints in
   the work layout.
 

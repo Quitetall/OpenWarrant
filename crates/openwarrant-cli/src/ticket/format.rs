@@ -340,6 +340,40 @@ impl Store {
         })
     }
 
+    /// The alias and document of every master in `masters` (the directories
+    /// of `docs/work/`) that is a ticket, in that order, and a diagnostic for
+    /// each directory where more than one file claims the id. A master of
+    /// another profile is a formal work order, and no ticket.
+    ///
+    /// Each directory is listed once and each file that could be its
+    /// document read once, across threads; `known_ticket` names a file that
+    /// need not be read at all ([`crate::subject::document_as`]).
+    pub(crate) fn master_documents(
+        &self,
+        masters: &[Utf8PathBuf],
+        known_ticket: &(dyn Fn(&Utf8Path) -> bool + Sync),
+    ) -> Vec<Result<(String, Utf8PathBuf), Diagnostic>> {
+        let held = crate::vfs::map_ordered(masters, 64, |path| {
+            path.file_name()
+                .map(|name| crate::subject::document_as(path, name, &|f| known_ticket(f)))
+        });
+        let mut out = Vec::new();
+        for (path, held) in masters.iter().zip(held) {
+            match held {
+                Some(crate::subject::HeldAs::One { file, ticket: true }) => {
+                    out.push(Ok((path.file_name().unwrap_or_default().to_owned(), file)));
+                }
+                Some(crate::subject::HeldAs::Many(_)) => out.push(Err(Diagnostic::error(
+                    "format.document-duplicate",
+                    self.rel(path),
+                    "multiple master documents claim the same identity",
+                ))),
+                _ => {}
+            }
+        }
+        out
+    }
+
     /// Every Format 1.0 ticket's alias and document among `entries` (the
     /// store's sorted listing), and a diagnostic for each alias that cannot
     /// be worked. `dirs_to_look_in` names the directories that may hold a
@@ -366,23 +400,8 @@ impl Store {
                 .parent()
                 .is_some_and(|p| p.ends_with(crate::subject::WORK_ROOT))
             {
-                match crate::subject::document_in(path, name) {
-                    crate::subject::Held::One(file) => {
-                        if crate::vfs::read_to_string(&file).is_ok_and(|text| {
-                            crate::format_doc::frontmatter_profile(&text) == Some("ticket")
-                        }) {
-                            found.push((name.to_owned(), file));
-                        }
-                    }
-                    crate::subject::Held::Many(_) => {
-                        return vec![Err(Diagnostic::error(
-                            "format.document-duplicate",
-                            self.rel(path),
-                            "multiple master documents claim the same identity",
-                        ))];
-                    }
-                    crate::subject::Held::None => {}
-                }
+                // A master: `Self::master_documents`.
+                continue;
             } else if let Some(alias) = single_file(name) {
                 found.push((alias.to_owned(), path.clone()));
             } else if ticket::is_ticket_id(name) && dirs_to_look_in(path) {

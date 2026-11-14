@@ -1199,8 +1199,13 @@ impl Store {
         // The masters in `docs/work/` (one-format.md) are listed on their
         // own and read through the same cache: an entry is keyed by the
         // document's path under the root, and judged by its own stat.
+        // Which file of a master's directory is its document, and that it
+        // is a ticket's, is settled from the directory's listing on every
+        // run; a file the cache holds unchanged is not read to say so.
         let masters = self.master_entries()?;
-        documents.extend(self.format_documents(&masters, &|_| true));
+        documents.extend(self.master_documents(&masters, &|file| {
+            cache.is_some_and(|c| c.holds_document(self, file, &pass))
+        }));
         let read: Vec<Result<Ticket, Diagnostic>> = match cache {
             Some(cache) => cache.load_documents(self, &documents, pass),
             None => documents
