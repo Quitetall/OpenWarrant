@@ -1,5 +1,5 @@
 # Context: SPEC.md
-<!-- oh.war/context/v1 · budget 4000 · depth 1 · preset agent.min (walk agent.min) · selection sha256:628163b0526e037cbda7d02c403555cdd23d7a0298e7996bb9bd5b4ace849509 -->
+<!-- oh.war/context/v1 · budget 16000 · depth 2 · preset agent.min (walk agent.min) · selection sha256:628163b0526e037cbda7d02c403555cdd23d7a0298e7996bb9bd5b4ace849509 -->
 
 ## Index
 [F] S-purpose · section · - · Purpose · SPEC.md:10

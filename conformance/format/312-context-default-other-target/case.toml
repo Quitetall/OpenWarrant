@@ -1,0 +1,4 @@
+id = "312-context-default-other-target"
+kind = "accept"
+section = "10.4"
+says = """Without `--preset` the preset is `agent.min` for a work document or an item of one, and `agent` for any other target."""

@@ -576,49 +576,61 @@ pub fn holds_here(store: &Store, actor: &str) -> bool {
     })
 }
 
+/// The agent harnesses `war` recognizes, each by the variables it sets for
+/// the commands it runs, in the order they are tried.
+const HARNESSES: [(&str, &[&str]); 5] = [
+    ("claude", &["CLAUDECODE"]),
+    (
+        "codex",
+        &["CODEX_THREAD_ID", "CODEX_SESSION_ID", "CODEX_SANDBOX"],
+    ),
+    ("opencode", &["OPENCODE"]),
+    ("gemini", &["GEMINI_CLI"]),
+    ("cursor", &["CURSOR_AGENT"]),
+];
+
 /// The agent harness this process runs under, when its environment says:
-/// the variables each sets for the commands it runs.
-fn harness() -> Option<&'static str> {
+/// its name and the variable that said so.
+fn harness() -> Option<(&'static str, &'static str)> {
     let set = |name: &str| std::env::var_os(name).is_some_and(|v| !v.is_empty());
-    [
-        ("claude", &["CLAUDECODE"][..]),
-        (
-            "codex",
-            &["CODEX_THREAD_ID", "CODEX_SESSION_ID", "CODEX_SANDBOX"],
-        ),
-        ("opencode", &["OPENCODE"]),
-        ("gemini", &["GEMINI_CLI"]),
-        ("cursor", &["CURSOR_AGENT"]),
-    ]
-    .into_iter()
-    .find(|(_, names)| names.iter().any(|n| set(n)))
-    .map(|(name, _)| name)
+    HARNESSES
+        .iter()
+        .find_map(|(name, vars)| vars.iter().find(|v| set(v)).map(|v| (*name, *v)))
 }
 
+/// Whether `actor` is a name nobody chose: the built-in default or a
+/// harness's, with or without its worktree suffix.
+fn derived_name(actor: &str) -> bool {
+    let base = actor.split('@').next().unwrap_or(actor);
+    base == DEFAULT_PERFORMER || HARNESSES.iter().any(|(h, _)| *h == base)
+}
+
+/// The built-in performer name, when neither `[project] performer` nor a
+/// harness names one.
+const DEFAULT_PERFORMER: &str = "claude";
+
 impl Store {
-    /// One line for `war start` when the actor is the built-in default and
-    /// the harness does not confirm it: a name nobody chose is said, never
-    /// silent. `None` when the actor was named, or the harness is the one
-    /// the default names.
+    /// One line for `war start` when nobody named the actor: where the name
+    /// came from, never silent. It never invites renaming: work claimed under
+    /// one name is finished under it, so another name is chosen before the
+    /// next `war start`, not now. `None` when the actor was named.
     #[must_use]
     pub fn actor_note(&self) -> Option<String> {
         if !self.actor_defaulted {
             return None;
         }
-        let base = self.actor.split('@').next().unwrap_or(&self.actor);
-        match harness() {
-            Some(h) if h == base => None,
-            Some(h) => Some(format!(
-                "acting as {}, the default name, in a {h} session: `--as {h}` or \
-                 OPENWARRANT_ACTOR={h} names it",
+        Some(match harness() {
+            Some((h, var)) => format!(
+                "acting as {}, from the {h} session ({var} is set); `war done` finishes under \
+                 this name",
                 self.actor
-            )),
-            None => Some(format!(
-                "acting as {}, the default name: `--as <name>` or OPENWARRANT_ACTOR names this \
-                 agent",
+            ),
+            None => format!(
+                "acting as {}, the default name (no OPENWARRANT_ACTOR, no harness seen); `war \
+                 done` finishes under this name",
                 self.actor
-            )),
-        }
+            ),
+        })
     }
 }
 
@@ -709,8 +721,16 @@ pub(crate) fn phase_title(store: &Store, id: &str) -> Option<String> {
     Some(roadmap_phases(&store.root, id)?.get(id)?.title.clone())
 }
 
+/// `[project] performer`, else the harness this process runs under
+/// ([`harness`]), else the built-in name.
 fn default_actor(repo: &Repository) -> String {
-    let performer = repo.performer();
+    let performer = repo
+        .config
+        .project
+        .performer
+        .clone()
+        .or_else(|| harness().map(|(h, _)| h.to_owned()))
+        .unwrap_or_else(|| DEFAULT_PERFORMER.to_owned());
     match repo.root.file_name() {
         Some(tree) if crate::vfs::is_file(repo.root.join(".git")) => format!("{performer}@{tree}"),
         _ => performer,
@@ -4407,11 +4427,31 @@ pub fn held_target(store: &Store) -> Result<Result<String, Outcome>, RepoError> 
 }
 
 /// How an agent spends the fewest turns on tracked work: taking it with its
-/// first look at the code, and closing it with its last test run.
+/// first look at the code, and closing it the first time its tests pass
+/// ([`close_hint`]).
 pub const LOOP_HINT: &str = "Run `war start` in the same command as your first look at the code: \
      it takes the next ready Warrant (`war start <words of its title>` takes a named one) and prints \
-     only what it needs. Close it in the same command as your last test run: \
-     `<your tests> && war done --note \"what you did\"`.";
+     only what it needs.";
+
+/// When to close tracked work: the first time its test passes, before any
+/// docs or lint polish. "Last" slid to the end of the session in the study,
+/// and the work was never closed. With `[tickets] done_test`, `war done`
+/// runs that test itself and refuses when it fails.
+#[must_use]
+pub fn close_hint(store: &Store, id: Option<&str>) -> String {
+    let id = id.map(|i| format!(" {i}")).unwrap_or_default();
+    let close = format!("war done{id} --note \"what you did\"");
+    match store.done_test.as_deref().map(ticket::one_line) {
+        Some(test) => format!(
+            "Close it the first time `{test}` passes, before docs or lint polish: `{close}` \
+             runs it and refuses if it fails."
+        ),
+        None => format!(
+            "Close it at your first passing test run, before docs or lint polish: \
+             `<your tests> && {close}`."
+        ),
+    }
+}
 
 /// `war view prime --session`: what a harness shows an agent as its session
 /// starts, unless `[tickets] session_start = false`. Holding a Warrant, its
@@ -4448,7 +4488,11 @@ pub fn session_start(repo: &Repository, store: &Store) -> Result<Outcome, RepoEr
     }
     let overview = render::prime(repo, store, None)?;
     Ok(Outcome::ok(
-        format!("{}\n\n{LOOP_HINT}", overview.human),
+        format!(
+            "{}\n\n{LOOP_HINT} {}",
+            overview.human,
+            close_hint(store, None)
+        ),
         overview.result,
     ))
 }
@@ -5369,10 +5413,30 @@ fn may_finish(
         )));
     }
     if let Some(c) = whole {
+        // Taken here under a name nobody chose (the default, or a harness's
+        // before OPENWARRANT_ACTOR was set): say how to finish it. The
+        // permission is unchanged; only its holder's name finishes it.
+        let remedy = c
+            .as_ref()
+            .filter(|c| {
+                derived_name(&c.actor)
+                    && c.coordination
+                        .as_ref()
+                        .is_some_and(|co| co.workspace == scopes::workspace(store))
+            })
+            .map(|c| {
+                format!(
+                    "; it was taken in this checkout under a name nobody chose: `war done {} \
+                     --as {}` finishes it",
+                    t.id(),
+                    c.actor
+                )
+            })
+            .unwrap_or_default();
         return Err(Box::new(claimed_by_other(
             store.rel(&whole_path),
             format!(
-                "{what}: the whole Warrant is claimed by {}",
+                "{what}: the whole Warrant is claimed by {}{remedy}",
                 holder(c.as_ref(), now)
             ),
         )));

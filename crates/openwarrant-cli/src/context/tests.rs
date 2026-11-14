@@ -800,3 +800,50 @@ fn a_profile_declares_a_preset_and_one_naming_an_unknown_step_is_an_error() {
             .is_err()
     );
 }
+
+#[test]
+fn no_preset_is_agent_min_for_work_and_agent_for_a_record() {
+    let mut g = sample();
+    // t-ab is part of W-1; W-1 has a sibling T-done under it too.
+    g.edges.push(edge("t-ab", "part_of", "W-1"));
+    let mut done = unit(
+        "t-zz",
+        "ticket",
+        "docs/tickets/t-zz.md",
+        1,
+        "# Done sibling\n",
+    );
+    done.work = true;
+    done.document = None;
+    g.add(done);
+    g.edges.push(edge("t-zz", "part_of", "W-1"));
+    g.edges.sort();
+    let unasked = Options::unasked(None, None, None);
+    let p = compile(&g, "t-ab", &unasked).unwrap();
+    assert_eq!(
+        (p.preset.as_str(), p.depth, p.budget),
+        ("agent.min", 2, Some(16_000))
+    );
+    let parent = p.records.iter().find(|r| r.id == "W-1/S-intent").unwrap();
+    assert_eq!(parent.via.as_ref().unwrap().step, STEP_PARENT_INTENT);
+    assert_eq!(parent.distance, 1);
+    // Walked no further: not the parent's record, its obligations or siblings.
+    for absent in ["W-1", "t-zz", "W-1/OBL-001"] {
+        assert!(!p.records.iter().any(|r| r.id == absent), "{absent}");
+    }
+    // CON-a constrains what the item implements: distance 2.
+    assert!(p.records.iter().any(|r| r.id == "CON-a" && r.distance == 2));
+    // An item target is work too; `--depth` and `--budget` still hold.
+    let o = Options::unasked(Some(900), None, Some(1));
+    let p = compile(&g, "t-ab/i-9c01", &o).unwrap();
+    assert_eq!(
+        (p.preset.as_str(), p.depth, p.budget),
+        ("agent.min", 1, Some(900))
+    );
+    // The refusal: a record, or an asked-for preset, is not switched.
+    let p = compile(&g, "REQ-a", &unasked).unwrap();
+    assert_eq!((p.preset.as_str(), p.depth), ("agent", 3));
+    let p = compile(&g, "t-ab", &Options::default()).unwrap();
+    assert_eq!(p.preset, "agent");
+    assert!(p.records.iter().any(|r| r.id == "W-1" && r.distance == 1));
+}

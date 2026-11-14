@@ -9,7 +9,8 @@
 # - the generator builds a ticket corpus with nothing signed (`--tickets`,
 #   `--unsigned`), counted by the tool; and refuses `--unsigned` with a
 #   resolved count, writing nothing;
-# - the budget file names ready, next and claim at 50 ms, release, for 200
+# - the budget file names ready at 100 ms, next at 150 ms and claim at 50 ms,
+#   release, for 200
 #   directory Warrants and 9,800 tickets;
 # - with every limit raised past any run, budget.sh holds and each `claim`
 #   run takes the item `war view ready` lists first (`{ready}`), so the ready
@@ -66,7 +67,8 @@ else
 fi
 
 # --- the budget file ------------------------------------------------------------------
-SB_V=$(python3 - "$SB_BUDGET" <<'PY'
+sb_rows() { # <budget file>: "ok", or what differs from the owner's numbers
+python3 - "$1" <<'PY'
 import sys, tomllib
 b = tomllib.load(open(sys.argv[1], "rb"))
 errs = []
@@ -76,16 +78,26 @@ if a.get("build_profile") != "release": errs.append(f"profile {a.get('build_prof
 if a.get("warrants", 0) + a.get("tickets", 0) != 10000: errs.append(f"{a.get('warrants')} + {a.get('tickets')} Warrants")
 rows = {c["id"]: c for c in b.get("command", [])}
 if sorted(rows) != ["claim", "next", "ready"]: errs.append(f"rows {sorted(rows)}")
+want = {"ready": 100, "next": 150, "claim": 50}
 for r in rows.values():
-    if r["limit_ms"] != 50: errs.append(f"{r['id']} at {r['limit_ms']} ms")
+    if r["limit_ms"] != want.get(r["id"]): errs.append(f"{r['id']} at {r['limit_ms']} ms")
 if rows.get("claim", {}).get("argv") != ["claim", "{ready}"]: errs.append("claim takes no {ready}")
 print("ok" if not errs else "; ".join(errs))
 PY
-)
+}
+SB_V=$(sb_rows "$SB_BUDGET")
 if [[ "$SB_V" == ok ]]; then
-    sb_ok "the 10,000 budget names its rows" "ready, next, claim at 50 ms; release; 10,000 Warrants"
+    sb_ok "the 10,000 budget names its rows" "ready 100, next 150, claim 50 ms; release; 10,000 Warrants"
 else
     sb_fail "the 10,000 budget names its rows" "$SB_V"
+fi
+# The refusal: a budget with ready and next back at the old 50 ms is not the owner's.
+sed -E 's/^limit_ms = (100|150)$/limit_ms = 50/' "$SB_BUDGET" > "$SB_TMP/old.toml"
+SB_V=$(sb_rows "$SB_TMP/old.toml")
+if [[ "$SB_V" == *"ready at 50 ms"* && "$SB_V" == *"next at 50 ms"* && "$SB_V" != *claim* ]]; then
+    sb_ok "the old 50 ms rows are refused" "$SB_V"
+else
+    sb_fail "the old 50 ms rows are refused" "$SB_V"
 fi
 
 # --- the gate holds when it should, and claim takes the next ready item ---------------
