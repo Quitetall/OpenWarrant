@@ -8,6 +8,14 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- A remote claim read while another clone moves its ref (a renewal, a reclaim, a release)
+  is read as the ref now is, instead of UNKNOWN `work.claim-remote-unreachable` with
+  `git cat-file <sha>: bad file`. The read lists the ref, then fetches it by name, which
+  brings the ref's commit at fetch time; the commit listed never arrived. The move is
+  established by listing the ref again; a ref that moves on each of three reads stays
+  UNKNOWN, and nothing is claimed. Plant 102 hit it once under load; plant 321 moves the
+  ref through a git shim.
+
 - Plant 52's real-budget check no longer fails on a machine busy with other work. The
   budget is wall-clock time and its limits are unchanged: a row within its limit passes
   at any load, and a row over it fails when the one-minute load average stayed at or
