@@ -60,7 +60,19 @@ target=$(readlink -f "$repo/target" 2>/dev/null || true)
 work=$(mktemp -d "${TMPDIR:-/tmp}/war-layouts.XXXXXX") || exit 2
 [[ -n "$work" && -d "$work" ]] || exit 2
 cleanup() { rm -rf -- "$work"; }
-trap cleanup EXIT INT TERM
+trap cleanup EXIT
+# Interrupted or timed out: stop the runs and exit. A report of runs that
+# were cut short is no report.
+stopped() {
+    trap - INT TERM
+    local pids
+    pids=$(jobs -p)
+    # shellcheck disable=SC2086
+    [[ -z "$pids" ]] || kill $pids 2>/dev/null
+    echo "plant-layouts.stopped: interrupted before the runs finished; nothing is reported" >&2
+    exit 143
+}
+trap stopped INT TERM
 
 # This run names its plants and its layouts itself.
 unset OW_PLANT_SHARD OW_PLANT_FILES OW_PLANT_REPORT OW_PLANT_LAYOUT OPENWARRANT_TICKET_LAYOUT

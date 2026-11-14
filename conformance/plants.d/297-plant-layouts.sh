@@ -11,7 +11,8 @@
 # Refused: a layout that is neither (exit 1, nothing run); a pin without a
 # reason (PLANT SETUP FAILED, exit 9); one layout failing fails the run and is
 # named, the other still reported; a run that died is a failure, not a pass; an
-# unknown plant name and a nested run (exit 2).
+# interrupted run reports nothing (exit 143); an unknown plant name and a
+# nested run (exit 2).
 
 echo "== the battery per ticket layout =="
 LY_TMP=$(mktemp -d)
@@ -85,6 +86,7 @@ cat >"$LY_REPO/conformance/plant.sh" <<'FAKE'
 # $1 $2 are --layout <layout>.
 echo "fake battery in $2 sees $(cat conformance/probe.txt), files: $(tr '\n' ' ' <"${OW_PLANT_FILES:-/dev/null}")"
 if [[ "$2" == "${LY_DIE:-}" ]]; then kill -9 $$; fi
+if [[ -n "${LY_SLOW:-}" ]]; then sleep 20; fi
 if [[ "$2" == "${LY_FAILS:-}" ]]; then echo "FAIL  planted                            in $2"; echo "0 passed, 1 failed"; exit 1; fi
 echo "1 passed, 0 failed"
 FAKE
@@ -120,6 +122,20 @@ else
     ly_fail "one layout failing fails the run" "fail rc $LY_ONE_RC: $(tr '\n' '|' <<<"$LY_ONE" | head -c 240) | dead rc $LY_DEAD_RC: $(tr '\n' '|' <<<"$LY_DEAD" | head -c 240)"
 fi
 
+# Refused: interrupted while its runs are going, it reports no layout at all.
+(cd "$LY_REPO" && exec env "${LY_SESSION[@]}" -u OPENWARRANT_IN_BATTERY TMPDIR="$LY_TMP" LY_SLOW=1 \
+    bash conformance/plant-layouts.sh) >"$LY_TMP/stopped.out" 2>&1 &
+LY_PID=$!
+sleep 3
+kill -TERM "$LY_PID" 2>/dev/null
+wait "$LY_PID"; LY_STOP_RC=$?
+if [[ $LY_STOP_RC -eq 143 ]] && grep -q 'plant-layouts.stopped' "$LY_TMP/stopped.out" \
+    && ! grep -q '^layout ' "$LY_TMP/stopped.out"; then
+    ly_ok "an interrupted run reports nothing" "exit 143, plant-layouts.stopped; no layout is called passed or failed"
+else
+    ly_fail "an interrupted run reports nothing" "exit $LY_STOP_RC: $(tr '\n' '|' <"$LY_TMP/stopped.out" | head -c 300)"
+fi
+
 LY_PINS=$(ly_wrap -- --pins)
 LY_UNK=$(ly_wrap -- 99-nothing.sh); LY_UNK_RC=$?
 LY_LAY=$(ly_wrap -- --layouts work,masters); LY_LAY_RC=$?
@@ -135,4 +151,4 @@ fi
 
 [[ -n "$LY_TMP" && "$LY_TMP" == */tmp.* ]] && /usr/bin/rm -rf "$LY_TMP"
 unset LY_TMP LY_SESSION LY_W LY_K LY_P LY_BAD LY_BAD_RC LY_NR LY_NR_RC LY_REPO LY_BOTH LY_BOTH_RC LY_SEEN \
-    LY_ONE LY_ONE_RC LY_DEAD LY_DEAD_RC LY_PINS LY_UNK LY_UNK_RC LY_LAY LY_LAY_RC LY_NEST LY_NEST_RC
+    LY_ONE LY_ONE_RC LY_DEAD LY_DEAD_RC LY_PID LY_STOP_RC LY_PINS LY_UNK LY_UNK_RC LY_LAY LY_LAY_RC LY_NEST LY_NEST_RC
