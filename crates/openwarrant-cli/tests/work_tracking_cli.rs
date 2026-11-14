@@ -110,8 +110,10 @@ const U2: &str = "01a0d342-ee5e-7b71-9623-f2d8cd5acd4f";
 const U3: &str = "01a0d342-ee5e-7b71-9623-f2d8cd5acd50";
 
 fn journal(root: &Path, alias: &str) -> String {
-    std::fs::read_to_string(root.join(format!("docs/tickets/{alias}/journal.jsonl")))
-        .unwrap_or_default()
+    std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{alias}/journal.jsonl")),
+    ))
+    .unwrap_or_default()
 }
 
 fn ready_targets(root: &Path, at: &str) -> Vec<String> {
@@ -248,7 +250,7 @@ fn a_legacy_journal_stays_v1_and_a_mixed_journal_reads() {
          \"type\":\"work.note_added\",\"v\":2}}\n"
     );
     std::fs::write(
-        root.join(format!("docs/tickets/{id}/journal.jsonl")),
+        crate::work_paths::at(root.join(format!("docs/tickets/{id}/journal.jsonl"))),
         format!("{j}{v2}"),
     )
     .unwrap();
@@ -269,7 +271,7 @@ fn a_legacy_journal_stays_v1_and_a_mixed_journal_reads() {
     );
     // Refused: a line that does not parse is `work.journal-malformed`.
     std::fs::write(
-        root.join(format!("docs/tickets/{id}/journal.jsonl")),
+        crate::work_paths::at(root.join(format!("docs/tickets/{id}/journal.jsonl"))),
         format!("{after}{{\"v\":2,\"payload\":\"text\"}}\n"),
     )
     .unwrap();

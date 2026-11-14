@@ -50,7 +50,7 @@ sr_as one "$SR_1" --json create "Ship the audit log" --item "write it"; SR_RC=$?
 SR_REF="refs/openwarrant/tickets/$SR_ID"
 SR_TITLE=$(git -C "$SR_BARE" log -1 --format=%B "$SR_REF" 2>/dev/null \
     | python3 -c 'import json,sys; print(json.load(sys.stdin)["title"])' 2>/dev/null)
-SR_BLOB=$(git -C "$SR_BARE" show "$SR_REF:$SR_ID.md" 2>/dev/null | grep -c '^# Ship the audit log')
+SR_BLOB=$(git -C "$SR_BARE" show "$SR_REF:$(basename "$(tk "$SR_1/docs/tickets/$SR_ID.md")")" 2>/dev/null | grep -c '^# Ship the audit log')
 if [[ $SR_RC == 0 && -n "$SR_ID" && "$SR_TITLE" == "Ship the audit log" && $SR_BLOB == 1 ]]; then
     sr_ok "a new ticket is a ref" "refs/openwarrant/tickets/<id>: its record in the commit message, its document a blob"
 else
@@ -72,7 +72,7 @@ sr_as two "$SR_2" init --claims-remote origin
 printf 'remote_ttl = 3\n' >>"$SR_2/openwarrant.toml"
 sr_as two "$SR_2" view tickets; SR_RC=$?; cp "$SR_T/out" "$SR_T/listed"
 sr_as two "$SR_2" status; cp "$SR_T/out" "$SR_T/status"
-if [[ $SR_RC == 0 && ! -e "$SR_2/docs/tickets/$SR_ID.md" ]] \
+if [[ $SR_RC == 0 && ! -e "$(tk "$SR_2/docs/tickets/$SR_ID.md")" ]] \
     && grep -q "^$SR_ID .*Ship the audit log .*\[elsewhere: remote origin" "$SR_T/listed" \
     && grep -q '^Tickets: 1 open' "$SR_T/status"; then
     sr_ok "created in 1, shown in 2" "listed and counted in clone 2 by title, marked as on the remote; no file fetched into the tree"
@@ -83,7 +83,7 @@ fi
 # --- the same title in clone 2 is refused, naming clone 1's ---------------------------
 sr_as two "$SR_2" create "Ship the audit log"; SR_RC=$?
 if [[ $SR_RC != 0 ]] && grep -q "ticket.duplicate.*$SR_ID (\"Ship the audit log\").*remote origin" "$SR_T/err" \
-    && [[ $(find "$SR_2/docs/tickets" -name 't-*.md' 2>/dev/null | wc -l) == 0 ]]; then
+    && [[ $(find "$SR_2/docs/work" "$SR_2/docs/tickets" -name '[tw]-*.md' 2>/dev/null | wc -l) == 0 ]]; then
     sr_ok "a duplicate across clones" "refused in clone 2 naming clone 1's ticket on the remote; nothing written"
 else
     sr_fail "a duplicate across clones" "exit $SR_RC: $(head -c 300 "$SR_T/err")"
@@ -107,7 +107,7 @@ fi
 # --- worked and closed in clone 2: the document comes over, then the ref goes --------
 sleep 4
 sr_as two "$SR_2" start "$SR_ID"; SR_RC=$?
-SR_SAME=no; cmp -s "$SR_1/docs/tickets/$SR_ID.md" "$SR_2/docs/tickets/$SR_ID.md" && SR_SAME=yes
+SR_SAME=no; cmp -s "$(tk "$SR_1/docs/tickets/$SR_ID.md")" "$(tk "$SR_2/docs/tickets/$SR_ID.md")" && SR_SAME=yes
 SR_HELD=$(git -C "$SR_BARE" for-each-ref "$SR_REF" | wc -l)
 sr_as two "$SR_2" done "$SR_ID"; SR_DONE=$?
 SR_LEFT=$(git -C "$SR_BARE" for-each-ref "$SR_REF" | wc -l)

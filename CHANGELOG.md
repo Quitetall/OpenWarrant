@@ -8,6 +8,34 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Tickets kept as masters (`[tickets] layout = "work"`), where they differed from
+  `docs/tickets/`:
+  - A compile after a gate run no longer stales the run's receipt. The views of the
+    masters (`docs/ROADMAP.md`, `docs/HISTORY.md`, `docs/pages/`) are projections, and
+    the evidence tree rule now skips them wherever the repository has a `docs/work/`.
+    A verdict read `unknown` in `war plan impact` for that reason.
+  - A file a person keeps beside a master (`docs/work/<id>/design.md`) is bound to a
+    receipt, as one in `docs/tickets/<id>/` is. Every top-level `.md` there was taken
+    for the ticket's own document.
+  - `war add`, `done`, `note`, `start` and `plan promote` on a `w-` id rebuild that
+    ticket's lines of `docs/generated/llms.txt` and its parents'. They rebuilt every
+    ticket's, because the id was tested as `t-` only.
+  - Reading them costs less. Which file of `docs/work/<id>/` is the document, and
+    that it is a ticket's, is settled from one listing of the directory and one reading
+    of the file, across threads; it was a listing and two readings, one master after
+    another. A document the ticket cache holds unchanged is not opened at all. The
+    lists of Warrants (`war create`'s duplicate check, `war view next`, `war view
+    warrants`) no longer parse a ticket kept as a master to learn it is no Warrant, and
+    the duplicate check opens none it has already read. At 9,800 masters, a warm `war
+    view ready` opens no document (it opened none before either, after reading each
+    twice to find it), and `war create` opens none where it opened each about five
+    times. One listing per master directory remains, which `docs/tickets/` does not pay.
+  - One master directory with two documents claiming its id is refused by name
+    (`format.document-duplicate`) and the other tickets are still listed. It emptied
+    the whole list.
+- `tools/scale/synth-corpus.sh --tickets` accepts the `w-` id `war create` prints in
+  the work layout.
+
 - `war host` is a function of its request again: since `docs/work` became opt-in, every
   `war` asked for the working directory and looked up from it for `openwarrant.toml`
   before it knew its command, which the full gate's purity check refused. That search is
@@ -38,6 +66,14 @@ Notable changes to OpenWarrant. Format loosely follows
   duplicate check made, plus the new ticket.
 
 ### Added
+
+- `conformance/plant-layouts.sh [PLANT.sh ...]` runs the battery, or the named plant
+  files, once per ticket layout (`tickets`, `work`), each in its own clone of HEAD, and
+  reports per layout. `conformance/plant.sh --layout <layout>` (`OW_PLANT_LAYOUT`) runs
+  one. A plant that is about one layout pins it with `plant_layout <layout> "<reason>"`,
+  and `plant-layouts.sh --pins` lists the pins. The plants name a ticket's files through
+  `tk`, `tk_ids`, `tk_docs` and `tk_journals`, so each holds in both layouts; plant 297
+  covers the runner.
 
 - `war done` checks by default. `[tickets] done_test` names the repository's own
   test; a plain `war done` runs it, once per call, on anything no check of the

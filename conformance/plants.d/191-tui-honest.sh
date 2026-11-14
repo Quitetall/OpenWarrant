@@ -207,7 +207,7 @@ TH_WT=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["result"]["wo
 TH_OUT2=$(th_war --json start "$TH_B" --worktree --print --as two --paths 'src/a/**' 2>/dev/null); TH_STATUS2=$?
 TH_WATCH=$(th_war tui --render watch 2>&1)
 if [[ $TH_STATUS -eq 0 && -d "$TH_WT" && $TH_STATUS2 -eq 0 ]] && grep -q 'COLLISIONS 1' <<<"$TH_WATCH" \
-    && grep -q 'COLLISION$\|COLLISION ' <<<"$TH_WATCH" && grep -q 'one t-' <<<"$TH_WATCH" && grep -qF 'src/**' <<<"$TH_WATCH"; then
+    && grep -q 'COLLISION$\|COLLISION ' <<<"$TH_WATCH" && grep -q 'one [tw]-' <<<"$TH_WATCH" && grep -qF 'src/**' <<<"$TH_WATCH"; then
     th_ok "two worktrees may overlap, shown" "both claimed; Watch reports the collision"
 else
     th_fail "two worktrees may overlap, shown" "exit $TH_STATUS/$TH_STATUS2: $(grep -m1 COLLISIONS <<<"$TH_WATCH")"

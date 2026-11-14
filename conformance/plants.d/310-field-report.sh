@@ -40,7 +40,7 @@ fr_commit() {
 fr_link() {
     local add="part_of: \"$2\""
     [[ -n "${3:-}" ]] && add="$add\nimplements:\n  - $3"
-    sed -i "s/^priority: .*/$add\n&/" "$FR_R/docs/tickets/$1.md"
+    sed -i "s/^priority: .*/$add\n&/" "$(tk "$FR_R/docs/tickets/$1.md")"
 }
 fr_tail() { tail -4 <<<"$1" | cut -c1-160 | tr '\n' '|'; }
 
@@ -175,11 +175,12 @@ else
     fr_fail "taking it by name is refused" "exit $FR_S: $(fr_tail "$FR_OUT")"
 fi
 FR_SHOW=$(fr view show "$FR_T4" 2>&1); FR_SHOW9=$(fr view show "$FR_T9" 2>&1)
+FR_T4_DOC=$(tk "$FR_R/docs/tickets/$FR_T4.md"); FR_T4_DOC=${FR_T4_DOC#"$FR_R"/}
 if grep -qF 'part of PP-PHASE-4 (Web)' <<<"$FR_SHOW" && grep -qF 'part of PP-PHASE-9 (unknown)' <<<"$FR_SHOW9" \
-    && grep -qF "\`docs/tickets/$FR_T4.md\`" <<<"$FR_SHOW" && ! grep -q 'atoms/30-checks.md' <<<"$FR_SHOW"; then
+    && grep -qF "\`$FR_T4_DOC\`" <<<"$FR_SHOW" && ! grep -q 'atoms/30-checks.md' <<<"$FR_SHOW"; then
     fr_ok "part_of a phase shows its title" "PP-PHASE-4 (Web); an undeclared phase is (unknown); the path is the document's"
 else
-    fr_fail "part_of a phase shows its title" "$(grep 'part of\|docs/tickets\|30-checks' <<<"$FR_SHOW$FR_SHOW9" | cut -c1-160 | tr '\n' '|')"
+    fr_fail "part_of a phase shows its title" "$(grep 'part of\|docs/tickets\|docs/work\|30-checks' <<<"$FR_SHOW$FR_SHOW9" | cut -c1-160 | tr '\n' '|')"
 fi
 
 # ---- group 3: start carries what the work rests on, and says a default name -----
@@ -226,7 +227,7 @@ fi
 FR_OUT=$(fr done "$FR_T3" --check 2>&1); FR_S=$?
 FR_SHOW=$(fr view show "$FR_T3" 2>&1)
 if [[ $FR_S -eq 0 ]] && grep -qF "raised from claimed to observed: $FR_I1" <<<"$FR_OUT" && ! grep -q '(claimed)' <<<"$FR_SHOW" \
-    && [[ $(grep -c '^## CHK-late' "$FR_R/docs/tickets/$FR_T3.md") == 1 && $(grep -c '^- test late:' <<<"$FR_SHOW") == 1 ]] \
+    && [[ $(grep -c '^## CHK-late' "$(tk "$FR_R/docs/tickets/$FR_T3.md")") == 1 && $(grep -c '^- test late:' <<<"$FR_SHOW") == 1 ]] \
     && grep -qF "(for $FR_I1, $FR_I2, $FR_I3)" <<<"$FR_SHOW"; then
     fr_ok "done --check raises the earlier tick" "one check, one line for three items; $FR_I1 raised to observed"
 else

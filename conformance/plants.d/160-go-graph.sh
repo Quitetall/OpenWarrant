@@ -77,7 +77,7 @@ GA_ITEMS=$(ga_field "$GA_EDGES" 'sum(1 for n in v["result"]["nodes"] if n["kind"
 ga_go 'max_parallel = 3'
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null); GA_RC=$?
 GA_RULES=$(ga_field "$GA_OUT" '",".join(d["rule"] for d in v["diagnostics"] if d["severity"] == "error")')
-GA_DISPATCHED=$(cat "$GA_ROOT"/docs/tickets/*/journal.jsonl | grep -c '"type":"go.dispatched"')
+GA_DISPATCHED=$(tk_journals "$GA_ROOT" | grep -c '"type":"go.dispatched"')
 if [[ $GA_RC -eq 2 && "$GA_RULES" == "go.no-harness" && "$GA_DISPATCHED" == "0" && ! -e "$GA_TMP/go.log" ]]; then
     ga_ok "no harness is refused" "go.no-harness, exit 2; nothing claimed or started"
 else
@@ -91,7 +91,7 @@ sed -i 's/^max_concurrent = 0$/max_concurrent = 2/' "$GA_ROOT/openwarrant.toml"
 GA_PERF=$(gaw --json evidence perform GA-WAR-0001 STAGE-001 --prototype 2>/dev/null); GA_PRC=$?
 GA_PRULES=$(ga_field "$GA_PERF" '",".join(d["rule"] for d in v["diagnostics"] if d["severity"] == "error")')
 sed -i 's/^max_concurrent = 2$/max_concurrent = 0/' "$GA_ROOT/openwarrant.toml"
-GA_DISPATCHED=$(cat "$GA_ROOT"/docs/tickets/*/journal.jsonl | grep -c '"type":"go.dispatched"')
+GA_DISPATCHED=$(tk_journals "$GA_ROOT" | grep -c '"type":"go.dispatched"')
 if [[ $GA_RC -eq 2 && "$GA_RULES" == "go.no-containment" && $GA_PRC -eq 2 \
     && "$GA_PRULES" == "perform.no-containment" && "$GA_DISPATCHED" == "0" && ! -e "$GA_TMP/go.log" ]]; then
     ga_ok "several at once in one tree refused" "go.no-containment; perform.no-containment still; nothing started"
@@ -104,7 +104,7 @@ ga_go "harness_argv = [\"python3\", \"$GA_FIX\"]" 'max_parallel = 3'
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null); GA_RC=$?
 GA_STOP=$(ga_field "$GA_OUT" 'v["result"]["stop"]["reason"] + ": " + v["result"]["stop"]["detail"]')
 GA_LANDED=$(ga_field "$GA_OUT" 'len(v["result"]["landed"])')
-GA_TICKED=$(cat "$GA_ROOT"/docs/tickets/t-*.md | grep -c '^- \[x\] .* war go: landed [0-9a-f]* on war-go/integration$')
+GA_TICKED=$(tk_docs "$GA_ROOT" | grep -c '^- \[x\] .* war go: landed [0-9a-f]* on war-go/integration$')
 GA_STAGES=$(gaw --json plan frontier 2>/dev/null)
 GA_S1=$(ga_field "$GA_STAGES" '[r["state"] for r in v["result"]["rows"] if r["stage"] == "STAGE-001"][0]')
 GA_S2=$(ga_field "$GA_STAGES" '[r["state"] for r in v["result"]["rows"] if r["stage"] == "STAGE-002"][0]')
@@ -185,7 +185,7 @@ else
 fi
 
 # The work is on the integration branch; the checkout's own branch did not move.
-GA_WORK=$(git -C "$GA_ROOT" ls-tree -r --name-only war-go/integration -- work | grep -c '^work/t-')
+GA_WORK=$(git -C "$GA_ROOT" ls-tree -r --name-only war-go/integration -- work | grep -c '^work/[tw]-')
 GA_HEAD_WORK=$(git -C "$GA_ROOT" ls-tree -r --name-only HEAD -- work | grep -c '^work/' )
 GA_TREES=$(git -C "$GA_ROOT" worktree list | wc -l)
 if [[ "$GA_WORK" == "20" && "$GA_HEAD_WORK" == "0" && "$GA_TREES" == "1" ]]; then
@@ -210,13 +210,13 @@ ga_default "true"
 read -r GA_E GA_e1 <<<"$(ga_new "Epsilon" -i e1)"
 ga_commit "epsilon"
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null)
-GA_EOBS=$(grep -c "^- \[x\] e1 .*\[observed\]" "$GA_ROOT/docs/tickets/$GA_E.md")
+GA_EOBS=$(grep -c "^- \[x\] e1 .*\[observed\]" "$(tk "$GA_ROOT/docs/tickets/$GA_E.md")")
 ga_default "false"
 read -r GA_Z GA_z1 <<<"$(ga_new "Zeta" -i z1)"
 ga_commit "zeta"
 GA_OUT=$(gaw --json evidence go --prototype 2>/dev/null)
 GA_ZRULES=$(ga_field "$GA_OUT" '",".join(sorted({d["rule"] for d in v["diagnostics"]}))')
-GA_ZOPEN=$(grep -c "^- \[ \] z1" "$GA_ROOT/docs/tickets/$GA_Z.md")
+GA_ZOPEN=$(grep -c "^- \[ \] z1" "$(tk "$GA_ROOT/docs/tickets/$GA_Z.md")")
 if [[ "$GA_EOBS" == "1" && "$GA_ZOPEN" == "1" && "$GA_ZRULES" == *go.check-failed* ]]; then
     ga_ok "the default test runs where the work is" "passing: landed at observed; failing: go.check-failed, not ticked"
 else

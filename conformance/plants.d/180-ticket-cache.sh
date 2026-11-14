@@ -86,7 +86,7 @@ else
 fi
 
 # --- an in-place edit with its mtime put back ---------------------------------------------
-TC_DOC=$(grep -l 'Alpha ticket' "$TC_ROOT"/docs/tickets/*.md | head -1)
+TC_DOC=$(grep -l 'Alpha ticket' "$TC_ROOT"/docs/tickets/*.md "$TC_ROOT"/docs/work/*/*.md 2>/dev/null | head -1)
 TC_MAN=$(grep -l 'Delta ticket' "$TC_ROOT"/docs/tickets/*/manifest.toml | head -1)
 tc_inplace() {
     local mtime; mtime=$(stat -c '%y' "$1")
@@ -115,9 +115,16 @@ else
 fi
 
 # --- a ticket made by hand, in each encoding ----------------------------------------------
-TC_ALIAS=$(basename "$TC_DOC" .md)
+TC_ALIAS=$(sed -n 's/^alias: //p' "$TC_DOC" | head -1)
 TC_SRC=$(dirname "$TC_MAN")
-TC_NEW_DOC="$TC_ROOT/docs/tickets/t-0000aa.md"
+# The hand-made document goes where the copied one is: beside it in
+# docs/tickets/, or as a master in a directory of its own.
+if [[ "$TC_DOC" == */docs/work/* ]]; then
+    TC_NEW_DOC="$TC_ROOT/docs/work/t-0000aa/t-0000aa-hand.md"
+    mkdir -p "$(dirname "$TC_NEW_DOC")"
+else
+    TC_NEW_DOC="$TC_ROOT/docs/tickets/t-0000aa.md"
+fi
 TC_NEW_DIR="$TC_ROOT/docs/tickets/t-0000ab"
 cp "$TC_DOC" "$TC_NEW_DOC"
 cp -r "$TC_SRC" "$TC_NEW_DIR"
@@ -137,7 +144,7 @@ if tc_same offn handmade && grep -q 'Hand ticket' "$TC_TMP/handmade.out" && grep
 else
     tc_fail "a hand-made ticket is listed" "same as disabled: $(tc_same offn handmade && echo y || echo n); trace '$(tc_trace handmade)'"
 fi
-command rm -rf "$TC_NEW_DOC" "$TC_NEW_DIR"
+command rm -rf "$TC_NEW_DOC" "$TC_NEW_DIR" "$TC_ROOT/docs/work/t-0000aa"
 sleep 3
 tc_traced settle --json next
 
@@ -216,8 +223,8 @@ fi
 # must see nothing, and this binary's own cache has to be back in place after
 # the other build overwrote it.
 tc_traced settle --json view tickets
-TC_BRAVO_DOC=$(grep -l 'Bravo ticket' "$TC_ROOT"/docs/tickets/*.md | head -1)
-TC_BRAVO=$(basename "$TC_BRAVO_DOC" .md)
+TC_BRAVO_DOC=$(grep -l 'Bravo ticket' "$TC_ROOT"/docs/tickets/*.md "$TC_ROOT"/docs/work/*/*.md 2>/dev/null | head -1)
+TC_BRAVO=$(sed -n "s/^alias: //p" "$TC_BRAVO_DOC" | head -1)
 TC_BRAVO_SUM=$(sha256sum <"$TC_BRAVO_DOC")
 tc_traced journal0 --json view tickets
 tc_war claim "$TC_BRAVO" >/dev/null 2>"$TC_TMP/claim.err"; TC_CLAIM_RC=$?

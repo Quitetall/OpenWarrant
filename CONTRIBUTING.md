@@ -133,6 +133,17 @@ collided; both are now safe to create on any branch:
   the group a new plant belongs to; do not hunt for a free number.
   `conformance/plants.d/99-plant-order.sh` and `31-amendment-ids.sh` are the
   plants for both rules.
+- **Both ticket layouts.** `war create` writes `docs/tickets/<t-id>.md` or a
+  master in `docs/work/<w-id>/` (`[tickets] layout`), and a plant holds in
+  both. `bash conformance/plant-layouts.sh [PLANT.sh ...]` runs the battery,
+  or the named files, once per layout, each in its own clone of HEAD, and
+  reports per layout; `conformance/plant.sh --layout tickets|work` is one of
+  them. A plant never names `docs/tickets/` or a `t-` id as where new work
+  is: it asks `tk`, `tk_ids`, `tk_docs` or `tk_journals` (`conformance/lib.sh`)
+  and matches `[tw]-`. A plant that is about one layout says
+  `plant_layout <layout> "<reason>"`; `plant-layouts.sh --pins` lists those.
+  For the Rust tests: `OPENWARRANT_TICKET_LAYOUT=work cargo test -p
+  openwarrant-cli --test all`, with `tests/support/work_paths.rs` for a path.
 
 ## Changing the standard
 

@@ -67,8 +67,8 @@ tp_commit() {
     git -C "$PLANT_ROOT" add -A >/dev/null 2>&1
     git -C "$PLANT_ROOT" -c user.email=plant@invalid -c user.name=plant commit -qm "$1" >/dev/null 2>&1
 }
-TP=$(find "$PLANT_ROOT/docs/tickets" -mindepth 1 -maxdepth 1 -name 't-*.md' -printf '%f\n' 2>/dev/null | sed 's/\.md$//' | head -1)
-TP_I1=$(grep -o '(i-[0-9a-z]*' "$PLANT_ROOT/docs/tickets/$TP.md" 2>/dev/null | head -1 | tr -d '(')
+TP=$(tk_ids "$PLANT_ROOT" | head -1)
+TP_I1=$(grep -o '(i-[0-9a-z]*' "$(tk "$PLANT_ROOT/docs/tickets/$TP.md")" 2>/dev/null | head -1 | tr -d '(')
 [[ -n "$TP" && -n "$TP_I1" ]] || { printf 'PLANT SETUP FAILED: no ticket or no item\n' >&2; exit 9; }
 TP_RES=$(tp_war resolve --dry-run "$TP_A" 2>&1)
 grep -q 'resolution.requirement-met .*every required gate has admissible result' <<<"$TP_RES" \
@@ -88,7 +88,7 @@ tp_war create "A second ticket" --item "Something later" >/dev/null 2>&1 \
     && tp_war note "$TP" "the CLI waits on the grammar" >/dev/null 2>&1 \
     && tp_war done "$TP/$TP_I1" --note "grammar written" >/dev/null 2>&1
 TP_LOOP=$?
-TP_MOVED=$(git -C "$PLANT_ROOT" status --porcelain --untracked-files=all -- docs/tickets | wc -l)
+TP_MOVED=$(git -C "$PLANT_ROOT" status --porcelain --untracked-files=all -- docs/tickets docs/work | wc -l)
 TP_D=$(tp_drift)
 if [[ $TP_LOOP -eq 0 && $TP_MOVED -ge 3 && -z "$TP_D" ]]; then
     tp_ok "ticket acts leave no drift" "create/add/claim/note/done moved $TP_MOVED ticket file(s); no drift"

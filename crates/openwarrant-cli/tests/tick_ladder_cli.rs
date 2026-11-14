@@ -113,7 +113,7 @@ fn completion_and_required_milestone_proof_remain_separate_in_progress() {
     let target = format!("{t}/{item}");
     let configured = json(&root, &["add", &target, "--min", "observed"]);
     assert_eq!(configured["exit_code"], 0, "{configured}");
-    let path = root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"));
+    let path = crate::work_paths::at(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")));
     // A planted file claim is not an observed check. Read it honestly, but
     // do not let it satisfy the author's explicit minimum.
     let contents = std::fs::read_to_string(&path).unwrap();
@@ -174,8 +174,7 @@ fn a_title_only_warrant_ticks_at_observed_only_when_its_test_passes() {
     );
     assert_eq!(added["exit_code"], 0, "{added}");
     assert!(
-        root.join(format!("docs/tickets/{t}/atoms/30-checks.md"))
-            .exists()
+        crate::work_paths::at(root.join(format!("docs/tickets/{t}/atoms/30-checks.md"))).exists()
     );
     assert!(war(&root, &["claim", &t]).status.success());
 
@@ -185,9 +184,10 @@ fn a_title_only_warrant_ticks_at_observed_only_when_its_test_passes() {
     assert!(rules(&refused).contains(&"ticket.check-failed".to_owned()));
     let message = refused["diagnostics"][0]["message"].as_str().unwrap();
     assert!(message.contains("unit (`sh gate.sh`)"), "{message}");
-    let checklist =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")))
-            .unwrap();
+    let checklist = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+    ))
+    .unwrap();
     assert!(!checklist.contains("[x]"), "{checklist}");
 
     // Accepted: passing, it ticks at observed and journals the receipt.
@@ -200,12 +200,15 @@ fn a_title_only_warrant_ticks_at_observed_only_when_its_test_passes() {
     let ok: serde_json::Value = serde_json::from_slice(&ok.stdout).unwrap();
     assert_eq!(ok["exit_code"], 0, "{ok}");
     assert_eq!(ok["result"]["level"], "observed");
-    let checklist =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")))
-            .unwrap();
+    let checklist = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+    ))
+    .unwrap();
     assert!(checklist.contains("[observed]"), "{checklist}");
-    let journal =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/journal.jsonl"))).unwrap();
+    let journal = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/journal.jsonl")),
+    ))
+    .unwrap();
     assert!(journal.contains("ticket.check_run") && journal.contains("stdout_sha256"));
 
     let show = text(&war(&root, &["show", &t]));
@@ -276,9 +279,10 @@ fn claimed_and_observed_ticks_read_differently_and_a_forged_marker_reads_claimed
     assert!(plain.contains("ticked as claimed"), "{plain}");
     assert!(war(&root, &["done", &b, "--check"]).status.success());
     // The claimed line on disk is the bytes a tick always had.
-    let checklist =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")))
-            .unwrap();
+    let checklist = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+    ))
+    .unwrap();
     let line = checklist.lines().find(|l| l.contains("plain")).unwrap();
     let date = line.rsplit(", ").next().unwrap();
     assert!(
@@ -292,7 +296,7 @@ fn claimed_and_observed_ticks_read_differently_and_a_forged_marker_reads_claimed
     assert!(list.contains("[ticks: 1 claimed, 1 observed]"), "{list}");
 
     // Refusal: a hand-written [signed] with nothing behind it reads claimed.
-    let path = root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"));
+    let path = crate::work_paths::at(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")));
     let forged = std::fs::read_to_string(&path)
         .unwrap()
         .replace(line, &format!("{line} [signed]"));
@@ -346,8 +350,10 @@ fn kpis_keep_best_latest_and_target_and_no_number_is_unknown() {
     assert_eq!(k["latest"], 99.0, "{k}");
     assert_eq!(k["target"], 100.0, "{k}");
     assert_eq!(k["runs"], 3, "{k}");
-    let journal =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/journal.jsonl"))).unwrap();
+    let journal = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/journal.jsonl")),
+    ))
+    .unwrap();
     assert_eq!(journal.matches("work.kpi_run").count(), 3);
 
     // A KPI that prints words is UNKNOWN, never a pass or a fail.
@@ -449,8 +455,10 @@ fn the_bridge_does_nothing_for_a_task_that_names_nothing() {
         .as_str()
         .unwrap()
         .to_owned();
-    let before =
-        std::fs::read(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"))).unwrap();
+    let before = std::fs::read(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+    ))
+    .unwrap();
     let unrelated = r#"{"hook_event_name":"TaskCompleted","task_id":"task-1","task_subject":"Implement user authentication"}"#;
     let o = war_env(
         &root,
@@ -468,8 +476,10 @@ fn the_bridge_does_nothing_for_a_task_that_names_nothing() {
     let v: serde_json::Value = serde_json::from_slice(&o.stdout).unwrap();
     assert_eq!(v["exit_code"], 0, "{v}");
     assert!(v["result"]["tasks"][0]["command"].is_null(), "{v}");
-    let after =
-        std::fs::read(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"))).unwrap();
+    let after = std::fs::read(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+    ))
+    .unwrap();
     assert_eq!(before, after);
     // A task naming the item: proposed without --apply, ticked with it.
     let naming = format!(
@@ -489,7 +499,10 @@ fn the_bridge_does_nothing_for_a_task_that_names_nothing() {
     );
     assert_eq!(
         before,
-        std::fs::read(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"))).unwrap()
+        std::fs::read(crate::work_paths::at(
+            root.join(format!("docs/tickets/{t}/atoms/15-checklist.md"))
+        ))
+        .unwrap()
     );
     let o = war_env(
         &root,
@@ -506,9 +519,10 @@ fn the_bridge_does_nothing_for_a_task_that_names_nothing() {
     );
     let v: serde_json::Value = serde_json::from_slice(&o.stdout).unwrap();
     assert_eq!(v["exit_code"], 0, "{v}");
-    let checklist =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")))
-            .unwrap();
+    let checklist = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+    ))
+    .unwrap();
     assert!(checklist.contains("- [x] one"), "{checklist}");
 }
 
@@ -548,8 +562,10 @@ fn the_repository_default_ticks_a_directory_warrant_at_observed() {
     assert_eq!(refused["exit_code"], 2, "{refused}");
     assert!(rules(&refused).contains(&"ticket.check-failed".to_owned()));
     let checklist = |t: &str| {
-        std::fs::read_to_string(root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")))
-            .unwrap_or_default()
+        std::fs::read_to_string(crate::work_paths::at(
+            root.join(format!("docs/tickets/{t}/atoms/15-checklist.md")),
+        ))
+        .unwrap_or_default()
     };
     assert!(!checklist(&plain).contains("[x]"), "{}", checklist(&plain));
     std::fs::write(root.join("ok"), "").unwrap();

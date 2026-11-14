@@ -1214,7 +1214,14 @@ fn duplicate_among(
     // The work orders this checkout holds that are no ticket (`war plan
     // new`), until a resolution closes them.
     if let Ok(repo) = crate::repo::Repository::open(store.root.clone()) {
-        for row in crate::warrants::document_rows(&repo).0 {
+        // The tickets read from this checkout are no work order of that
+        // kind, and their masters are not opened again to learn it.
+        let here: std::collections::HashSet<&str> = tickets
+            .iter()
+            .filter(|t| t.elsewhere.is_none())
+            .map(Ticket::id)
+            .collect();
+        for row in crate::warrants::document_rows_but(&repo, &|id| here.contains(id)).0 {
             if row.dir.starts_with(crate::subject::WORK_ROOT)
                 && row.state != "resolved"
                 && !open.iter().any(|o| o.id == row.id)

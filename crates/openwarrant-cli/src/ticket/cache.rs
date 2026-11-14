@@ -613,6 +613,27 @@ impl Cache {
         read
     }
 
+    /// Whether `pass` holds an entry for the document `file` whose stat is
+    /// the file's now. Such an entry was written from these bytes, read as a
+    /// ticket under the alias its path names ([`Store::load_format`]), so the
+    /// file declares the format, that alias and the ticket profile:
+    /// [`Store::master_documents`] need not read it to learn which file of a
+    /// master's directory is its document. [`Self::document`] judges the
+    /// entry again, whole, before it answers with it.
+    pub(crate) fn holds_document(&self, store: &Store, file: &Utf8Path, pass: &Pass) -> bool {
+        let (Some(name), Some(Seen::File(stamp))) = (document_name(store, file), seen(file)) else {
+            return false;
+        };
+        let Some(shard) = pass.shards.get(shard_of(name)) else {
+            return false;
+        };
+        shard
+            .get(name)
+            .and_then(|(_, ticket, _)| shard.bytes.get(ticket.clone()))
+            .and_then(|bytes| Reader::new(bytes).stamp())
+            .is_some_and(|was| was == stamp)
+    }
+
     /// Rewrite the shards that gained an entry, and say what the run did.
     fn finish(&self, pass: &Pass) {
         let mut dirty = [false; SHARDS];

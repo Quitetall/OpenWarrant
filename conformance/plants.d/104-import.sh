@@ -125,12 +125,12 @@ fi
 IM_OS=$(imj "$PLANT_ROOT" import openspec "$IM_FIX/openspec")
 IM_OSID=$(im_field "$IM_OS" '[c["id"] for c in v["result"]["created"] if c["imported_from"] == "openspec:add-2fa"][0]')
 IM_OSN=$(im_field "$IM_OS" '",".join(sorted("%s=%d" % (c["imported_from"], c["items"]) for c in v["result"]["created"]))')
-IM_OSCL="$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/15-checklist.md"
+IM_OSCL="$(tk "$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/15-checklist.md")"
 IM_OSAGAIN=$(im_field "$(imj "$PLANT_ROOT" import openspec "$IM_FIX/openspec")" '"%d/%d" % (len(v["result"]["created"]), len(v["result"]["unchanged"]))')
 if [[ "$IM_OSN" == "openspec:add-2fa=4,openspec:rename-audit-log=2" && "$IM_OSAGAIN" == "0/2" ]] \
     && grep -qE '^- \[x\] 1\.1 Store a TOTP secret with the user \(i-[0-9a-f]+\)' "$IM_OSCL" \
     && grep -qE '^- \[ \] 2\.2 Shorten the session' "$IM_OSCL" \
-    && grep -qF 'openspec:two-factor#totp-second-factor' "$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/10-intent.md"; then
+    && grep -qF 'openspec:two-factor#totp-second-factor' "$(tk "$PLANT_ROOT/docs/tickets/$IM_OSID/atoms/10-intent.md")"; then
     im_ok "openspec changes import" "add-2fa (4 tasks, 1.1 done) and rename-audit-log (2), deltas named; again: 0 created"
 else
     im_fail "openspec changes import" "made '$IM_OSN' again '$IM_OSAGAIN'; $(head -c 300 "$IM_OSCL" 2>/dev/null)"
@@ -143,7 +143,7 @@ fi
 IM_SK=$(imj "$PLANT_ROOT" import speckit "$IM_FIX/speckit")
 IM_SKID=$(im_field "$IM_SK" '[c["id"] for c in v["result"]["created"] if c["imported_from"] == "speckit:001-photo-albums"][0]')
 IM_SKW=$(im_field "$IM_SK" '",".join(sorted(set(d["rule"] for d in v["diagnostics"] if d["rule"].startswith("speckit."))))')
-IM_SKCL="$PLANT_ROOT/docs/tickets/$IM_SKID/atoms/15-checklist.md"
+IM_SKCL="$(tk "$PLANT_ROOT/docs/tickets/$IM_SKID/atoms/15-checklist.md")"
 IM_T3=$(sed -n 's/^- \[ \] T003 .*(\(i-[0-9a-f]*\))$/\1/p' "$IM_SKCL")
 mkdir -p "$IM_TWO/profiles"
 sed '/^require = /d' "$REPO_ROOT/profiles/delivery.toml" > "$IM_TWO/profiles/delivery.toml"

@@ -484,7 +484,7 @@ for k in $(seq 1 "$TICKETS"); do
     out=$(war create "$title" "${args[@]}" </dev/null 2>&1) || die "war create failed at ticket $k: $out"
     id="${out%%$'\n'*}"
     id="${id%% *}"
-    [[ "$id" == t-* ]] || die "war create printed no ticket id at ticket $k: $out"
+    [[ "$id" == [tw]-* ]] || die "war create printed no ticket id at ticket $k: $out"
     if (( k % 500 == 1 )); then
         EPIC="$id"
         continue

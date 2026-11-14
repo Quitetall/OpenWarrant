@@ -235,6 +235,15 @@ pub(crate) fn frontmatter_profile(text: &str) -> Option<&str> {
 /// read every document.
 #[must_use]
 pub fn warrant_documents(repo: &Repository) -> FormatDocs {
+    warrant_documents_but(repo, &|_| false)
+}
+
+/// [`warrant_documents`]. A ticket kept as a master is no Warrant: its
+/// document is read once, to see its profile, and not parsed. A master whose
+/// id `known_ticket` names (the tickets a caller has already read from this
+/// checkout) is not opened.
+#[must_use]
+pub fn warrant_documents_but(repo: &Repository, known_ticket: &dyn Fn(&str) -> bool) -> FormatDocs {
     let mut out = FormatDocs {
         profiles: profiles(repo),
         ..FormatDocs::default()
@@ -244,8 +253,17 @@ pub fn warrant_documents(repo: &Repository) -> FormatDocs {
         Place::Warrant,
         &crate::subject::work_root(repo),
         &mut out,
+        false,
+        known_ticket,
     );
-    work_documents(repo, Place::Warrant, &repo.warrants_dir(), &mut out);
+    work_documents(
+        repo,
+        Place::Warrant,
+        &repo.warrants_dir(),
+        &mut out,
+        true,
+        &|_| false,
+    );
     out
 }
 
@@ -295,7 +313,7 @@ pub fn load(repo: &Repository) -> FormatDocs {
         (Place::Warrant, repo.warrants_dir()),
         (Place::Ticket, tickets_dir(repo)),
     ] {
-        work_documents(repo, place, &dir, &mut out);
+        work_documents(repo, place, &dir, &mut out, true, &|_| false);
     }
     let others = spec_files(repo)
         .into_iter()
@@ -470,21 +488,38 @@ fn type_tier(d: &mut Loaded, profiles: &Profiles) {
     });
 }
 
-fn work_documents(repo: &Repository, place: Place, dir: &Utf8Path, out: &mut FormatDocs) {
+/// `tickets_too`: whether a master of profile `ticket` is read (`false` for
+/// a list of the Warrants alone, which then parses none of the tickets kept
+/// as masters). `known_ticket` names the masters a caller already holds as
+/// tickets: those are not opened at all.
+fn work_documents(
+    repo: &Repository,
+    place: Place,
+    dir: &Utf8Path,
+    out: &mut FormatDocs,
+    tickets_too: bool,
+    known_ticket: &dyn Fn(&str) -> bool,
+) {
     let mut seen: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
     for path in sorted_entries(dir) {
         let Some(name) = path.file_name().map(str::to_owned) else {
             continue;
         };
         let master = dir.ends_with(crate::subject::WORK_ROOT);
+        if master && !tickets_too && known_ticket(&name) {
+            continue;
+        }
         let (alias, file) = if crate::vfs::is_dir(&path) {
             // The one rule for which file in a directory is the document
             // (`crate::subject::document_in`): `warrant.md`, `ticket.md`,
             // `<id>.md` or `<id>-<slug>.md`.
-            let inner = match crate::subject::document_in(&path, &name) {
-                crate::subject::Held::One(inner) => inner,
-                crate::subject::Held::None => continue,
-                crate::subject::Held::Many(files) => {
+            let inner = match crate::subject::document_as(&path, &name, &|_| false) {
+                crate::subject::HeldAs::One { ticket: true, .. } if master && !tickets_too => {
+                    continue;
+                }
+                crate::subject::HeldAs::One { file, .. } => file,
+                crate::subject::HeldAs::None => continue,
+                crate::subject::HeldAs::Many(files) => {
                     out.faults.push(Fault {
                         outcome: Outcome::Refusal,
                         rule: "format.document-duplicate",

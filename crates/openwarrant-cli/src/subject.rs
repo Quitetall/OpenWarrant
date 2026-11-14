@@ -141,34 +141,79 @@ pub enum Held {
 /// slug never decides identity).
 #[must_use]
 pub fn document_in(dir: &Utf8Path, id: &str) -> Held {
-    let mut found = Vec::new();
-    for name in ["warrant.md", "ticket.md"] {
-        if crate::vfs::is_file(dir.join(name)) {
-            found.push(dir.join(name));
+    match document_as(dir, id, &|_| false) {
+        HeldAs::None => Held::None,
+        HeldAs::One { file, .. } => Held::One(file),
+        HeldAs::Many(files) => Held::Many(files),
+    }
+}
+
+/// [`Held`], with whether the one document is a ticket's.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum HeldAs {
+    None,
+    /// `ticket`: its frontmatter `profile` is `ticket`.
+    One {
+        file: Utf8PathBuf,
+        ticket: bool,
+    },
+    Many(Vec<Utf8PathBuf>),
+}
+
+/// [`document_in`], and whether the one document found has the `ticket`
+/// profile, from one listing of `dir` and one reading of each file that
+/// could be the document.
+///
+/// `known_ticket(file)`: the caller already holds `file`'s bytes, unchanged,
+/// as a ticket read under this directory's id (the ticket cache, by the
+/// file's stat). Such a file declares the format, this alias and the ticket
+/// profile, so it is not read again to say so. `&|_| false` reads every
+/// candidate.
+#[must_use]
+pub fn document_as(dir: &Utf8Path, id: &str, known_ticket: &dyn Fn(&Utf8Path) -> bool) -> HeldAs {
+    let prefix = format!("{id}-");
+    let exact = format!("{id}.md");
+    let mut fixed = Vec::new();
+    let mut named: Vec<(Utf8PathBuf, bool)> = Vec::new();
+    let ticket_text = |text: &str| crate::format_doc::frontmatter_profile(text) == Some("ticket");
+    for p in crate::vfs::read_dir_utf8(dir).unwrap_or_default() {
+        let Some(n) = p.file_name() else { continue };
+        if n == "warrant.md" || n == "ticket.md" {
+            if crate::vfs::is_file(&p) {
+                fixed.push(p);
+            }
+        } else if n == exact || (n.starts_with(&prefix) && n.ends_with(".md")) {
+            if known_ticket(&p) {
+                named.push((p, true));
+            } else if crate::vfs::is_file(&p)
+                && let Ok(bytes) = crate::vfs::read(&p)
+            {
+                let text = String::from_utf8_lossy(&bytes);
+                if format::declares_format(&text) && frontmatter_value(&text, "alias") == Some(id) {
+                    let ticket = ticket_text(&text);
+                    named.push((p, ticket));
+                }
+            }
         }
     }
-    let prefix = format!("{id}-");
-    let mut named: Vec<Utf8PathBuf> = crate::vfs::read_dir_utf8(dir)
-        .unwrap_or_default()
-        .into_iter()
-        .filter(|p| {
-            p.file_name().is_some_and(|n| {
-                n == format!("{id}.md") || (n.starts_with(&prefix) && n.ends_with(".md"))
-            }) && crate::vfs::is_file(p)
-        })
-        .filter(|p| {
-            crate::vfs::read(p).is_ok_and(|b| {
-                let text = String::from_utf8_lossy(&b);
-                format::declares_format(&text) && frontmatter_value(&text, "alias") == Some(id)
-            })
-        })
-        .collect();
+    // `warrant.md`, then `ticket.md`, then the named ones in name order.
+    fixed.sort_by(|a, b| b.file_name().cmp(&a.file_name()));
     named.sort();
-    found.extend(named);
-    match found.len() {
-        0 => Held::None,
-        1 => Held::One(found.remove(0)),
-        _ => Held::Many(found),
+    match (fixed.len(), named.len()) {
+        (0, 0) => HeldAs::None,
+        (0, 1) => {
+            let (file, ticket) = named.remove(0);
+            HeldAs::One { file, ticket }
+        }
+        (1, 0) => {
+            let file = fixed.remove(0);
+            let ticket = crate::vfs::read_to_string(&file).is_ok_and(|text| ticket_text(&text));
+            HeldAs::One { file, ticket }
+        }
+        _ => {
+            fixed.extend(named.into_iter().map(|(p, _)| p));
+            HeldAs::Many(fixed)
+        }
     }
 }
 
@@ -807,6 +852,68 @@ mod tests {
         assert_eq!(slug("A note is Delivered!"), "a-note-is-delivered");
         assert_eq!(slug("  "), "");
         assert!(slug(&"word ".repeat(40)).len() <= 48);
+    }
+
+    /// One listing and one reading say which file is the document and
+    /// whether it is a ticket's; a file the caller holds as a ticket is
+    /// taken on its name, never read.
+    #[test]
+    fn a_document_is_found_with_its_profile_and_a_known_one_is_not_read() {
+        let tmp = tempfile::tempdir().expect("tmp");
+        let dir = Utf8Path::from_path(tmp.path())
+            .expect("utf8")
+            .join("w-3c16");
+        std::fs::create_dir_all(&dir).expect("dir");
+        let doc = |profile: &str| {
+            format!("---\nformat: openwarrant/1.0\nprofile: {profile}\nalias: w-3c16\n---\n# T\n")
+        };
+        let file = dir.join("w-3c16-a-title.md");
+        let nothing_known = |_: &Utf8Path| false;
+        std::fs::write(&file, doc("ticket")).expect("write");
+        assert_eq!(
+            document_as(&dir, "w-3c16", &nothing_known),
+            HeldAs::One {
+                file: file.clone(),
+                ticket: true
+            }
+        );
+        std::fs::write(&file, doc("delivery")).expect("write");
+        assert_eq!(
+            document_as(&dir, "w-3c16", &nothing_known),
+            HeldAs::One {
+                file: file.clone(),
+                ticket: false
+            }
+        );
+        // Bytes that are no document: read, it is none; known, it is not read.
+        std::fs::write(&file, "not a document\n").expect("write");
+        assert_eq!(document_as(&dir, "w-3c16", &nothing_known), HeldAs::None);
+        assert_eq!(
+            document_as(&dir, "w-3c16", &|p| p == file),
+            HeldAs::One {
+                file: file.clone(),
+                ticket: true
+            }
+        );
+        // A known document does not hide a second claimant, nor `ticket.md`.
+        std::fs::write(dir.join("w-3c16-copy.md"), doc("ticket")).expect("write");
+        assert!(
+            matches!(document_as(&dir, "w-3c16", &|p| p == file), HeldAs::Many(v) if v.len() == 2)
+        );
+        std::fs::remove_file(dir.join("w-3c16-copy.md")).expect("remove");
+        std::fs::write(dir.join("ticket.md"), doc("ticket")).expect("write");
+        assert!(
+            matches!(document_as(&dir, "w-3c16", &|p| p == file), HeldAs::Many(v) if v[0].ends_with("ticket.md"))
+        );
+        // Alone, `ticket.md` is the document, with its profile read.
+        std::fs::remove_file(&file).expect("remove");
+        assert_eq!(
+            document_as(&dir, "w-3c16", &nothing_known),
+            HeldAs::One {
+                file: dir.join("ticket.md"),
+                ticket: true
+            }
+        );
     }
 
     #[test]

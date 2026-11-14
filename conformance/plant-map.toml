@@ -396,11 +396,14 @@ plants = ["90-skills.sh"]
 
 [[rule]]
 name = "the runner's own plants"
-paths = ["conformance/lib.sh", "conformance/plant.sh", "conformance/plant-isolated.sh", "conformance/controls/**"]
+paths = [
+    "conformance/lib.sh", "conformance/plant.sh", "conformance/plant-isolated.sh",
+    "conformance/plant-layouts.sh", "conformance/controls/**",
+]
 plants = [
     "48-isolated-battery.sh", "62-battery-env.sh", "99-fixed-tmp.sh", "99-plant-order.sh",
     "99-quiet-grep.sh", "69-board-tree-reads.sh", "69-overview-tree-reads.sh", "56-contractor.sh",
-    "69-current.sh", "86-submission-bindings.sh",
+    "69-current.sh", "86-submission-bindings.sh", "297-plant-layouts.sh",
 ]
 
 [[rule]]
@@ -415,6 +418,7 @@ plants = [
     "180-ticket-cache.sh", "188-live-updates.sh", "190-first-brief.sh", "210-two-machines.sh",
     "290-shared-tickets.sh", "291-no-duplicates.sh", "292-shared-remote.sh",
     "293-create-master.sh", "294-migrate-work.sh", "295-id-taken.sh", "296-register-care.sh",
+    "298-master-reads.sh",
     "280-done-default.sh", "281-next-without-asking.sh", "62-battery-env.sh",
     "310-field-report.sh",
 ]

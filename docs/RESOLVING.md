@@ -365,6 +365,12 @@ reports its errors without blocking the turn. A gate whose verdict is about
 tickets declares them in `inputs` and is held to them; declared `inputs` are
 not narrowed.
 
+A ticket kept as a master is the same: its document
+(`docs/work/<id>/<id>-<slug>.md`) and its journal are the loop's, and nothing
+else in `docs/work/<id>/` is. The views `war admin compile` writes of the
+masters (`docs/ROADMAP.md`, `docs/HISTORY.md`, `docs/pages/`) are projections,
+skipped like the rest wherever the repository has a `docs/work/`.
+
 **What stays bound.** Anything else in a ticket's directory (an attachment,
 another atom a person adds), `docs/TICKETS.md`, the ticket profile
 `profiles/ticket.toml`, `openwarrant.toml` (where `[tickets]` is), and every
@@ -373,7 +379,9 @@ path outside the tickets and claims directories.
 recorded, then `war claim`, `done`, `note` and `create` (uncommitted, then
 committed), and the receipt still admissible naming its tree; and a source
 byte, or a file in a ticket's directory the loop does not write, changed
-after the receipt, which stales it by name.
+after the receipt, which stales it by name. A compile after the receipt
+leaves it admissible; without a master, a `docs/ROADMAP.md` a person keeps
+stales it.
 
 #### A verification does not move the tree (t-fed6)
 

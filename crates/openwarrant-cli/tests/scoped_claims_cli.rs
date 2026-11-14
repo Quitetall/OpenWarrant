@@ -54,12 +54,12 @@ fn shared_checkout_refuses_overlapping_scopes_before_the_second_claim() {
         root.path().canonicalize().unwrap().to_str().unwrap()
     );
     assert!(first["result"]["coordination"]["session"].is_string());
-    let journal = std::fs::read_to_string(
+    let journal = std::fs::read_to_string(crate::work_paths::at(
         root.path()
             .join("docs/tickets")
             .join(&a)
             .join("journal.jsonl"),
-    )
+    ))
     .unwrap();
     let recorded = journal
         .lines()

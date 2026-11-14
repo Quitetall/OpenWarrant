@@ -12,9 +12,7 @@
 # Accepted: the same create with nothing in the way makes the ticket and the
 # ref is its own.
 
-# The work layout is opt-in (`[tickets] layout = "work"`); this plant is about it.
-IT_LAYOUT_WAS=${OPENWARRANT_TICKET_LAYOUT-}
-export OPENWARRANT_TICKET_LAYOUT=work
+plant_layout work "plants a docs/work/<id>/ directory another clone settled first"
 echo "== shared work: an id lost at the remote =="
 IT_WAR="$REPO_ROOT/${WAR#./}"
 it_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
@@ -83,4 +81,3 @@ else
 fi
 
 [[ -n "$IT_T" && "$IT_T" == */tmp.* ]] && /usr/bin/rm -rf "$IT_T"
-if [[ -n "$IT_LAYOUT_WAS" ]]; then export OPENWARRANT_TICKET_LAYOUT="$IT_LAYOUT_WAS"; else unset OPENWARRANT_TICKET_LAYOUT; fi

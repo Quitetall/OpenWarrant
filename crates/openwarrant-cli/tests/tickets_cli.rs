@@ -136,7 +136,7 @@ fn create_ready_claim_done_needs_no_signature_and_no_human() {
     );
     assert_eq!(created["exit_code"], 0, "{created}");
     let id = created["result"]["id"].as_str().unwrap().to_owned();
-    assert!(id.starts_with("t-"));
+    assert!(id.starts_with("t-") || id.starts_with("w-"), "{id}");
 
     let ready = json(&root, &["ready"]);
     let rows = ready["result"]["ready"].as_array().unwrap();
@@ -166,7 +166,9 @@ fn create_ready_claim_done_needs_no_signature_and_no_human() {
     assert!(checklist.contains(": did one"), "{checklist}");
 
     // Nothing asked for a signature, and nothing was signed.
-    let tree: Vec<String> = walk(&root.join("docs/tickets"));
+    let mut tree: Vec<String> = walk(&root.join("docs/tickets"));
+    tree.extend(walk(&root.join("docs/work")));
+    assert!(!tree.is_empty());
     assert!(
         !tree
             .iter()
@@ -291,7 +293,7 @@ fn the_issue_comment_carries_the_notes_of_a_single_file_ticket() {
     let id = made["result"]["id"].as_str().unwrap();
     let item = made["result"]["items"][0]["id"].as_str().unwrap();
     assert!(
-        root.join(format!("docs/tickets/{id}.md")).is_file(),
+        crate::work_paths::at(root.join(format!("docs/tickets/{id}.md"))).is_file(),
         "not a single-file ticket"
     );
     run(&["note", id, "root cause: an unchecked empty string"]);
@@ -726,8 +728,10 @@ fn an_edit_may_repeat_an_earlier_value() {
         let edited = json(&root, &["edit", &id, "--priority", priority, "--as", actor]);
         assert_eq!(edited["exit_code"], 0, "{edited}");
     }
-    let journal =
-        std::fs::read_to_string(root.join("docs/tickets").join(&id).join("journal.jsonl")).unwrap();
+    let journal = std::fs::read_to_string(crate::work_paths::at(
+        root.join("docs/tickets").join(&id).join("journal.jsonl"),
+    ))
+    .unwrap();
     assert_eq!(journal.matches("\"work.edited\"").count(), 4, "{journal}");
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -907,7 +911,11 @@ fn done_and_status_name_what_is_next_inside_their_budgets() {
     assert!(!dirt().contains("next.md"), "{}", dirt());
 
     let status = said(&war(&root, &["status"]));
-    assert_eq!(status.matches("`war start t-").count(), 2, "{status}");
+    assert_eq!(
+        status.matches("`war start t-").count() + status.matches("`war start w-").count(),
+        2,
+        "{status}"
+    );
     assert!(
         status.len() <= STATUS_BUDGET,
         "{} bytes\n{status}",
@@ -916,7 +924,9 @@ fn done_and_status_name_what_is_next_inside_their_budgets() {
     let rows = said(&war(&root, &["view", "prime", "--ready"]));
     assert_eq!(rows.lines().count(), 4, "{rows}");
     assert!(
-        rows.lines().all(|l| l.contains("`war start t-")) && !rows.contains("How to work"),
+        rows.lines()
+            .all(|l| l.contains("`war start t-") || l.contains("`war start w-"))
+            && !rows.contains("How to work"),
         "{rows}"
     );
 
@@ -966,7 +976,7 @@ fn done_and_status_name_what_is_next_inside_their_budgets() {
         last = said(&war(&root, &["done", "--as", "ann"]));
     }
     assert!(
-        last.starts_with("done t-") && !last.contains("next:"),
+        (last.starts_with("done t-") || last.starts_with("done w-")) && !last.contains("next:"),
         "{last}"
     );
     assert!(!next_md.exists(), "nothing is held or ready");
@@ -1033,8 +1043,10 @@ fn of_concurrent_claim_processes_exactly_one_wins() {
         }
     }
     // The winner's claim is journalled once.
-    let journal =
-        std::fs::read_to_string(root.join(format!("docs/tickets/{id}/journal.jsonl"))).unwrap();
+    let journal = std::fs::read_to_string(crate::work_paths::at(
+        root.join(format!("docs/tickets/{id}/journal.jsonl")),
+    ))
+    .unwrap();
     assert_eq!(journal.matches("\"work.claimed\"").count(), 1, "{journal}");
     let _ = std::fs::remove_dir_all(&root);
 }
@@ -1116,7 +1128,7 @@ fn check_validates_structure_and_never_asks_for_authority() {
         .filter(|d| d["severity"] == "error")
         .collect();
     assert!(errors.is_empty(), "{errors:?}");
-    let path = root.join(format!("docs/tickets/{id}/atoms/15-checklist.md"));
+    let path = crate::work_paths::at(root.join(format!("docs/tickets/{id}/atoms/15-checklist.md")));
     let mut text = std::fs::read_to_string(&path).unwrap();
     text.push_str("- [?] what is this\n");
     std::fs::write(&path, text).unwrap();
@@ -1294,7 +1306,7 @@ fn an_agent_works_a_ticket_over_mcp() {
 // The concurrent workers declare disjoint payload scopes. Their tracker writes
 // are serialized separately; a missing scope must never imply disjoint files.
 fn declare_scope(root: &Path, id: &str, paths: &str) {
-    let file = root.join(format!("docs/tickets/{id}.md"));
+    let file = crate::work_paths::at(root.join(format!("docs/tickets/{id}.md")));
     let text = std::fs::read_to_string(&file).unwrap();
     let staged = file.with_extension("scope-tmp");
     std::fs::write(

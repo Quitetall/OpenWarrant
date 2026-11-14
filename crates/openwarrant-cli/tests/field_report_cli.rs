@@ -139,7 +139,7 @@ fn ticket(r: &Path, title: &str, items: &[&str], phase: &str, implements: &[&str
     let made = json(r, &args);
     assert_eq!(made["exit_code"], 0, "{made}");
     let id = made["result"]["id"].as_str().unwrap().to_owned();
-    let path = r.join(format!("docs/tickets/{id}.md"));
+    let path = crate::work_paths::at(r.join(format!("docs/tickets/{id}.md")));
     let mut links = String::new();
     if !phase.is_empty() {
         links.push_str(&format!("part_of: \"{phase}\"\n"));
@@ -333,7 +333,13 @@ fn work_waits_on_the_phases_its_phase_depends_on() {
     let (show, _) = human(r, &["view", "show", &four[0]]);
     assert!(show.contains("part of PP-PHASE-4 (Web)"), "{show}");
     assert!(
-        show.contains(&format!("`docs/tickets/{}.md`", four[0])),
+        show.contains(&format!(
+            "`{}`",
+            crate::work_paths::at(r.join(format!("docs/tickets/{}.md", four[0])))
+                .strip_prefix(r)
+                .unwrap()
+                .display()
+        )),
         "{show}"
     );
     // Taking it by name is refused the same way, naming the phase.
@@ -365,7 +371,10 @@ fn a_ticket_test_is_one_line_and_raises_what_was_ticked_before_it() {
         &["plan", "add", &t[0], "--test", "sh ok.sh", "--name", "late"],
     );
     assert_eq!(code, 0, "{out}");
-    let doc = std::fs::read_to_string(r.join(format!("docs/tickets/{}.md", t[0]))).unwrap();
+    let doc = std::fs::read_to_string(crate::work_paths::at(
+        r.join(format!("docs/tickets/{}.md", t[0])),
+    ))
+    .unwrap();
     assert_eq!(doc.matches("## CHK-late").count(), 1, "{doc}");
     // The refusal: a failing test ticks nothing and raises nothing.
     std::fs::write(r.join("ok"), "no\n").unwrap();
