@@ -732,9 +732,10 @@ and nothing is written. To read the proposal first, use
 Start every session with `war start`, in the same command as your first look
 at the code (`war start && ls`). It claims the next ready ticket (or prints the
 one you already hold) and gives only what its work needs: the description, the
-open items, every note, and what it depends on. Do the work, then close it in
-the same command as your last test run: `make test && war done --note "..."`,
-which closes it only if the tests pass. Run alone, both work the same; the
+open items, every note, and what it depends on. Do the work, then close it the
+first time the tests pass, before docs or lint polish: `make test && war done
+--note "..."`, which closes it only if the tests pass. With `[tickets]
+done_test`, `war done` runs that test itself and refuses if it fails. Run alone, both work the same; the
 chain only saves the turns. The plugin's SessionStart hook puts the ticket you
 hold (or the open list) in front of the agent before its first turn, and says
 nothing when no ticket is open (`[tickets] session_start = false` turns it off). Its UserPromptSubmit hook

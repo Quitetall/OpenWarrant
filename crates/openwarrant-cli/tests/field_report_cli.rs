@@ -285,7 +285,7 @@ fn start_prints_the_records_the_work_rests_on() {
     ] {
         assert!(!out.contains(absent), "{absent}: {out}");
     }
-    assert!(out.find("## Records").unwrap() < out.find("Close it in the same command").unwrap());
+    assert!(out.find("## Records").unwrap() < out.find("\nClose it ").unwrap());
     // A ticket that cites nothing has no Records section.
     let plain = ticket(r, "Plain", &["one"], "PP-PHASE-3", &[]);
     let (out, _) = human(r, &["start", &plain[0]]);
@@ -415,23 +415,177 @@ fn a_default_actor_name_is_said_and_a_chosen_one_is_not() {
     };
     let out = start(&[]);
     assert!(
-        out.contains("acting as claude, the default name: `--as <name>`"),
+        out.contains("acting as claude, the default name (no OPENWARRANT_ACTOR"),
         "{out}"
     );
     let _ = war_env(r, &["done", &t[0], "--release"], &[]);
-    let out = start(&[("CODEX_THREAD_ID", "abc")]);
-    assert!(out.contains("in a codex session: `--as codex`"), "{out}");
-    let _ = war_env(
-        r,
-        &["done", &t[0], "--release"],
-        &[("CODEX_THREAD_ID", "abc")],
+    // A harness names the actor, and says where the name came from.
+    let codex = [("CODEX_THREAD_ID", "abc")];
+    let out = start(&codex);
+    assert!(
+        out.contains("acting as codex, from the codex session (CODEX_THREAD_ID is set)"),
+        "{out}"
     );
-    // Named, or confirmed by the harness the default names: nothing is added.
-    for env in [[("OPENWARRANT_ACTOR", "ada")], [("CLAUDECODE", "1")]] {
-        let out = start(&env);
-        assert!(!out.contains("the default name"), "{env:?}: {out}");
-        let _ = war_env(r, &["done", &t[0], "--release"], &env);
+    // Never an invitation to rename while the claim is held.
+    assert!(!out.contains("OPENWARRANT_ACTOR=codex"), "{out}");
+    let _ = war_env(r, &["done", &t[0], "--release"], &codex);
+    // Named: nothing is added, and the name wins over the harness.
+    let named = [("OPENWARRANT_ACTOR", "ada"), ("CODEX_THREAD_ID", "abc")];
+    let out = start(&named);
+    assert!(!out.contains("acting as"), "{out}");
+    let claims = json(r, &["view", "tickets"]).to_string();
+    assert!(claims.contains("ada"), "{claims}");
+    let _ = war_env(r, &["done", &t[0], "--release"], &named);
+}
+
+/// The study's lost close: `war start` claimed under one name and `war done`
+/// ran under another. With the harness named, both use its name; a claim
+/// taken here under a name nobody chose is refused with the remedy, and one
+/// a named actor holds is refused without it.
+#[test]
+fn start_and_done_agree_on_the_harness_actor() {
+    let root = repo();
+    let r = root.path();
+    let t = ticket(r, "One", &["one"], "", &[]);
+    let open = [("OPENCODE", "1")];
+    let out = war_env(r, &["start", &t[0]], &open);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let done = war_env(r, &["done", &t[0], "--note", "n"], &open);
+    let text = format!(
+        "{}{}",
+        String::from_utf8_lossy(&done.stdout),
+        String::from_utf8_lossy(&done.stderr)
+    );
+    assert!(done.status.success(), "{text}");
+    assert!(!text.contains("claimed-by-other"), "{text}");
+
+    // Claimed under the default name, then finished from a harness.
+    let u = ticket(r, "Two", &["one"], "", &[]);
+    assert!(war_env(r, &["start", &u[0]], &[]).status.success());
+    let done = war_env(r, &["--json", "done", &u[0]], &open);
+    let v: serde_json::Value = serde_json::from_slice(&done.stdout).unwrap();
+    let said = v.to_string();
+    assert!(
+        said.contains("work.claimed-by-other") || said.contains("claimed by claude"),
+        "{said}"
+    );
+    assert!(
+        said.contains(&format!("war done {} --as claude", u[0])),
+        "{said}"
+    );
+
+    // The refusal: a named actor's claim gets no remedy.
+    let w = ticket(r, "Three", &["one"], "", &[]);
+    assert!(
+        war_env(r, &["start", &w[0]], &[("OPENWARRANT_ACTOR", "ada")])
+            .status
+            .success()
+    );
+    let done = war_env(r, &["--json", "done", &w[0]], &open);
+    let said = String::from_utf8_lossy(&done.stdout).into_owned();
+    assert!(said.contains("claimed by ada"), "{said}");
+    assert!(!said.contains("--as ada"), "{said}");
+}
+
+/// Close at the first passing test, not the last: the brief names the
+/// repository's done_test and `war done <id>`; `war done` runs that test and
+/// refuses when it fails.
+#[test]
+fn the_brief_says_to_close_at_the_first_passing_test() {
+    let root = repo();
+    let r = root.path();
+    let config = r.join("openwarrant.toml");
+    let base = std::fs::read_to_string(&config).unwrap();
+    std::fs::write(
+        &config,
+        format!("{base}\n[tickets]\ndone_test = \"sh ok.sh\"\n"),
+    )
+    .unwrap();
+    let t = ticket(r, "One", &["one"], "", &[]);
+    let (out, code) = human(r, &["start", &t[0]]);
+    assert_eq!(code, 0, "{out}");
+    assert!(out.contains("the first time `sh ok.sh` passes"), "{out}");
+    assert!(out.contains(&format!("`war done {} --note", t[0])), "{out}");
+    assert!(!out.contains("last test run"), "{out}");
+    let (prime, _) = human(r, &["view", "prime"]);
+    assert!(!prime.contains("last test run"), "{prime}");
+    // The refusal: a done_test that fails refuses a plain `war done`.
+    std::fs::write(
+        &config,
+        format!("{base}\n[tickets]\ndone_test = \"false\"\n"),
+    )
+    .unwrap();
+    let (out, code) = human(r, &["done", &t[0], "--note", "n"]);
+    assert_ne!(code, 0, "{out}");
+    let (show, _) = human(r, &["view", "show", &t[0]]);
+    assert!(!show.contains("[x] one"), "{show}");
+}
+
+/// `war context <work item>` is agent.min by default: the work, the records
+/// it links, its parent's intent; no rejected option, no spec preamble, no
+/// sibling phase. Any other target, `--preset agent` and `--full` keep the
+/// depth-3 walk.
+#[test]
+fn context_of_a_work_item_is_the_minimal_packet_by_default() {
+    let root = repo();
+    let r = root.path();
+    let t = ticket(r, "Build it", &["one"], "PP-PHASE-3", &["REQ-ws-1"]);
+    let done = ticket(r, "Done sibling SIBLING-MARK", &["one"], "PP-PHASE-3", &[]);
+    let _ = human(r, &["done", &done[0], "--note", "n"]);
+    // The ticket: what it implements and what constrains that. An item has
+    // its ticket at distance 1, so the ticket's requirement at 2.
+    for (target, marks) in [
+        (t[0].as_str(), &["REQ-MARK", "CON-MARK", "DEC-MARK"][..]),
+        (t[1].as_str(), &["REQ-MARK"][..]),
+    ] {
+        let (out, code) = human(r, &["context", target]);
+        assert_eq!(code, 0, "{out}");
+        assert!(
+            out.contains("· preset agent.min (walk agent.min) ·"),
+            "{target}: {out}"
+        );
+        for mark in marks {
+            assert!(out.contains(mark), "{target} {mark}: {out}");
+        }
+        for absent in ["OPT-MARK", "PURPOSE-MARK", "SIBLING-MARK", "PP-PHASE-4"] {
+            assert!(!out.contains(absent), "{target} {absent}: {out}");
+        }
     }
+    // The ticket's parent phase, by the step that names it.
+    let v = json(r, &["context", &t[0]]);
+    let phase = v["result"]["records"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|x| x["id"] == "PP-PHASE-3")
+        .cloned()
+        .unwrap_or_default();
+    assert_eq!(phase["via"]["step"], "parent-intent", "{v}");
+    assert_eq!(phase["distance"], 1, "{v}");
+    // The refusal: the wider presets still give what agent.min leaves out.
+    for args in [
+        vec!["context", t[0].as_str(), "--preset", "agent"],
+        vec!["context", t[0].as_str(), "--full"],
+    ] {
+        let (out, _) = human(r, &args);
+        assert!(
+            out.contains("· preset agent (walk core) ·"),
+            "{args:?}: {out}"
+        );
+        assert!(out.contains("OPT-MARK"), "{args:?}: {out}");
+    }
+    let (out, _) = human(r, &["context", "REQ-ws-1"]);
+    assert!(out.contains("· preset agent (walk core) ·"), "{out}");
+    // --budget still holds under the default.
+    let (out, _) = human(r, &["context", &t[0], "--budget", "1200"]);
+    assert!(
+        out.contains("· budget 1200 · depth 2 · preset agent.min"),
+        "{out}"
+    );
 }
 
 /// PR #424's fast CI: a read verb rewrote `.git/index`. Git refreshes it on

@@ -24,7 +24,7 @@ Use them when they help, or when the person you work with asks for them.
 ```bash
 war start && ls                            # take the next ready Warrant with your first look at the code
 # do the work
-make test && war done --note "what you did"   # close it with your last test run: every item, one call
+make test && war done --note "what you did"   # close it at the first passing test run: every item, one call
 war view prime                             # what is open, one line each (`war view prime <id>`: one in full)
 war create "What this work accomplishes" --item "..."   # new work
 war status                                 # progress
@@ -34,7 +34,7 @@ war check                                  # record integrity
 No step in this loop needs a signature or anyone's approval. On an Order,
 `war done` does your part, exits 0 and names the `war sign` command a person
 runs; nothing more is yours, and an agent cannot sign. Taking the work with
-your first look at the code and closing it with your last test run costs no
+your first look at the code and closing it at the first passing test run costs no
 turn of its own. `war start` claims the item whole, so a second agent gets the
 next one instead; started again, it prints the one you hold. When several
 agents share the repository, give each one a name with `--as <name>` (or

@@ -16,7 +16,11 @@
 #   a ticket's test is one check and one line; `war done <ticket>` raises an
 #   item ticked at claimed before the test existed, and a failing test raises
 #   nothing; `war view show` prints the document's own path;
-#   a default actor name is said on `war start`; a named actor adds nothing.
+#   a default actor name is said on `war start`; a named actor adds nothing;
+#   a harness names the actor and `war done` finishes under it, while a named
+#   holder is refused from the harness with no remedy;
+#   `war context` on a work item is agent.min (linked records, its phase, no
+#   rejected option), and `--preset agent` still walks wide.
 
 echo "== the alpha.7 field report (alpha.8) =="
 for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID \
@@ -192,10 +196,29 @@ if [[ $FR_S -eq 0 ]] && grep -q 'REQ-MARK' <<<"$FR_OUT" && grep -q 'CON-MARK' <<
 else
     fr_fail "start prints the linked records" "exit $FR_S: $(grep -c MARK <<<"$FR_OUT") marks: $(fr_tail "$FR_OUT")"
 fi
-if grep -qF 'acting as claude, the default name: `--as <name>` or OPENWARRANT_ACTOR' <<<"$FR_OUT"; then
+if grep -qF 'acting as claude, the default name (no OPENWARRANT_ACTOR, no harness seen)' <<<"$FR_OUT"; then
     fr_ok "a default actor is said" "one line on war start"
 else
     fr_fail "a default actor is said" "$(fr_tail "$FR_OUT")"
+fi
+# A harness names the actor, said on start, and done finishes under the same
+# name; a named actor's claim is refused from the harness with no remedy.
+FR_TH=$(fr --json create "Harness actor" --item one | fr_ids | cut -d' ' -f1)
+FR_OUT=$(CODEX_THREAD_ID=fr fr start "$FR_TH" 2>&1); FR_S=$?
+FR_DONE=$(CODEX_THREAD_ID=fr fr done "$FR_TH" --note n 2>&1); FR_D=$?
+if [[ $FR_S -eq 0 && $FR_D -eq 0 ]] \
+    && grep -qF 'acting as codex, from the codex session (CODEX_THREAD_ID is set)' <<<"$FR_OUT"; then
+    fr_ok "a harness names the actor" "start says codex; done finishes under it"
+else
+    fr_fail "a harness names the actor" "start $FR_S, done $FR_D: $(fr_tail "$FR_OUT$FR_DONE")"
+fi
+FR_TN=$(fr --json create "Named holder" --item one | fr_ids | cut -d' ' -f1)
+OPENWARRANT_ACTOR=ada fr start "$FR_TN" >/dev/null 2>&1
+FR_DONE=$(CODEX_THREAD_ID=fr fr done "$FR_TN" --note n 2>&1); FR_D=$?
+if [[ $FR_D -ne 0 ]] && grep -q 'claimed by ada' <<<"$FR_DONE" && ! grep -qF -- '--as ada' <<<"$FR_DONE"; then
+    fr_ok "a named holder is not finished" "refused from the harness, no remedy offered"
+else
+    fr_fail "a named holder is not finished" "exit $FR_D: $(fr_tail "$FR_DONE")"
 fi
 FR_OUT=$(OPENWARRANT_ACTOR=ada fr start "$FR_TL" 2>&1); FR_S=$?
 if [[ $FR_S -eq 0 ]] && ! grep -q 'the default name' <<<"$FR_OUT" && grep -q 'claimed by ada' <<<"$FR_OUT"; then
@@ -211,6 +234,22 @@ else
     fr_fail "a record over the brief is listed" "$(wc -c <<<"$FR_OUT") bytes: $(grep 'Not printed\|^- CON' <<<"$FR_OUT" | tr '\n' '|')"
 fi
 OPENWARRANT_ACTOR=ada fr done "$FR_TL" >/dev/null 2>&1
+
+# ---- group 3b: war context on a work item is the minimal packet by default --------
+FR_OUT=$(fr context "$FR_T3" 2>&1); FR_S=$?
+if [[ $FR_S -eq 0 ]] && grep -q '· preset agent.min (walk agent.min) ·' <<<"$FR_OUT" \
+    && grep -q 'REQ-MARK' <<<"$FR_OUT" && grep -q 'CON-MARK' <<<"$FR_OUT" && grep -q 'DEC-MARK' <<<"$FR_OUT" \
+    && grep -q '^\[F\] PP-PHASE-3 ' <<<"$FR_OUT" && ! grep -q 'OPT-MARK\|PURPOSE-MARK' <<<"$FR_OUT"; then
+    fr_ok "context of work is agent.min" "linked records and the phase, $(wc -c <<<"$FR_OUT") bytes; no option or preamble"
+else
+    fr_fail "context of work is agent.min" "exit $FR_S: $(fr_tail "$FR_OUT")"
+fi
+FR_OUT=$(fr context "$FR_T3" --preset agent 2>&1)
+if grep -q '· preset agent (walk core) ·' <<<"$FR_OUT" && grep -q 'OPT-MARK' <<<"$FR_OUT"; then
+    fr_ok "--preset agent keeps the wide walk" "the rejected option is there"
+else
+    fr_fail "--preset agent keeps the wide walk" "$(fr_tail "$FR_OUT")"
+fi
 
 # ---- group 4: one check for the ticket, and what was ticked before it -------------
 fr done "$FR_I1" >/dev/null 2>&1
