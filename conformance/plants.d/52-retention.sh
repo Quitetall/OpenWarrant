@@ -52,19 +52,44 @@ else
 fi
 
 # --- OBL-002: the gate passes the real budget, and refuses a 1 ms one ------------
+# The budget is wall-clock time, so a machine busy with other work can push a
+# fast command over it. The limits are not loosened for that. A row within its
+# limit passes at any load: being fast while loaded shows it is fast. A row
+# over its limit fails only when the machine was not overloaded while the
+# budget ran: the one-minute load average, read before and after, at most
+# RT_LOAD_MAX runnable tasks per CPU. Overloaded, an over-budget row says
+# nothing about `war`, and the check is UNKNOWN, neither failed nor passed.
+RT_LOAD_MAX=1.0
+rt_load() { awk -v n="$(nproc)" '{printf "%.2f", $1 / n}' /proc/loadavg; }
+# rt_judge <budget.sh exit> <load per CPU before> <load after>: ok, fail or unknown.
+rt_judge() {
+    if [[ $1 -eq 0 ]]; then echo ok; return; fi
+    if awk -v a="$2" -v b="$3" -v m="$RT_LOAD_MAX" 'BEGIN { exit !(a > m || b > m) }'; then
+        echo unknown
+    else
+        echo fail
+    fi
+}
+RT_LOAD0=$(rt_load)
 RT_OUT=$(cd "$REPO_ROOT" && tools/scale/budget.sh --war "$WAR" --root "$RT_CORPUS" \
     --budget tools/scale/budget.toml --runs 1 --out "$RT_TMP/real.json" 2>&1)
 RT_STATUS=$?
-if [[ $RT_STATUS -eq 0 ]] && python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); sys.exit(0 if r["held"] and all(x["verdict"]=="within" for x in r["rows"]) else 1)' "$RT_TMP/real.json"; then
-    rt_ok "the real budget passes at N=12" "every row within, exit 0"
-else
-    rt_fail "the real budget passes at N=12" "exit $RT_STATUS: $(grep -E 'OVER|UNKNOWN' <<<"$RT_OUT" | head -3 | tr '\n' '|')"
+RT_LOAD1=$(rt_load)
+if [[ $RT_STATUS -eq 0 ]] && ! python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); sys.exit(0 if r["held"] and all(x["verdict"]=="within" for x in r["rows"]) else 1)' "$RT_TMP/real.json"; then
+    RT_STATUS=1
 fi
+case $(rt_judge "$RT_STATUS" "$RT_LOAD0" "$RT_LOAD1") in
+    ok) rt_ok "the real budget passes at N=12" "every row within, exit 0" ;;
+    unknown) printf 'UNKNOWN %-32s %s\n' "the real budget passes at N=12" \
+        "over budget while the machine ran $RT_LOAD0/$RT_LOAD1 tasks per CPU (above $RT_LOAD_MAX): not observed: $(grep -E 'OVER|UNKNOWN' <<<"$RT_OUT" | head -2 | tr '\n' '|')" ;;
+    *) rt_fail "the real budget passes at N=12" "exit $RT_STATUS at $RT_LOAD0/$RT_LOAD1 tasks per CPU: $(grep -E 'OVER|UNKNOWN' <<<"$RT_OUT" | head -3 | tr '\n' '|')" ;;
+esac
 
 sed -E 's/^limit_ms = [0-9]+/limit_ms = 1/' "$REPO_ROOT/tools/scale/budget.toml" > "$RT_TMP/tiny.toml"
 RT_OUT=$(cd "$REPO_ROOT" && tools/scale/budget.sh --war "$WAR" --root "$RT_CORPUS" \
     --budget "$RT_TMP/tiny.toml" --runs 1 --cap-factor 0 --out "$RT_TMP/tiny.json" 2>&1)
 RT_STATUS=$?
+RT_STATUS_TINY=$RT_STATUS
 RT_MISSING=$(python3 - "$REPO_ROOT/tools/scale/budget.toml" "$RT_TMP/tiny.json" "$RT_OUT" <<'PY'
 import json, sys, tomllib
 ids = [c["id"] for c in tomllib.load(open(sys.argv[1], "rb"))["command"]]
@@ -80,6 +105,16 @@ if [[ $RT_STATUS -eq 1 && -z "$RT_MISSING" ]]; then
     rt_ok "a 1 ms budget names every command" "exit 1, each row OVER BUDGET by name"
 else
     rt_fail "a 1 ms budget names every command" "exit $RT_STATUS, not named: $RT_MISSING"
+fi
+
+# The load rule decides only an over-budget row on a loaded machine. The
+# 1 ms budget's real result (exit 1, every row over) fails at no load and is
+# unknown under load; a pass stays a pass under any load.
+RT_J="$(rt_judge "$RT_STATUS_TINY" 0.10 0.10) $(rt_judge "$RT_STATUS_TINY" 0.10 2.50) $(rt_judge "$RT_STATUS_TINY" 2.50 0.10) $(rt_judge 0 9.00 9.00)"
+if [[ "$RT_J" == "fail unknown unknown ok" ]]; then
+    rt_ok "a loaded machine is unknown, not over" "the 1 ms result fails unloaded, is UNKNOWN above $RT_LOAD_MAX per CPU before or after; within passes at any load"
+else
+    rt_fail "a loaded machine is unknown, not over" "judged '$RT_J' (want 'fail unknown unknown ok')"
 fi
 
 # --- OBL-003: a command that fails is unknown, never within ----------------------
@@ -219,4 +254,5 @@ else
 fi
 
 command rm -rf "$RT_TMP"
-unset RT_TMP RT_CORPUS RT_OUT RT_STATUS RT_COUNTS RT_RESOLVED_FILES RT_FULL RT_BEFORE RT_AFTER RT_MISSING RT_MANIFEST RT_V RT_BASE RT_GIT_BEFORE RT_GIT_AFTER
+unset RT_TMP RT_CORPUS RT_OUT RT_STATUS RT_COUNTS RT_RESOLVED_FILES RT_FULL RT_BEFORE RT_AFTER RT_MISSING RT_MANIFEST RT_V RT_BASE RT_GIT_BEFORE RT_GIT_AFTER RT_LOAD_MAX RT_LOAD0 RT_LOAD1 RT_STATUS_TINY RT_J
+unset -f rt_load rt_judge

@@ -8,6 +8,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Plant 52's real-budget check no longer fails on a machine busy with other work. The
+  budget is wall-clock time and its limits are unchanged: a row within its limit passes
+  at any load, and a row over it fails when the one-minute load average stayed at or
+  under one runnable task per CPU while the budget ran. Above that it reads UNKNOWN,
+  neither failed nor passed.
+
 - Tickets kept as masters (`[tickets] layout = "work"`), where they differed from
   `docs/tickets/`:
   - A compile after a gate run no longer stales the run's receipt. The views of the
