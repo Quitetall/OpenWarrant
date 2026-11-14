@@ -1014,3 +1014,54 @@ Neither called a tool. opencode loads the file at startup, and only for the brie
 opencode 2.2.1 with `lithosai/deepseek-ai/DeepSeek-V4.1-Flash`, `--turns 60 --jobs 3`,
 `ADOPTION_OW_DONE_TEST` on, one `systemd-run --user` unit, run root in `/dev/shm`. Replicate
 2 is not started with it: the owner decides after this one.
+
+### Results of amendment 8: `oc-a8-1`
+
+Run 2026-11-13, 18:17 to 19:52, on harness commit `893e31c3d`, after the full gate on
+`919add881` concluded success (Actions run 43522176313): the 88 directed cells of
+`plans/oc-a8-directed.json`, `next` at `919add881` with `done_test` on. No harness error:
+every session's transcript holds model steps and every grade ran, so nothing was rerun or
+excluded. One `plain` session (tally T4) exited 1 after 27 turns, the agent's own end, and
+passed. From `run.py report oc-a8-1` and `run.py pool oc-a8-1`:
+
+| arm | directed passed | false completions | turns per session | ktokens per session | median ktokens per cell | median turns before first edit |
+|---|---|---|---|---|---|---|
+| `plain` | 22 of 22 | 0 | 33.5 | 1,725.9 | 1,603.2 | 8.5 |
+| `openwarrant@a7` | 22 of 22 | 0 | 37.1 | 1,413.7 | 1,366.5 | 8.5 |
+| `openwarrant@next` | 22 of 22 | 0 | 35.7 | 1,379.0 | 1,338.1 | 8.0 |
+| `openwarrant-brief@next` | 22 of 22 | 0 | 37.6 | 1,475.4 | 1,339.9 | 8.0 |
+
+**`openwarrant@next` against `openwarrant@a7`, by the rule:** false completions 0 and 0;
+passes 22 and 22, a tie; paired token ratio 0.965, −3.5%, 95% interval −12.3% to +6.2% over
+22 pairs. The interval holds 1.0: **a tie, no win.** (Amendment 5's step, for comparison:
+medians 1,338,098 against 1,366,523, −2.1%, also a tie.)
+
+**Against plain** (paired token ratio, 22 pairs each, descriptive):
+
+| arm | tokens, arm over plain |
+|---|---|
+| `openwarrant@next` | 0.786: −21.4%, interval −32.8% to −7.8% |
+| `openwarrant@a7` | 0.815: −18.5%, interval −31.2% to −3.2% |
+| `openwarrant-brief@next` | 0.833: −16.7%, interval −30.9% to −0.2% |
+
+The owner's release criterion, `openwarrant@next`'s ratio against `plain` at or below 1.0:
+0.786, met on these cells, and its whole interval is below 1.0.
+
+**The brief arm beside its twin:** `openwarrant-brief@next` over `openwarrant@next` 1.060,
++6.0%, interval −10.3% to +24.1%; the same 22 passes, no false completion, 8.0 turns
+before the first edit in both, 37.6 turns a session against 35.7. Nothing separates them
+at this size. No brief session read `.openwarrant/next.md` with a tool, and every one
+still ran `war start`.
+
+**What `done_test` caught: nothing, in this replicate.** In the 44 `@next` cells no `war
+done` was refused. The transcripts hold no refusal (`not ticked at observed`,
+`ticket.check-failed`), and the ticket journals in the kept bundles agree: 292 default
+runs journalled (150 and 142), every one `pass`, every tick at `observed`, where alpha.7's
+148 ticks are plain claims. The agents ran the suite before `war done`, as the `AGENTS.md`
+block tells them to, so the default test ran over a suite already green. With no false
+completion in any arm, there was nothing for it to catch here.
+
+**Passed but not recorded** (not false completions): four sessions reached opencode's last
+step (59 turns) with the work passing and the ticket still open, their last message
+naming `war done` as the step left: K4 on `openwarrant@next` and on
+`openwarrant-brief@next`, T1 on `openwarrant-brief@next` and on `openwarrant@a7`.
