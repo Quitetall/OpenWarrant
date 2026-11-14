@@ -1228,14 +1228,13 @@ pub fn prime(
         open.len(),
         recent.len() + old.len()
     ));
-    md.push_str(
+    md.push_str(&format!(
         "How to work: run `war start` in the same command as your first look at the code; it \
          takes the next ready Warrant (`war start <words of its title>` takes a named one) and \
-         prints only what it needs. Close it in the same command as your last test run: \
-         `<your tests> && war done --note \"what you did\"`. \
-         `war view prime <id>` shows one Warrant in full. No step needs a signature or anyone's \
-         approval.\n",
-    );
+         prints only what it needs. `war view prime <id>` shows one Warrant in full. No step \
+         needs a signature or anyone's approval.\n{}\n",
+        super::close_hint(store, None)
+    ));
     // OW-WAR-0148 M17: the file ledger, when this repository keeps one.
     let ledger_dir = crate::ledger::Config::read(&store.root)
         .map(|c| c.dir)
@@ -1628,11 +1627,7 @@ pub fn brief_with_status(store: &Store, all: &[Ticket], t: &Ticket, status: &str
         }
         md.push_str("\n`war view prime <id>` shows one of them in full.\n");
     }
-    md.push_str(&format!(
-        "\nClose it in the same command as your last test run: \
-         `<your tests> && war done {} --note \"what you did\"`\n",
-        t.id()
-    ));
+    md.push_str(&format!("\n{}\n", super::close_hint(store, Some(t.id()))));
     Outcome::ok(
         md.trim_end().to_owned(),
         serde_json::json!({
@@ -1714,7 +1709,7 @@ pub fn brief_with_records(
         }
     }
     // Before the closing line, which stays last.
-    match brief.rfind("\n\nClose it in the same command") {
+    match brief.rfind("\n\nClose it ") {
         Some(at) => format!("{}\n{}{}", &brief[..at], section.trim_end(), &brief[at..]),
         None => format!("{brief}\n{}", section.trim_end()),
     }

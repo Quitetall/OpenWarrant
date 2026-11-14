@@ -111,7 +111,8 @@ pub fn read(repo: &Repository, uri: &str) -> Result<ReadResourceResult, McpError
     if let Some(target) = uri.strip_prefix("context://") {
         let graph = crate::context::graph_of(&corpus()).map_err(internal)?;
         let target = crate::context::relative_target(repo, target);
-        return match crate::context::compile(&graph, &target, &crate::context::Options::default()) {
+        let opts = crate::context::Options::unasked(None, None, None);
+        return match crate::context::compile(&graph, &target, &opts) {
             Ok(p) => text(p.markdown, "text/markdown"),
             Err(r) => Err(McpError::resource_not_found(r.to_string(), None)),
         };

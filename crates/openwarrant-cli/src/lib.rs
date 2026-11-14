@@ -2160,26 +2160,29 @@ enum ViewCommand {
         #[arg(required_unless_present = "index")]
         target: Option<String>,
         /// The budget in bytes of the Markdown output (the preset's: 16000
-        /// for `agent`).
+        /// for `agent` and `agent.min`).
         #[arg(long, value_name = "BYTES", conflicts_with = "tokens")]
         budget: Option<usize>,
         /// The budget in tokens, counted as 4 bytes each.
         #[arg(long, value_name = "N")]
         tokens: Option<usize>,
         /// How many relation steps to follow from the target (the preset's:
-        /// 3 for `agent`).
+        /// 3 for `agent`, 2 for `agent.min`).
         #[arg(long, value_name = "D")]
         depth: Option<usize>,
         /// Refuse instead of listing anything by its summary only, or
         /// leaving anything out.
         #[arg(long)]
         strict: bool,
-        /// Everything, with no budget, however large.
+        /// Everything, with no budget, however large: the `agent` walk
+        /// unless `--preset` names another.
         #[arg(long, conflicts_with_all = ["budget", "tokens", "strict"])]
         full: bool,
-        /// The preset: agent, agent.min, human, review or resume.
-        #[arg(long, value_name = "NAME", default_value = context::DEFAULT_PRESET)]
-        preset: String,
+        /// The preset: agent, agent.min, human, review or resume. Default:
+        /// agent.min for a Warrant, ticket or item (the item, the records it
+        /// links, its parent's intent), agent for anything else.
+        #[arg(long, value_name = "NAME")]
+        preset: Option<String>,
         /// For a preset that reads state: answer as of this time (RFC 3339,
         /// e.g. `2026-10-14T10:00:00Z`) instead of now.
         #[arg(long, value_name = "RFC3339")]
@@ -7310,6 +7313,10 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             // Advice, not a judgement: a signature already verified over
             // exactly these bytes is not asked again (ssh_verdicts).
             ssh_verdicts::permit();
+            // No `--preset`: the compiler picks agent.min for a work item and
+            // agent for anything else (section 10.4); `--full` is agent's walk.
+            let unasked = preset.is_none() && !full;
+            let preset = preset.unwrap_or_else(|| context::DEFAULT_PRESET.to_owned());
             // A built-in preset, else one a profile declares (section 10.4).
             let preset = match context::Preset::builtin(&preset)
                 .map(Ok)
@@ -7357,6 +7364,7 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
                 return Ok(context::answer_index(mode, &corpus)?);
             }
             let mut opts = context::Options::with(preset, budget, tokens, depth);
+            opts.unasked = unasked;
             opts.strict = strict;
             if full {
                 opts.budget = None;

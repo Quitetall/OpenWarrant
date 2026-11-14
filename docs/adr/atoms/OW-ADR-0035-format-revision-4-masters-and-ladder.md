@@ -67,6 +67,13 @@ Revision 4 of FORMAT-1.0:
 6. **Answers.** Who may answer a question follows the ladder: on a Ticket or a
    Warrant, any actor but the asker; on an Order, or a question that asks for a person,
    a person.
+7. **§10.3, §10.4 the context default.** Approved by the owner 2026-11-14 after the
+   alpha.7 field report: `war context` filled its 16000 bytes with completed sibling
+   phases, rejected options and specification frontmatter. Without `--preset`, a work
+   document or an item of one is compiled under `agent.min`: depth 2 over
+   `out:implements`, `in:constrains` and `in:evaluates`, and the parent's intent at
+   distance 1 (step `parent-intent`, walked no further), budget 16000. Any other
+   target keeps `agent`; `--full` is `agent` with no budget.
 
 ### Options considered
 
@@ -90,5 +97,8 @@ Revision 4 of FORMAT-1.0:
   is a migration tool's job, and nothing signed moves.
 - Splitting a master (§4.1) is defined but not built: no tool writes or joins parts
   yet, and a reader that meets `<id>.<NN>.md` today ignores it.
+- Conformance cases 311 and 312 hold the context default under `war` and
+  `context.py`: a work document gets `agent.min` with its parent's intent and no
+  sibling or rejected option; a requirement still gets `agent`'s walk.
 - The `--needs-human` question flag and the enforcement of who may answer are built
   separately (agent/a8-questions); this revision gives the rule.

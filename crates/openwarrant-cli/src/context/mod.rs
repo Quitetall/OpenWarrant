@@ -167,8 +167,12 @@ pub struct Finding {
 
 /// The built-in presets (section 10.4), in the table's order.
 pub const PRESETS: [&str; 5] = ["agent", "agent.min", "human", "review", "resume"];
-/// The preset without `--preset`.
+/// The preset without `--preset`, for a target that is not a work document
+/// or an item of one (section 10.4).
 pub const DEFAULT_PRESET: &str = "agent";
+/// The preset without `--preset` for a work document or an item of one:
+/// the item, the records it links, its parent's intent (section 10.4).
+pub const DEFAULT_WORK_PRESET: &str = "agent.min";
 
 /// The walk steps of section 10.3, in order: what the walk named `core` follows.
 pub const CORE_STEPS: [&str; 8] = [
@@ -208,6 +212,10 @@ pub struct Preset {
     /// `resume`: the target's record and items, a state line under each
     /// item, and `## Next`.
     pub resume: bool,
+    /// `agent.min`: a work document root's parents (its `part_of` targets)
+    /// at distance 1, each by its `S-intent` when it has one, and walked no
+    /// further (section 10.4, step `parent-intent`).
+    pub parent_intent: bool,
 }
 
 impl Preset {
@@ -226,16 +234,17 @@ impl Preset {
             reads_state: false,
             own_first: false,
             resume: false,
+            parent_intent: false,
         };
         Some(match name {
             "agent" => core,
             "agent.min" => Self {
                 walk: name.to_owned(),
                 steps: vec!["out:implements", "in:constrains", "in:evaluates"],
-                depth: 1,
-                budget: Some(4000),
+                depth: 2,
                 omit_types: vec!["option".to_owned(), "consequence".to_owned()],
                 omit_fields: vec!["rationale".to_owned()],
+                parent_intent: true,
                 ..core
             },
             "human" => Self {
@@ -317,6 +326,7 @@ impl Preset {
             reads_state: p.reads_state,
             own_first: false,
             resume: false,
+            parent_intent: false,
         }))
     }
 }
@@ -337,6 +347,12 @@ pub struct Options {
     /// An id that names nothing stays refused: a read through a pin answers
     /// for a commit, and a word search there would be a guess.
     pub exact: bool,
+    /// Nobody asked for a preset: a work document or an item target is
+    /// compiled under [`DEFAULT_WORK_PRESET`] instead (section 10.4).
+    pub unasked: bool,
+    /// `--depth` was given, so it holds under the preset chosen for an
+    /// unasked target too.
+    pub explicit_depth: bool,
 }
 
 impl Default for Options {
@@ -355,8 +371,38 @@ impl Options {
             strict: false,
             exact: false,
             explicit_budget: false,
+            unasked: false,
+            explicit_depth: false,
             preset,
         }
+    }
+
+    /// No `--preset`: [`DEFAULT_PRESET`], which [`compile`] replaces with
+    /// [`DEFAULT_WORK_PRESET`] for a work document or an item target, with
+    /// `--budget` / `--tokens` and `--depth` applied to whichever it is.
+    #[must_use]
+    pub fn unasked(budget: Option<usize>, tokens: Option<usize>, depth: Option<usize>) -> Self {
+        let preset = Preset::builtin(DEFAULT_PRESET).unwrap_or_else(|| unreachable!());
+        let mut o = Self::with(preset, budget, tokens, depth);
+        o.unasked = true;
+        o
+    }
+
+    /// These options under the work preset, when nobody asked for one.
+    fn for_work(&self) -> Self {
+        let preset = Preset::builtin(DEFAULT_WORK_PRESET).unwrap_or_else(|| unreachable!());
+        let mut o = Self::of(preset);
+        if self.explicit_budget {
+            o.budget = self.budget;
+            o.explicit_budget = true;
+        }
+        if self.explicit_depth {
+            o.depth = self.depth;
+            o.explicit_depth = true;
+        }
+        o.strict = self.strict;
+        o.exact = self.exact;
+        o
     }
 
     /// `preset` with `--budget` / `--tokens` (section 10.3: `--tokens n`
@@ -375,6 +421,7 @@ impl Options {
         }
         if let Some(d) = depth {
             o.depth = d;
+            o.explicit_depth = true;
         }
         o
     }
@@ -984,7 +1031,55 @@ fn is_field_name(n: &str) -> bool {
 
 /// `war context <target>`: the packet, or a refusal with nothing emitted.
 pub fn compile(graph: &Graph, target: &str, opts: &Options) -> Result<Packet, Refusal> {
-    compile_seeds(graph, target, opts, resolve(graph, target)?)
+    let seeds = resolve(graph, target)?;
+    if opts.unasked && target_document(graph, &seeds).is_some() {
+        return compile_seeds(graph, target, &opts.for_work(), seeds);
+    }
+    compile_seeds(graph, target, opts, seeds)
+}
+
+/// The options [`compile`] answers `target` under: `opts`, or for an
+/// unasked work document or item target, [`DEFAULT_WORK_PRESET`]'s.
+#[must_use]
+pub fn effective(graph: &Graph, target: &str, opts: &Options) -> Options {
+    match resolve(graph, target) {
+        Ok(seeds) if opts.unasked && target_document(graph, &seeds).is_some() => opts.for_work(),
+        _ => opts.clone(),
+    }
+}
+
+/// The step that gives a work document root its parents' intent under a
+/// preset with [`Preset::parent_intent`] (section 10.4).
+pub const STEP_PARENT_INTENT: &str = "parent-intent";
+
+/// `agent.min`: each `part_of` target of a work document root, by its
+/// `S-intent` when it is a work document with one, else itself, mapped to
+/// the document it was reached from.
+fn parent_intents(graph: &Graph, seeds: &Seeds) -> BTreeMap<String, String> {
+    let mut out = BTreeMap::new();
+    let [root] = seeds.roots.as_slice() else {
+        return out;
+    };
+    if !graph.units.get(root).is_some_and(|u| u.work) {
+        return out;
+    }
+    for e in graph
+        .edges
+        .iter()
+        .filter(|e| e.from == *root && e.kind == "part_of")
+    {
+        let Some(parent) = graph.units.get(&e.to) else {
+            continue;
+        };
+        let intent = format!("{}/S-intent", parent.id);
+        let id = if parent.work && graph.units.contains_key(&intent) {
+            intent
+        } else {
+            parent.id.clone()
+        };
+        out.entry(id).or_insert_with(|| root.clone());
+    }
+    out
 }
 
 /// Render an explicit required selection through the same compiler as `context`.
@@ -1034,6 +1129,35 @@ fn compile_seeds(
     }
     let (mut reached, mut findings) =
         walk_over(graph, &seeds, opts.depth, &preset.steps, &preset.omit_types);
+    if preset.parent_intent && opts.depth >= 1 {
+        // At distance 1 and walked no further: the parent's own neighbours
+        // (its siblings, the phases before it) are not the work's.
+        for (id, from) in parent_intents(graph, &seeds) {
+            if graph
+                .units
+                .get(&id)
+                .is_some_and(|u| preset.omit_types.contains(&u.kind))
+            {
+                continue;
+            }
+            let via = Some(Via {
+                step: STEP_PARENT_INTENT.to_owned(),
+                from,
+            });
+            match reached.iter_mut().find(|r| r.id == id) {
+                Some(r) if r.distance > 1 => {
+                    r.distance = 1;
+                    r.via = via;
+                }
+                Some(_) => {}
+                None => reached.push(Reached {
+                    id,
+                    distance: 1,
+                    via,
+                }),
+            }
+        }
+    }
     // Step 3: distance, tier (§4.6), type rank, source, line (then id, so
     // ties are fixed).
     // `human` gives the work document's own units first, in document order.
