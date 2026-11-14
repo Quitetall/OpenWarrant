@@ -1065,3 +1065,103 @@ completion in any arm, there was nothing for it to catch here.
 step (59 turns) with the work passing and the ticket still open, their last message
 naming `war done` as the step left: K4 on `openwarrant@next` and on
 `openwarrant-brief@next`, T1 on `openwarrant-brief@next` and on `openwarrant@a7`.
+
+### Results of amendment 8: `oc-a8-2` and `oc-a8-3`, and the three pooled
+
+The same plan, build (`next` at `919add881`), agent, model, turn cap and `--jobs 3`, each
+its own `systemd-run` unit, on harness commit `6b4ef83c1` (clean; it differs from
+`oc-a8-1`'s `893e31c3d` only in PROTOCOL.md). Before each, the endpoint was up and its model
+list reported no price, `check_tools` was clean and the grader's registry held every crate.
+
+**`oc-a8-2`** (2026-11-13, 19:59 to 22:01): 88 cells, no harness error. `openwarrant@a7`
+recorded K8 done with a hidden test failing (siblings with different counts listed in the
+wrong order): a false completion.
+
+| arm | directed passed | false completions | turns per session | ktokens per session | median ktokens per cell | median turns before first edit |
+|---|---|---|---|---|---|---|
+| `plain` | 22 of 22 | 0 | 33.6 | 1,805.4 | 1,521.5 | 7.0 |
+| `openwarrant@a7` | 21 of 22 | 1 | 36.4 | 1,427.6 | 1,482.3 | 9.5 |
+| `openwarrant@next` | 22 of 22 | 0 | 37.2 | 1,465.6 | 1,288.8 | 9.0 |
+| `openwarrant-brief@next` | 22 of 22 | 0 | 36.7 | 1,379.9 | 1,076.9 | 8.0 |
+
+By the rule, in this run alone: `next` wins on false completions (0 against 1). Against
+plain: `next` 0.803 (−32.3% to −4.1%), a7 0.805 (−29.8% to −7.9%), brief 0.751 (−34.5% to
+−14.1%).
+
+**`oc-a8-3`** (2026-11-13, 22:01 to 23:30): **stopped by the endpoint.** At 23:30:29 the
+LithosAI endpoint began refusing every request, `402 insufficient_quota`, "the organization
+is out of credit". The three tally T9 sessions then running (`plain`, `openwarrant@a7`,
+`openwarrant@next`) were cut mid-session, and `openwarrant-brief@next`'s T9 session, the
+88th cell, was refused at its first call, which stopped the run (its session records are
+kept under `oc-a8-3/stopped/`). 87 cells hold a result. A session cut by the endpoint is a
+harness error, not the agent's (amendment 6's definition, amendment 5's rule), and it can't
+be rerun while the endpoint refuses, so **tally T9 of `oc-a8-3` is excluded for every
+arm** (`run.py pool --exclude oc-a8-3/tally/T9`, added for this; nothing in the keep store
+moved). The 84 cells left are otherwise clean. Four sessions, in cells that passed, ended
+on the model's invalid tool call (`provider.internal`, "The model produced an invalid tool
+call"), as one `plain` session did in `oc-a8-1`: the agent's end, kept. `openwarrant@next`
+recorded K4 done with a hidden test failing (`0-0-0` castling notation rejected): a false
+completion. Its `war done` ran the default test, which passed: the visible suite has no
+test of that notation.
+
+| arm (all 22 cells, T9 included as run) | directed passed | false completions | turns per session | ktokens per session | median ktokens per cell | median turns before first edit |
+|---|---|---|---|---|---|---|
+| `plain` | 22 of 22 | 0 | 34.0 | 1,774.9 | 1,612.7 | 7.0 |
+| `openwarrant@a7` | 21 of 22 | 0 | 34.2 | 1,337.8 | 1,245.3 | 9.0 |
+| `openwarrant@next` | 20 of 22 | 1 | 34.6 | 1,415.3 | 1,288.4 | 8 |
+| `openwarrant-brief@next` | 21 of 21 | 0 | 33.8 | 1,352.8 | 1,213.1 | 7 |
+
+(a7's and `next`'s failed T9, and one `next` session with no code edit, are the cut T9
+sessions.) By the rule, in this run alone: alpha.7 wins on false completions (0 against 1).
+
+**Pooled, `oc-a8-1` to `oc-a8-3`, with `oc-a8-3`'s T9 excluded** (`run.py pool oc-a8-1
+oc-a8-2 oc-a8-3 --exclude oc-a8-3/tally/T9`; ties at three cells):
+
+`openwarrant@next` against `openwarrant@a7`, 65 cells each: false completions 1 and 1;
+passes 64 and 64; paired token ratio **0.991, −0.9%, 95% interval −8.4% to +7.3%** over 65
+pairs. **A tie: no win.** (Amendment 5's step: medians 1,331,000 against 1,325,260, +0.4%,
+also a tie.) Without the exclusion: 1 and 1, 64 and 64, 0.951 (−15.8% to +5.3%), the same
+verdict.
+
+| against `plain`, 65 pairs each | tokens, arm over plain | passes, arm and plain | false completions |
+|---|---|---|---|
+| `openwarrant@next` | 0.786: −21.4%, interval −28.7% to −13.2% | 64 and 65 | 1 and 0 |
+| `openwarrant@a7` | 0.793: −20.7%, interval −27.3% to −13.5% | 64 and 65 | 1 and 0 |
+| `openwarrant-brief@next` | 0.767: −23.3%, interval −29.7% to −16.3% | 65 and 65 | 0 and 0 |
+
+The owner's release criterion, `openwarrant@next`'s ratio against `plain` at or below 1.0:
+0.786, met, with the whole interval below 1.0.
+
+`openwarrant-brief@next` beside `openwarrant@next` (65 cells each): 65 and 64 passes, 0 and
+1 false completions, paired token ratio 0.976 (−11.0% to +6.8%), 8 turns before the first
+edit in both, 36.1 and 36.3 turns a session. Nothing separates them on tokens.
+
+**What `done_test` caught: nothing, in three replicates.** In the 131 `@next` cells that ran,
+the transcripts hold no `war done` refusal, and the ticket journals hold 875 default runs
+(`oc-a8-1` 150 and 142, `oc-a8-2` 142 and 150, `oc-a8-3` 142 and 149), every one `pass`,
+every tick at `observed`. The one `@next` false completion (`oc-a8-3`, K4) passed the
+default test: the default test is the visible suite, and what the hidden test checked is
+not in it.
+
+**Passed but left open** (the work passing, the ticket not recorded done; every one at
+opencode's last step, 59 turns, with `war done` named as the step left): `oc-a8-1` K4 on
+`next` and on brief, T1 on brief and on a7; `oc-a8-2` K4 on `next` and on brief, T1 on
+`next`; `oc-a8-3` T10 on a7 and on `next`. 9 in all: 7 on the `@next` arms, 2 on alpha.7.
+
+**The endpoint was not free.** It reports no price, in its model list or in any step, and
+the study has called it free since amendment 2. The organization behind the key had a
+credit balance, and these runs spent it to nothing. The opencode runs' cost is therefore
+unknown, not zero; the report's USD 0.00 is what the agent reported, not what was spent.
+No further opencode run starts until the owner says how the endpoint is paid for.
+
+**Claude Code cells (`plans/cc-a8-directed.json`): not run.** The owner approved up to
+USD 30 for them, but the instruction was to stop and report if the endpoint began charging,
+and it did. Ready for when the owner says go: `a8-check` passes the plan's cap
+arithmetic (44 sessions at USD 0.65 is 28.60); a fixture dry run of both arms in Claude
+Code's layout under `--session-budget-usd 0.65 --budget-usd 28.60` passed both cells,
+with `done_test` on `next` only and the hard budget recorded; alpha.7's plugin ref is
+`v1.0.0-alpha.7` (commit `9e4948385513`) and `next`'s is `919add881`. Each version's
+`war mcp` serves its own tool set, checked with a plain MCP client and no model: alpha.7's
+42 tools, `919add881`'s 7. (`next`'s `.mcp.json` names `war admin mcp`, alpha.7's `war mcp`;
+the harness registers `war mcp` for both, and both spellings serve the same tools on both
+builds.)

@@ -1969,6 +1969,17 @@ def describe(results: list[dict], arm: str) -> dict:
                                                       if m.get("turns_before_first_code_edit") is not None])}
 
 
+def excluded(results: list[dict], specs: list[str]) -> tuple[list[dict], int]:
+    """Amendment 5's rule for a harness error: a cell rerun or excluded for every arm. `RUN/REPO/ITEM`
+    leaves that item of that run out, in every arm; the report says so. Nothing in the keep store moves."""
+    drop = {tuple(s.split("/")) for s in specs or []}
+    for d in drop:
+        if len(d) != 3:
+            raise SystemExit(f"--exclude {'/'.join(d)!r}: give RUN/REPO/ITEM")
+    kept = [r for r in results if (r.get("_run", ""), r["cell"]["repo"], r["cell"].get("item", "-")) not in drop]
+    return kept, len(results) - len(kept)
+
+
 def cmd_pool(args) -> None:
     """Amendment 6: the win rule over the pooled directed cells of several runs, per pair, with a tie
     of one cell per replicate the pair ran in; and each MCP arm beside its twin, descriptively."""
@@ -1976,8 +1987,12 @@ def cmd_pool(args) -> None:
     for run_id in args.run_ids:
         for p in sorted((KEEP / run_id).rglob("result.json")):
             results.append({**json.loads(p.read_text()), "_run": run_id})
+    results, dropped = excluded(results, args.exclude)
     lines = [f"# Pooled: {', '.join(args.run_ids)}", ""]
-    out = {"runs": args.run_ids, "pairs": [], "twins": []}
+    if args.exclude:
+        lines += [f"Excluded for every arm (harness errors, amendment 5's rule): {', '.join(args.exclude)}; "
+                  f"{dropped} cells left out.", ""]
+    out = {"runs": args.run_ids, "pairs": [], "twins": [], "excluded": args.exclude, "cells_excluded": dropped}
     for new, old in VERSION_PAIRS:
         runs = [rid for rid in args.run_ids
                 if {new, old} <= {r["cell"]["arm"] for r in results if r["_run"] == rid}]
@@ -2005,7 +2020,7 @@ def cmd_pool(args) -> None:
                   "| " + " | ".join(keys) + " |", "|" + "---|" * len(keys)]
         lines += ["| " + " | ".join(str(r[k]) for k in keys) + " |" for r in rows] + [""]
         lines += [f"Paired token ratio, {mcp_arm} over {twin}: {ratio_text(pr)}.", ""]
-    name = "pool-" + "-".join(args.run_ids)
+    name = "pool-" + "-".join(args.run_ids) + ("-excl" if args.exclude else "")
     (KEEP / f"{name}.json").write_text(json.dumps(out, indent=1))
     (KEEP / f"{name}.md").write_text("\n".join(lines))
     print("\n".join(lines))
@@ -2465,6 +2480,8 @@ def main() -> None:
     ic.add_argument("--arm", default="openwarrant@a7")
     rp = sub.add_parser("report"); rp.add_argument("run_id")
     po = sub.add_parser("pool"); po.add_argument("run_ids", nargs="+")
+    po.add_argument("--exclude", nargs="*", default=[], metavar="RUN/REPO/ITEM",
+                    help="an item of a run left out for every arm: a harness error (amendment 5's rule)")
     a8 = sub.add_parser("a8-check", help="amendment 8's checks, no model"); a8.add_argument("--run-id", required=True)
     # inside the sandbox only
     g = sub.add_parser("_grade"); g.add_argument("repo")
