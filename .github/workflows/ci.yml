@@ -72,7 +72,7 @@ jobs:
       # The shipped binary, built once. The plants, corpus and attestation
       # jobs download it instead of compiling it again.
       - run: cargo xtask gate --only build
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: war-binary
           path: target/debug/war
@@ -217,7 +217,7 @@ jobs:
           OW_PLANT_REPORT: ${{ runner.temp }}/shard-${{ matrix.shard }}.report
       # What this shard ran, kept even when it failed. A shard that died part
       # way leaves no complete report, and `plants-total` refuses that.
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: plant-report-${{ matrix.layout }}-${{ matrix.shard }}
@@ -257,7 +257,7 @@ jobs:
           done
           cp "$RUNNER_TEMP/plant-weights-work.tsv" "$RUNNER_TEMP/plant-weights.tsv" || rc=1
           exit $rc
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always()
         with:
           name: plant-weights
@@ -438,7 +438,7 @@ jobs:
           echo "Report phase: evidence status is recorded, not merge-blocking."
           exit 0
 
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: always() && steps.applicability.outputs.required == 'true'
         with:
           name: bonsai-evidence-${{ github.event.pull_request.number }}
