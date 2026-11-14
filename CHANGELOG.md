@@ -6,6 +6,25 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- `war context <work item>` gives by default the work, the records it links (requirements,
+  constraints, decisions, obligations) and its parent's intent: the `agent.min` preset,
+  now depth 2 with the step `parent-intent` and a 16000-byte budget. Completed sibling
+  phases, rejected options and specification frontmatter are left out. Any other target,
+  `--preset agent` and `--full` keep the depth-3 walk. FORMAT-1.0 §10.3 and §10.4 say so
+  (revision 4, OW-ADR-0035); conformance cases 311 and 312.
+- With no `OPENWARRANT_ACTOR` and no `[project] performer`, the actor is the agent harness
+  the environment names (Claude Code, Codex, opencode, Gemini CLI, Cursor), else `claude`.
+  `war start` says where the name came from, and `war start` and `war done` agree on it. A
+  whole-Warrant claim taken in this checkout under such a name is refused with the remedy
+  `war done <id> --as <holder>`.
+- Agent text says to close work the first time its test passes, before docs or lint polish
+  (the `[tickets] done_test` command when set), instead of "your last test run".
+- The speed budget at 10,000 Warrants: `war view ready` 100 ms and `war next` 150 ms
+  median (owner decision; 84 and 123 ms were measured at 9,800 tickets). `claim` stays at
+  50 ms.
+
 ### Fixed
 
 - A remote claim read while another clone moves its ref (a renewal, a reclaim, a release)

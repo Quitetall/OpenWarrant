@@ -181,7 +181,7 @@ Apache-2.0.
 
 The verbs an agent runs all day stay fast on a large program: `war view
 ready`, `war next` and `war claim` (the top-level spellings of `war status
---next` and `war admin claim`, which the budget file times) each at most 50 ms median, for a release
+--next` and `war admin claim`, which the budget file times) at most 100, 150 and 50 ms median, for a release
 build, on 10,000 Warrants (9,800 tickets and 200 directory Warrants, nothing
 signed). `tools/scale/budget-10k.toml` holds the numbers; changing one is the
 owner's decision, never the way to turn the check green.

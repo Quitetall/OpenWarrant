@@ -113,14 +113,14 @@ lu_as alice "$LU_WA" view prime
 if grep -q '^notice: .*docs/plan.md' "$LU_T/out"; then lu_ok "prime shows what is unseen" "one line"; else lu_fail "prime shows what is unseen" "$(tail -2 "$LU_T/out" | tr '\n' '|')"; fi
 lu_as alice "$LU_WA" start "$LU_A"
 if grep -q '^-SECOND\|^+SECOND' "$LU_T/out" && grep -q '^changed since you started' "$LU_T/out" \
-    && ! grep -q 'Close it in the same command' "$LU_T/out"; then
+    && ! grep -q '^Close it ' "$LU_T/out"; then
     lu_ok "start prints only what changed" "the hunk, and no brief"
 else
     lu_fail "start prints only what changed" "$(head -5 "$LU_T/out" | tr '\n' '|')"
 fi
 lu_as alice "$LU_WA" start "$LU_A"
 LU_S2=$(grep -c '^changed since' "$LU_T/out")
-LU_BRIEF=$(grep -c 'Close it in the same command' "$LU_T/out")
+LU_BRIEF=$(grep -c '^Close it ' "$LU_T/out")
 lu_as alice "$LU_WA" view prime
 LU_P2=$(grep -c '^notice: ' "$LU_T/out")
 if [[ $LU_S2 == 0 && $LU_BRIEF == 1 && $LU_P2 == 0 ]]; then
