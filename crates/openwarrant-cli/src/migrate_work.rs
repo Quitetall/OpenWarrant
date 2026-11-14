@@ -88,6 +88,124 @@ pub struct Plan {
     pub kept: Vec<Kept>,
 }
 
+/// The one document a directory ticket `t` becomes: its manifest, intent and
+/// checklist, and the tests, KPIs and milestones of its checks atom
+/// (`atoms/30-checks.md`) as the records `war plan add` writes into a
+/// document (`CHK-<name>`, `M-<item>`). Exact or nothing: `Err` when the
+/// atom does not read, or when what the ladder reads from the document is
+/// not what it read from the atom, part for part.
+fn converted(t: &Ticket) -> Result<String, String> {
+    use openwarrant_core::ticks;
+    let document = ticket::authoring::document(&t.manifest, &t.intent, &t.checklist_text);
+    let path = t.dir.join(ticks::CHECKS_FILE);
+    if !path.is_file() {
+        return Ok(document);
+    }
+    let atom = std::fs::read_to_string(&path).map_err(|e| format!("it does not read: {e}"))?;
+    let old = ticks::parse(&atom);
+    if let Some(f) = old.faults.first() {
+        return Err(format!("line {}: {}", f.line + 1, f.message));
+    }
+    let id = t.id();
+    // A part of the whole Warrant evaluates the Warrant; one of an item, the item.
+    let whole = |item: &Option<String>| item.is_none().then_some(id);
+    let mut parts = Vec::new();
+    for x in &old.tests {
+        parts.push(
+            serde_json::json!({"kind": "test", "name": x.name, "cmd": x.cmd,
+            "item": x.item, "evaluates": whole(&x.item)}),
+        );
+    }
+    for k in &old.kpis {
+        parts.push(
+            serde_json::json!({"kind": "kpi", "name": k.name, "cmd": k.cmd,
+            "direction": k.direction.as_str(), "target": k.target, "mode": k.mode.as_str(),
+            "item": k.item, "evaluates": whole(&k.item)}),
+        );
+    }
+    for m in &old.milestones {
+        parts.push(serde_json::json!({"kind": "milestone", "item": m.item,
+            "min": m.min.map(ticks::Level::as_str)}));
+    }
+    let text = ticket::authoring::with_parts(id, &document, &parts)
+        .map_err(|(rule, why)| format!("{rule}: {why}"))?;
+    let new = ticket::ladder::document_checks(id, &text);
+    let same = same_parts(&old, &new);
+    same.map(|()| text)
+}
+
+/// Whether two readings of a ticket's parts are the same, line numbers
+/// aside; `Err` names the first part that differs.
+fn same_parts(
+    old: &openwarrant_core::ticks::Checks,
+    new: &openwarrant_core::ticks::Checks,
+) -> Result<(), String> {
+    let tests = |c: &openwarrant_core::ticks::Checks| {
+        let mut v: Vec<_> = c
+            .tests
+            .iter()
+            .map(|x| (x.name.clone(), x.cmd.clone(), x.item.clone()))
+            .collect();
+        v.sort();
+        v
+    };
+    let kpis = |c: &openwarrant_core::ticks::Checks| {
+        let mut v: Vec<_> = c
+            .kpis
+            .iter()
+            .map(|k| {
+                format!(
+                    "{} {} {} {:?} {} {:?}",
+                    k.name,
+                    k.cmd,
+                    k.direction.as_str(),
+                    k.target,
+                    k.mode.as_str(),
+                    k.item
+                )
+            })
+            .collect();
+        v.sort();
+        v
+    };
+    let milestones = |c: &openwarrant_core::ticks::Checks| {
+        let mut v: Vec<_> = c
+            .milestones
+            .iter()
+            .map(|m| {
+                (
+                    m.item.clone(),
+                    m.min.map(openwarrant_core::ticks::Level::as_str),
+                )
+            })
+            .collect();
+        v.sort();
+        v
+    };
+    if tests(old) != tests(new) {
+        return Err(format!(
+            "its tests read {:?} as a document, {:?} in the atom",
+            tests(new),
+            tests(old)
+        ));
+    }
+    if kpis(old) != kpis(new) {
+        return Err(format!(
+            "its KPIs read {:?} as a document, {:?} in the atom",
+            kpis(new),
+            kpis(old)
+        ));
+    }
+    if milestones(old) != milestones(new) {
+        return Err(format!(
+            "its milestones read {:?} as a document, {:?} in the atom",
+            milestones(new),
+            milestones(old)
+        ));
+    }
+    Ok(())
+}
+
 fn rel(store: &Store, p: &Utf8Path) -> String {
     store.rel(p)
 }
@@ -148,11 +266,13 @@ fn held_back(
             ),
         ));
     }
-    if !t.format && t.dir.join(openwarrant_core::ticks::CHECKS_FILE).is_file() {
+    if !t.format
+        && let Err(why) = converted(t)
+    {
         return Some((
             "migrate.parts",
             format!(
-                "it keeps tests or KPIs in {}, which this conversion does not carry",
+                "its parts in {} do not convert exactly: {why}",
                 rel(store, &t.dir.join(openwarrant_core::ticks::CHECKS_FILE))
             ),
         ));
@@ -232,17 +352,18 @@ pub fn plan(repo: &Repository, store: &Store) -> Result<Plan, RepoError> {
         }
         if !t.format {
             item.encoding = "directory";
-            let checklist = t.checklist_text.clone();
-            item.written = Some(ticket::authoring::document(
-                &t.manifest,
-                &t.intent,
-                &checklist,
-            ));
+            // `held_back` refused one whose parts do not convert exactly.
+            let Ok(text) = converted(t) else { continue };
+            item.written = Some(text);
+            let checks = t.dir.join(openwarrant_core::ticks::CHECKS_FILE);
             for old in [
                 t.dir.join("manifest.toml"),
                 t.intent_path.clone(),
                 t.checklist_path.clone(),
-            ] {
+            ]
+            .into_iter()
+            .chain(checks.is_file().then_some(checks))
+            {
                 let moved = to_dir.join(old.strip_prefix(&t.dir).unwrap_or(&old));
                 item.removes.push(rel(store, &moved));
             }

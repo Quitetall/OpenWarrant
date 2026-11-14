@@ -106,20 +106,18 @@ and check execution perform their documented additional work.
 
 ## Work on disk
 
-New work is `docs/tickets/t-xxxx.md`: metadata, description, checklist and
-optional typed records in one document. Its append-only journal lives beside
-it under `docs/tickets/t-xxxx/journal.jsonl`. A title is enough to start;
-`war plan add` adds items or checks to that same source.
+New work is a master, `docs/work/w-xxxx/w-xxxx-<slug>.md` (`profile:
+ticket`): metadata, description, checklist and optional typed records in one
+document, with its append-only journal and check output beside it in
+`docs/work/w-xxxx/`, where `war plan new` writes its work orders, by the same
+path: one id per clone, registered for every worktree, and a title that reads
+as open work's is refused for both (`--force` creates anyway). A title is
+enough to start; `war plan add` adds items or checks to that same source.
 
-**The work layout (opt-in).** With `[tickets] layout = "work"` in
-`openwarrant.toml`, `war create` writes a master instead,
-`docs/work/w-xxxx/w-xxxx-<slug>.md` (`profile: ticket`), with its journal and
-check output beside it in `docs/work/w-xxxx/`, where `war plan new` already
-writes its work orders, by the same path: one id per clone, registered for
-every worktree, and a title that reads as open work's is refused for both
-(`--force` creates anyway). Every daily command reads either layout. It
-becomes the default once the whole plant battery passes on it:
-`conformance/plant-layouts.sh` runs every plant once per layout.
+**The older layout.** `[tickets] layout = "tickets"` in `openwarrant.toml`
+keeps `war create` writing `docs/tickets/t-xxxx.md`, its journal under
+`docs/tickets/t-xxxx/`. Every daily command reads either layout, and
+`conformance/plant-layouts.sh` runs every plant once in each.
 
 - **The id is identity.** `w-` and the hash of a fresh UUID. The slug is the
   title's, in the file name only, and cosmetic: rename the file and every
@@ -131,14 +129,18 @@ becomes the default once the whole plant battery passes on it:
   layout for one command, over the configuration.
 - **The Roadmap.** `war admin compile` lists every open work order in
   `docs/ROADMAP.md`. A work order stands under a phase when its `part_of`
-  names one (`part_of: roadmap/<phase>` in its frontmatter); any other, a
-  child of an epic included, is listed under "Unphased". `war create` writes
+  names one (`part_of: roadmap/<phase>` in its frontmatter, which `war create
+  --part-of roadmap/<phase>` writes after checking that the Roadmap master,
+  `docs/work/roadmap/roadmap.md`, declares the phase); any other, a child of
+  an epic included, is listed under "Unphased". A ticket in `docs/tickets/`
+  stands under its phase as a master does. `war create` writes
   no view: the views are compiled on the default branch.
 
 ### Moving older tickets
 
-`war admin migrate` moves the tickets kept outside `docs/work/` into it. It
-is for a repository that chose the work layout; nothing requires it:
+`war admin migrate` moves the tickets kept outside `docs/work/` into it, so a
+repository's work is in one place. Nothing requires it: older tickets are
+worked where they are.
 
 ```sh
 war admin migrate --dry-run     # every move, and every ticket that stays and why; nothing written
@@ -147,7 +149,9 @@ war admin migrate               # the same plan, with `git mv` so history follow
 
 A `t-xxxx.md` (or `t-xxxx/ticket.md`) moves to `docs/work/t-xxxx/t-xxxx-<slug>.md`
 with its bytes unchanged; a directory ticket is written as one document from
-its manifest, intent and checklist, as `war create` writes one. The journal
+its manifest, intent and checklist, as `war create` writes one, and the
+tests, KPIs and milestones of its checks atom (`atoms/30-checks.md`) become the
+`CHK-<name>` and `M-<item>` records `war plan add` writes into a document. The journal
 and everything else in `docs/tickets/t-xxxx/` come along. **The id is kept**:
 the store reads `docs/work/` by the frontmatter `alias`, whatever its prefix,
 so `t-xxxx` is still `t-xxxx` to every command, claim, blocker and question.
@@ -155,8 +159,9 @@ so `t-xxxx` is still `t-xxxx` to every command, claim, blocker and question.
 A ticket is left in place, and named with the reason, when it has a recorded
 act (`migrate.recorded-act`), a signed or verified tick (`migrate.signed`), a
 file a resolved Warrant pins (`migrate.pinned`), a claim that still holds
-(`migrate.claimed`), tests a directory ticket keeps in a checks atom
-(`migrate.parts`), or cannot be read. The run is deterministic, a second run
+(`migrate.claimed`), parts in a checks atom that do not read, or that the
+ladder would read differently from the document (`migrate.parts`, naming the
+first part that differs), or cannot be read. The run is deterministic, a second run
 moves nothing, and afterwards `war check` passes and the views list the same
 work in the same states. Converting another tool's format needs a drafter and
 a review, as `war plan` has; that path is not built.
@@ -848,7 +853,7 @@ All optional, in `openwarrant.toml`:
 ```toml
 [tickets]
 dir = "docs/tickets"                        # where tickets live
-layout = "tickets"                          # "work": `war create` writes masters in docs/work/ (opt-in)
+layout = "work"                             # the default; "tickets": `war create` writes docs/tickets/<t-id>.md
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
 session_start = true                        # the plugin's hooks show the agent its held Warrant, the overview, or the ticket a prompt names; false: nothing

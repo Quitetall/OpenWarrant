@@ -505,8 +505,9 @@ pub struct Store {
     pub done_test: Option<String>,
     /// `[tickets] done_test_timeout`, in seconds.
     pub done_test_timeout: Option<u64>,
-    /// `[tickets] layout = "work"` (or [`LAYOUT_ENV`]): `war create` writes
-    /// masters in `docs/work/`.
+    /// `[tickets] layout` (or [`LAYOUT_ENV`]), `work` unless it says
+    /// `tickets`: `war create` writes masters in `docs/work/`, else one
+    /// document `<tickets>/<t-id>.md`.
     pub layout_work: bool,
 }
 
@@ -728,8 +729,8 @@ impl Store {
             && !matches!(layout, "tickets" | "work")
         {
             return Err(RepoError::Message(format!(
-                "tickets.layout: `{layout}` is no layout; `[tickets] layout` is \"tickets\" \
-                 (the default) or \"work\""
+                "tickets.layout: `{layout}` is no layout; `[tickets] layout` is \"work\" \
+                 (the default) or \"tickets\""
             )));
         }
         let definition = ticket_definition(&repo.profiles)?;
@@ -798,7 +799,7 @@ impl Store {
                 .map(|v| v.trim().to_owned())
                 .filter(|v| !v.is_empty())
                 .or_else(|| policy.layout.clone())
-                .is_some_and(|v| v == "work"),
+                .is_none_or(|v| v == "work"),
             done_test: policy
                 .done_test
                 .map(|c| c.trim().to_owned())
@@ -1089,7 +1090,10 @@ impl Store {
         let Err(at) = tickets.binary_search_by(|t| t.id().cmp(id)) else {
             return;
         };
-        let Ok(new) = self.load(&self.dir.join(id)) else {
+        // A master keeps its state in `docs/work/<id>/`, not the ticket
+        // directory: read where it is, or nothing is kept and every ticket
+        // is read again.
+        let Ok(new) = self.load(&self.state_dir(id)) else {
             return;
         };
         tickets.insert(at, new);
@@ -2413,6 +2417,59 @@ fn label_set(labels: &[String]) -> Vec<String> {
 
 /// Resolve `--part-of` to a ticket id, refusing one that is unknown or that
 /// would make `child` (when it exists) part of itself through the chain.
+/// How `part_of` names a phase of the Roadmap master: `roadmap/<phase>`.
+const ROADMAP_PHASE: &str = "roadmap/";
+
+/// `--part-of roadmap/<phase>`: that phase, when the Roadmap master
+/// (`docs/work/roadmap/roadmap.md`) declares it; else the refusal
+/// (`ticket.part-of-phase`) naming the phases it has, or saying there is no
+/// Roadmap to have them.
+fn roadmap_phase(store: &Store, query: &str) -> Result<String, Box<Outcome>> {
+    let refused = |message: String| {
+        Box::new(Outcome::refused(
+            "ticket.part-of-phase",
+            format!("{}/roadmap", crate::subject::WORK_ROOT),
+            message,
+        ))
+    };
+    let dir = store.root.join(crate::subject::WORK_ROOT).join("roadmap");
+    let file = match crate::subject::document_in(&dir, "roadmap") {
+        crate::subject::Held::One(file) => file,
+        crate::subject::Held::None => {
+            return Err(refused(format!(
+                "`--part-of {query}` names a Roadmap phase, and there is no Roadmap:                  {}/roadmap/roadmap.md declares the phases",
+                crate::subject::WORK_ROOT
+            )));
+        }
+        crate::subject::Held::Many(_) => {
+            return Err(refused(format!(
+                "`--part-of {query}`: more than one document claims to be the Roadmap;                  `war check` names them"
+            )));
+        }
+    };
+    let repo = Repository::open(store.root.clone()).map_err(|e| refused(e.to_string()))?;
+    let phases = crate::format_doc::roadmap_phases(&repo, &file).map_err(refused)?;
+    if phases.iter().any(|(id, _)| id == query) {
+        return Ok(query.to_owned());
+    }
+    let known = if phases.is_empty() {
+        "it declares none".to_owned()
+    } else {
+        format!(
+            "its phases are {}",
+            phases
+                .iter()
+                .map(|(id, title)| format!("{id} ({title})"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
+    };
+    Err(refused(format!(
+        "`--part-of {query}` is no phase of the Roadmap ({}); {known}",
+        store.rel(&file)
+    )))
+}
+
 fn parent_of(tickets: &[Ticket], query: &str, child: Option<&str>) -> Result<String, Box<Outcome>> {
     let parent = match resolve(tickets, query) {
         Ok(Target::Ticket(n)) => tickets[n].id().to_owned(),
@@ -2534,14 +2591,22 @@ fn create_with_encoding(
     }
     // An issue is looked for in every ticket; `--part-of` alone reads the
     // tickets its query can name ([`Store::load_for`]), not every one.
+    let phase = args
+        .part_of
+        .as_deref()
+        .filter(|q| q.starts_with(ROADMAP_PHASE));
     let all = match (&args.issue, args.part_of.as_deref()) {
         (Some(_), _) => store.load_all()?.0,
-        (None, Some(q)) => store.load_for(q)?.0,
-        (None, None) => Vec::new(),
+        (None, Some(q)) if phase.is_none() => store.load_for(q)?.0,
+        (None, _) => Vec::new(),
     };
-    let part_of = match args.part_of.as_deref() {
-        None => None,
-        Some(q) => match parent_of(&all, q, None) {
+    let part_of = match (phase, args.part_of.as_deref()) {
+        (_, None) => None,
+        (Some(q), _) => match roadmap_phase(store, q) {
+            Ok(p) => Some(p),
+            Err(refusal) => return Ok(*refusal),
+        },
+        (None, Some(q)) => match parent_of(&all, q, None) {
             Ok(p) => Some(p),
             Err(refusal) => return Ok(*refusal),
         },
@@ -2573,7 +2638,7 @@ fn create_with_encoding(
     // New work is a master, `docs/work/<w-id>/<id>-<slug>.md`, its state
     // beside it (one-format.md): the id is minted and taken on the one path
     // `war plan new` starts on. `--legacy` keeps a `t-` directory ticket.
-    // That is `[tickets] layout = "work"`; without it new work is one
+    // That is the default; `[tickets] layout = "tickets"` keeps new work one
     // document `<tickets>/<t-id>.md`, as before.
     let single = !legacy && !store.layout_work;
     let (dir, uuid, master) = if legacy || single {

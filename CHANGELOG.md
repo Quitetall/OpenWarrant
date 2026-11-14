@@ -8,6 +8,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Fixed
 
+- Plant 52's real-budget check no longer fails on a machine busy with other work. The
+  budget is wall-clock time and its limits are unchanged: a row within its limit passes
+  at any load, and a row over it fails when the one-minute load average stayed at or
+  under one runnable task per CPU while the budget ran. Above that it reads UNKNOWN,
+  neither failed nor passed.
+
 - Tickets kept as masters (`[tickets] layout = "work"`), where they differed from
   `docs/tickets/`:
   - A compile after a gate run no longer stales the run's receipt. The views of the
@@ -30,6 +36,12 @@ Notable changes to OpenWarrant. Format loosely follows
     view ready` opens no document (it opened none before either, after reading each
     twice to find it), and `war create` opens none where it opened each about five
     times. One listing per master directory remains, which `docs/tickets/` does not pay.
+  - `war create` in the work layout takes as long as in `docs/tickets/`: at 9,800
+    tickets (debug build) about 210 ms in each, where masters took 340 to 440 ms. What
+    follows a create (the next line, `.openwarrant/next.md`) now reuses the duplicate
+    check's reading for a master too; it read every ticket again. Listing a directory of
+    documents sorts by file name once, not by comparing whole paths: about 100 ms of the
+    Warrant list's walk of `docs/work/` at 9,800.
   - One master directory with two documents claiming its id is refused by name
     (`format.document-duplicate`) and the other tickets are still listed. It emptied
     the whole list.
@@ -66,6 +78,19 @@ Notable changes to OpenWarrant. Format loosely follows
   duplicate check made, plus the new ticket.
 
 ### Added
+
+- `war admin migrate` carries a directory ticket's tests, KPIs and milestones
+  (`atoms/30-checks.md`) into the master as `CHK-<name>` and `M-<item>` records, as
+  `war plan add` writes them into a document. It does so only when the ladder reads
+  the same parts from the document as from the atom; otherwise the ticket stays where
+  it is (`migrate.parts`), naming the first part that differs. Before, every ticket
+  with parts stayed.
+
+- `war create --part-of roadmap/<phase>` puts new work under a phase of the Roadmap
+  master (`docs/work/roadmap/roadmap.md`). A phase the Roadmap does not declare, or a
+  repository with no Roadmap, is refused (`ticket.part-of-phase`), naming the phases
+  there are. `docs/ROADMAP.md` now lists a ticket kept in `docs/tickets/` under its
+  phase too; it listed only masters there, and every other ticket as "Unphased".
 
 - `conformance/plant-layouts.sh [PLANT.sh ...]` runs the battery, or the named plant
   files, once per ticket layout (`tickets`, `work`), each in its own clone of HEAD, and
@@ -119,14 +144,13 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
-- The work layout, opt-in: with `[tickets] layout = "work"` (or
+- The work layout (now the default; see Changed): with `[tickets] layout = "work"` (or
   `OPENWARRANT_TICKET_LAYOUT=work`), `war create` writes a master,
   `docs/work/<w-id>/<id>-<slug>.md`, with its journal and check output beside
   it, and the daily commands, the shared register, the duplicate check, the
   merge driver, `done_test`, `.openwarrant/next.md` and the ticket cache read
-  it as they read a `t-` ticket. The default is unchanged
-  (`docs/tickets/<t-id>.md`) until the whole battery passes on masters. An
-  older `war` refuses a repository that sets the key. `war create` and
+  it as they read a `t-` ticket. An older `war` refuses a repository that
+  sets the key. `war create` and
   `war plan new` take their id on one path; `war plan new` now refuses a
   likely duplicate too (`--force`), and a work order another worktree holds is
   listed as elsewhere. A reopened ticket is announced again. Plants 293, 295.
@@ -274,6 +298,14 @@ Notable changes to OpenWarrant. Format loosely follows
   `war admin doctor` warns `doctor.agents-block-duplicate` until it is.
 
 ### Changed
+
+- **New work is a master in `docs/work/`.** `war create` writes
+  `docs/work/<w-id>/<id>-<slug>.md` with its journal beside it, the layout `war plan
+  new` already used. Tickets in `docs/tickets/` stay valid and are worked where they
+  are; `war admin migrate --dry-run` shows what moving them would do, and `war admin
+  migrate` moves them (ids kept). `[tickets] layout = "tickets"` (or
+  `OPENWARRANT_TICKET_LAYOUT=tickets`) keeps writing `docs/tickets/<t-id>.md`. The whole
+  plant battery passes in both layouts (`conformance/plant-layouts.sh`).
 
 - Who may answer a question follows the ladder (OW-ADR-0034, superseding OW-WAR-0069's
   human-only rule below an Order): on a Ticket or a Warrant, any actor except the

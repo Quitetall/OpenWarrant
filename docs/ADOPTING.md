@@ -40,10 +40,12 @@ war admin agents-md --block          # the block your agents read, for AGENTS.md
   Commit `openwarrant.toml` so every clone shares both.
 - `war admin agents-md --block` prints the instructions block for your
   `AGENTS.md`.
-- New work is written to `docs/tickets/`. `[tickets] layout = "work"` is an
-  opt-in that writes masters to `docs/work/` instead; `war admin migrate
-  --dry-run` then shows what moving the older tickets would do
-  ([the ticket loop](TICKETS.md), "Work on disk").
+- New work is written to `docs/work/<w-id>/` as one document per work order.
+  A repository with tickets in `docs/tickets/` keeps them, worked where they
+  are; `war admin migrate --dry-run` shows what moving them would do, and
+  `war admin migrate` does it (ids kept; anything signed, pinned or claimed
+  stays). `[tickets] layout = "tickets"` keeps writing new work to
+  `docs/tickets/` instead ([the ticket loop](TICKETS.md), "Work on disk").
 
 ## 1. Optional governed setup: record the baseline
 
