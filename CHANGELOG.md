@@ -6,6 +6,8 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.8] — 2026-11-14
+
 ### Fixed
 
 - Plant 52's real-budget check no longer fails on a machine busy with other work. The

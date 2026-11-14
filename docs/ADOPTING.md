@@ -29,23 +29,54 @@ promotion; ordinary implementation does not require that step.
 
 ### Setting it up
 
-```sh
-war init --done-test "<your test command>" --claims-remote origin
-war admin agents-md --block          # the block your agents read, for AGENTS.md
-```
+From the existing repository, with a git remote named `origin`. Every step
+below was run as written in a scratch repository on alpha.8.
 
-- `--done-test` records `[tickets] done_test`: a plain `war done` runs it and
-  finishes the work only on a pass. `--claims-remote` records `[claims]
-  remote`: claims and new work reach every clone through that git remote.
-  Commit `openwarrant.toml` so every clone shares both.
-- `war admin agents-md --block` prints the instructions block for your
-  `AGENTS.md`.
-- New work is written to `docs/work/<w-id>/` as one document per work order.
-  A repository with tickets in `docs/tickets/` keeps them, worked where they
-  are; `war admin migrate --dry-run` shows what moving them would do, and
-  `war admin migrate` does it (ids kept; anything signed, pinned or claimed
-  stays). `[tickets] layout = "tickets"` keeps writing new work to
-  `docs/tickets/` instead ([the ticket loop](TICKETS.md), "Work on disk").
+1. **Install `war`** ([INSTALL.md](INSTALL.md)):
+   `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`,
+   then check `war --version`.
+2. **Initialise, with checked completion and shared work:**
+
+   ```sh
+   war init --done-test --claims-remote origin
+   ```
+
+   `--done-test` records `[tickets] done_test`; with no command it uses the
+   test it finds (`cargo test` for a Cargo repository), or pass your own as
+   `--done-test "<command>"`. A plain `war done` runs it and finishes the work
+   only on a pass. `--claims-remote` records `[claims] remote`: claims and
+   new tickets reach every clone through that git remote. Commit
+   `openwarrant.toml` so every clone shares both.
+3. **Move existing tickets, if any are in `docs/tickets/`.** Look first, then move:
+
+   ```sh
+   war admin migrate --dry-run     # writes nothing; lists what would move
+   war admin migrate               # git mv into docs/work/, ids kept
+   ```
+
+   Tickets that are signed, pinned or claimed stay where they are and are
+   named. Old signed records stay readable in place. New work is written to
+   `docs/work/<w-id>/<w-id>-<slug>.md`; `[tickets] layout = "tickets"` keeps
+   writing it to `docs/tickets/` instead ([the ticket loop](TICKETS.md),
+   "Work on disk"). Skip this step if you have no old tickets.
+4. **Tell your agents.** `war init` already wrote `AGENTS.md`. For a repository
+   that has its own `AGENTS.md` or `CLAUDE.md`, keep only the small managed
+   block in them:
+
+   ```sh
+   war admin agents-md --block            # writes or refreshes the block in the files you have
+   war admin agents-md --block --stdout   # prints it instead
+   ```
+
+5. **MCP, for a harness without a shell** (one with a shell needs none).
+   Add the server to the harness's MCP config, for example `.mcp.json`:
+
+   ```json
+   {"mcpServers": {"openwarrant": {"command": "war", "args": ["admin", "mcp"]}}}
+   ```
+
+6. **Try it:** `war create "First tracked change" --item "..."`, `war start`,
+   `war done --note "..."`.
 
 ## 1. Optional governed setup: record the baseline
 
