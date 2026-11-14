@@ -282,111 +282,122 @@ pub(crate) fn append_parts(
     parts: &[serde_json::Value],
 ) -> Result<(), RepoError> {
     let written = super::rewrite(&t.intent_path, |text| {
-        let mut next = text.trim_end().to_owned();
-        next.push('\n');
-        let doc = openwarrant_core::format::parse(text.as_bytes());
-        let ids: Vec<_> = doc
-            .units
-            .iter()
-            .flat_map(|u| u.items.iter())
-            .filter_map(|i| i.id.as_deref())
-            .collect();
-        for part in parts {
-            let kind = part["kind"].as_str().unwrap_or_default();
-            let name = part["name"].as_str().unwrap_or("milestone");
-            if kind == "milestone" {
-                let item = part["item"].as_str().unwrap_or_default();
-                let marker = format!("M-{item}");
-                let parsed = openwarrant_core::format::parse(next.as_bytes());
-                if let Some(unit) = parsed.units.iter().find(|u| u.id == marker) {
-                    let span = &next[unit.start..unit.end];
-                    let mut lines = span.lines().map(str::to_owned).collect::<Vec<_>>();
-                    lines.retain(|line| !line.starts_with("min:"));
-                    if let Some(min) = part["min"].as_str() {
-                        lines.insert(1, format!("min: {min}"));
-                    }
-                    next.replace_range(unit.start..unit.end, &(lines.join("\n") + "\n"));
-                } else {
-                    let checklist = super::format::checklist_of(&next);
-                    let target = checklist.item(item).ok_or_else(|| {
-                        Box::new(Outcome::refused(
-                            "ticket.item-unknown",
-                            store.rel(&t.intent_path),
-                            format!("milestone item {item} is unavailable"),
-                        ))
-                    })?;
-                    let start = next
-                        .split_inclusive('\n')
-                        .take(target.line)
-                        .map(str::len)
-                        .sum::<usize>();
-                    let line = next
-                        .split_inclusive('\n')
-                        .nth(target.line)
-                        .unwrap_or_default()
-                        .to_owned();
-                    next.replace_range(start..start + line.len(), "");
-                    next.push_str(&format!("\n## {marker} · milestone — {}\n", target.text));
-                    if let Some(min) = part["min"].as_str() {
-                        next.push_str(&format!("min: {min}\n"));
-                    }
-                    next.push('\n');
-                    next.push_str(&line);
-                    if !next.ends_with('\n') {
-                        next.push('\n');
-                    }
-                }
-                continue;
-            }
-            let command = part["cmd"].as_str().unwrap_or_default();
-            if command.contains(['\r', '\n']) {
-                return Err(Box::new(Outcome::refused(
-                    "ticket.part-malformed",
-                    store.rel(&t.intent_path),
-                    "a run is one command line; put a multiline program in a script file",
-                )));
-            }
-            let triggers = part["on"].as_str().unwrap_or("done");
-            next.push_str(&format!(
-                "\n## CHK-{name} · {} — {name}\nrun: {command}\non: {triggers}\n",
-                if kind == "kpi" { "kpi" } else { "check" }
-            ));
-            if let Some(timeout) = part["timeout"].as_u64() {
-                next.push_str(&format!("timeout: {timeout}\n"));
-            }
-            if let Some(reopen) = part["reopen"].as_bool() {
-                next.push_str(&format!("reopen: {reopen}\n"));
-            }
-            let targets = part["item"]
-                .as_str()
-                .map_or_else(|| ids.clone(), |id| vec![id]);
-            next.push_str(&format!(
-                "evaluates {}\n",
-                if targets.is_empty() {
-                    t.id().to_owned()
-                } else {
-                    targets.join(", ")
-                }
-            ));
-            if kind == "kpi" {
-                for key in ["direction", "mode"] {
-                    if let Some(value) = part[key].as_str() {
-                        next.push_str(&format!("{key}: {value}\n"));
-                    }
-                }
-                if !part["target"].is_null() {
-                    next.push_str(&format!("target: {}\n", part["target"]));
-                }
-            }
-        }
-        validate(&next).map_err(|why| {
-            Box::new(Outcome::refused(
-                "ticket.part-malformed",
-                store.rel(&t.intent_path),
-                why,
-            ))
-        })?;
-        Ok((next, ()))
+        with_parts(t.id(), text, parts)
+            .map(|next| (next, ()))
+            .map_err(|(rule, why)| Box::new(Outcome::refused(rule, store.rel(&t.intent_path), why)))
     })?;
     written.map_err(|r| RepoError::Message(r.human))
+}
+
+/// The document `text` (alias `alias`) with `parts` appended as records, as
+/// `war plan add` writes them ([`append_parts`]): a test or KPI is a
+/// `CHK-<name>` record, a milestone an `M-<item>` record holding its item.
+/// A test or KPI `evaluates` its `item`, else every item the document has;
+/// a payload's own `"evaluates"` names the target instead (`war admin
+/// migrate`: a whole-Warrant part evaluates the Warrant). `Err`: the rule
+/// and why, nothing written.
+pub(crate) fn with_parts(
+    alias: &str,
+    text: &str,
+    parts: &[serde_json::Value],
+) -> Result<String, (&'static str, String)> {
+    let mut next = text.trim_end().to_owned();
+    next.push('\n');
+    let doc = openwarrant_core::format::parse(text.as_bytes());
+    let ids: Vec<_> = doc
+        .units
+        .iter()
+        .flat_map(|u| u.items.iter())
+        .filter_map(|i| i.id.as_deref())
+        .collect();
+    for part in parts {
+        let kind = part["kind"].as_str().unwrap_or_default();
+        let name = part["name"].as_str().unwrap_or("milestone");
+        if kind == "milestone" {
+            let item = part["item"].as_str().unwrap_or_default();
+            let marker = format!("M-{item}");
+            let parsed = openwarrant_core::format::parse(next.as_bytes());
+            if let Some(unit) = parsed.units.iter().find(|u| u.id == marker) {
+                let span = &next[unit.start..unit.end];
+                let mut lines = span.lines().map(str::to_owned).collect::<Vec<_>>();
+                lines.retain(|line| !line.starts_with("min:"));
+                if let Some(min) = part["min"].as_str() {
+                    lines.insert(1, format!("min: {min}"));
+                }
+                next.replace_range(unit.start..unit.end, &(lines.join("\n") + "\n"));
+            } else {
+                let checklist = super::format::checklist_of(&next);
+                let target = checklist.item(item).ok_or_else(|| {
+                    (
+                        "ticket.item-unknown",
+                        format!("milestone item {item} is unavailable"),
+                    )
+                })?;
+                let start = next
+                    .split_inclusive('\n')
+                    .take(target.line)
+                    .map(str::len)
+                    .sum::<usize>();
+                let line = next
+                    .split_inclusive('\n')
+                    .nth(target.line)
+                    .unwrap_or_default()
+                    .to_owned();
+                next.replace_range(start..start + line.len(), "");
+                next.push_str(&format!("\n## {marker} · milestone — {}\n", target.text));
+                if let Some(min) = part["min"].as_str() {
+                    next.push_str(&format!("min: {min}\n"));
+                }
+                next.push('\n');
+                next.push_str(&line);
+                if !next.ends_with('\n') {
+                    next.push('\n');
+                }
+            }
+            continue;
+        }
+        let command = part["cmd"].as_str().unwrap_or_default();
+        if command.contains(['\r', '\n']) {
+            return Err((
+                "ticket.part-malformed",
+                "a run is one command line; put a multiline program in a script file".to_owned(),
+            ));
+        }
+        let triggers = part["on"].as_str().unwrap_or("done");
+        next.push_str(&format!(
+            "\n## CHK-{name} · {} — {name}\nrun: {command}\non: {triggers}\n",
+            if kind == "kpi" { "kpi" } else { "check" }
+        ));
+        if let Some(timeout) = part["timeout"].as_u64() {
+            next.push_str(&format!("timeout: {timeout}\n"));
+        }
+        if let Some(reopen) = part["reopen"].as_bool() {
+            next.push_str(&format!("reopen: {reopen}\n"));
+        }
+        let targets = match (part["evaluates"].as_str(), part["item"].as_str()) {
+            (Some(target), _) => vec![target],
+            (None, Some(id)) => vec![id],
+            (None, None) => ids.clone(),
+        };
+        next.push_str(&format!(
+            "evaluates {}\n",
+            if targets.is_empty() {
+                alias.to_owned()
+            } else {
+                targets.join(", ")
+            }
+        ));
+        if kind == "kpi" {
+            for key in ["direction", "mode"] {
+                if let Some(value) = part[key].as_str() {
+                    next.push_str(&format!("{key}: {value}\n"));
+                }
+            }
+            if !part["target"].is_null() {
+                next.push_str(&format!("target: {}\n", part["target"]));
+            }
+        }
+    }
+    validate(&next).map_err(|why| ("ticket.part-malformed", why))?;
+    Ok(next)
 }

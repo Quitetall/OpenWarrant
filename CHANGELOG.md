@@ -79,6 +79,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `war admin migrate` carries a directory ticket's tests, KPIs and milestones
+  (`atoms/30-checks.md`) into the master as `CHK-<name>` and `M-<item>` records, as
+  `war plan add` writes them into a document. It does so only when the ladder reads
+  the same parts from the document as from the atom; otherwise the ticket stays where
+  it is (`migrate.parts`), naming the first part that differs. Before, every ticket
+  with parts stayed.
+
 - `war create --part-of roadmap/<phase>` puts new work under a phase of the Roadmap
   master (`docs/work/roadmap/roadmap.md`). A phase the Roadmap does not declare, or a
   repository with no Roadmap, is refused (`ticket.part-of-phase`), naming the phases

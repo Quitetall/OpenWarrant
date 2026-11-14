@@ -150,7 +150,9 @@ war admin migrate               # the same plan, with `git mv` so history follow
 
 A `t-xxxx.md` (or `t-xxxx/ticket.md`) moves to `docs/work/t-xxxx/t-xxxx-<slug>.md`
 with its bytes unchanged; a directory ticket is written as one document from
-its manifest, intent and checklist, as `war create` writes one. The journal
+its manifest, intent and checklist, as `war create` writes one, and the
+tests, KPIs and milestones of its checks atom (`atoms/30-checks.md`) become the
+`CHK-<name>` and `M-<item>` records `war plan add` writes into a document. The journal
 and everything else in `docs/tickets/t-xxxx/` come along. **The id is kept**:
 the store reads `docs/work/` by the frontmatter `alias`, whatever its prefix,
 so `t-xxxx` is still `t-xxxx` to every command, claim, blocker and question.
@@ -158,8 +160,9 @@ so `t-xxxx` is still `t-xxxx` to every command, claim, blocker and question.
 A ticket is left in place, and named with the reason, when it has a recorded
 act (`migrate.recorded-act`), a signed or verified tick (`migrate.signed`), a
 file a resolved Warrant pins (`migrate.pinned`), a claim that still holds
-(`migrate.claimed`), tests a directory ticket keeps in a checks atom
-(`migrate.parts`), or cannot be read. The run is deterministic, a second run
+(`migrate.claimed`), parts in a checks atom that do not read, or that the
+ladder would read differently from the document (`migrate.parts`, naming the
+first part that differs), or cannot be read. The run is deterministic, a second run
 moves nothing, and afterwards `war check` passes and the views list the same
 work in the same states. Converting another tool's format needs a drafter and
 a review, as `war plan` has; that path is not built.
