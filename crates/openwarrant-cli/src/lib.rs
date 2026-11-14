@@ -795,7 +795,8 @@ enum DailyCommand {
         /// A label; repeat for more. Refused outside a closed label set.
         #[arg(long = "label", short = 'l', value_name = "LABEL")]
         labels: Vec<String>,
-        /// The Warrant (an epic) this one is part of.
+        /// The Warrant (an epic) this one is part of, or `roadmap/<phase>`: a
+        /// phase the Roadmap (docs/work/roadmap/roadmap.md) declares.
         #[arg(long = "part-of", value_name = "WARRANT")]
         part_of: Option<String>,
         /// A path or glob this work may write; repeat for more.

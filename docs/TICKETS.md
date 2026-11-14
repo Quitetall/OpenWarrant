@@ -131,8 +131,11 @@ becomes the default once the whole plant battery passes on it:
   layout for one command, over the configuration.
 - **The Roadmap.** `war admin compile` lists every open work order in
   `docs/ROADMAP.md`. A work order stands under a phase when its `part_of`
-  names one (`part_of: roadmap/<phase>` in its frontmatter); any other, a
-  child of an epic included, is listed under "Unphased". `war create` writes
+  names one (`part_of: roadmap/<phase>` in its frontmatter, which `war create
+  --part-of roadmap/<phase>` writes after checking that the Roadmap master,
+  `docs/work/roadmap/roadmap.md`, declares the phase); any other, a child of
+  an epic included, is listed under "Unphased". A ticket in `docs/tickets/`
+  stands under its phase as a master does. `war create` writes
   no view: the views are compiled on the default branch.
 
 ### Moving older tickets

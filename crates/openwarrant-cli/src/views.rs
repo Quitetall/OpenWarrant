@@ -163,8 +163,13 @@ pub fn compiled(corpus: &Corpus) -> Vec<(Utf8PathBuf, String)> {
             phases.push((format!("roadmap/{}", u.id), u.title.clone()));
         }
     }
-    let phase_of: BTreeMap<&str, String> = masters
+    // Each work order's phase, wherever the work order is kept: a ticket in
+    // `docs/tickets/` names its phase as a master does.
+    let phase_of: BTreeMap<&str, String> = corpus
+        .format_docs()
+        .docs
         .iter()
+        .filter(|d| d.admitted())
         .filter_map(|d| {
             let id = d.doc.alias.as_deref()?;
             let phase =

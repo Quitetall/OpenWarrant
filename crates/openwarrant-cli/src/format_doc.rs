@@ -630,6 +630,34 @@ fn work_document(
     })
 }
 
+/// The phases of the Roadmap master `file` (`docs/work/roadmap/roadmap.md`),
+/// each `roadmap/<id>` and its title, in the Roadmap's order: the ids a work
+/// order's `part_of` names a phase by (`crate::views`). `Err` says why the
+/// Roadmap cannot be read as one.
+pub(crate) fn roadmap_phases(
+    repo: &Repository,
+    file: &Utf8Path,
+) -> Result<Vec<(String, String)>, String> {
+    let loaded = work_document(repo, Place::Warrant, "roadmap", file, &profiles(repo))
+        .map_err(|f| f.message)?;
+    if !loaded.admitted() {
+        let why = loaded
+            .doc
+            .findings
+            .iter()
+            .find(|f| f.outcome == Outcome::Refusal)
+            .map_or_else(|| "it does not read".to_owned(), |f| f.message.clone());
+        return Err(format!("{} is not admitted: {why}", loaded.source));
+    }
+    Ok(loaded
+        .doc
+        .units
+        .iter()
+        .filter(|u| u.record_type == "phase")
+        .map(|u| (format!("roadmap/{}", u.id), u.title.clone()))
+        .collect())
+}
+
 /// The single-file tickets `files` (alias and `<tickets>/<alias>.md`) alone,
 /// each read as [`load`] reads it among every document, under the
 /// repository's profiles; with none, the profiles and no document.

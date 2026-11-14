@@ -73,6 +73,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- `war create --part-of roadmap/<phase>` puts new work under a phase of the Roadmap
+  master (`docs/work/roadmap/roadmap.md`). A phase the Roadmap does not declare, or a
+  repository with no Roadmap, is refused (`ticket.part-of-phase`), naming the phases
+  there are. `docs/ROADMAP.md` now lists a ticket kept in `docs/tickets/` under its
+  phase too; it listed only masters there, and every other ticket as "Unphased".
+
 - `conformance/plant-layouts.sh [PLANT.sh ...]` runs the battery, or the named plant
   files, once per ticket layout (`tickets`, `work`), each in its own clone of HEAD, and
   reports per layout. `conformance/plant.sh --layout <layout>` (`OW_PLANT_LAYOUT`) runs
