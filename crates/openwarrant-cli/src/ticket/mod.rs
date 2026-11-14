@@ -505,8 +505,9 @@ pub struct Store {
     pub done_test: Option<String>,
     /// `[tickets] done_test_timeout`, in seconds.
     pub done_test_timeout: Option<u64>,
-    /// `[tickets] layout = "work"` (or [`LAYOUT_ENV`]): `war create` writes
-    /// masters in `docs/work/`.
+    /// `[tickets] layout` (or [`LAYOUT_ENV`]), `work` unless it says
+    /// `tickets`: `war create` writes masters in `docs/work/`, else one
+    /// document `<tickets>/<t-id>.md`.
     pub layout_work: bool,
 }
 
@@ -728,8 +729,8 @@ impl Store {
             && !matches!(layout, "tickets" | "work")
         {
             return Err(RepoError::Message(format!(
-                "tickets.layout: `{layout}` is no layout; `[tickets] layout` is \"tickets\" \
-                 (the default) or \"work\""
+                "tickets.layout: `{layout}` is no layout; `[tickets] layout` is \"work\" \
+                 (the default) or \"tickets\""
             )));
         }
         let definition = ticket_definition(&repo.profiles)?;
@@ -798,7 +799,7 @@ impl Store {
                 .map(|v| v.trim().to_owned())
                 .filter(|v| !v.is_empty())
                 .or_else(|| policy.layout.clone())
-                .is_some_and(|v| v == "work"),
+                .is_none_or(|v| v == "work"),
             done_test: policy
                 .done_test
                 .map(|c| c.trim().to_owned())
@@ -2637,7 +2638,7 @@ fn create_with_encoding(
     // New work is a master, `docs/work/<w-id>/<id>-<slug>.md`, its state
     // beside it (one-format.md): the id is minted and taken on the one path
     // `war plan new` starts on. `--legacy` keeps a `t-` directory ticket.
-    // That is `[tickets] layout = "work"`; without it new work is one
+    // That is the default; `[tickets] layout = "tickets"` keeps new work one
     // document `<tickets>/<t-id>.md`, as before.
     let single = !legacy && !store.layout_work;
     let (dir, uuid, master) = if legacy || single {

@@ -144,14 +144,13 @@ Notable changes to OpenWarrant. Format loosely follows
   (`docs/ROADMAP.md`) and the closed ones (`docs/HISTORY.md`), numbered from
   `docs/generated/numbers.tsv` or shown by id. Nothing is written for a
   repository without masters. `conformance/views.toml` lists `docs/pages/**`.
-- The work layout, opt-in: with `[tickets] layout = "work"` (or
+- The work layout (now the default; see Changed): with `[tickets] layout = "work"` (or
   `OPENWARRANT_TICKET_LAYOUT=work`), `war create` writes a master,
   `docs/work/<w-id>/<id>-<slug>.md`, with its journal and check output beside
   it, and the daily commands, the shared register, the duplicate check, the
   merge driver, `done_test`, `.openwarrant/next.md` and the ticket cache read
-  it as they read a `t-` ticket. The default is unchanged
-  (`docs/tickets/<t-id>.md`) until the whole battery passes on masters. An
-  older `war` refuses a repository that sets the key. `war create` and
+  it as they read a `t-` ticket. An older `war` refuses a repository that
+  sets the key. `war create` and
   `war plan new` take their id on one path; `war plan new` now refuses a
   likely duplicate too (`--force`), and a work order another worktree holds is
   listed as elsewhere. A reopened ticket is announced again. Plants 293, 295.
@@ -299,6 +298,14 @@ Notable changes to OpenWarrant. Format loosely follows
   `war admin doctor` warns `doctor.agents-block-duplicate` until it is.
 
 ### Changed
+
+- **New work is a master in `docs/work/`.** `war create` writes
+  `docs/work/<w-id>/<id>-<slug>.md` with its journal beside it, the layout `war plan
+  new` already used. Tickets in `docs/tickets/` stay valid and are worked where they
+  are; `war admin migrate --dry-run` shows what moving them would do, and `war admin
+  migrate` moves them (ids kept). `[tickets] layout = "tickets"` (or
+  `OPENWARRANT_TICKET_LAYOUT=tickets`) keeps writing `docs/tickets/<t-id>.md`. The whole
+  plant battery passes in both layouts (`conformance/plant-layouts.sh`).
 
 - Who may answer a question follows the ladder (OW-ADR-0034, superseding OW-WAR-0069's
   human-only rule below an Order): on a Ticket or a Warrant, any actor except the

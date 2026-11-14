@@ -106,20 +106,18 @@ and check execution perform their documented additional work.
 
 ## Work on disk
 
-New work is `docs/tickets/t-xxxx.md`: metadata, description, checklist and
-optional typed records in one document. Its append-only journal lives beside
-it under `docs/tickets/t-xxxx/journal.jsonl`. A title is enough to start;
-`war plan add` adds items or checks to that same source.
+New work is a master, `docs/work/w-xxxx/w-xxxx-<slug>.md` (`profile:
+ticket`): metadata, description, checklist and optional typed records in one
+document, with its append-only journal and check output beside it in
+`docs/work/w-xxxx/`, where `war plan new` writes its work orders, by the same
+path: one id per clone, registered for every worktree, and a title that reads
+as open work's is refused for both (`--force` creates anyway). A title is
+enough to start; `war plan add` adds items or checks to that same source.
 
-**The work layout (opt-in).** With `[tickets] layout = "work"` in
-`openwarrant.toml`, `war create` writes a master instead,
-`docs/work/w-xxxx/w-xxxx-<slug>.md` (`profile: ticket`), with its journal and
-check output beside it in `docs/work/w-xxxx/`, where `war plan new` already
-writes its work orders, by the same path: one id per clone, registered for
-every worktree, and a title that reads as open work's is refused for both
-(`--force` creates anyway). Every daily command reads either layout. It
-becomes the default once the whole plant battery passes on it:
-`conformance/plant-layouts.sh` runs every plant once per layout.
+**The older layout.** `[tickets] layout = "tickets"` in `openwarrant.toml`
+keeps `war create` writing `docs/tickets/t-xxxx.md`, its journal under
+`docs/tickets/t-xxxx/`. Every daily command reads either layout, and
+`conformance/plant-layouts.sh` runs every plant once in each.
 
 - **The id is identity.** `w-` and the hash of a fresh UUID. The slug is the
   title's, in the file name only, and cosmetic: rename the file and every
@@ -140,8 +138,9 @@ becomes the default once the whole plant battery passes on it:
 
 ### Moving older tickets
 
-`war admin migrate` moves the tickets kept outside `docs/work/` into it. It
-is for a repository that chose the work layout; nothing requires it:
+`war admin migrate` moves the tickets kept outside `docs/work/` into it, so a
+repository's work is in one place. Nothing requires it: older tickets are
+worked where they are.
 
 ```sh
 war admin migrate --dry-run     # every move, and every ticket that stays and why; nothing written
@@ -854,7 +853,7 @@ All optional, in `openwarrant.toml`:
 ```toml
 [tickets]
 dir = "docs/tickets"                        # where tickets live
-layout = "tickets"                          # "work": `war create` writes masters in docs/work/ (opt-in)
+layout = "work"                             # the default; "tickets": `war create` writes docs/tickets/<t-id>.md
 claims_dir = "/srv/war/claims"              # unset: shared by every worktree, under git's common dir
 compact_after_days = 7                      # done tickets older than this are one line in `war view prime`
 session_start = true                        # the plugin's hooks show the agent its held Warrant, the overview, or the ticket a prompt names; false: nothing
