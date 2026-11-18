@@ -10,6 +10,12 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Changed
 
+- `war status --verbose` (and the corpus status page it renders) gives the exit sentence
+  only of Objectives with work in flight: not yet achieved, with a Warrant short of
+  resolved. The rest are counted and pointed at `war plan roadmap`; the JSON still carries
+  every `exit_criterion`. It repeated every phase's exit, which is the roadmap's text.
+  `corpus_status.rs` is pinned by OW-WAR-0055 D-002 and OW-WAR-0057 D-001: the correction
+  requests a person signs are emitted, not signed.
 - `war context <work item>` gives by default the work, the records it links (requirements,
   constraints, decisions, obligations) and its parent's intent: the `agent.min` preset,
   now depth 2 with the step `parent-intent` and a 16000-byte budget. Completed sibling

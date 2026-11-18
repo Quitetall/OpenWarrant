@@ -114,14 +114,34 @@ pub fn render_markdown(status: &CorpusStatus) -> String {
         );
     }
     out.push('\n');
-    for o in status
+    // The exit sentence of each Objective with work in flight: one not yet
+    // achieved that has a Warrant short of resolved. The others' sentences
+    // are the roadmap's text, and repeating all of them here made the page
+    // mostly roadmap (alpha.7 field report); the JSON keeps every one.
+    let in_flight = |o: &openwarrant_core::status::ObjectiveStatus| {
+        let l = &o.ladder;
+        !matches!(o.achieved, Achieved::Recorded)
+            && l.invalid + l.draft + l.ready_to_resolve + l.would_satisfy > 0
+    };
+    let with_exit: Vec<_> = status
         .objectives
         .iter()
-        .filter(|o| o.exit_criterion.is_some())
-    {
+        .filter(|o| o.roadmap_ref.is_some() && o.exit_criterion.is_some())
+        .collect();
+    let mut shown = 0;
+    for o in with_exit.iter().filter(|o| in_flight(o)) {
         if let (Some(r), Some(e)) = (&o.roadmap_ref, &o.exit_criterion) {
             let _ = writeln!(out, "- **{}** exit: {e}", r.canonical());
+            shown += 1;
         }
+    }
+    let rest = with_exit.len() - shown;
+    if rest > 0 {
+        let _ = writeln!(
+            out,
+            "- The exit of {rest} other Objective{} (achieved, or no Warrant in flight): `war plan roadmap`.",
+            if rest == 1 { "" } else { "s" }
+        );
     }
     out.push('\n');
 
@@ -422,6 +442,40 @@ mod tests {
         let banner = html.find("class=\"banner\"").expect("banner");
         let title = html.find("<h1>").expect("title");
         assert!(banner < title, "banner must precede the title");
+    }
+
+    /// alpha.7 field report: `war status --verbose` repeated every phase's
+    /// exit sentence. Only an Objective with work in flight gives its own;
+    /// the rest are counted and pointed at the roadmap.
+    #[test]
+    fn only_objectives_in_flight_repeat_their_exit_sentence() {
+        let json = std::fs::read_to_string(
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("../../docs/warrants/generated/CORPUS_STATUS.json"),
+        )
+        .expect("committed projection");
+        let mut status: openwarrant_core::status::CorpusStatus =
+            serde_json::from_str(&json).expect("parses");
+        let objectives = status.objectives.clone();
+        let mut quiet = objectives[0].clone();
+        quiet.exit_criterion = Some("QUIET-EXIT".into());
+        quiet.ladder = openwarrant_core::status::WarrantLadder::default();
+        quiet.achieved = Achieved::NotDerivable { why: "none".into() };
+        let mut busy = quiet.clone();
+        busy.exit_criterion = Some("BUSY-EXIT".into());
+        busy.ladder.draft = 1;
+        let mut done = busy.clone();
+        done.exit_criterion = Some("DONE-EXIT".into());
+        done.achieved = Achieved::Recorded;
+        status.objectives = vec![quiet, busy, done];
+        let md = render_markdown(&status);
+        assert!(md.contains("exit: BUSY-EXIT"), "{md}");
+        // The refusal: no Warrant in flight, or achieved, gives no sentence.
+        assert!(
+            !md.contains("QUIET-EXIT") && !md.contains("DONE-EXIT"),
+            "{md}"
+        );
+        assert!(md.contains("The exit of 2 other Objectives"), "{md}");
     }
 
     /// OW-WAR-0058 OBL-005 — every committed WAR.json carries the SAS pin.
