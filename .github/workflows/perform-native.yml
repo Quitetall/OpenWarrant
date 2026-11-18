@@ -2,6 +2,9 @@ name: Native performer controls
 
 on:
   workflow_dispatch:
+  # Weekly, Monday 06:00 UTC, on the default branch. The job uses no secrets.
+  schedule:
+    - cron: '0 6 * * 1'
   pull_request:
     paths:
       - '.github/workflows/perform-native.yml'
