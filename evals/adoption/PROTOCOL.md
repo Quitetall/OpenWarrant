@@ -1165,3 +1165,50 @@ with `done_test` on `next` only and the hard budget recorded; alpha.7's plugin r
 42 tools, `919add881`'s 7. (`next`'s `.mcp.json` names `war admin mcp`, alpha.7's `war mcp`;
 the harness registers `war mcp` for both, and both spellings serve the same tools on both
 builds.)
+
+### Setup note to amendment 8 (2026-11-18): the Claude Code cells, `cc-a8-1`, against the published alpha.8
+
+Written and pushed before the run it describes. The owner approved the Claude Code cells on
+2026-11-18, capped at USD 28.60, and directed that `@next` be the published alpha.8.
+
+**`next` is the published release `v1.0.0-alpha.8`** (prerelease, published 2026-11-18T07:14Z,
+tag at `474628a7c4f20ca83ad0f0822c3be85da51837db`). Its linux asset
+`openwarrant-v1.0.0-alpha.8-linux-x86_64.tar.gz` was downloaded from the release and checked
+against the release's own `.sha256` (`ccfa1ee5d488e325f03a0a18ad3e70708992cfef8c88ba69417e406119e94d25`),
+then unpacked to `/mnt/4tb/tmp/openwarrant-adoption/tools/war-a8-474628a7c/pkg/`. Its `bin/war`
+reports `war 1.0.0-alpha.8`, sha256
+`41d6021ebaddf710ea4d0c8fe3c1fb87f4fb8b654f799bc451c05b6f17fedab7`, as the bundle's
+`MANIFEST.json` records. `ADOPTION_WAR_NEXT` names it; `ADOPTION_OW_PLUGIN_REF_NEXT` is
+`474628a7c` (the plugin `.claude-plugin/plugin.json` at that commit says `1.0.0-alpha.8`). The
+`~/.local/lib/openwarrant/1.0.0-alpha.8` install was **not** used: it is a local draft build
+of `37b9c382b` (its `MANIFEST.json` says so; it reports `unreleased, commit 37b9c382b903`), two
+commits short of the tag. alpha.7 is unchanged from earlier runs (sha256 `1200b197…3722`,
+plugin `v1.0.0-alpha.7`).
+
+**Checked on it, no model.** `run.py a8-check`: 28 passed, 1 skipped (the opencode brief arm's
+model check, which this run has no cell of), 0 failed; in particular alpha.8 reads `[tickets]
+done_test`, records the reference solution done at `observed`, and refuses `war done` over a
+failing visible suite. Its `war mcp` and `war admin mcp` serve the same 7 tools (`war_check`,
+`war_context`, `war_create`, `war_done`, `war_note`, `war_start`, `war_status`); alpha.7's
+serves 42, as before. A fixture dry run of tally T8 on both arms under `--session-budget-usd
+0.65 --budget-usd 28.60` passed both, with `done_test` (`python3 -m pytest -q`) on `next` only.
+
+**The run.** `plans/cc-a8-directed.json` as amendment 8 fixed it: the 22 directed items on
+`openwarrant@a7` and `openwarrant@next`, 44 cells, Claude Code 2.1.301, `claude-sonnet-5-5`, 25
+turns, `--jobs 2`, `--session-budget-usd 0.65 --budget-usd 28.60`, `ADOPTION_OW_DONE_TEST` on,
+`ADOPTION_AUTH=api` (the auth of every earlier Claude Code run in the keep store), run root in
+`/dev/shm`, one `systemd-run --user` unit. One cell of the plan (tally T8 on `openwarrant@next`)
+runs first on its own under the same run id and flags, to see the arm resolve and its cost
+reported; the full plan then resumes the run, which counts that cell's cost against the same
+USD 28.60 (`Purse.settle` of a cell already done). The one-cell plan's `run.json` and
+`plan.json` in the keep store are kept as `probe-run.json` and `probe-plan.json`.
+
+**Reported, not a measure** (`run.py close-lag`, written before the run): alpha.8 tells the
+agent to close a ticket at its first passing test run, before docs or lint polish (`cf6b8010b`).
+For each directed cell, the assistant turn of the first passing test run (a Bash call naming
+`pytest` or `cargo test` whose output shows a pass line and no failure line), the turn of the
+first `war done` (shell or MCP), and the difference, by arm. Only a pass at or before that `war
+done` counts. Agents often filter test output (`| grep FAILED`), which hides the pass line, so a
+cell whose pass was not seen has no lag rather than a guessed one, and the table says how many
+cells each figure rests on. On `rem-c5`'s 11 Claude Code cells it found the pass in 6. No win rule
+reads it.

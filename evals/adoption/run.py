@@ -2253,6 +2253,92 @@ def cmd_spec_check(args) -> None:
     raise SystemExit(1 if bad else 0)
 
 
+# Setup note to amendment 8 for `cc-a8-1`: turns from the first passing test run to `war done`,
+# reported (not a measure, no win rule), to see alpha.8's "close at the first passing test" wording.
+_TEST_CMD = re.compile(r"\bpytest\b|\bcargo\s+(?:\+\S+\s+)?test\b")
+_TEST_FAIL = re.compile(r"\b[1-9]\d* failed\b|\b[1-9]\d* errors?\b|test result: FAILED|error(?:\[E\d+\])?:|"
+                        r"could not compile|FAILED\b|Traceback \(most recent call last\)")
+_TEST_PASS = re.compile(r"\b\d+ passed\b|test result: ok\.")
+_DONE_CMD = re.compile(r"(?:^|[\s;&|(])war\s+done\b")
+
+
+def close_lag(stream: Path) -> dict:
+    """In one Claude Code transcript: the assistant turn (distinct message, as `parse_stream` counts)
+    of the first passing test run, of the first `war done` (shell or MCP), and how far apart they are.
+    A test run is a Bash call naming `pytest` or `cargo test`; it passed when its output shows a pass
+    line and no failure line and the call was not an error. A heuristic over output that an agent may
+    have cut (`| tail`): a session whose pass was not seen is `pass_turn: None`, never a guess."""
+    turn, seen, calls = -1, set(), {}
+    first_pass = first_done = None
+    test_runs_before_done = 0
+    if not stream.exists():
+        return {"error": "no transcript"}
+    for line in stream.read_text(errors="replace").splitlines():
+        try:
+            ev = json.loads(line)
+        except ValueError:
+            continue
+        if ev.get("type") == "assistant":
+            m = ev.get("message", {})
+            if m.get("id") not in seen:
+                seen.add(m.get("id"))
+                turn += 1
+            for b in m.get("content", []):
+                if b.get("type") != "tool_use":
+                    continue
+                name, inp = b.get("name", ""), b.get("input", {}) or {}
+                cmd = str(inp.get("command", "")) if name == "Bash" else ""
+                is_test = bool(_TEST_CMD.search(cmd))
+                is_done = bool(_DONE_CMD.search(cmd)) or name.endswith("war_done")
+                calls[b.get("id")] = (turn, is_test)
+                if is_test and first_done is None:
+                    test_runs_before_done += 1
+                if is_done and first_done is None:
+                    first_done = turn
+        elif ev.get("type") == "user":
+            content = ev.get("message", {}).get("content")
+            for b in content if isinstance(content, list) else []:
+                if b.get("type") != "tool_result" or b.get("tool_use_id") not in calls:
+                    continue
+                t, is_test = calls[b["tool_use_id"]]
+                if not is_test or first_pass is not None or (first_done is not None and t > first_done):
+                    continue   # only a pass at or before the first `war done` counts
+                c = b.get("content")
+                text = c if isinstance(c, str) else " ".join(str(x.get("text", "")) for x in c or []
+                                                           if isinstance(x, dict))
+                if not b.get("is_error") and _TEST_PASS.search(text) and not _TEST_FAIL.search(text):
+                    first_pass = t
+    return {"pass_turn": first_pass, "done_turn": first_done,
+            "lag": (first_done - first_pass) if first_pass is not None and first_done is not None else None,
+            "test_runs_before_done": test_runs_before_done if first_done is not None else None,
+            "turns": turn + 1}
+
+
+def cmd_close_lag(args) -> None:
+    rows: dict[str, list] = {}
+    for res in sorted((KEEP / args.run_id).rglob("result.json")):
+        r = json.loads(res.read_text())
+        if r["cell"]["scenario"] != "directed":
+            continue
+        cl = close_lag(res.parent / "s01" / "stream.jsonl")
+        cl.update(item=r["cell"]["item"], success=r.get("success"), recorded=r.get("tracker_says_done"))
+        rows.setdefault(r["cell"]["arm"], []).append(cl)
+    out = {}
+    print(f"# Turns from the first passing test run to `war done`, {args.run_id} (reported, not a measure)\n")
+    print("| arm | cells | `war done` called | first pass seen | both | lag median | lag mean | lag 0 | lag ≥ 3 "
+          "| test runs before done, median |")
+    print("|---|---|---|---|---|---|---|---|---|---|")
+    for arm, cs in sorted(rows.items()):
+        lags = [c["lag"] for c in cs if c.get("lag") is not None]
+        trs = [c["test_runs_before_done"] for c in cs if c.get("test_runs_before_done") is not None]
+        out[arm] = {"cells": cs, "lags": lags}
+        print(f"| `{arm}` | {len(cs)} | {sum(c.get('done_turn') is not None for c in cs)} "
+              f"| {sum(c.get('pass_turn') is not None for c in cs)} | {len(lags)} "
+              f"| {median(lags) if lags else '-'} | {round(sum(lags) / len(lags), 2) if lags else '-'} "
+              f"| {sum(x == 0 for x in lags)} | {sum(x >= 3 for x in lags)} | {median(trs) if trs else '-'} |")
+    (KEEP / args.run_id / "close-lag.json").write_text(json.dumps(out, indent=1))
+
+
 def cmd_report(args) -> None:
     root = KEEP / args.run_id
     results = [json.loads(p.read_text()) for p in sorted(root.rglob("result.json"))]
@@ -2484,6 +2570,8 @@ def main() -> None:
                     help="an item of a run left out for every arm: a harness error (amendment 5's rule)")
     a8 = sub.add_parser("a8-check", help="amendment 8's checks, no model"); a8.add_argument("--run-id", required=True)
     # inside the sandbox only
+    cl = sub.add_parser("close-lag", help="turns from the first passing test run to `war done`, from kept transcripts")
+    cl.add_argument("run_id")
     g = sub.add_parser("_grade"); g.add_argument("repo")
     t = sub.add_parser("_tracker"); t.add_argument("repo"); t.add_argument("arm")
     an = sub.add_parser("_answers"); an.add_argument("repo"); an.add_argument("arm")
@@ -2541,6 +2629,8 @@ def main() -> None:
         cmd_pool(args)
     elif args.cmd == "a8-check":
         cmd_a8_check(args)
+    elif args.cmd == "close-lag":
+        cmd_close_lag(args)
     elif args.cmd == "_grade":
         print(json.dumps(_inside_grade(args.repo)))
     elif args.cmd == "_answers":
