@@ -6,18 +6,17 @@ role: adr
 jurisdiction: bound
 order: 30
 classification: internal
-status: proposed
+status: accepted
 ---
 
 # ADR OW-0035: Format 1.0 revision 4: masters in docs/work, hash ids, one ladder
 
 ## Status
 
-Proposed. The owner approved these amendments on 2026-11-07 as the direction for
-FORMAT-1.0 revision 4. A performer drafted the text and this record. Under
-`docs/format/GOVERNANCE.md` the editor accepts or rejects it: this record's `status`
-becomes `accepted`, with a dated line here, when the editor does so. Until then the
-revision is proposed, and FORMAT-1.0 as a whole stays a draft either way.
+Accepted 2026-11-18 by the repository owner, as editor and decider, after the 7-day
+review `docs/format/GOVERNANCE.md` requires. The owner approved these amendments on
+2026-11-07 as the direction for FORMAT-1.0 revision 4; a performer drafted the text and
+this record. FORMAT-1.0 as a whole stays a draft.
 
 ## Context
 

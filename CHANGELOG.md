@@ -6,6 +6,11 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Changed
+
+- FORMAT-1.0 revision 4 (OW-ADR-0035: masters, the ladder, `w-` and `d-` ids) is accepted,
+  after its 7-day review. alpha.8 shipped it as proposed.
+
 ## [1.0.0-alpha.8] — 2026-11-14
 
 ### Changed

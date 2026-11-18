@@ -101,7 +101,7 @@ because their inputs are atom operations and atom templates.
 
 ## Normative text
 
-FORMAT-1.0 revision 4 (OW-ADR-0035, proposed until the editor accepts it) writes
+FORMAT-1.0 revision 4 (OW-ADR-0035, accepted 2026-11-18) writes
 what this design needed: §5's `w-`, `d-` and fixed ids, slugs and display
 ordinals; §4.1 and §4.3's masters, state directories and views; C.3's contract
 digest beside the subject digest; §4.1's split masters; and §4.6's ladder. A
