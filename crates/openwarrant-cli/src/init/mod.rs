@@ -1111,6 +1111,23 @@ pub fn write_agents_md(root: &Utf8Path, namespace: &str, force: bool) -> Result<
 mod tests {
     use super::*;
 
+    /// The release install check (`conformance/release/install_check.py`)
+    /// requires each of these lines in the AGENTS.md `war init` writes. A
+    /// template edit that drops one fails here instead of in a release build.
+    #[test]
+    fn template_keeps_the_lines_the_release_check_requires() {
+        let lines = include_str!("../../../../conformance/release/guidance-lines.txt");
+        for line in lines
+            .lines()
+            .filter(|l| !l.is_empty() && !l.starts_with('#'))
+        {
+            assert!(
+                AGENTS_MD_TEMPLATE.contains(line),
+                "AGENTS.md.tmpl lost {line:?}, which conformance/release/guidance-lines.txt requires"
+            );
+        }
+    }
+
     fn scratch(label: &str) -> Utf8PathBuf {
         let mut path = Utf8PathBuf::from_path_buf(std::env::temp_dir()).expect("temp dir is utf-8");
         path.push(format!("openwarrant-init-{label}-{}", std::process::id()));

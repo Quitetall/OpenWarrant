@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# Lines the AGENTS.md written by `war init` must contain: install_check.py
+# requires them in a release build, and a unit test of `war init` in fast CI.
+Ordinary coding needs no Warrant
+Workers finish their portion without signing
