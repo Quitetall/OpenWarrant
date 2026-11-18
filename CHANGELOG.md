@@ -6,6 +6,8 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+## [1.0.0-alpha.8] — 2026-11-14
+
 ### Changed
 
 - `war context <work item>` gives by default the work, the records it links (requirements,

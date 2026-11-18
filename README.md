@@ -60,7 +60,7 @@ document `war admin compile` writes from the records, current by construction
 [Build the CLI](#build-the-current-cli) ·
 [Contribute](CONTRIBUTING.md)
 
-> **Under development.** Alpha.7 is the published prerelease.
+> **Under development.** Alpha.8 is the published prerelease.
 > [OW-ADR-0032](docs/adr/atoms/OW-ADR-0032-format-1-0-is-the-standard.md)
 > records the owner's accepted direction. Adoption of the current
 > [Format 1.0 text revision](docs/format/FORMAT-1.0.md) is a separate act;
