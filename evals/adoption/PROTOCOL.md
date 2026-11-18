@@ -1212,3 +1212,64 @@ done` counts. Agents often filter test output (`| grep FAILED`), which hides the
 cell whose pass was not seen has no lag rather than a guessed one, and the table says how many
 cells each figure rests on. On `rem-c5`'s 11 Claude Code cells it found the pass in 6. No win rule
 reads it.
+
+### Results of amendment 8: `cc-a8-1`, the Claude Code cells
+
+Run 2026-11-18, 02:27 to about 02:55, on harness commit `b54ca2c05` (clean), as its setup
+note describes: the 44 cells of `plans/cc-a8-directed.json`, `next` the published
+`v1.0.0-alpha.8` (sha256 `41d6021e…dab7`, plugin `474628a7c`). The probe cell (tally T8 on
+`openwarrant@next`) ran first on its own: the API refused its first attempt before any turn
+(the key needs `ADOPTION_WORKSPACE_ID`, which every earlier API run set and the first launch
+script lacked; nothing was charged or kept), and with the header it passed, recorded done, at USD
+0.085, with the alpha.8 plugin loaded and `war mcp` connected (7 tools). The full plan then ran
+the other 43. No harness error: all 44 sessions ended `success`, none at its turn cap or its
+USD 0.65 cap (the dearest was USD 0.26), every grade ran; nothing was rerun or excluded. From
+`run.py report cc-a8-1`:
+
+| arm | directed passed | false completions | passed, not recorded done | turns per session | ktokens per session | median ktokens per cell | median turns before first edit | USD |
+|---|---|---|---|---|---|---|---|---|
+| `openwarrant@a7` | 22 of 22 | 0 | 0 | 10.5 | 302.2 | 265.2 | 3.0 | 3.14 |
+| `openwarrant@next` | 22 of 22 | 0 | 0 | 8.2 | 214.5 | 189.2 | 3.0 | 2.47 |
+
+**`openwarrant@next` against `openwarrant@a7`, by the rule:** false completions 0 and 0; passes
+22 and 22, a tie; paired token ratio **0.702, −29.8%, 95% interval −39.5% to −18.5%** over 22
+pairs. The whole interval is below 1.0: **alpha.8 wins on tokens.** (Amendment 5's step: medians
+189,234 against 265,152, −28.6%, the same verdict.) One replicate; Claude Code runs are not
+pooled with the opencode runs (amendment 2).
+
+**Spent: USD 5.61** of the USD 28.60 cap (Claude Code's reported `total_cost_usd`, over the API,
+probe included): 3.14 on alpha.7, 2.47 on alpha.8. The plan expected 6.86.
+
+**`done_test` caught one.** In knightlm K4 on `@next`, `war done` ran the default test over a
+failing visible suite (`test result: FAILED. 23 passed; 1 failed`) and refused (`ticket.check-failed`,
+"Nothing was ticked"); the agent fixed the failure and closed the ticket, and the cell passed.
+The first refusal in the study: none in the 131 opencode `@next` cells. All 22 `@next` tickets
+were ticked at `observed`, all 22 alpha.7 tickets as claimed. No session in either arm called
+`war_done` over MCP; every close was the shell `war done`.
+
+**Turns from the first passing test run to `war done`** (`run.py close-lag cc-a8-1`, as
+pre-registered; reported, not a measure):
+
+| arm | cells | `war done` called | first pass seen | lag median | lag mean | lag 0 | lag ≥ 3 | test runs before done, median |
+|---|---|---|---|---|---|---|---|---|
+| `openwarrant@a7` | 22 | 22 | 21 | 1 | 1.33 | 9 | 5 | 2.0 |
+| `openwarrant@next` | 22 | 22 | 15 | 1 | 0.6 | 6 | 0 | 1.0 |
+
+The pre-registered pass rule misses passes it should see: a command that ran the CLI and then
+the suite (`…; python3 -m pytest -q | tail -3`) printed the CLI's own `error:` line beside `41
+passed`, and the failure pattern read that as a failing run (T2 and T5 on `@next`). **Post hoc**,
+written after the figures above were seen, with failure read only from the test summary
+(`N failed` with N > 0, `N errors in`, `test result: FAILED`, `could not compile`): alpha.7 21
+cells seen, median 1, mean 1.43, 8 at 0, 5 at 3 or more; alpha.8 19 seen, median 1, mean 0.84, 5
+at 0, 1 at 3 or more. On either rule the medians are equal (1) and alpha.8 has fewer long tails
+and fewer test runs before `war done`, consistent with the close-at-first-pass wording; on 22
+cells and a heuristic that sees 15 to 21 of them, that is suggestive, not established.
+
+**Seen in passing, not a measure:** on alpha.8, `war done` prints `usage: UNKNOWN (no Claude Code
+transcript for this session (CLAUDE_CONFIG_DIR, else ~/.claude))` in all 22 `@next` sessions: the
+harness runs Claude Code with `--no-session-persistence`, so the usage readout finds no
+transcript. It changes nothing graded.
+
+Evidence: `/mnt/4tb/artifacts/OpenWarrant/keep/adoption/cc-a8-1/` (`REPORT.md`, `results.json`,
+`close-lag.json`, `run.json`, `plan.json`, `probe-run.json`, `probe-plan.json`, both launch
+scripts and logs, every cell's transcript, grade, tracker reading and bundle).
