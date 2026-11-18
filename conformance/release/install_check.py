@@ -11,6 +11,8 @@ import io
 import json
 from pathlib import Path, PurePosixPath
 import subprocess
+
+GUIDANCE_LINES=[l for l in (Path(__file__).resolve().parent/'guidance-lines.txt').read_text().splitlines() if l and not l.startswith('#')]
 import tarfile
 import tempfile
 import zlib
@@ -149,10 +151,11 @@ def exercise(files,manifest):
         run('prototype-overview',['overview','--html','progress.html'])
         if not (root/'progress.html').is_file():raise ValueError('Prototype progress view missing')
         if (root/'docs/authority/roles.toml').exists():raise ValueError('Prototype setup activated authority')
-        # The guidance must say that work needs no signature (M9 wording; it
-        # replaced alpha.2's "unverified without an SSH key" sentence).
+        # The guidance must say that work needs no signature (M9). The lines
+        # live in guidance-lines.txt, which a unit test of `war init` also
+        # reads, so a template edit that drops one fails fast CI, not a release.
         guidance=(root/'AGENTS.md').read_text()
-        for line in ('Ordinary coding needs no Warrant','No step in this loop needs a signature'):
+        for line in GUIDANCE_LINES:
             if line not in guidance:raise ValueError('Prototype guidance missing: '+line)
         destination=str(root)
     if Path(destination).exists():raise ValueError('Temporary installation not removed')
