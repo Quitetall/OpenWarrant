@@ -1215,7 +1215,7 @@ reads it.
 
 ### Results of amendment 8: `cc-a8-1`, the Claude Code cells
 
-Run 2026-11-18, 02:27 to about 02:55, on harness commit `b54ca2c05` (clean), as its setup
+Run 2026-11-18, 02:27 to 02:53, on harness commit `b54ca2c05` (clean), as its setup
 note describes: the 44 cells of `plans/cc-a8-directed.json`, `next` the published
 `v1.0.0-alpha.8` (sha256 `41d6021e…dab7`, plugin `474628a7c`). The probe cell (tally T8 on
 `openwarrant@next`) ran first on its own: the API refused its first attempt before any turn
