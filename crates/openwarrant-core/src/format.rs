@@ -89,9 +89,10 @@ pub const RELATION_KEYS: [&str; 4] = ["implements", "depends_on", "supersedes", 
 
 /// The extensions this reader understands, for `requires` (§7.3): what a
 /// ticket's work may run, what it waits on beyond its own repository, and what
-/// a change request changes. Any other a document lists as critical reads
-/// `UNKNOWN`.
-pub const UNDERSTOOD_EXTENSIONS: [&str; 5] = [
+/// a change request changes, and a lane (OW-ADR-0036). Any other a document
+/// lists as critical reads `UNKNOWN`.
+pub const UNDERSTOOD_EXTENSIONS: [&str; 6] = [
+    "war.lane",
     "x.change",
     "x.clauses",
     "x.commands",
@@ -291,13 +292,14 @@ pub fn is_semver(v: &str) -> bool {
 }
 
 /// Appendix D: the registered extension prefixes.
-pub const REGISTERED_PREFIXES: [&str; 7] = [
+pub const REGISTERED_PREFIXES: [&str; 8] = [
     "kf",
     "katana",
     "liminal",
     "blut",
     "contractor",
     "legacy",
+    "war",
     "x",
 ];
 
