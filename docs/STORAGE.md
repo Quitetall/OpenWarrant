@@ -228,12 +228,12 @@ and `conformance/views.py` is what every check reads it with.
 
 Until these are done the workflow reports `views: not published
 (VIEWS_DEPLOY_KEY not configured)` and succeeds. Run them in a shell that
-is not an agent's. The repository is `Quitetall/OpenWarrant`.
+is not an agent's. The repository is `OpenHuman-Technologies-LLC/OpenWarrant`.
 
 1. Generate the key pair, in a directory that is not the repository:
    `ssh-keygen -t ed25519 -N "" -C openwarrant-views -f views_deploy_key`
 2. Add the public key as a deploy key with write access:
-   `gh repo deploy-key add views_deploy_key.pub --repo Quitetall/OpenWarrant --title "views (main)" --allow-write`
+   `gh repo deploy-key add views_deploy_key.pub --repo OpenHuman-Technologies-LLC/OpenWarrant --title "views (main)" --allow-write`
 3. Add deploy keys to the bypass list of the default-branch ruleset: Settings,
    Rules, Rulesets, the ruleset on `main`, Bypass list, Add bypass, Deploy
    keys, Always allow. The bypass covers every deploy key with write access,
@@ -241,21 +241,21 @@ is not an agent's. The repository is `Quitetall/OpenWarrant`.
    one to trust):
 
    ```bash
-   ID=$(gh api repos/Quitetall/OpenWarrant/rulesets --jq '.[] | select(.target == "branch") | .id')
-   gh api repos/Quitetall/OpenWarrant/rulesets/$ID \
+   ID=$(gh api repos/OpenHuman-Technologies-LLC/OpenWarrant/rulesets --jq '.[] | select(.target == "branch") | .id')
+   gh api repos/OpenHuman-Technologies-LLC/OpenWarrant/rulesets/$ID \
      | jq '{bypass_actors: (.bypass_actors + [{actor_id: null, actor_type: "DeployKey", bypass_mode: "always"}])}' \
-     | gh api -X PUT repos/Quitetall/OpenWarrant/rulesets/$ID --input -
+     | gh api -X PUT repos/OpenHuman-Technologies-LLC/OpenWarrant/rulesets/$ID --input -
    ```
 4. Create the `views` environment, limited to `main`, so a pull request's
    workflow can never read its secret:
 
    ```bash
-   gh api -X PUT repos/Quitetall/OpenWarrant/environments/views \
+   gh api -X PUT repos/OpenHuman-Technologies-LLC/OpenWarrant/environments/views \
      --input - <<<'{"deployment_branch_policy":{"protected_branches":false,"custom_branch_policies":true}}'
-   gh api -X POST repos/Quitetall/OpenWarrant/environments/views/deployment-branch-policies -f name=main -f type=branch
+   gh api -X POST repos/OpenHuman-Technologies-LLC/OpenWarrant/environments/views/deployment-branch-policies -f name=main -f type=branch
    ```
 5. Add the private key as the environment's secret, then delete the file:
-   `gh secret set VIEWS_DEPLOY_KEY --repo Quitetall/OpenWarrant --env views < views_deploy_key && shred -u views_deploy_key`
+   `gh secret set VIEWS_DEPLOY_KEY --repo OpenHuman-Technologies-LLC/OpenWarrant --env views < views_deploy_key && shred -u views_deploy_key`
 
 Merge queue (owner approval, 2026-11-07): Settings, Rules, Rulesets, the
 ruleset on `main`, Require merge queue. Fast CI runs on `merge_group` with

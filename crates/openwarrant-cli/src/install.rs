@@ -34,7 +34,8 @@ use crate::build_identity::{self, Class, Identity};
 use crate::diagnostic::{Diagnostic, Report};
 
 /// Where releases come from. A fork changes this one line.
-pub const RELEASES: &str = "https://api.github.com/repos/Quitetall/OpenWarrant/releases";
+pub const RELEASES: &str =
+    "https://api.github.com/repos/OpenHuman-Technologies-LLC/OpenWarrant/releases";
 
 /// Overrides [`RELEASES`]; every use is reported `update.source`. The seam the
 /// conformance plants use to serve fixture releases from a local server.
@@ -42,8 +43,7 @@ pub const RELEASES_ENV: &str = "OPENWARRANT_RELEASES_URL";
 
 /// The bootstrap, for an install `war admin update` does not manage. `docs/INSTALL.md`
 /// prints the same line; the conformance plant compares the two.
-pub const INSTALL_SH_LINE: &str =
-    "curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash";
+pub const INSTALL_SH_LINE: &str = "curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash";
 
 /// The update for a `war` that `cargo install` put in `~/.cargo/bin`.
 pub const CARGO_LINE: &str = "cargo install --locked openwarrant-cli";

@@ -7,16 +7,16 @@
 #   ~/.local/lib/openwarrant/<version>/     the release, unpacked
 #   ~/.local/bin/war                        a symlink into it
 #
-#   curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash
 #
 # Or pinned, and read before it runs:
 #
-#   curl -fsSLO https://github.com/Quitetall/OpenWarrant/releases/download/<tag>/install.sh
+#   curl -fsSLO https://github.com/OpenHuman-Technologies-LLC/OpenWarrant/releases/download/<tag>/install.sh
 #   less install.sh && OW_VERSION=<tag> bash install.sh
 #
 # Environment:
 #   OW_VERSION       a tag (v1.0.0-alpha.3) or `latest` (default)
-#   OW_REPO          owner/name on GitHub (default Quitetall/OpenWarrant)
+#   OW_REPO          owner/name on GitHub (default OpenHuman-Technologies-LLC/OpenWarrant)
 #   OW_BIN_DIR       where the `war` link goes (default ~/.local/bin)
 #   OW_RELEASES_URL  the releases list to read (default the GitHub API's)
 #
@@ -31,7 +31,7 @@
 
 set -euo pipefail
 
-REPO="${OW_REPO:-Quitetall/OpenWarrant}"
+REPO="${OW_REPO:-OpenHuman-Technologies-LLC/OpenWarrant}"
 VERSION="${OW_VERSION:-latest}"
 BIN_DIR="${OW_BIN_DIR:-${HOME}/.local/bin}"
 RELEASES_URL="${OW_RELEASES_URL:-https://api.github.com/repos/${REPO}/releases?per_page=30}"
