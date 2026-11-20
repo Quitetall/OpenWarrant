@@ -1,0 +1,4 @@
+id = "446-parent-phase-from-children"
+kind = "accept"
+section = "11.1"
+says = """A work document `part_of` another counts as an item of it, for the parent's phase and for `next`."""

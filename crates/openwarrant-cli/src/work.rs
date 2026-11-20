@@ -30,7 +30,7 @@
 use serde::Serialize;
 
 use crate::repo::{RepoError, Repository};
-use crate::ticket::{Claims, Store, Ticket, TicketState, ladder, state_of};
+use crate::ticket::{Claims, Store, Ticket, TicketState, ladder};
 use crate::warrants::Row;
 
 /// How an item ends. The default is [`Level::Ticket`]: nothing extra.
@@ -359,7 +359,7 @@ impl Work {
                 work.ticket_faults = faults;
                 work.items = tickets
                     .iter()
-                    .map(|t| ticket_item(store, t, &work.claims))
+                    .map(|t| ticket_item(store, &tickets, t, &work.claims))
                     .collect();
                 work.tickets = tickets;
             }
@@ -514,11 +514,11 @@ pub fn render_documents(items: &[Item]) -> String {
     out
 }
 
-fn ticket_item(store: &Store, t: &Ticket, claims: &Claims) -> Item {
+fn ticket_item(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims) -> Item {
     Item {
         id: t.id().to_owned(),
         title: t.manifest.title.clone(),
-        state: match state_of(t, claims) {
+        state: match crate::ticket::phase_of(t, Some(all), claims) {
             TicketState::Open => "open",
             TicketState::InProgress => "in_progress",
             TicketState::Done => "done",
