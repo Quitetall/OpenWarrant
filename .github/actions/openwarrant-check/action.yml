@@ -16,9 +16,9 @@
 # the base is scored from this clone, so check out with `fetch-depth: 0`.
 #
 # Pin it by commit, as every action should be:
-#   - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
+#   - uses: OpenHuman-Technologies-LLC/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
 # or by a release tag, which GitHub resolves for a subdirectory action too:
-#   - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@v1.0.0-alpha.3
+#   - uses: OpenHuman-Technologies-LLC/OpenWarrant/.github/actions/openwarrant-check@v1.0.0-alpha.3
 # A SHA cannot move; a tag reads better. There is no floating `v1` tag, and the
 # action is not on the Marketplace (docs/INSTALL.md says what that would take).
 #

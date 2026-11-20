@@ -96,7 +96,7 @@ pub fn workflow(tests: &[String], version: &str) -> String {
          \x20         fetch-depth: 0\n\
          \x20     - name: Install war\n\
          \x20       run: |\n\
-         \x20         curl -fsSL \"https://github.com/Quitetall/OpenWarrant/releases/download/v{version}/install.sh\" -o install.sh\n\
+         \x20         curl -fsSL \"https://github.com/OpenHuman-Technologies-LLC/OpenWarrant/releases/download/v{version}/install.sh\" -o install.sh\n\
          \x20         OW_VERSION=v{version} bash install.sh\n\
          \x20         echo \"$HOME/.local/bin\" >> \"$GITHUB_PATH\"\n\
          \x20     - name: Check what changed\n\
