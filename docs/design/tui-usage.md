@@ -38,7 +38,22 @@ Which harness, from the session variable it sets:
 |---|---|---|
 | Claude Code | `CLAUDE_CODE_SESSION_ID` | `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/*/<session>.jsonl` and `<session>/subagents/*.jsonl`: each `assistant` line's `message.usage` and `message.model`. One API message is written as a line per content block, each with the same usage, so a message id counts once |
 | Codex | `CODEX_THREAD_ID` | `<CODEX_HOME or ~/.codex>/sessions/**/rollout-*-<thread>.jsonl`: the running `total_token_usage` of `token_count` events, less the total at the window's start; the model from `turn_context`. Two models in one window name none, so that window is not priced |
-| opencode, others | `CODEX_SESSION_ID`, `OPENWARRANT_SESSION_ID`, `KATANA_SESSION_ID` | nothing: `"unknown"`, naming the variable. opencode keeps its sessions in a SQLite database (`~/.local/share/opencode/opencode.db`) whose usage columns are not documented; it is not read. Such a harness reports with `--usage` |
+| opencode | `OPENCODE_SESSION_ID` | `<XDG_DATA_HOME or ~/.local/share>/opencode/opencode.db`, through `sqlite3 -readonly -json` on a `mode=ro` URI (see below) |
+| others | `CODEX_SESSION_ID`, `OPENWARRANT_SESSION_ID`, `KATANA_SESSION_ID` | nothing: `"unknown"`, naming the variable. Such a harness reports with `--usage` |
+
+**opencode.** Its shell tool sets `OPENCODE_SESSION_ID` (and `OPENCODE=1`) for every
+command it runs, read from opencode v2.2.7's own source; a subagent's shell carries the
+subagent's id. The session and every session under it (`session_v2.parent_id`: subagents,
+lanes) are summed over their `assistant` rows in `session_message`: `data`'s `tokens`
+(`input`, `output`, `reasoning`, `cache.read`, `cache.write`), `model.id` and `cost`, and
+nothing else of `data`. Reasoning tokens count as output. Its cursor holds, per session of
+the tree, the `seq` of the last message counted, not a byte offset; a session that began
+after the mark counts from the window's `since`. A message with no `time.completed` waits
+for the next read. The workspace has no SQLite crate, so `sqlite3` is run with a 10 s
+limit and a read-only URI; the database is never written. A missing `sqlite3`, database or
+table or column, a locked database, or a number that is not one is `"unknown"` with that
+reason, never 0. The journalled `cost` is opencode's own figure, unverified, and reads 0
+for subagents on a paid model: it is recorded, not priced from.
 
 With no session variable, nothing is journalled: there is no session to describe, and
 absence reads as UNKNOWN. A `war evidence go` node (`WAR_GO_PACKET` set) is not read
