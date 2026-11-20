@@ -86,7 +86,7 @@ crossterm = { version = "=0.29.0", default-features = false, features = ["events
 # is a decision. 0.23.46 fixes RUSTSEC-2026-0346 through 0349; feature
 # selection is unchanged. `ring` is named only for the fallback's P-256 key.
 rustls = { version = "=0.23.46", default-features = false, features = ["std", "tls12", "ring"] }
-rustls-pki-types = { version = "=1.15.1", features = ["std"] }
+rustls-pki-types = { version = "=1.16.0", features = ["std"] }
 ring = { version = "=0.17.14", default-features = false, features = ["alloc"] }
 # The pairing link as a QR code on the host terminal (OW-WAR-0139 intent).
 # Nayuki's reference encoder: MIT, no dependencies.
@@ -98,9 +98,9 @@ qrcodegen = "=1.8.0"
 schema = ["openwarrant-core/schema", "openwarrant-compiler/schema"]
 
 [target.'cfg(unix)'.dependencies]
-rustix = { version = "=1.1.5", features = ["fs", "process", "thread"] }
+rustix = { version = "=1.1.6", features = ["fs", "process", "thread"] }
 # OW-WAR-0131 U-001 option A: SIGINT and SIGTERM reach `war perform`'s wait
 # loop, which kills and reaps the performer's group. Already locked through
 # crossterm, so this adds no new code to the build; unix-only because the
 # group kill it serves is.
-signal-hook = { version = "=0.4.5", default-features = false }
+signal-hook = { version = "=0.4.6", default-features = false }
