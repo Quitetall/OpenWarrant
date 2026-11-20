@@ -50,6 +50,8 @@ pub struct Brief {
     /// that takes it ([`ticket::ready_lines`]), so the next question is
     /// already answered.
     pub ready_rows: Vec<String>,
+    /// Each lane and its next item, and each open join (OW-ADR-0036).
+    pub lanes: Vec<String>,
 }
 
 /// How many ready tickets the brief names; the rest are the count above them.
@@ -120,6 +122,8 @@ impl Brief {
             return;
         }
         self.open_tickets = Some(work.tickets().iter().filter(|t| !t.is_done()).count());
+        let (lanes, joins) = ticket::lanes::rows(work.tickets());
+        self.lanes = ticket::lanes::lines(&lanes, &joins);
         self.id_collisions = work
             .ticket_faults()
             .iter()
@@ -197,6 +201,9 @@ impl Brief {
         );
         for row in &self.ready_rows {
             let _ = writeln!(out, "  {row}");
+        }
+        for line in &self.lanes {
+            let _ = writeln!(out, "{line}");
         }
         if let Some(line) = &self.elsewhere {
             let _ = writeln!(out, "{}{}", line[..1].to_ascii_uppercase(), &line[1..]);

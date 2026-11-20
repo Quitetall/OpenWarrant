@@ -77,6 +77,12 @@ pub struct Frontier {
     /// theirs can be dispatched.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub documents: Vec<crate::work::Item>,
+    /// Lanes (OW-ADR-0036), each with its next item.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub lanes: Vec<crate::ticket::lanes::Row>,
+    /// Items that wait on two or more lanes.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub joins: Vec<crate::ticket::lanes::Join>,
 }
 
 pub const SCHEMA: &str = "oh.war/frontier/v1";
@@ -331,6 +337,8 @@ fn frontier_of<'a>(
         blocked: count(StageState::Blocked),
         rows,
         documents: Vec::new(),
+        lanes: Vec::new(),
+        joins: Vec::new(),
     };
     report.note(format!(
         "{} open, {} claimed, {} done, {} blocked across {} stage(s)",
@@ -422,6 +430,10 @@ pub fn render(f: &Frontier) -> String {
         ));
     }
     out.push_str(&crate::work::render_documents(&f.documents));
+    for line in crate::ticket::lanes::lines(&f.lanes, &f.joins) {
+        out.push_str(&line);
+        out.push('\n');
+    }
     out
 }
 
