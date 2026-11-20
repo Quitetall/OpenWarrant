@@ -877,6 +877,19 @@ pub fn walk_over(
         reached.insert(id.clone(), (0, None));
     }
     let mut frontier: BTreeSet<String> = seeds.zero.clone();
+    // An item whose document has no Intent gets the document's own record at
+    // distance 1 (section 10.3, step 1). That record is the item's whole
+    // context, so it is walked like a root: its REQ is one step out and the
+    // REQ's constraints two, inside the depth a work document gets, never
+    // beyond it. An Intent section has no relations and is not walked.
+    if depth > 0 {
+        for (id, from) in &seeds.one {
+            if graph.units.get(id).is_some_and(|u| u.kind != "section") && !omitted(id) {
+                reached.insert(id.clone(), (1, Some(item_intent(from))));
+                frontier.insert(id.clone());
+            }
+        }
+    }
     for level in 1..=depth {
         // to → (step index, from): the first by step order, then from id.
         let mut found: BTreeMap<String, (usize, String)> = BTreeMap::new();
