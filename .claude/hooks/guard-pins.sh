@@ -133,6 +133,43 @@ else
     exit 0
 fi
 
+# Lanes (OW-ADR-0036): holding an item of a lane, an edit outside the lane's
+# paths is turned back here, as `war done` would refuse it later. `war lane
+# held` names those paths (and the records `war` writes); empty when this
+# actor holds no lane item, and then nothing here applies.
+lane=$("$war_cmd" --json lane held 2>/dev/null | python3 -c 'import sys, json, re
+rel = sys.argv[1]
+try:
+    r = json.load(sys.stdin).get("result", {})
+except Exception:
+    sys.exit(0)
+paths = r.get("paths") or []
+def rx(glob):
+    out, i = "", 0
+    while i < len(glob):
+        if glob.startswith("**/", i):
+            out += "(?:.*/)?"
+            i += 3
+        elif glob.startswith("**", i):
+            out += ".*"
+            i += 2
+        elif glob[i] == "*":
+            out += "[^/]*"
+            i += 1
+        elif glob[i] == "?":
+            out += "[^/]"
+            i += 1
+        else:
+            out += re.escape(glob[i])
+            i += 1
+    return re.compile(out + r"\Z")
+if paths and not any(rx(p).match(rel) for p in paths):
+    held = r.get("held") or [{}]
+    print("%s|%s" % (held[0].get("name", "?"), ", ".join(held[0].get("paths") or paths)))' "$rel")
+if [[ -n "$lane" ]]; then
+    deny "OpenWarrant: you hold an item of lane ${lane%%|*}, which owns ${lane#*|}. $rel is outside it, so \`war done\` would refuse the change. Leave it, or widen the lane on purpose: \`war lane widen ${lane%%|*} <glob>\` (journalled)."
+fi
+
 pinned=$("$war_cmd" --json pins --resolved-only 2>/dev/null | python3 -c 'import sys, json
 rel = sys.argv[1]
 try:
