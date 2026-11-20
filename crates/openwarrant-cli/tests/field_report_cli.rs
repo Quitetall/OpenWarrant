@@ -19,6 +19,7 @@ fn war_env(root: &Path, args: &[&str], env: &[(&str, &str)]) -> std::process::Ou
         "OPENWARRANT_ACTOR",
         "OPENWARRANT_SESSION_ID",
         "KATANA_SESSION_ID",
+        "OPENCODE_SESSION_ID",
         "CLAUDECODE",
         "CLAUDE_CODE_SESSION_ID",
         "CODEX_THREAD_ID",

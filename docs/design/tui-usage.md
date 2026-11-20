@@ -46,7 +46,8 @@ command it runs, read from opencode v2.2.7's own source; a subagent's shell carr
 subagent's id. The session and every session under it (`session_v2.parent_id`: subagents,
 lanes) are summed over their `assistant` rows in `session_message`: `data`'s `tokens`
 (`input`, `output`, `reasoning`, `cache.read`, `cache.write`), `model.id` and `cost`, and
-nothing else of `data`. Reasoning tokens count as output. Its cursor holds, per session of
+nothing else of `data`. Reasoning tokens are in `output` and `tokens`, and a model's entry names them in
+`reasoning` (an optional key: of `output`, not added to it). Its cursor holds, per session of
 the tree, the `seq` of the last message counted, not a byte offset; a session that began
 after the mark counts from the window's `since`. A message with no `time.completed` waits
 for the next read. The workspace has no SQLite crate, so `sqlite3` is run with a 10 s

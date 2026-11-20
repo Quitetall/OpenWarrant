@@ -12,7 +12,7 @@
 #   6,144 bytes, and is never in `git status` nor staged by `git add -A`.
 
 echo "== what is next, without asking (alpha.8 R3) =="
-for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID \
+for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID \
          CLAUDE_CODE_SESSION_ID OPENWARRANT_ACTOR; do unset "$v"; done
 NX_T=$(mktemp -d)
 nx_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }

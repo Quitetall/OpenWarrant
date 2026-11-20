@@ -44,11 +44,22 @@ pub struct Counts {
     pub cache_read: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cache_write: Option<u64>,
+    /// Of `output`, the tokens the provider counted as reasoning (opencode).
+    /// Included in `output` and in `tokens`, not added to them, so a reader
+    /// that does not know this key sums and prices the same.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<u64>,
     /// This entry's total: input, output and cache tokens together.
     pub tokens: u64,
 }
 
 impl Counts {
+    fn add_reasoning(&mut self, n: u64) {
+        if n > 0 {
+            self.reasoning = Some(self.reasoning.unwrap_or(0).saturating_add(n));
+        }
+    }
+
     fn add(&mut self, input: u64, output: u64, cache_read: u64, cache_write: u64) {
         let bump =
             |slot: &mut Option<u64>, n: u64| *slot = Some(slot.unwrap_or(0).saturating_add(n));
@@ -699,11 +710,10 @@ fn opencode_scan(
         if r.tok.is_none() {
             continue;
         }
-        // Reasoning tokens are billed as output.
-        let output = r
-            .output
-            .unwrap_or(0)
-            .saturating_add(r.reasoning.unwrap_or(0));
+        // Reasoning tokens are billed as output: they are in `output`, and
+        // `reasoning` says how many of those they were.
+        let reasoning = r.reasoning.unwrap_or(0);
+        let output = r.output.unwrap_or(0).saturating_add(reasoning);
         let (input, cr, cw) = (
             r.input.unwrap_or(0),
             r.cache_read.unwrap_or(0),
@@ -713,11 +723,12 @@ fn opencode_scan(
             continue;
         }
         window.messages += 1;
-        window
+        let entry = window
             .by_model
             .entry(r.model.clone().unwrap_or_default())
-            .or_default()
-            .add(input, output, cr, cw);
+            .or_default();
+        entry.add(input, output, cr, cw);
+        entry.add_reasoning(reasoning);
         window.cost = Some(window.cost.unwrap_or(0.0) + r.cost.unwrap_or(0.0));
     }
     window
@@ -969,6 +980,7 @@ fn report_payload(target: &str, r: &Report) -> serde_json::Value {
         output: r.output,
         cache_read: r.cache_read,
         cache_write: r.cache_write,
+        reasoning: None,
         tokens: r.tokens.unwrap_or_else(|| parts.iter().flatten().sum()),
     };
     let mut p = serde_json::json!({
@@ -1516,7 +1528,9 @@ mod tests {
             (a.input, a.output, a.cache_read, a.cache_write, a.tokens),
             (Some(10), Some(7), Some(100), Some(20), 137)
         );
+        assert_eq!(a.reasoning, Some(2), "named, and inside output");
         assert_eq!(w.by_model["m-b"].tokens, 10);
+        assert_eq!(w.by_model["m-b"].reasoning, None);
         assert!(!w.by_model.contains_key("m-z"), "another session's tree");
         assert_eq!(
             w.cost,

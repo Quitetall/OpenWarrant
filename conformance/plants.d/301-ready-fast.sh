@@ -20,7 +20,7 @@
 #   same comparison says they differ.
 
 echo "== the ready set, read fast, is the ready set =="
-unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
+unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
 RF_T=$(mktemp -d) || { printf 'PLANT SETUP FAILED: mktemp\n' >&2; exit 9; }
 SCRATCH_CORPORA+=("$RF_T")
 RF_ROOT="$RF_T/corpus"

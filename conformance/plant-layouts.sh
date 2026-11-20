@@ -78,7 +78,7 @@ trap stopped INT TERM
 unset OW_PLANT_SHARD OW_PLANT_FILES OW_PLANT_REPORT OW_PLANT_LAYOUT OPENWARRANT_TICKET_LAYOUT
 # No harness session, as on CI: `war` records usage for a session it is run in,
 # and a plant that reads the tree would see those files.
-unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
+unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
 if [[ $# -gt 0 ]]; then
     printf '%s\n' "$@" >"$work/plants.txt"
     export OW_PLANT_FILES="$work/plants.txt"
