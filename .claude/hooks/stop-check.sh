@@ -78,6 +78,7 @@ esac
 # OW-WAR-0148 M14: the end-of-session summary. Under a repo preset, what
 # waits on a person (`war next` lists it) is shown to the person when the
 # agent ends its turn: a message, not a block. Nothing without a preset.
+waiting=""
 if grep -q '^\[preset\]' openwarrant.toml 2>/dev/null; then
     waiting=$("$war_cmd" --json next 2>/dev/null | python3 -c 'import sys, json
 try:
@@ -88,9 +89,22 @@ acts = [a for a in ((v.get("result") or {}).get("actions") or []) if a.get("acto
 if acts:
     first = "; ".join("%s %s" % (a.get("action", "?"), a.get("warrant", "?")) for a in acts[:3])
     more = "" if len(acts) <= 3 else " and %d more" % (len(acts) - 3)
-    print(json.dumps({"systemMessage": "OpenWarrant: %d act(s) wait on a person (war next lists them): %s%s" % (len(acts), first, more)}))')
-    if [[ -n "$waiting" ]]; then
-        printf '%s\n' "$waiting"
+    print("OpenWarrant: %d act(s) wait on a person (war next lists them): %s%s" % (len(acts), first, more))')
+fi
+# OW-ADR-0037: at most one line about leftovers (finished managed worktrees,
+# merged war-go/* branches), once per session while it is the same line. A
+# message, never a block.
+left=$("$war_cmd" admin cleanup --line 2>/dev/null | head -n 1)
+if [[ -n "$left" && -n "$dir" ]]; then
+    lmark="$dir/${session:-default}.leftovers"
+    if [[ -f "$lmark" && "$(cat "$lmark" 2>/dev/null)" == "$left" ]]; then
+        left=""
+    else
+        mkdir -p "$dir" 2>/dev/null && printf '%s\n' "$left" > "$lmark" 2>/dev/null
     fi
+fi
+msg=$(printf '%s\n%s\n' "$waiting" "${left:+OpenWarrant $left}" | awk 'NF')
+if [[ -n "$msg" ]]; then
+    python3 -c 'import json, sys; print(json.dumps({"systemMessage": sys.argv[1]}))' "$msg"
 fi
 exit 0
