@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-Report privately via GitHub's **[Security Advisories](https://github.com/Quitetall/OpenWarrant/security/advisories/new)**
+Report privately via GitHub's **[Security Advisories](https://github.com/OpenHuman-Technologies-LLC/OpenWarrant/security/advisories/new)**
 on this repository. Do not open a public issue for anything security-relevant.
 
 Include the exact input, the command, the output, and the toolchain version

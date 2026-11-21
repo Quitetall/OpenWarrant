@@ -10,7 +10,7 @@
 #   the default tools/list stays inside 6,400 bytes, a budget `--all` breaks.
 
 echo "== war mcp: the daily set, in the CLI's text =="
-for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID \
+for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID \
          CLAUDE_CODE_SESSION_ID OPENWARRANT_ACTOR; do unset "$v"; done
 ML_T=$(mktemp -d)
 ml_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }

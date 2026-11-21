@@ -23,7 +23,7 @@
 #   rejected option), and `--preset agent` still walks wide.
 
 echo "== the alpha.7 field report (alpha.8) =="
-for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID \
+for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID \
          CLAUDE_CODE_SESSION_ID OPENWARRANT_ACTOR; do unset "$v"; done
 FR_T=$(mktemp -d) || { printf 'PLANT SETUP FAILED: mktemp\n' >&2; exit 9; }
 SCRATCH_CORPORA+=("$FR_T")

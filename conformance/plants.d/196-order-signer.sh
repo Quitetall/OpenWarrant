@@ -24,7 +24,7 @@ os_check() { if [[ $2 == 0 ]]; then os_ok "$1" "$3"; else os_fail "$1" "$3: $(he
 os_as() {
     local actor="$1"; shift
     env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u CLAUDE_CODE_SESSION_ID -u CODEX_THREAD_ID \
-        -u CODEX_SESSION_ID -u KATANA_SESSION_ID -u OPENWARRANT_VERBOSE OPENWARRANT_ACTOR="$actor" \
+        -u CODEX_SESSION_ID -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE -u OPENWARRANT_VERBOSE OPENWARRANT_ACTOR="$actor" \
         OPENWARRANT_SESSION_ID=plant-196 "$OS_WAR" --root "$OS_ROOT" "$@" >"$OS_T/out" 2>"$OS_T/err" </dev/null
 }
 os_py() { python3 -c 'import json,sys

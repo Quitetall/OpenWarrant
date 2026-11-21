@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Use GitHub Issues in `Quitetall/OpenWarrant` for reports, requests, and discussion.
+Use GitHub Issues in `OpenHuman-Technologies-LLC/OpenWarrant` for reports, requests, and discussion.
 Use the `gh` CLI from this checkout; confirm the remote before tracker writes.
 
 ## Warrant workflow

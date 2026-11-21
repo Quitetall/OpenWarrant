@@ -22,6 +22,10 @@ Notable changes to OpenWarrant. Format loosely follows
   `lane` and `for`.
 - The plugin's edit guard denies an edit outside the paths of the lane whose item you hold.
 - FORMAT-1.0 Appendix D registers the `war` prefix (proposed with OW-ADR-0036).
+- `work.usage` reads opencode: `OPENCODE_SESSION_ID`'s session and its subagent sessions,
+  summed from opencode's SQLite database through a read-only `sqlite3`, with a per-session
+  `seq` cursor. Unreadable is `"unknown"` with the reason; opencode's `cost` is recorded
+  as the provider's unverified figure. Shown by `war status --usage` like Claude Code and Codex.
 
 ### Changed
 

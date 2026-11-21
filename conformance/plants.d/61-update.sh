@@ -21,9 +21,10 @@ UP_WAR=$(readlink -f "$WAR")
 UP_SH="$REPO_ROOT/install.sh"
 UP_V=$("$UP_WAR" version --json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin)["result"]["version"])')
 [[ -n "$UP_V" ]] || up_setup_failed "war version --json names no version"
-UP_INSTALL_LINE=$(sed -n 's/^ *"\(curl -fsSL [^"]*install\.sh | bash\)";$/\1/p' crates/openwarrant-cli/src/install.rs | head -1)
+# Either rustfmt layout: the literal on the `pub const` line or on the next one.
+UP_INSTALL_LINE=$(sed -n 's/^.*"\(curl -fsSL [^"]*install\.sh | bash\)";$/\1/p' crates/openwarrant-cli/src/install.rs | head -1)
 UP_CARGO_LINE=$(sed -n 's/^pub const CARGO_LINE: &str = "\(.*\)";$/\1/p' crates/openwarrant-cli/src/install.rs)
-UP_RELEASES=$(sed -n 's/^pub const RELEASES: &str = "\(.*\)";$/\1/p' crates/openwarrant-cli/src/install.rs)
+UP_RELEASES=$(sed -n 's/^.*"\(https:\/\/api\.github\.com\/repos\/[^"]*\/releases\)";$/\1/p' crates/openwarrant-cli/src/install.rs | head -1)
 [[ -n "$UP_INSTALL_LINE" && -n "$UP_CARGO_LINE" && -n "$UP_RELEASES" ]] || up_setup_failed "could not read INSTALL_SH_LINE, CARGO_LINE or RELEASES from install.rs"
 case "$(uname -s)/$(uname -m)" in
     Linux/x86_64) UP_PLATFORM=linux-x86_64 ;;

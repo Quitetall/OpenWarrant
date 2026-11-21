@@ -18,7 +18,7 @@ echo "== the battery per ticket layout =="
 LY_TMP=$(mktemp -d)
 ly_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 ly_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
-LY_SESSION=(-u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID -u CODEX_THREAD_ID -u CODEX_SESSION_ID
+LY_SESSION=(-u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE -u CODEX_THREAD_ID -u CODEX_SESSION_ID
     -u CLAUDE_CODE_SESSION_ID)
 
 # Three plant files of this plant's own: one creates a ticket and says where it

@@ -13,7 +13,7 @@
 echo "== ladder (FORMAT-1.0 §4.6) =="
 LD_ROOT=$(scratch_corpus LD)
 [[ -d "${LD_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
-ld()      { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID \
+ld()      { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE \
                 -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
                 "$REPO_ROOT/${WAR#./}" --root "$LD_ROOT" "$@"; }
 ld_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }

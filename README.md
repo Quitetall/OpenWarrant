@@ -10,12 +10,12 @@ Start small with a prompt, then add review and verification where your work need
 ## Start in three steps
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash
 war init --namespace APP
 war create "Add password reset" --item "Reset endpoint" --item "Email template"
 ```
 
-Or install with `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli`;
+Or install with `cargo binstall --git https://github.com/OpenHuman-Technologies-LLC/OpenWarrant openwarrant-cli`;
 Homebrew and crates.io are not set up yet ([every way, and what each needs](docs/INSTALL.md#one-line)).
 
 Then `war start` takes ready work and returns its brief. `war done --note "..."`
@@ -192,13 +192,13 @@ and [generated status](docs/warrants/generated/CORPUS_STATUS.md).
 ## Build the current CLI
 
 To install a release instead, and keep it current with `war admin update`:
-`curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
+`curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash`
 ([docs/INSTALL.md](docs/INSTALL.md)).
 
 Use the Rust toolchain pinned in `rust-toolchain.toml`.
 
 ```bash
-git clone https://github.com/Quitetall/OpenWarrant
+git clone https://github.com/OpenHuman-Technologies-LLC/OpenWarrant
 cd OpenWarrant
 cargo build --release -p openwarrant-cli
 ./target/release/war --help

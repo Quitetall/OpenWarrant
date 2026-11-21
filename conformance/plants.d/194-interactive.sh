@@ -18,7 +18,7 @@ IA_R="$IA_T/r"; mkdir -p "$IA_R"
 # No harness session either: `script` starts a new one per command, as a new
 # terminal does, and a session variable from the caller would hide what breaks.
 IA_ENV=(env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_ACTOR -u OPENWARRANT_SESSION_ID
-    -u KATANA_SESSION_ID -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID
+    -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID
     OPENWARRANT_NO_PROJECTS=1)
 ia() { "${IA_ENV[@]}" "$IA_WAR" --root "$IA_R" "$@"; }
 # A real terminal: `script` runs the command on a pty and passes these lines in.

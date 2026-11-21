@@ -26,7 +26,7 @@ hs_asked() {
     mkdir -p "$HS_TMP/cwd"
     : > "$log"
     (cd "$HS_TMP/cwd" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID \
-        -u KATANA_SESSION_ID -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
+        -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
         OPENWARRANT_NO_UPDATE_CHECK=1 strace -f -qq -o "$log" -e trace=%file \
         "$HS_WAR" "$@" < "$req" > /dev/null 2>&1) || true
     grep -q 'execve(' "$log" || { echo untraced; return; }

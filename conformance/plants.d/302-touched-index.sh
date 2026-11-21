@@ -20,7 +20,7 @@
 #   rebuilds every ticket's block: the wrong bystander line is gone after it.
 
 echo "== one ticket's act rebuilds its lines of the index and its parents' =="
-unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
+unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
 TI_T=$(mktemp -d) || { printf 'PLANT SETUP FAILED: mktemp\n' >&2; exit 9; }
 SCRATCH_CORPORA+=("$TI_T")
 TI_ROOT=$(scratch_corpus TI)
