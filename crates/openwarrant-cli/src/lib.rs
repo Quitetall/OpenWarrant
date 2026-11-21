@@ -557,6 +557,7 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
             "types",
             "type",
             "frontier",
+            "lane",
             "estimate",
             "questions",
             "ask",
@@ -882,6 +883,10 @@ enum DailyCommand {
         /// With --claim: take a claim past its TTL. Journalled.
         #[arg(long, requires = "claim")]
         steal: bool,
+        /// The next ready item of this lane (OW-ADR-0036), claimed with the
+        /// lane's paths; holding one of its items, that one.
+        #[arg(long, value_name = "LANE", conflicts_with_all = ["id", "worktree", "claim", "interactive"])]
+        lane: Option<String>,
         /// With --claim and `--as` another actor: put that actor's work in
         /// this checkout on purpose. Without it, that is refused: dispatch it
         /// to a worktree of its own (`war start --worktree <id> --as <actor>`).
@@ -999,6 +1004,9 @@ enum DailyCommand {
         /// With --ready: for this actor.
         #[arg(long = "as", value_name = "ACTOR", requires = "ready")]
         actor: Option<String>,
+        /// With --ready: only work whose `war.for` (or its lane's) is WHO.
+        #[arg(long = "for", value_name = "WHO", requires = "ready")]
+        for_who: Option<String>,
         /// One projection of a Warrant, `war view show`'s: `full_warrant`,
         /// `status`, or any other it names.
         #[arg(long, value_name = "PROJECTION", requires = "alias")]
@@ -1093,6 +1101,13 @@ struct AcrossArgs {
     /// for more.
     #[arg(long = "clause", value_name = "ID", requires = "change")]
     clauses: Vec<String>,
+    /// Put it last in this lane (OW-ADR-0036): part of it, after its
+    /// last item.
+    #[arg(long, value_name = "LANE", conflicts_with_all = ["part_of", "legacy"])]
+    lane: Option<String>,
+    /// Who the work suits: an agent or a role (`war.for`).
+    #[arg(long = "for", value_name = "WHO", conflicts_with = "legacy")]
+    for_who: Option<String>,
 }
 
 /// `war check run|evaluate|fire|install-hook` (FORMAT-1.0 §12): a Format
@@ -1142,6 +1157,41 @@ enum CheckAction {
     /// Install the `commit` trigger as git's `post-commit` hook. A hook
     /// that is not OpenWarrant's is never overwritten.
     InstallHook,
+}
+
+/// `war lane …` (OW-ADR-0036).
+#[derive(Subcommand)]
+enum LaneCommand {
+    /// A lane: a named path of work that owns `--paths`. Refused when it
+    /// would overlap a lane running at the same time.
+    New {
+        name: String,
+        /// The globs the lane owns.
+        #[arg(long, value_name = "GLOB", num_args = 1.., required = true)]
+        paths: Vec<String>,
+        /// Who the work suits: an agent (`claude`, `codex`) or a role.
+        #[arg(long = "for", value_name = "WHO")]
+        for_who: Option<String>,
+        /// A lane this one runs after; it may share that lane's files.
+        #[arg(long, value_name = "LANE")]
+        after: Vec<String>,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// Add a glob to a lane's paths; journals `lane.widened`. Refused when
+    /// the lane would then overlap a lane running at the same time.
+    Widen {
+        lane: String,
+        glob: String,
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
+    /// The paths of the lanes whose items you hold (the edit guard's input).
+    #[command(hide = true)]
+    Held {
+        #[arg(long = "as", value_name = "ACTOR")]
+        actor: Option<String>,
+    },
 }
 
 /// `war plan …`: shaping the work. Also flattened, hidden, into the top level.
@@ -1456,6 +1506,12 @@ enum PlanCommand {
         /// pack's (`war plan types` lists them).
         #[arg(value_name = "TYPE")]
         doc_type: String,
+    },
+    /// Lanes (OW-ADR-0036): ordered paths of work, one runner each, whose
+    /// paths do not overlap while they run at the same time.
+    Lane {
+        #[command(subcommand)]
+        action: LaneCommand,
     },
     /// The stages that can start now (OW-WAR-0068): open, unblocked by
     /// their milestone's `depends_on`, and not yet dispatched. Derived from
@@ -2109,6 +2165,9 @@ enum ViewCommand {
     Ready {
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
+        /// Only work whose `war.for` (or its lane's) is WHO.
+        #[arg(long = "for", value_name = "WHO")]
+        for_who: Option<String>,
     },
     /// What is open: one line per open Warrant (progress, who holds it,
     /// what it waits on) and done work by id; one Warrant in full with an id.
@@ -3993,6 +4052,8 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 depends_on,
                 change,
                 clauses,
+                lane,
+                for_who,
             } = *across;
             // Where a create still reads every ticket (an issue's link, a
             // done parent's index lines) the ticket cache may answer. Never
@@ -4089,10 +4150,18 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                     depends_on,
                     change,
                     clauses,
+                    for_who,
+                    ..ticket::Scope::default()
                 },
                 tests,
                 force,
             };
+            let mut args = args;
+            if let Some(lane) = &lane
+                && let Err(refusal) = ticket::lanes::place(&store, lane, &mut args)?
+            {
+                return Ok(ticket_answer(mode, "create", &refusal));
+            }
             let mut outcome = if legacy {
                 ticket::create_legacy(&store, &args)?
             } else {
@@ -4241,8 +4310,11 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             run_view_member(ctx, ViewCommand::Next { at })
         }
         DailyCommand::Status {
-            ready: true, actor, ..
-        } => run_view_member(ctx, ViewCommand::Ready { actor }),
+            ready: true,
+            actor,
+            for_who,
+            ..
+        } => run_view_member(ctx, ViewCommand::Ready { actor, for_who }),
         DailyCommand::Status {
             alias: Some(alias),
             view: Some(view),
@@ -4685,6 +4757,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             base,
             paths,
             actor,
+            lane,
             ..
         } => {
             let id = (!id.is_empty()).then(|| id.join(" "));
@@ -4709,7 +4782,10 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             }
             ticket::cache::permit();
             let (repository, store) = ctx.tickets(actor.as_deref())?;
-            let mut outcome = ticket::start_cmd(&store, id.as_deref())?;
+            let mut outcome = match &lane {
+                Some(lane) => ticket::lanes::start(&store, lane)?,
+                None => ticket::start_cmd(&store, id.as_deref())?,
+            };
             session_usage::after_start(&repository.root, &store, &mut outcome);
             refresh_index_after_touching(&repository, &store, &outcome);
             ticket::next_file::after(&store, &outcome);
@@ -5921,6 +5997,32 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                 )),
             }
         }
+        PlanCommand::Lane { action } => {
+            let (command, outcome) = match action {
+                LaneCommand::New {
+                    name,
+                    paths,
+                    for_who,
+                    after,
+                    actor,
+                } => {
+                    let (_, store) = ctx.tickets(actor.as_deref())?;
+                    (
+                        "lane.new",
+                        ticket::lanes::new(&store, &name, &paths, for_who.as_deref(), &after)?,
+                    )
+                }
+                LaneCommand::Widen { lane, glob, actor } => {
+                    let (_, store) = ctx.tickets(actor.as_deref())?;
+                    ("lane.widen", ticket::lanes::widen(&store, &lane, &glob)?)
+                }
+                LaneCommand::Held { actor } => {
+                    let (_, store) = ctx.tickets(actor.as_deref())?;
+                    ("lane.held", ticket::lanes::held(&store)?)
+                }
+            };
+            Ok(ticket_answer(mode, command, &outcome))
+        }
         PlanCommand::Estimate => {
             let repository = ctx.open_repo()?;
             // One-shot and read-only: the tree does not move under it (t-eca6).
@@ -5957,6 +6059,11 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     .into_iter()
                     .filter(|i| !i.is_done())
                     .collect();
+                // OW-ADR-0036: each lane, its next item, and the joins.
+                if let Ok(store) = ticket::Store::open(&repository, None) {
+                    let (tickets, _) = store.load_all()?;
+                    (f.lanes, f.joins) = ticket::lanes::rows(&tickets);
+                }
             }
             match mode {
                 output::Mode::Human => {
@@ -7128,6 +7235,7 @@ fn run_view(ctx: &Ctx, command: ViewGroup) -> Result<u8, Box<dyn std::error::Err
                 at: None,
                 ready: false,
                 actor: None,
+                for_who: None,
                 view: None,
                 interactive: false,
                 usage: false,
@@ -7225,14 +7333,14 @@ fn run_view_member(ctx: &Ctx, command: ViewCommand) -> Result<u8, Box<dyn std::e
             }
             Ok(EXIT_OK)
         }
-        ViewCommand::Ready { actor } => {
+        ViewCommand::Ready { actor, for_who } => {
             // One-shot and read-only: the tree does not move under it, so
             // HEAD is read once, not once per ticket (each row's scope
             // names the base revision).
             gate_cmd::source::remember_tree_reads();
             ticket::cache::permit();
             let (_, store) = ctx.tickets(actor.as_deref())?;
-            let outcome = ticket::ready_for(&store, Some(mode))?;
+            let outcome = ticket::ready_rows_for(&store, Some(mode), for_who.as_deref())?;
             Ok(ticket_answer(mode, "ready", &outcome))
         }
         ViewCommand::Prime {

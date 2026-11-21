@@ -1727,6 +1727,7 @@ copy of its own facts.
 | `blut` | BLUT: plan lowering and backends | `blut://<backend>@<pin>`; verdicts `blut/openwarrant-verification/v1` |
 | `contractor` | contractor work orders | acceptance, invoicing and legal terms outside the technical core |
 | `legacy` | readers of earlier encodings (section 14) | `legacy.id`: the id a record had in a legacy store |
+| `war` | the `war` tool: lanes (OW-ADR-0036, `docs/adr/atoms/OW-ADR-0036-lanes.md`) | `war.lane: true` (critical, listed in `requires`): a parent work item whose `paths` its items' work stays inside; `war.for`: who the work suits, a recommendation |
 | `x` | private use | anything; never registered |
 
 A prefix is registered by the editor (GOVERNANCE.md). A checker warns

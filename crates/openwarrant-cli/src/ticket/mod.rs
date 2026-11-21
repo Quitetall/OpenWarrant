@@ -42,6 +42,7 @@ pub mod depends;
 pub mod enforce;
 pub mod format;
 pub mod ladder;
+pub mod lanes;
 mod legacy_completion;
 pub mod live;
 pub mod merge;
@@ -1162,10 +1163,13 @@ impl Store {
     }
 
     fn load_every(&self, cached: bool) -> Result<(Vec<Ticket>, Vec<Diagnostic>), RepoError> {
-        self.load_through(
+        let (mut tickets, faults) = self.load_through(
             cache::Cache::open(self).filter(|_| cached).as_ref(),
             cached && self.shared,
-        )
+        )?;
+        // OW-ADR-0036: a lane whose items are all done is done.
+        lanes::settle(&mut tickets);
+        Ok((tickets, faults))
     }
 
     /// Every readable ticket and a diagnostic per unreadable one, through
@@ -1973,12 +1977,15 @@ fn open_blockers_by<'a>(
     item.after
         .iter()
         .chain(&t.depends_on)
-        .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
-            Some(true) => None,
-            Some(false) => Some(b.to_string()),
-            None => Some(format!("{b} (unknown)")),
-        })
+        .filter_map(
+            |b| match record_done(find, members, t, &b.record_id(t.id())) {
+                Some(true) => None,
+                Some(false) => Some(b.to_string()),
+                None => Some(format!("{b} (unknown)")),
+            },
+        )
         .chain(phase_blockers(members, t))
+        .chain(lanes::waits(find, members, t))
         .collect()
 }
 
@@ -1999,12 +2006,15 @@ fn document_blockers_by<'a>(
 ) -> Vec<String> {
     t.depends_on
         .iter()
-        .filter_map(|b| match record_done(find, t, &b.record_id(t.id())) {
-            Some(true) => None,
-            Some(false) => Some(b.to_string()),
-            None => Some(format!("{b} (unknown)")),
-        })
+        .filter_map(
+            |b| match record_done(find, members, t, &b.record_id(t.id())) {
+                Some(true) => None,
+                Some(false) => Some(b.to_string()),
+                None => Some(format!("{b} (unknown)")),
+            },
+        )
         .chain(phase_blockers(members, t))
+        .chain(lanes::waits(find, members, t))
         .collect()
 }
 
@@ -2068,12 +2078,20 @@ impl<'a> Lookup<'a> {
 
 /// Whether the ticket record `id` (`t-x` or `t-x/i-y`) is done; `None` when
 /// it names nothing. `t` is consulted first, as the ticket being read now.
+/// A lane (OW-ADR-0036) is done when every item of it is.
 fn record_done<'a>(
     find: &dyn Fn(&str) -> Option<&'a Ticket>,
+    members: &dyn Fn(&str) -> Vec<&'a Ticket>,
     t: &Ticket,
     id: &str,
 ) -> Option<bool> {
     let (tid, iid) = ticket::split_record_id(id);
+    if iid.is_none()
+        && tid != t.id()
+        && let Some(done) = lanes::lane_done(find, members, tid)
+    {
+        return Some(done);
+    }
     let owner: &Ticket = if tid == t.id() { t } else { find(tid)? };
     match iid {
         Some(i) => owner.item(i).map(|x| x.done),
@@ -3406,7 +3424,8 @@ pub fn ready_rows_at(
     // on the disk they are made across threads, kept in ticket order.
     let rows_of = |t: &Ticket| -> Vec<ReadyRow> {
         let mut rows = Vec::new();
-        if t.is_done() || held.contains_key(t.id()) {
+        // A lane is worked through its items (OW-ADR-0036), never whole.
+        if t.is_done() || held.contains_key(t.id()) || lanes::is_lane(t) {
             return rows;
         }
         if reference {
@@ -3656,18 +3675,37 @@ pub fn ready(store: &Store) -> Result<Outcome, RepoError> {
     ready_for(store, None)
 }
 
+/// [`ready`], only the rows whose `war.for` (or their lane's) is `who`.
+pub fn ready_suiting(store: &Store, who: Option<&str>) -> Result<Outcome, RepoError> {
+    ready_rows_for(store, None, who)
+}
+
 /// [`ready`] for the one output `mode` that will print it: only that form
 /// is built, and the other is left empty (an empty text, or JSON `null`).
 /// `None` builds both, as [`ready`].
 pub fn ready_for(store: &Store, mode: Option<crate::output::Mode>) -> Result<Outcome, RepoError> {
+    ready_rows_for(store, mode, None)
+}
+
+/// [`ready_for`], filtered to what suits `who` (OW-ADR-0036 `war.for`).
+pub fn ready_rows_for(
+    store: &Store,
+    mode: Option<crate::output::Mode>,
+    who: Option<&str>,
+) -> Result<Outcome, RepoError> {
     let human_too = !matches!(mode, Some(crate::output::Mode::Json));
     let json_too = !matches!(mode, Some(crate::output::Mode::Human));
     // The claims are read while the tickets are (`with_claims`).
     let (loaded, claims) = with_claims(store, || store.load_all());
     let (tickets, faults) = loaded?;
-    let rows = ready_rows_with(store, &tickets, claims?)?;
+    let mut rows = ready_rows_with(store, &tickets, claims?)?;
+    if let Some(who) = who {
+        rows.retain(|r| lanes::suits(&tickets, &r.ticket, who));
+    }
     let mut human = String::new();
-    if human_too && rows.is_empty() {
+    if human_too && rows.is_empty() && who.is_some() {
+        human.push_str(&format!("nothing ready is for {}", who.unwrap_or_default()));
+    } else if human_too && rows.is_empty() {
         // M9: the same plain first line `war view next` prints; ordinary work
         // goes on either way.
         if tickets.iter().any(|t| !t.is_done()) {
@@ -5614,6 +5652,10 @@ fn finish(
         Ok(gate) => gate,
         Err(refusal) => return Ok(*refusal),
     };
+    // OW-ADR-0036: a lane item's work stays in its lane's paths.
+    if let Some(refusal) = lanes::outside_refusal(store, &tickets, t, &what)? {
+        return Ok(refusal);
+    }
     if gate.rerun
         && matches!(how, How::Claimed)
         && ladder::decides(&ladder::checks_of(t), item_id.as_deref())
@@ -6135,6 +6177,10 @@ fn finish_ticket(
         Ok(gate) => gate,
         Err(refusal) => return Ok(*refusal),
     };
+    // OW-ADR-0036: a lane item's work stays in its lane's paths.
+    if let Some(refusal) = lanes::outside_refusal(store, tickets, &t, &what)? {
+        return Ok(refusal);
+    }
     if gate.rerun && matches!(how, How::Claimed) && ladder::decides(&ladder::checks_of(&t), None) {
         how = How::Check;
     }
@@ -7360,6 +7406,10 @@ pub fn check(store: &Store, only: Option<&str>, report: &mut Report) -> Result<(
         for w in ladder::unbacked(store, t, &ladder::ticks_of(&reader, t)) {
             report.push(w);
         }
+    }
+    // OW-ADR-0036: lanes running at the same time never overlap.
+    if only.is_none() {
+        lanes::check(store, &tickets, report);
     }
     if !chosen.is_empty() && errors == 0 {
         let items: usize = chosen.iter().map(|t| t.checklist.items.len()).sum();

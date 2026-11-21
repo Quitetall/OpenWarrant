@@ -41,8 +41,17 @@ pub const FOLDS: &[(&str, &str)] = &[
 /// they keep working with no notice and no end date. `context`, FORMAT-1.0
 /// §10.3 and `llms.txt`. `apply`, §10.5. `merge-ticket`, written into clones'
 /// git configuration. `mcp` and `sdk`, in harness configuration. `host`, the
-/// Liminal protocol.
-pub const KEPT: &[&str] = &["context", "apply", "merge-ticket", "mcp", "sdk", "host"];
+/// Liminal protocol. `lane`, OW-ADR-0036's spelling, which the plugin's edit
+/// guard runs (`war lane held`).
+pub const KEPT: &[&str] = &[
+    "context",
+    "apply",
+    "merge-ticket",
+    "mcp",
+    "sdk",
+    "host",
+    "lane",
+];
 
 /// The first two words of a command line, past the global flags: what
 /// [`replacement`] reads.

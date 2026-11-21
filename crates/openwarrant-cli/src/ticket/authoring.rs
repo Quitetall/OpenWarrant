@@ -74,6 +74,14 @@ pub struct Scope {
     pub change: Option<String>,
     /// The clauses a change request changes.
     pub clauses: Vec<String>,
+    /// Core `depends_on` (FORMAT-1.0 3.3): what in this repository it runs
+    /// after. `war create --lane` writes the lane's last item here.
+    pub after: Vec<String>,
+    /// `war.lane: true` (OW-ADR-0036): the item is a lane. Critical, so it
+    /// is listed in `requires`.
+    pub lane: bool,
+    /// `war.for`: who the work suits. A recommendation; not critical.
+    pub for_who: Option<String>,
 }
 
 /// `text` with `scope` in its frontmatter.
@@ -89,7 +97,17 @@ pub(crate) fn with_scope(text: &str, scope: &Scope) -> String {
     if !scope.paths.is_empty() {
         lines.push_str(&block("paths", &scope.paths));
     }
+    if !scope.after.is_empty() {
+        lines.push_str(&block("depends_on", &scope.after));
+    }
     let mut requires = Vec::new();
+    if scope.lane {
+        lines.push_str(&format!("{}: true\n", super::lanes::LANE_KEY));
+        requires.push(super::lanes::LANE_KEY.to_owned());
+    }
+    if let Some(who) = &scope.for_who {
+        lines.push_str(&format!("{}: {}\n", super::lanes::FOR_KEY, quote(who)));
+    }
     if let Some(change) = &scope.change {
         lines.push_str(&format!("{}: {change}\n", super::change::CHANGE_KEY));
         requires.push(super::change::CHANGE_KEY.to_owned());

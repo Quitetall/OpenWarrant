@@ -68,7 +68,7 @@ fi
 # `plan spec` (§4.5) and `plan states` (§11.1); alpha.6 `admin worktrees`;
 # alpha.8 `plan expand` (docs/design/one-format.md).
 declare -A SS_MEMBERS=(
-    [plan]="add note edit interview new expand promote render impact spec model states state roadmap types type frontier estimate questions ask answer answers"
+    [plan]="add note edit interview new expand promote render impact spec model states state roadmap types type lane frontier estimate questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority native-resolve approve release"
     [evidence]="record gate verify prepare run perform go submit kpi mark document eval runtime"
     [view]="next show ui tui board console watch overview warrants ready prime context timeline"

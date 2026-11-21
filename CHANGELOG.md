@@ -8,6 +8,20 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ### Added
 
+- Lanes (OW-ADR-0036): `war lane new <name> --paths <glob>… [--for <who>] [--after <lane>]`,
+  `war create … --lane <name>` (last in the lane), `war start --lane <name>` (its next ready
+  item, claimed with the lane's paths), `war lane widen <lane> <glob>` (journals
+  `lane.widened`). A lane is a work item marked `war.lane: true`, listed in `requires`.
+  `war check` refuses lanes that overlap while running at the same time (`lane.overlap`);
+  `war done` on a lane item refuses a file changed outside the lane's paths since the claim
+  began (`lane.outside-paths`), naming each, before any write. A lane whose items are all
+  done is done; an item that `depends_on` a lane waits for all of it.
+- `war.for` on any item, and `war status --ready --for <who>` / `war view ready --for`.
+- `war plan frontier` and `war status` list each lane, its next item, and the joins.
+- MCP: `war_start` takes `lane`; `war_status` and `war_ready` take `for`; `war_create` takes
+  `lane` and `for`.
+- The plugin's edit guard denies an edit outside the paths of the lane whose item you hold.
+- FORMAT-1.0 Appendix D registers the `war` prefix (proposed with OW-ADR-0036).
 - `work.usage` reads opencode: `OPENCODE_SESSION_ID`'s session and its subagent sessions,
   summed from opencode's SQLite database through a read-only `sqlite3`, with a per-session
   `seq` cursor. Unreadable is `"unknown"` with the reason; opencode's `cost` is recorded
