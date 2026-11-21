@@ -16,7 +16,7 @@
 #   MCP `war_done` is the same code.
 
 echo "== war done checks by default (alpha.8 R1) =="
-for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID \
+for v in OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID \
          CLAUDE_CODE_SESSION_ID OPENWARRANT_ACTOR; do unset "$v"; done
 DT_T=$(mktemp -d)
 dt_ok() { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }

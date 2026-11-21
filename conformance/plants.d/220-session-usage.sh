@@ -35,7 +35,7 @@ git -C "$SU_ROOT" init -q .
 # su_war <session id or ""> args...: no session variable but the one given.
 su_war() {
     local sid=$1; shift
-    env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID \
+    env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE \
         -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID -u WAR_GO_PACKET \
         ${sid:+CLAUDE_CODE_SESSION_ID="$sid"} CLAUDE_CONFIG_DIR="$SU_CC" CODEX_HOME="$SU_TMP/no-codex" \
         HERDR_SOCKET_PATH="$SU_TMP/no.sock" OPENWARRANT_ACTOR=agent "$SU_WAR" --root "$SU_ROOT" "$@"

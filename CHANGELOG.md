@@ -6,6 +6,13 @@ Notable changes to OpenWarrant. Format loosely follows
 
 ## [Unreleased]
 
+### Added
+
+- `work.usage` reads opencode: `OPENCODE_SESSION_ID`'s session and its subagent sessions,
+  summed from opencode's SQLite database through a read-only `sqlite3`, with a per-session
+  `seq` cursor. Unreadable is `"unknown"` with the reason; opencode's `cost` is recorded
+  as the provider's unverified figure. Shown by `war status --usage` like Claude Code and Codex.
+
 ### Changed
 
 - FORMAT-1.0 revision 4 (OW-ADR-0035: masters, the ladder, `w-` and `d-` ids) is accepted,

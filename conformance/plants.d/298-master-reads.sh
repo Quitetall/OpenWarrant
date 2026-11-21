@@ -27,7 +27,7 @@ else
     MR_T=$(mktemp -d)
     MR_R=$(scratch_corpus MR)
     [[ -d "${MR_R:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
-    MR_ENV=(env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID
+    MR_ENV=(env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE
         -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID -u OPENWARRANT_NO_CACHE OPENWARRANT_ACTOR=plant)
     mr_war() { (cd "$MR_R" && "${MR_ENV[@]}" timeout 120 "$MR_WAR" "$@" </dev/null); }
     # mr_traced <args...>: the run's stdout in $MR_T/out; each open of a file

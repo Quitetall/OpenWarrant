@@ -18,7 +18,7 @@
 # terminal is an agent's and is refused.
 
 echo "== questions follow the ladder (OW-ADR-0034) =="
-unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
+unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
 QL_WAR="$REPO_ROOT/${WAR#./}"
 ql_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
 ql_fail() { printf 'FAIL  %-34s %s\n' "$1" "$2"; FAILED=$((FAILED + 1)); }
