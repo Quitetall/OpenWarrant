@@ -22,7 +22,7 @@ MP_R=$(scratch_corpus MP)
 MP_T=$(mktemp -d)
 mp_war() {
     (cd "$MP_R" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE -u OPENWARRANT_SESSION_ID \
-        -u KATANA_SESSION_ID -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
+        -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
         OPENWARRANT_ACTOR=plant timeout 120 "$MP_WAR" "$@" </dev/null >"$MP_T/out" 2>"$MP_T/err")
 }
 mp_id() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"]["id"])' "$MP_T/out" 2>/dev/null; }

@@ -129,6 +129,7 @@ so it stays there. Its top-level spelling is what retires.
 | The document types this program admits (OW-WAR-0148 M18): each with its form, the store it reads, its capabilities and where it comes from (built in, profiles/, a pack). `add` installs a pack | `war plan types` | `war types` | often | group; `war types` retiring |
 | Adopt a document in place as a document type (OW-WAR-0148 M18): records `path → type` in docs/types.toml, and never writes the document. An untyped document counts against `war status`'s document coverage; an adopted one counts for it | `war plan type` | `war type` | often | group; `war type` retiring |
 | The stages that can start now (OW-WAR-0068): open, unblocked by their milestone's `depends_on`, and not yet dispatched. Derived from the same records a resolution reads; never a status claim | `war plan frontier` | `war frontier` | daily | group; `war frontier` retiring |
+| Lanes (OW-ADR-0036): ordered paths of work, one runner each, that own their `paths` and do not overlap while they run at the same time. `new`, `widen` (journals `lane.widened`) | `war plan lane` | `war lane` | often | group; `war lane` kept (OW-ADR-0036's spelling; the edit guard runs `war lane held`) |
 | Estimates learned from the journal (claim to done, by type and label), the order ready work starts in, and the critical path (OW-WAR-0148 M15) | `war plan estimate` | `war estimate` | often | group; `war estimate` retiring |
 | Every question across the corpus, blocking and open first, each with the command that answers it (OW-WAR-0069) | `war plan questions` | `war questions` | often | group; `war questions` retiring |
 | Ask a question that blocks a stage (OW-WAR-0069). Anyone asks; `war plan note --ask` is the short form. Neither act authorizes anything | `war plan ask` | `war ask` | often | group; `war ask` retiring |
@@ -285,6 +286,7 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
 | `war plan types`, `war plan types add` (M18, new) | `war types` (hidden, as every group member) | `types`, `types.add` |
 | `war plan type` (M18, new) | `war type` (hidden, as every group member) | `type` |
 | `war plan frontier` (`--all`: the whole work graph, M15) | `war frontier` | `frontier` |
+| `war plan lane new`, `widen`, `held` (OW-ADR-0036, new) | `war lane` | `lane.new`, `lane.widen`, `lane.held` |
 | `war plan estimate` (M15, new) | `war estimate` | `estimate` |
 | `war plan questions` | `war questions` | `questions` |
 | `war plan ask` | `war ask` | `ask` |

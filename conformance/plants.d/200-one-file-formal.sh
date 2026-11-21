@@ -18,7 +18,7 @@ SF_ROOT=$(scratch_corpus SF)
 [[ -d "${SF_ROOT:-}/.git" ]] || { printf 'PLANT SETUP FAILED: no scratch corpus (run through conformance/plant.sh)\n' >&2; exit 9; }
 SF_TMP=$(mktemp -d)
 SF_RESP="$SF_ROOT/docs/authority/responses"
-sf()        { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID \
+sf()        { env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_SESSION_ID -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE \
                   -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
                   PATH="$REPO_ROOT/target/debug:$PATH" "$REPO_ROOT/${WAR#./}" --root "$SF_ROOT" "$@"; }
 sf_commit() {

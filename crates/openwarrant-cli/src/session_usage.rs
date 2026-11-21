@@ -44,11 +44,22 @@ pub struct Counts {
     pub cache_read: Option<u64>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cache_write: Option<u64>,
+    /// Of `output`, the tokens the provider counted as reasoning (opencode).
+    /// Included in `output` and in `tokens`, not added to them, so a reader
+    /// that does not know this key sums and prices the same.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reasoning: Option<u64>,
     /// This entry's total: input, output and cache tokens together.
     pub tokens: u64,
 }
 
 impl Counts {
+    fn add_reasoning(&mut self, n: u64) {
+        if n > 0 {
+            self.reasoning = Some(self.reasoning.unwrap_or(0).saturating_add(n));
+        }
+    }
+
     fn add(&mut self, input: u64, output: u64, cache_read: u64, cache_write: u64) {
         let bump =
             |slot: &mut Option<u64>, n: u64| *slot = Some(slot.unwrap_or(0).saturating_add(n));
@@ -70,6 +81,8 @@ impl Counts {
 pub enum Harness {
     ClaudeCode(String),
     Codex(String),
+    /// opencode's shell tool sets `OPENCODE_SESSION_ID` for the commands it runs.
+    OpenCode(String),
     /// A session some other harness named: there is no reader for it.
     Other {
         var: &'static str,
@@ -88,6 +101,9 @@ impl Harness {
         if let Some(id) = var("CODEX_THREAD_ID") {
             return Some(Self::Codex(id));
         }
+        if let Some(id) = var("OPENCODE_SESSION_ID") {
+            return Some(Self::OpenCode(id));
+        }
         for name in [
             "CODEX_SESSION_ID",
             "OPENWARRANT_SESSION_ID",
@@ -104,13 +120,17 @@ impl Harness {
         match self {
             Self::ClaudeCode(_) => "claude-code",
             Self::Codex(_) => "codex",
+            Self::OpenCode(_) => "opencode",
             Self::Other { .. } => "harness",
         }
     }
 
     fn id(&self) -> &str {
         match self {
-            Self::ClaudeCode(id) | Self::Codex(id) | Self::Other { id, .. } => id,
+            Self::ClaudeCode(id)
+            | Self::Codex(id)
+            | Self::OpenCode(id)
+            | Self::Other { id, .. } => id,
         }
     }
 
@@ -162,6 +182,10 @@ struct Cursor {
     codex_total: Option<[u64; 3]>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     codex_model: Option<String>,
+    /// opencode: per session of the tree, the `seq` of the last message
+    /// counted (a message count, not a byte offset: the record is a database).
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    opencode: BTreeMap<String, i64>,
 }
 
 fn cursor_path(store: &Store, harness: &Harness) -> Utf8PathBuf {
@@ -415,6 +439,9 @@ fn lines_from(path: &Utf8Path, offset: u64, mut each: impl FnMut(&[u8])) -> Resu
 struct Window {
     by_model: BTreeMap<String, Counts>,
     messages: usize,
+    /// opencode's own `cost`, summed: the provider's unverified number, and
+    /// known to read 0 for subagents on a paid model.
+    cost: Option<f64>,
 }
 
 impl Window {
@@ -499,6 +526,231 @@ fn read_claude(
         );
     }
     Ok(window)
+}
+
+// ---- opencode: a SQLite database, read through `sqlite3` ---------------------------
+
+/// How long one `sqlite3` call may run.
+const SQLITE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(10);
+
+/// `<XDG_DATA_HOME, else ~/.local/share>/opencode/opencode.db`.
+fn opencode_db() -> Result<Utf8PathBuf, String> {
+    let data = std::env::var("XDG_DATA_HOME")
+        .ok()
+        .filter(|d| !d.is_empty())
+        .map(Utf8PathBuf::from)
+        .or_else(|| home().map(|h| h.join(".local/share")))
+        .ok_or("neither XDG_DATA_HOME nor HOME is set")?;
+    let db = data.join("opencode/opencode.db");
+    if db.is_file() {
+        Ok(db)
+    } else {
+        Err("opencode's database was not found (XDG_DATA_HOME, else ~/.local/share)".to_owned())
+    }
+}
+
+/// One assistant message's numbers. The message's content is never selected.
+#[derive(Debug, Deserialize)]
+struct OcRow {
+    session_id: String,
+    seq: i64,
+    time_created: i64,
+    #[serde(default)]
+    completed: Option<i64>,
+    #[serde(default)]
+    model: Option<String>,
+    /// `json_type` of `tokens`: absent when the message carries none.
+    #[serde(default)]
+    tok: Option<String>,
+    #[serde(default)]
+    input: Option<u64>,
+    #[serde(default)]
+    output: Option<u64>,
+    #[serde(default)]
+    reasoning: Option<u64>,
+    #[serde(default)]
+    cache_read: Option<u64>,
+    #[serde(default)]
+    cache_write: Option<u64>,
+    #[serde(default)]
+    cost: Option<f64>,
+}
+
+/// The assistant messages of `session` and every session under it, by
+/// session and `seq`. Read-only (`mode=ro`); a missing `sqlite3`, a lock that
+/// outlasts the timeout, or tables and fields that are not these is an error
+/// naming the cause, never an empty answer.
+fn opencode_rows(program: &str, db: &Utf8Path, session: &str) -> Result<Vec<OcRow>, String> {
+    if session.is_empty()
+        || !session
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || b == b'_' || b == b'-')
+    {
+        return Err("the opencode session id is not a plain identifier".to_owned());
+    }
+    let sql = format!(
+        "WITH RECURSIVE t(id) AS (SELECT id FROM session_v2 WHERE id = '{session}' \
+         UNION ALL SELECT s.id FROM session_v2 s JOIN t ON s.parent_id = t.id) \
+         SELECT m.session_id AS session_id, m.seq AS seq, m.time_created AS time_created, \
+         json_extract(m.data, '$.time.completed') AS completed, \
+         json_extract(m.data, '$.model.id') AS model, \
+         json_type(m.data, '$.tokens') AS tok, \
+         json_extract(m.data, '$.tokens.input') AS input, \
+         json_extract(m.data, '$.tokens.output') AS output, \
+         json_extract(m.data, '$.tokens.reasoning') AS reasoning, \
+         json_extract(m.data, '$.tokens.cache.read') AS cache_read, \
+         json_extract(m.data, '$.tokens.cache.write') AS cache_write, \
+         json_extract(m.data, '$.cost') AS cost \
+         FROM session_message m WHERE m.type = 'assistant' \
+         AND m.session_id IN (SELECT id FROM t) ORDER BY m.session_id, m.seq"
+    );
+    let mut uri = String::from("file:");
+    for c in db.as_str().chars() {
+        match c {
+            '%' => uri.push_str("%25"),
+            '?' => uri.push_str("%3F"),
+            '#' => uri.push_str("%23"),
+            ' ' => uri.push_str("%20"),
+            c => uri.push(c),
+        }
+    }
+    uri.push_str("?mode=ro");
+    let mut child = std::process::Command::new(program)
+        .args(["-readonly", "-bail", "-json", "-cmd", ".timeout 3000"])
+        .arg(&uri)
+        .arg(&sql)
+        .stdin(std::process::Stdio::null())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| {
+            if e.kind() == std::io::ErrorKind::NotFound {
+                "sqlite3 is not installed (opencode's database is read through it)".to_owned()
+            } else {
+                format!("sqlite3 could not be run ({})", e.kind())
+            }
+        })?;
+    let mut out = child.stdout.take().ok_or("sqlite3 gave no output pipe")?;
+    let err = child.stderr.take().ok_or("sqlite3 gave no error pipe")?;
+    let out_t = std::thread::spawn(move || {
+        let mut v = Vec::new();
+        let _ = out.read_to_end(&mut v);
+        v
+    });
+    let err_t = std::thread::spawn(move || {
+        let mut v = Vec::new();
+        let _ = err.take(4096).read_to_end(&mut v);
+        v
+    });
+    let deadline = std::time::Instant::now() + SQLITE_TIMEOUT;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(st)) => break st,
+            Ok(None) if std::time::Instant::now() < deadline => {
+                std::thread::sleep(std::time::Duration::from_millis(10));
+            }
+            Ok(None) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("sqlite3 timed out reading opencode's database (locked?)".to_owned());
+            }
+            Err(e) => return Err(format!("sqlite3 could not be waited on ({})", e.kind())),
+        }
+    };
+    let stdout = out_t.join().unwrap_or_default();
+    let stderr = String::from_utf8_lossy(&err_t.join().unwrap_or_default()).to_lowercase();
+    if !status.success() {
+        return Err(if stderr.contains("locked") || stderr.contains("busy") {
+            "opencode's database is locked".to_owned()
+        } else if stderr.contains("no such table") || stderr.contains("no such column") {
+            "opencode's database is not the schema this reads (session_v2, session_message): \
+             schema mismatch"
+                .to_owned()
+        } else if stderr.contains("unable to open") || stderr.contains("not a database") {
+            "opencode's database could not be opened read-only".to_owned()
+        } else {
+            format!("sqlite3 failed reading opencode's database ({status})")
+        });
+    }
+    // `-json` prints nothing at all for no rows.
+    if stdout.iter().all(u8::is_ascii_whitespace) {
+        return Ok(Vec::new());
+    }
+    serde_json::from_slice(&stdout).map_err(|_| {
+        "opencode's database rows are not the shape this reads: schema mismatch".to_owned()
+    })
+}
+
+/// Count what `rows` hold past each session's mark. A session with no mark
+/// counts from `since_ms`. A message not yet completed, and every later one
+/// of its session, waits for the next read, so the mark never passes it.
+fn opencode_scan(
+    rows: &[OcRow],
+    marks: &BTreeMap<String, i64>,
+    since_ms: i64,
+    next: &mut BTreeMap<String, i64>,
+) -> Window {
+    let mut window = Window::default();
+    let mut waiting: BTreeSet<&str> = BTreeSet::new();
+    for r in rows {
+        let sid = r.session_id.as_str();
+        if waiting.contains(sid) {
+            continue;
+        }
+        match marks.get(sid) {
+            Some(m) if r.seq <= *m => continue,
+            None if r.time_created < since_ms => continue,
+            _ => {}
+        }
+        if r.completed.is_none() {
+            waiting.insert(sid);
+            continue;
+        }
+        next.insert(r.session_id.clone(), r.seq);
+        if r.tok.is_none() {
+            continue;
+        }
+        // Reasoning tokens are billed as output: they are in `output`, and
+        // `reasoning` says how many of those they were.
+        let reasoning = r.reasoning.unwrap_or(0);
+        let output = r.output.unwrap_or(0).saturating_add(reasoning);
+        let (input, cr, cw) = (
+            r.input.unwrap_or(0),
+            r.cache_read.unwrap_or(0),
+            r.cache_write.unwrap_or(0),
+        );
+        if input + output + cr + cw == 0 {
+            continue;
+        }
+        window.messages += 1;
+        let entry = window
+            .by_model
+            .entry(r.model.clone().unwrap_or_default())
+            .or_default();
+        entry.add(input, output, cr, cw);
+        entry.add_reasoning(reasoning);
+        window.cost = Some(window.cost.unwrap_or(0.0) + r.cost.unwrap_or(0.0));
+    }
+    window
+}
+
+fn read_opencode(
+    program: &str,
+    db: &Utf8Path,
+    session: &str,
+    cursor: Option<&Cursor>,
+    since: Option<&chrono::DateTime<chrono::Utc>>,
+    next: &mut Cursor,
+) -> Result<Window, String> {
+    let rows = opencode_rows(program, db, session)?;
+    let since_ms = cursor
+        .and_then(|c| chrono::DateTime::parse_from_rfc3339(&c.since).ok())
+        .map(|t| t.timestamp_millis())
+        .or_else(|| since.map(chrono::DateTime::timestamp_millis))
+        .unwrap_or(0);
+    let marks = cursor.map(|c| c.opencode.clone()).unwrap_or_default();
+    next.opencode.clone_from(&marks);
+    Ok(opencode_scan(&rows, &marks, since_ms, &mut next.opencode))
 }
 
 fn codex_line(line: &[u8]) -> Option<CodexLine> {
@@ -625,6 +877,10 @@ fn mark_now(harness: &Harness) -> Option<Cursor> {
                 },
             );
         }
+        Harness::OpenCode(s) => {
+            let rows = opencode_rows("sqlite3", &opencode_db().ok()?, s).ok()?;
+            opencode_scan(&rows, &BTreeMap::new(), 0, &mut cursor.opencode);
+        }
         Harness::Other { .. } => return None,
     }
     Some(cursor)
@@ -724,6 +980,7 @@ fn report_payload(target: &str, r: &Report) -> serde_json::Value {
         output: r.output,
         cache_read: r.cache_read,
         cache_write: r.cache_write,
+        reasoning: None,
         tokens: r.tokens.unwrap_or_else(|| parts.iter().flatten().sum()),
     };
     let mut p = serde_json::json!({
@@ -767,6 +1024,11 @@ fn window_payload(
             let entries = w.entries();
             p["tokens"] = serde_json::json!(entries.iter().map(|e| e.tokens).sum::<u64>());
             p["models"] = serde_json::json!(entries);
+            if let Some(c) = w.cost {
+                // The provider's own figure, unverified: opencode reads 0 for
+                // subagents on a paid model.
+                p["cost"] = serde_json::json!(c);
+            }
         }
         Ok(_) => {
             p["tokens"] = serde_json::json!("unknown");
@@ -823,6 +1085,7 @@ fn read_window(
         let read = match harness {
             Harness::ClaudeCode(s) => claude_files(s).map(|_| ()),
             Harness::Codex(t) => codex_file(t).map(|_| ()),
+            Harness::OpenCode(_) => opencode_db().map(|_| ()),
             Harness::Other { .. } => Ok(()),
         };
         return (
@@ -840,6 +1103,9 @@ fn read_window(
         Harness::Codex(t) => {
             codex_file(t).and_then(|path| read_codex(&path, cursor, since_time.as_ref(), &mut next))
         }
+        Harness::OpenCode(s) => opencode_db().and_then(|db| {
+            read_opencode("sqlite3", &db, s, cursor, since_time.as_ref(), &mut next)
+        }),
         Harness::Other { var, .. } => Err(format!(
             "{var} names the session, and no reader knows that harness's record; report it \
              with `war done --usage <file|->`"
@@ -1144,6 +1410,285 @@ mod tests {
             (total, model.as_deref()),
             (Some([300, 140, 30]), Some("gpt-x"))
         );
+    }
+
+    // ---- opencode: a fixture database built by `sqlite3` ----------------------
+
+    fn have_sqlite3() -> bool {
+        let ok = std::process::Command::new("sqlite3")
+            .arg("-version")
+            .output()
+            .is_ok_and(|o| o.status.success());
+        if !ok {
+            eprintln!("SKIPPED: sqlite3 is not installed, so the opencode fixture cannot be built");
+        }
+        ok
+    }
+
+    fn sqlite(db: &Utf8Path, sql: &str) {
+        let o = std::process::Command::new("sqlite3")
+            .arg(db.as_str())
+            .arg(sql)
+            .output()
+            .expect("sqlite3");
+        assert!(o.status.success(), "{}", String::from_utf8_lossy(&o.stderr));
+    }
+
+    /// An assistant message row: session, seq, created ms, completed ms (or
+    /// not yet), model, tokens (input, output, reasoning, cache read, write), cost.
+    fn msg(
+        sid: &str,
+        seq: i64,
+        at: i64,
+        done: bool,
+        model: &str,
+        t: [u64; 5],
+        cost: f64,
+    ) -> String {
+        let completed = if done {
+            format!(r#","completed":{}"#, at + 5)
+        } else {
+            String::new()
+        };
+        format!(
+            "INSERT INTO session_message VALUES ('{sid}-{seq}','{sid}','assistant',{seq},{at},{at},\
+             '{{\"text\":\"SECRET-CONTENT\",\"model\":{{\"id\":\"{model}\"}},\"cost\":{cost},\
+             \"time\":{{\"created\":{at}{completed}}},\"tokens\":{{\"input\":{},\"output\":{},\
+             \"reasoning\":{},\"cache\":{{\"read\":{},\"write\":{}}}}}}}');",
+            t[0], t[1], t[2], t[3], t[4]
+        )
+    }
+
+    const OC_SCHEMA: &str = "CREATE TABLE session_v2 (id text PRIMARY KEY, parent_id text, \
+        directory text, time_created integer, time_updated integer);\
+        CREATE TABLE session_message (id text PRIMARY KEY, session_id text, type text, \
+        seq integer, time_created integer, time_updated integer, data text);";
+
+    fn oc_db(dir: &Utf8Path) -> Utf8PathBuf {
+        let db = dir.join("opencode.db");
+        let mut sql = String::from(OC_SCHEMA);
+        for (id, parent) in [
+            ("ses_top", "NULL"),
+            ("ses_kid", "'ses_top'"),
+            ("ses_grand", "'ses_kid'"),
+            ("ses_other", "NULL"),
+        ] {
+            sql += &format!("INSERT INTO session_v2 VALUES ('{id}',{parent},'/r',1,1);");
+        }
+        // Before the window.
+        sql += &msg("ses_top", 1, 1_000, true, "m-a", [1000, 1000, 0, 0, 0], 1.0);
+        // In it: the parent, a child (cost 0, as for subagents on a paid model),
+        // a grandchild; a user message with usage-looking content; another tree.
+        sql += &msg("ses_top", 2, 10_000, true, "m-a", [10, 5, 2, 100, 20], 0.5);
+        sql += &msg("ses_kid", 1, 11_000, true, "m-b", [1, 2, 0, 0, 0], 0.0);
+        sql += &msg("ses_grand", 1, 12_000, true, "m-b", [3, 4, 0, 0, 0], 0.0);
+        sql += &msg(
+            "ses_other",
+            1,
+            12_000,
+            true,
+            "m-z",
+            [9999, 9999, 0, 0, 0],
+            9.0,
+        );
+        sql += "INSERT INTO session_message VALUES ('u1','ses_top','user',3,13000,13000,\
+                '{\"tokens\":{\"input\":777}}');";
+        sqlite(&db, &sql);
+        db
+    }
+
+    fn since(ms: i64) -> chrono::DateTime<chrono::Utc> {
+        chrono::DateTime::from_timestamp_millis(ms).expect("time")
+    }
+
+    #[test]
+    fn opencode_sums_the_session_and_every_session_under_it() {
+        if !have_sqlite3() {
+            return;
+        }
+        let (_d, dir) = tmp();
+        let db = oc_db(&dir);
+        let mut next = Cursor::default();
+        let w = read_opencode(
+            "sqlite3",
+            &db,
+            "ses_top",
+            None,
+            Some(&since(5_000)),
+            &mut next,
+        )
+        .expect("read");
+        assert_eq!(
+            w.messages, 3,
+            "the parent's, the child's and the grandchild's"
+        );
+        let a = &w.by_model["m-a"];
+        // Reasoning tokens are counted as output.
+        assert_eq!(
+            (a.input, a.output, a.cache_read, a.cache_write, a.tokens),
+            (Some(10), Some(7), Some(100), Some(20), 137)
+        );
+        assert_eq!(a.reasoning, Some(2), "named, and inside output");
+        assert_eq!(w.by_model["m-b"].tokens, 10);
+        assert_eq!(w.by_model["m-b"].reasoning, None);
+        assert!(!w.by_model.contains_key("m-z"), "another session's tree");
+        assert_eq!(
+            w.cost,
+            Some(0.5),
+            "recorded as the provider gave it, 0s included"
+        );
+        let p = window_payload(&Harness::OpenCode("ses_top".into()), "t-1", "x", Ok(w));
+        assert_eq!(
+            (p["tokens"].clone(), p["source"].clone()),
+            (147.into(), "opencode".into())
+        );
+        let text = p.to_string();
+        assert!(
+            !text.contains("SECRET") && !text.contains("ses_top"),
+            "{text}"
+        );
+        // The child alone is its own tree: nothing of the parent's.
+        let w = read_opencode(
+            "sqlite3",
+            &db,
+            "ses_kid",
+            None,
+            Some(&since(5_000)),
+            &mut Cursor::default(),
+        )
+        .expect("read");
+        assert_eq!(w.by_model.keys().collect::<Vec<_>>(), ["m-b"]);
+    }
+
+    /// Refusal: a message before the window is not counted, a cursor counts
+    /// only what came after it, and a message still being written waits.
+    #[test]
+    fn opencode_respects_the_window_and_the_cursor() {
+        if !have_sqlite3() {
+            return;
+        }
+        let (_d, dir) = tmp();
+        let db = oc_db(&dir);
+        let all = read_opencode(
+            "sqlite3",
+            &db,
+            "ses_top",
+            None,
+            Some(&since(0)),
+            &mut Cursor::default(),
+        )
+        .expect("read");
+        assert_eq!(
+            all.by_model["m-a"].tokens,
+            2000 + 137,
+            "from time 0 the old message counts"
+        );
+        let mut first = Cursor {
+            since: "1970-01-01T00:00:05Z".into(),
+            ..Cursor::default()
+        };
+        let w = read_opencode(
+            "sqlite3",
+            &db,
+            "ses_top",
+            None,
+            Some(&since(5_000)),
+            &mut first,
+        )
+        .expect("read");
+        assert_eq!(w.messages, 3);
+        assert_eq!(first.opencode["ses_top"], 2);
+        sqlite(
+            &db,
+            &(msg("ses_top", 4, 20_000, true, "m-a", [1, 1, 0, 0, 0], 0.0)
+                + &msg("ses_kid", 2, 21_000, false, "m-b", [50, 50, 0, 0, 0], 0.0)
+                + &msg("ses_new", 1, 22_000, true, "m-c", [4, 0, 0, 0, 0], 0.0)),
+        );
+        sqlite(
+            &db,
+            "INSERT INTO session_v2 VALUES ('ses_new','ses_grand','/r',1,1);",
+        );
+        let mut second = Cursor {
+            since: first.since.clone(),
+            ..Cursor::default()
+        };
+        let w = read_opencode("sqlite3", &db, "ses_top", Some(&first), None, &mut second)
+            .expect("read");
+        assert_eq!(w.by_model["m-a"].tokens, 2, "only the new message");
+        assert_eq!(
+            w.by_model["m-c"].tokens, 4,
+            "a session that began after the mark"
+        );
+        assert!(
+            !w.by_model.contains_key("m-b"),
+            "the unfinished message waits"
+        );
+        assert_eq!(second.opencode["ses_kid"], 1, "the mark stops before it");
+        // The window with nothing new is no usage, not zero.
+        let mut third = Cursor {
+            since: first.since.clone(),
+            ..Cursor::default()
+        };
+        let w = read_opencode("sqlite3", &db, "ses_top", Some(&second), None, &mut third)
+            .expect("read");
+        assert_eq!(w.messages, 0);
+        let p = window_payload(&Harness::OpenCode("ses_top".into()), "t-1", "x", Ok(w));
+        assert_eq!(p["tokens"], "unknown");
+    }
+
+    /// Refusal: no database, no sqlite3, a schema that is not opencode's, and
+    /// rows that are not the shape read are each UNKNOWN with the reason, never 0.
+    #[test]
+    fn opencode_unreadable_is_unknown_never_zero() {
+        let (_d, dir) = tmp();
+        let h = Harness::OpenCode("ses_top".into());
+        let unknown = |why: String| {
+            let p = window_payload(&h, "t-1", "x", Err(why.clone()));
+            assert_eq!(p["tokens"], "unknown");
+            assert_eq!(p["reason"], why);
+            assert!(!why.contains(dir.as_str()), "no path in the reason: {why}");
+        };
+        let no_tool = opencode_rows("no-such-sqlite3-binary", &dir.join("x.db"), "ses_top")
+            .expect_err("no sqlite3");
+        assert!(no_tool.contains("not installed"), "{no_tool}");
+        unknown(no_tool);
+        assert!(opencode_rows("sqlite3", &dir.join("x.db"), "bad id'; --").is_err());
+        if !have_sqlite3() {
+            return;
+        }
+        let missing =
+            opencode_rows("sqlite3", &dir.join("absent.db"), "ses_top").expect_err("no database");
+        assert!(missing.contains("could not be opened"), "{missing}");
+        assert!(
+            !dir.join("absent.db").exists(),
+            "read-only: nothing is created"
+        );
+        unknown(missing);
+        // A schema without the columns read.
+        let db = dir.join("drift.db");
+        sqlite(
+            &db,
+            "CREATE TABLE session_v2 (id text, parent text); \
+             CREATE TABLE session_message (id text, body text);",
+        );
+        let drift = opencode_rows("sqlite3", &db, "ses_top").expect_err("schema");
+        assert!(drift.contains("schema mismatch"), "{drift}");
+        unknown(drift);
+        // The columns are there but a number is not one.
+        let odd = dir.join("odd.db");
+        sqlite(&odd, OC_SCHEMA);
+        sqlite(
+            &odd,
+            "INSERT INTO session_v2 VALUES ('ses_top',NULL,'/r',1,1);",
+        );
+        sqlite(
+            &odd,
+            "INSERT INTO session_message VALUES ('a','ses_top','assistant',1,1,1,\
+             '{\"time\":{\"completed\":2},\"tokens\":{\"input\":\"many\"}}');",
+        );
+        let shape = opencode_rows("sqlite3", &odd, "ses_top").expect_err("not a number");
+        assert!(shape.contains("schema mismatch"), "{shape}");
+        unknown(shape);
     }
 
     /// Refusal: a report with no count, a stray key, or a total that is not

@@ -79,6 +79,8 @@ fn war(root: &Path, actor: Option<&str>, args: &[&str]) -> Output {
         // usage): these tests count the journal's events, so run sessionless.
         .env_remove("OPENWARRANT_SESSION_ID")
         .env_remove("KATANA_SESSION_ID")
+        .env_remove("OPENCODE_SESSION_ID")
+        .env_remove("OPENCODE")
         .env_remove("CODEX_THREAD_ID")
         .env_remove("CODEX_SESSION_ID")
         .env_remove("CLAUDE_CODE_SESSION_ID")

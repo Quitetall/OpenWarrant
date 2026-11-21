@@ -159,7 +159,7 @@ impl Drop for AdmissionLock {
     }
 }
 
-fn normal(store: &Store, value: &str) -> Result<String, String> {
+pub(crate) fn normal(store: &Store, value: &str) -> Result<String, String> {
     let value = value.trim();
     if value.is_empty()
         || value.len() > 4096

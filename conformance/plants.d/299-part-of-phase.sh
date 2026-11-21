@@ -20,7 +20,7 @@ PP_R=$(scratch_corpus PP)
 PP_T=$(mktemp -d)
 pp_war() {
     (cd "$PP_R" && env -u SSH_AUTH_SOCK -u SSH_AGENT_PID -u OPENWARRANT_VERBOSE -u OPENWARRANT_SESSION_ID \
-        -u KATANA_SESSION_ID -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
+        -u KATANA_SESSION_ID -u OPENCODE_SESSION_ID -u OPENCODE -u CODEX_THREAD_ID -u CODEX_SESSION_ID -u CLAUDE_CODE_SESSION_ID \
         OPENWARRANT_ACTOR=plant timeout 120 "$PP_WAR" "$@" </dev/null >"$PP_T/out" 2>"$PP_T/err")
 }
 pp_id() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["result"].get("id",""))' "$PP_T/out" 2>/dev/null; }

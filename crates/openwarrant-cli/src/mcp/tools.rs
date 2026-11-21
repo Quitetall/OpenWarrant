@@ -64,6 +64,12 @@ pub struct CreateParams {
     /// Parent work item (an epic).
     #[serde(default)]
     pub part_of: Option<String>,
+    /// Put it last in this lane.
+    #[serde(default)]
+    pub lane: Option<String>,
+    /// Who the work suits (`war.for`).
+    #[serde(default, rename = "for")]
+    pub for_who: Option<String>,
     /// Paths or globs it may write.
     #[serde(default)]
     pub paths: Vec<String>,
@@ -111,7 +117,10 @@ pub struct TicketsParams {
 
 #[derive(Debug, Deserialize, schemars::JsonSchema, Default)]
 #[serde(deny_unknown_fields)]
-pub struct ActorParams {
+pub struct ReadyParams {
+    /// Only work whose `war.for` (or its lane's) is this.
+    #[serde(default, rename = "for")]
+    pub for_who: Option<String>,
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -147,6 +156,9 @@ pub struct StartParams {
     /// With `claim`: take a claim older than its TTL.
     #[serde(default)]
     pub steal: bool,
+    /// The next ready item of this lane, claimed with the lane's paths.
+    #[serde(default)]
+    pub lane: Option<String>,
     #[serde(default)]
     pub actor: Option<String>,
 }
@@ -294,6 +306,9 @@ pub struct StatusParams {
     /// What can start now.
     #[serde(default)]
     pub ready: bool,
+    /// With `ready`: only work whose `war.for` (or its lane's) is this.
+    #[serde(default, rename = "for")]
+    pub for_who: Option<String>,
     /// With `target`: a view (`full_warrant`, `status`, ...).
     #[serde(default)]
     pub view: Option<String>,
@@ -787,7 +802,9 @@ impl WarServer {
             return self.next_answer();
         }
         if p.ready {
-            return self.ticket("ready", p.actor.as_deref(), crate::ticket::ready);
+            return self.ticket("ready", p.actor.as_deref(), |s| {
+                crate::ticket::ready_suiting(s, p.for_who.as_deref())
+            });
         }
         let Some(target) = p.target else {
             // The text is `war status`'s brief; the envelope keeps the
@@ -1394,8 +1411,10 @@ impl WarServer {
         description = "What can start now (`war status --ready`). Read-only.",
         annotations(read_only_hint = true)
     )]
-    fn war_ready(&self, Parameters(p): Parameters<ActorParams>) -> ToolResult {
-        self.ticket("ready", p.actor.as_deref(), crate::ticket::ready)
+    fn war_ready(&self, Parameters(p): Parameters<ReadyParams>) -> ToolResult {
+        self.ticket("ready", p.actor.as_deref(), |s| {
+            crate::ticket::ready_suiting(s, p.for_who.as_deref())
+        })
     }
 
     #[tool(
@@ -1441,11 +1460,19 @@ impl WarServer {
                 paths: p.paths,
                 tools: p.tools,
                 commands: p.commands,
+                for_who: p.for_who,
+                ..crate::ticket::Scope::default()
             },
             tests: p.tests,
             force: p.force,
         };
         self.ticket("create", p.actor.as_deref(), |s| {
+            let mut args = args;
+            if let Some(lane) = p.lane.as_deref()
+                && let Err(refusal) = crate::ticket::lanes::place(s, lane, &mut args)?
+            {
+                return Ok(refusal);
+            }
             let created = crate::ticket::create(s, &args)?;
             if p.sign {
                 crate::ticket::parts::signed(s, created)
@@ -1484,7 +1511,10 @@ impl WarServer {
             });
         }
         self.ticket("start", p.actor.as_deref(), |s| {
-            let mut outcome = crate::ticket::start_cmd(s, p.target.as_deref())?;
+            let mut outcome = match p.lane.as_deref() {
+                Some(lane) => crate::ticket::lanes::start(s, lane)?,
+                None => crate::ticket::start_cmd(s, p.target.as_deref())?,
+            };
             crate::session_usage::after_start(&self.repo.root, s, &mut outcome);
             Ok(outcome)
         })

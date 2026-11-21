@@ -22,7 +22,7 @@
 #   tickets alike; the first ids, made while it is small, are four.
 
 echo "== war create: one block of the index, and ids sized by every ticket =="
-unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
+unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID OPENCODE_SESSION_ID OPENCODE CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
 CI_T=$(mktemp -d) || { printf 'PLANT SETUP FAILED: mktemp\n' >&2; exit 9; }
 SCRATCH_CORPORA+=("$CI_T")
 CI_ROOT=$(scratch_corpus CI)

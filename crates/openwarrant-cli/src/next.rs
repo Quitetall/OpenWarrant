@@ -1141,6 +1141,8 @@ mod tests {
             done: 0,
             blocked: 2,
             documents: Vec::new(),
+            lanes: Vec::new(),
+            joins: Vec::new(),
         };
         let mut report = crate::diagnostic::Report::default();
         report.push(crate::diagnostic::Diagnostic::unknown(

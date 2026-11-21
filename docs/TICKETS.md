@@ -806,6 +806,45 @@ better served by the commands above) the same loop is `war_start` and `war_done`
 `text`, `search`, `epic`). Finding the right ticket is
 `war view tickets --search "<words>" --json`, not reading every directory.
 
+## Lanes
+
+A lane (OW-ADR-0036) is an ordered path of work for one runner that owns the
+files it touches. Use lanes when several agents work one plan at once: each
+takes a lane, and the lanes cannot collide.
+
+```bash
+# plan: one lane per area, disjoint paths; a lane that builds on another runs after it
+war lane new api --paths crates/api --for claude
+war lane new db  --paths crates/db  --for codex
+war lane new docs --paths docs crates/api --after api   # may share api's files: it runs after
+
+# fill each lane in order: each item goes last, after the one before
+war create "add the endpoint" --lane api
+war create "test the endpoint" --lane api --test "cargo test -p api"
+
+# a join waits on whole lanes: a gate, a tag, a release
+war create "release" --depends-on <api-id> --depends-on <db-id>
+
+# each runner works its lane
+war ready --for codex             # what suits you
+war start --lane db               # the next ready item, claimed with the lane's paths
+# ... work, commit ...
+war done                          # refused (lane.outside-paths) if you touched a file outside crates/db
+war lane widen db migrations      # the honest way out: journalled lane.widened
+war start --lane db               # the next item; `lane db is done` at the end
+```
+
+- `war check` refuses two lanes whose paths overlap unless one runs after the
+  other (`lane.overlap`); so does `war lane new` and `war lane widen`.
+- `war done` compares the claim's base revision with the working tree, tracked
+  and untracked, and names every file outside the lane. Commit or undo before
+  the next item; a runner shares no checkout with another lane's runner.
+- `war plan frontier` and `war status` show each lane, its next item and the
+  open joins. A lane whose items are all done is done.
+- `war.for` is a recommendation; nothing refuses an agent it does not name.
+  `ready --for` lists only work marked for that agent (or its lane).
+- Item `paths` outside a lane keep their meaning: coordination, no refusal.
+
 ## Questions
 
 An agent that needs a decision asks, instead of guessing or stopping:
