@@ -49,6 +49,13 @@ Notable changes to OpenWarrant. Format loosely follows
   (FORMAT-1.0 11.1; plant 340, conformance case 446).
 - `war context <item>` of a ticket with no Intent section now includes the ticket's REQ's
   constraints within the preset's depth 2; `--depth` and the budget still bound it (plant 341).
+- `war cleanup --apply` removes worktrees on a host that hides same-user processes. Where the
+  process probe is UNKNOWN, a clean, merged, unclaimed managed worktree nothing in which
+  (`.git` aside) changed for `[resources] idle_after` (`Nh`/`Nd`, default `24h`; `0` turns it
+  off) is idle, and the row says so (`activity unknown; idle 3d, past 24h`); one with a
+  newer file is kept, naming it (plant 352).
+- `war claim` and `war start` no longer panic inside a pid namespace whose session leader is
+  outside it: the claim's session is `local-session:UNKNOWN`, which matches only by worktree.
 
 ### Changed
 

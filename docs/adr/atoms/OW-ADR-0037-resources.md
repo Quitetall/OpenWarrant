@@ -72,7 +72,8 @@ builds, a limit on worktrees, an everyday cleanup, and a lane that does the pass
 - **A new verb for slots.** `war run` already names the service-stage run; a slot run
   is told apart by `--`. A seventh daily verb would break the small surface (M12).
 - **Remove worktrees by age.** Rejected: an old worktree may hold work. The existing
-  conservative prune decides, and unknown activity keeps a worktree.
+  conservative prune decides. File age is only the second signal for unknown
+  process activity, after every other rule has passed (see Consequences).
 - **Build automatically on `war start`.** Rejected: the owner asked for builds to be
   deliberate. `war start` only says the seed is stale.
 
@@ -80,7 +81,9 @@ builds, a limit on worktrees, an everyday cleanup, and a lane that does the pass
 
 - A repository without `[resources]` is unchanged, except that `war plan lane new`
   now adds the cleanup lane; `[lanes] cleanup = false` turns that off.
-- On a host that hides a same-user process, activity is UNKNOWN and `war admin
-  cleanup --apply` keeps every worktree, as `war admin worktrees` does. Merged
-  branches no worktree holds are still deleted.
+- On a host that hides a same-user process, activity is UNKNOWN. Then, and only
+  then, a second signal decides: a worktree that passes every other rule and
+  nothing in which (`.git` aside) changed for `[resources] idle_after` (default
+  `24h`, `0` off) is idle and removable, and the row names that signal. A newer
+  file keeps it. Claims, a dirty tree and unmerged commits keep it regardless.
 - A slot is per clone (its common dir), not per machine.

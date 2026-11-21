@@ -11,6 +11,7 @@ use std::{collections::BTreeSet, path::PathBuf};
 
 const SCHEMA: &str = "oh.war/managed-workspace/v1";
 /// A host that hides a same-user process cannot say a worktree is inactive.
+/// Every reason that keeps a worktree for that alone starts with this.
 pub(crate) const ACTIVITY_UNKNOWN: &str = "process activity unknown";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Ownership {
@@ -110,11 +111,26 @@ pub struct Row {
     pub claims: Vec<String>,
     pub prunable: bool,
     pub reasons: Vec<String>,
+    /// What established inactivity where the process probe could not:
+    /// `activity unknown; idle 3d, past 24h`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub activity: Option<String>,
 }
 
 /// Same-user process references are observed once per inventory, not once per
 /// worktree. Inaccessible observations remain unknown and prevent deletion.
 fn process_references() -> (BTreeSet<PathBuf>, bool) {
+    let (paths, known) = observe_processes();
+    // A debug build's hook: behave as a host that hides a process, whatever
+    // this one does, so a plant is deterministic. What is seen still counts.
+    #[cfg(debug_assertions)]
+    if std::env::var("OPENWARRANT_TEST_PROCESS_PROBE").as_deref() == Ok("hidden") {
+        return (paths, false);
+    }
+    (paths, known)
+}
+
+fn observe_processes() -> (BTreeSet<PathBuf>, bool) {
     #[cfg(target_os = "linux")]
     {
         use std::os::unix::fs::MetadataExt;
@@ -256,6 +272,86 @@ fn ignored_disposable(path: &Utf8Path, file: &str) -> bool {
     false
 }
 
+/// `[resources] idle_after`: seconds and as written; `None` when it is 0.
+type Idle = Result<Option<(u64, String)>, String>;
+
+fn idle_policy(root: &Utf8Path) -> Idle {
+    let config = crate::resources::load(root)?;
+    let text = config
+        .idle_after
+        .clone()
+        .unwrap_or_else(|| crate::resources::IDLE_AFTER.into());
+    Ok(config.idle_after()?.map(|s| (s, text)))
+}
+
+fn age(secs: u64) -> String {
+    match secs {
+        86_400.. => format!("{}d", secs / 86_400),
+        3600.. => format!("{}h", secs / 3600),
+        _ => format!("{}m", secs / 60),
+    }
+}
+
+/// The newest modification time of anything in the worktree but its `.git`,
+/// the worktree directory included; symlinks are not followed.
+fn newest_change(path: &Utf8Path) -> Result<(std::time::SystemTime, String), String> {
+    let mut newest = (
+        std::fs::symlink_metadata(path)
+            .and_then(|m| m.modified())
+            .map_err(|e| e.to_string())?,
+        ".".to_owned(),
+    );
+    let mut stack = vec![path.as_std_path().to_owned()];
+    while let Some(dir) = stack.pop() {
+        for entry in std::fs::read_dir(&dir).map_err(|e| format!("{}: {e}", dir.display()))? {
+            let entry = entry.map_err(|e| e.to_string())?;
+            let p = entry.path();
+            if dir == path.as_std_path() && entry.file_name() == ".git" {
+                continue;
+            }
+            let meta =
+                std::fs::symlink_metadata(&p).map_err(|e| format!("{}: {e}", p.display()))?;
+            let modified = meta.modified().map_err(|e| e.to_string())?;
+            if modified > newest.0 {
+                let rel = p.strip_prefix(path.as_std_path()).unwrap_or(&p);
+                newest = (modified, rel.to_string_lossy().into_owned());
+            }
+            if meta.is_dir() {
+                stack.push(p);
+            }
+        }
+    }
+    Ok(newest)
+}
+
+/// Where the process probe is UNKNOWN: idle when nothing in the worktree
+/// changed for `idle_after`. `Ok` says it was; `Err` says why it is kept.
+fn idle_signal(path: &Utf8Path, idle: &Idle) -> Result<String, String> {
+    let (after, text) = match idle {
+        Ok(Some(policy)) => policy,
+        Ok(None) => return Err(format!("{ACTIVITY_UNKNOWN}; idle_after 0")),
+        Err(why) => return Err(format!("{ACTIVITY_UNKNOWN}; {why}")),
+    };
+    let (when, file) =
+        newest_change(path).map_err(|e| format!("{ACTIVITY_UNKNOWN}; file times UNKNOWN: {e}"))?;
+    let Ok(since) = std::time::SystemTime::now().duration_since(when) else {
+        return Err(format!("{ACTIVITY_UNKNOWN}; {file} changed after now"));
+    };
+    let since = since.as_secs();
+    if since > *after {
+        Ok(format!(
+            "activity unknown; idle {}, past {text}",
+            age(since)
+        ))
+    } else {
+        Err(format!(
+            "{ACTIVITY_UNKNOWN}; {file} changed {} ago, within idle_after {text}",
+            age(since)
+        ))
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 fn inspect(
     repo: &Repository,
     path: &Utf8Path,
@@ -263,6 +359,7 @@ fn inspect(
     head: String,
     store: &ticket::Store,
     activity: &(BTreeSet<PathBuf>, bool),
+    idle: Option<&Idle>,
     integration: &str,
 ) -> Row {
     let (references, known) = activity;
@@ -276,6 +373,7 @@ fn inspect(
         claims: Vec::new(),
         prunable: false,
         reasons: Vec::new(),
+        activity: None,
     };
     if own.is_none() {
         row.reasons.push("foreign or ownership unknown".into());
@@ -329,10 +427,18 @@ fn inspect(
         row.reasons
             .push("writer claim retained; expiry alone does not establish inactivity".into());
     }
+    let seen = references.iter().any(|p| p.starts_with(path.as_std_path()));
     if !*known {
-        row.reasons.push(ACTIVITY_UNKNOWN.into());
+        // The second signal is asked only of a worktree nothing else keeps.
+        match idle.filter(|_| row.reasons.is_empty() && !seen) {
+            Some(idle) => match idle_signal(path, idle) {
+                Ok(signal) => row.activity = Some(signal),
+                Err(why) => row.reasons.push(why),
+            },
+            None => row.reasons.push(ACTIVITY_UNKNOWN.into()),
+        }
     }
-    if references.iter().any(|p| p.starts_with(path.as_std_path())) {
+    if seen {
         row.reasons.push("active process reference".into());
     }
     row.prunable = row.reasons.is_empty();
@@ -353,6 +459,8 @@ pub fn inventory(repo: &Repository, probe: bool, integration: &str) -> Result<Ve
     } else {
         (BTreeSet::new(), false)
     };
+    // Unprobed is not "hidden": the idle fallback answers only a real probe.
+    let idle = probe.then(|| idle_policy(&repo.root));
     let mut rows = Vec::new();
     for block in listed.stdout.split("\n\n") {
         let value = |key: &str| {
@@ -372,6 +480,7 @@ pub fn inventory(repo: &Repository, probe: bool, integration: &str) -> Result<Ve
             value("HEAD ").unwrap_or_default(),
             &store,
             &activity,
+            idle.as_ref(),
             integration,
         ));
     }
@@ -392,7 +501,7 @@ pub fn remove_if_safe(root: &Utf8Path, path: &Utf8Path, integration: &str) -> bo
 /// the rule would otherwise retain every worktree a run ever made.
 pub fn remove_own(root: &Utf8Path, path: &Utf8Path, reachable_at: &str) -> bool {
     reclaim(root, path, reachable_at, |row| {
-        row.reasons.iter().all(|r| r == ACTIVITY_UNKNOWN)
+        row.reasons.iter().all(|r| r.starts_with(ACTIVITY_UNKNOWN))
     })
 }
 
@@ -471,7 +580,9 @@ pub fn run(
                 "{}  {}  {}",
                 if r.prunable { "eligible" } else { "retain" },
                 r.path,
-                r.reasons.join("; ")
+                r.activity
+                    .as_ref()
+                    .map_or_else(|| r.reasons.join("; "), Clone::clone)
             )
         })
         .collect::<Vec<_>>()
@@ -480,4 +591,48 @@ pub fn run(
         human,
         serde_json::json!({"schema":"oh.war/worktrees/v1","dry_run":!apply,"integration":integration,"worktrees":rows,"removed":removed,"retained_after_recheck":retained}),
     ))
+}
+
+#[cfg(test)]
+mod idle_tests {
+    use super::*;
+
+    #[test]
+    fn an_aged_tree_is_idle_and_one_fresh_file_or_zero_keeps_it() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = Utf8PathBuf::from_path_buf(dir.path().to_owned()).unwrap();
+        std::fs::create_dir(root.join("src")).unwrap();
+        std::fs::write(root.join("src/a.rs"), b"a").unwrap();
+        std::fs::write(root.join(".git"), b"gitdir: x").unwrap();
+        let old = std::time::SystemTime::now() - std::time::Duration::from_secs(3 * 86_400);
+        for p in ["src/a.rs", "src", "."] {
+            std::fs::File::options()
+                .read(true)
+                .open(root.join(p))
+                .and_then(|f| f.set_modified(old))
+                .unwrap();
+        }
+        let day: Idle = Ok(Some((86_400, "24h".into())));
+        assert_eq!(
+            idle_signal(&root, &day).unwrap(),
+            "activity unknown; idle 3d, past 24h",
+            "a fresh .git is not activity"
+        );
+        assert_eq!(
+            idle_signal(&root, &Ok(None)).unwrap_err(),
+            "process activity unknown; idle_after 0"
+        );
+        std::fs::write(root.join("src/a.rs"), b"b").unwrap();
+        let kept = idle_signal(&root, &day).unwrap_err();
+        assert!(kept.starts_with(ACTIVITY_UNKNOWN), "{kept}");
+        assert!(
+            kept.contains("src/a.rs changed 0m ago, within idle_after 24h"),
+            "{kept}"
+        );
+        assert!(
+            idle_signal(&root.join("absent"), &day)
+                .unwrap_err()
+                .contains("file times UNKNOWN")
+        );
+    }
 }

@@ -99,11 +99,10 @@ fn worktree_inventory_preserves_foreign_dirty_and_unique_work() {
         .unwrap();
     // The host may forbid inspecting another same-user process (for example
     // a non-dumpable signing agent). That is an honest UNKNOWN, not inactivity.
-    let activity_unknown = row["reasons"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .any(|r| r == "process activity unknown");
+    let activity_unknown = row["reasons"].as_array().unwrap().iter().any(|r| {
+        r.as_str()
+            .is_some_and(|r| r.starts_with("process activity unknown"))
+    });
     assert_eq!(row["prunable"], !activity_unknown, "{row}");
     assert!(
         !row["reasons"]
@@ -139,11 +138,9 @@ fn worktree_inventory_preserves_foreign_dirty_and_unique_work() {
             "unknown activity must preserve the workspace: {v}"
         );
         assert!(
-            row["reasons"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .any(|r| r == "process activity unknown"),
+            row["reasons"].as_array().unwrap().iter().any(|r| r
+                .as_str()
+                .is_some_and(|r| r.starts_with("process activity unknown"))),
             "{row}"
         );
     }
