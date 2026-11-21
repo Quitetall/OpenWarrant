@@ -54,7 +54,7 @@ pub fn working_forms(
     let mut ticks_below_minimum = 0;
     let mut proof_incomplete = 0;
     for ticket in tickets {
-        let state = crate::ticket::state_of(ticket, &claims);
+        let state = crate::ticket::phase_of(ticket, Some(tickets), &claims);
         let ticks = crate::ticket::ladder::ticks_of(&reader, ticket);
         ticks_below_minimum += ticks.counts.below_minimum;
         if ticks.unavailable.is_some() || !ticks.checks.faults.is_empty() {

@@ -1013,7 +1013,11 @@ fn format_warrant_phases(corpus: &Corpus, claims: Option<&Claims>) -> Vec<Holdin
             ticket::claim_on(c, alias, item).is_some_and(|(_, c)| c.is_none_or(|c| c.reserves(now)))
         })
     };
-    let mut out = Vec::new();
+    // FORMAT-1.0 11.1: a work document `part_of` another counts as an item of
+    // it. `own` is each Warrant's phase from its own items and claims; the
+    // children's phases are folded in below, parents last.
+    let mut own: BTreeMap<String, (bool, bool, bool)> = BTreeMap::new();
+    let mut kids: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for d in &corpus.format_docs().docs {
         if d.place != crate::format_doc::Place::Warrant || !d.admitted() {
             continue;
@@ -1027,20 +1031,50 @@ fn format_warrant_phases(corpus: &Corpus, claims: Option<&Claims>) -> Vec<Holdin
             .iter()
             .any(|i| i.done || i.id.as_deref().is_some_and(|id| live(alias, Some(id))))
             || live(alias, None);
-        let state = if !items.is_empty() && items.iter().all(|i| i.done) {
+        own.insert(
+            alias.to_owned(),
+            (!items.is_empty(), items.iter().all(|i| i.done), started),
+        );
+        for r in d.doc.relations.iter().filter(|r| r.kind == "part_of") {
+            kids.entry(r.target.id.clone())
+                .or_default()
+                .push(alias.to_owned());
+        }
+    }
+    fn phase(
+        alias: &str,
+        own: &BTreeMap<String, (bool, bool, bool)>,
+        kids: &BTreeMap<String, Vec<String>>,
+        depth: usize,
+    ) -> FixedState {
+        let (has_items, items_done, started) = own[alias];
+        // A `part_of` cycle is refused elsewhere; the depth only stops it
+        // recursing for ever.
+        let children: Vec<FixedState> = kids
+            .get(alias)
+            .filter(|_| depth < 64)
+            .into_iter()
+            .flatten()
+            .filter(|k| own.contains_key(k.as_str()) && k.as_str() != alias)
+            .map(|k| phase(k, own, kids, depth + 1))
+            .collect();
+        let counted = has_items || !children.is_empty();
+        let all_done = items_done && children.iter().all(|c| *c == FixedState::Done);
+        if counted && all_done {
             FixedState::Done
-        } else if started {
+        } else if started || children.iter().any(|c| *c != FixedState::Open) {
             FixedState::InProgress
         } else {
             FixedState::Open
-        };
-        out.push(Holding {
-            record: alias.to_owned(),
-            state,
-            episode: None,
-        });
+        }
     }
-    out
+    own.keys()
+        .map(|alias| Holding {
+            record: alias.clone(),
+            state: phase(alias, &own, &kids, 0),
+            episode: None,
+        })
+        .collect()
 }
 
 /// The states the documents alone give (FORMAT-1.0 §10.3's purity rule:

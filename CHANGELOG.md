@@ -27,6 +27,14 @@ Notable changes to OpenWarrant. Format loosely follows
   `seq` cursor. Unreadable is `"unknown"` with the reason; opencode's `cost` is recorded
   as the provider's unverified figure. Shown by `war status --usage` like Claude Code and Codex.
 
+### Fixed
+
+- A parent whose `part_of` child is done, but not all of them, now reads `in_progress` in
+  `war view warrants`, `view prime`, `view show`, the web UI and the model, not `open`
+  (FORMAT-1.0 11.1; plant 340, conformance case 446).
+- `war context <item>` of a ticket with no Intent section now includes the ticket's REQ's
+  constraints within the preset's depth 2; `--depth` and the budget still bound it (plant 341).
+
 ### Changed
 
 - FORMAT-1.0 revision 4 (OW-ADR-0035: masters, the ladder, `w-` and `d-` ids) is accepted,

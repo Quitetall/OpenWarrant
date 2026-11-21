@@ -376,6 +376,8 @@ fn row(store: &Store, t: &Ticket, claims: &Claims) -> Row {
 /// The row with its epic progress, read over `all`.
 fn row_in(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims) -> Row {
     let mut r = row(store, t, claims);
+    // FORMAT-1.0 11.1: a work document `part_of` this one counts as its item.
+    r.state = super::phase_of(t, Some(all), claims);
     r.tickets = epic_progress(all, t, claims);
     r
 }
@@ -1217,7 +1219,7 @@ pub fn prime(
         .partition(|t| done_on(t).is_some_and(|d| d >= recent_cut));
     let in_progress = open
         .iter()
-        .filter(|t| state_of(t, claims) == TicketState::InProgress)
+        .filter(|t| super::phase_of(t, Some(all), claims) == TicketState::InProgress)
         .count();
 
     let mut md = format!("# Warrants — {}\n\n", store.project);
@@ -1321,7 +1323,7 @@ pub fn prime(
             }
         ));
     }
-    let rows: Vec<Row> = open.iter().map(|t| row(store, t, claims)).collect();
+    let rows: Vec<Row> = open.iter().map(|t| row_in(store, all, t, claims)).collect();
     let mut out = Outcome::ok(
         md.trim_end().to_owned(),
         serde_json::json!({
@@ -1368,7 +1370,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
     let mut md = format!("# {} — {}\n\n", t.id(), t.manifest.title);
     md.push_str(&format!(
         "{}{} · {d}/{n} done · priority {} · `{}/`\n",
-        state_of(t, claims).as_str(),
+        super::phase_of(t, Some(all), claims).as_str(),
         level_mark(store, t),
         t.manifest.priority,
         store.rel(&t.dir)
@@ -1424,7 +1426,7 @@ fn prime_one(store: &Store, all: &[Ticket], t: &Ticket, claims: &Claims, now: u6
         md.trim_end().to_owned(),
         serde_json::json!({
             "schema": "oh.war/ticket-prime/v1",
-            "ticket": row(store, t, claims),
+            "ticket": row_in(store, all, t, claims),
             "markdown": md,
         }),
     )
