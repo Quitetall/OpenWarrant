@@ -103,11 +103,48 @@ pub fn session() -> String {
             );
         }
     }
-    #[cfg(unix)]
-    if let Ok(id) = rustix::process::getsid(None) {
-        return format!("local-session:{}", id.as_raw_pid());
+    local_session(os_session())
+}
+
+/// A session id the operating system cannot give (0: its leader is outside
+/// this pid namespace) is UNKNOWN, never a number.
+fn local_session(raw: Option<i64>) -> String {
+    match raw.filter(|id| *id > 0) {
+        Some(id) => format!("local-session:{id}"),
+        None => format!("local-session:{UNKNOWN_SESSION}"),
     }
-    format!("local-process:{}", std::process::id())
+}
+const UNKNOWN_SESSION: &str = "UNKNOWN";
+
+/// The session id as the kernel reports it. Not `rustix::process::getsid`:
+/// it asserts the id is positive, and inside a pid namespace whose session
+/// leader is outside it the kernel says 0 (a panic, or worse in release).
+#[cfg(target_os = "linux")]
+fn os_session() -> Option<i64> {
+    stat_session(&std::fs::read_to_string("/proc/self/stat").ok()?)
+}
+#[cfg(all(unix, not(target_os = "linux")))]
+fn os_session() -> Option<i64> {
+    // No pid namespaces here; getsid of a running process is positive.
+    rustix::process::getsid(None)
+        .ok()
+        .map(|id| i64::from(id.as_raw_pid()))
+}
+#[cfg(not(unix))]
+fn os_session() -> Option<i64> {
+    None
+}
+
+/// Field 6 of `/proc/<pid>/stat`: `pid (comm) state ppid pgrp session …`;
+/// `comm` may hold spaces and parentheses, so fields count from the last `)`.
+#[cfg(any(target_os = "linux", test))]
+fn stat_session(stat: &str) -> Option<i64> {
+    stat.rsplit_once(')')?
+        .1
+        .split_whitespace()
+        .nth(3)?
+        .parse()
+        .ok()
 }
 
 /// Whether the process asking is the one that took this claim. A harness names
@@ -121,7 +158,7 @@ pub fn same_holder(store: &Store, claim: &Coordination) -> bool {
 
 fn holder_matches(claim: &Coordination, session: &str, workspace: &str) -> bool {
     let unnamed = |s: &str| s.starts_with("local-session:") || s.starts_with("local-process:");
-    claim.session == session
+    (claim.session == session && !session.ends_with(&format!(":{UNKNOWN_SESSION}")))
         || (unnamed(&claim.session) && unnamed(session) && claim.workspace == workspace)
 }
 
@@ -448,5 +485,26 @@ mod holder_tests {
         assert!(!holder_matches(&named, "local-session:20", "/w"));
         assert!(!holder_matches(&named, "CODEX_THREAD_ID:cd", "/w"));
         assert!(holder_matches(&named, "CODEX_THREAD_ID:ab", "/other"));
+    }
+
+    #[test]
+    fn a_session_the_kernel_cannot_name_is_unknown_never_a_panic() {
+        // Inside `unshare --pid`, the session leader is outside: the kernel says 0.
+        let stat = "1 (war (x) y) S 0 1 0 0 -1 4194560 100";
+        assert_eq!(super::stat_session(stat), Some(0));
+        assert_eq!(super::local_session(Some(0)), "local-session:UNKNOWN");
+        assert_eq!(super::local_session(Some(-3)), "local-session:UNKNOWN");
+        assert_eq!(super::local_session(None), "local-session:UNKNOWN");
+        assert_eq!(super::stat_session("garbage"), None);
+        let ok = "4242 (war) S 4000 4242 4100 0 -1 4194560";
+        assert_eq!(
+            super::local_session(super::stat_session(ok)),
+            "local-session:4100"
+        );
+        // UNKNOWN is no identity: two of them match only by worktree.
+        let c = claim("local-session:UNKNOWN", "/w");
+        assert!(!holder_matches(&c, "local-session:UNKNOWN", "/other"));
+        assert!(holder_matches(&c, "local-session:UNKNOWN", "/w"));
+        let _ = super::session();
     }
 }
