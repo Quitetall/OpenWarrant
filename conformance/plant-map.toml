@@ -151,7 +151,7 @@ paths = [
     "crates/openwarrant-cli/src/graph.rs", "crates/openwarrant-cli/src/frontier.rs",
     "conformance/fixtures/go/**",
 ]
-plants = ["16?-go-*.sh", "86-run.sh", "260-one-place.sh"]
+plants = ["16?-go-*.sh", "86-run.sh", "260-one-place.sh", "35?-resources-*.sh"]
 
 [[rule]]
 name = "perform and run"
@@ -523,7 +523,7 @@ paths = [
     "crates/openwarrant-cli/src/source_workspace.rs", "crates/openwarrant-cli/src/changed.rs",
     "crates/openwarrant-cli/src/worktrees.rs",
 ]
-plants = ["177-source-workspace.sh", "84-git-inventory-diagnostics.sh", "84-review-source-closure.sh"]
+plants = ["177-source-workspace.sh", "84-git-inventory-diagnostics.sh", "84-review-source-closure.sh", "35?-resources-*.sh"]
 
 [[rule]]
 name = "the study recorder"
@@ -543,7 +543,18 @@ plants = ["130-small-surface.sh", "131-old-spellings.sh", "194-interactive.sh", 
 [[rule]]
 name = "lanes"
 paths = ["crates/openwarrant-cli/src/ticket/lanes.rs", "docs/adr/atoms/OW-ADR-0036-lanes.md"]
-plants = ["33?-lane-*.sh"]
+plants = ["33?-lane-*.sh", "353-resources-cleanup-lane.sh"]
+
+# Resources (OW-ADR-0037): the env, slots, the worktree limit, cleanup, the cleanup lane.
+[[rule]]
+name = "resources"
+paths = ["crates/openwarrant-cli/src/resources.rs", "docs/adr/atoms/OW-ADR-0037-resources.md"]
+plants = ["35?-resources-*.sh"]
+
+[[rule]]
+name = "the stop hook"
+paths = [".claude/hooks/stop-check.sh"]
+plants = ["73-plugin.sh", "144-notify.sh", "352-resources-cleanup.sh"]
 
 [[rule]]
 name = "design notes"

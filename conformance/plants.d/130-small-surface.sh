@@ -66,13 +66,14 @@ fi
 # release` and `admin preset`, under their groups only; M17 `admin ledger`
 # and `admin score`, likewise; Format 1.0 draft 3 `admin reopen` (§11.2),
 # `plan spec` (§4.5) and `plan states` (§11.1); alpha.6 `admin worktrees`;
-# alpha.8 `plan expand` (docs/design/one-format.md).
+# alpha.8 `plan expand` (docs/design/one-format.md); alpha.9 `admin cleanup`
+# and `admin seed` (OW-ADR-0037).
 declare -A SS_MEMBERS=(
     [plan]="add note edit interview new expand promote render impact spec model states state roadmap types type lane frontier estimate questions ask answer answers"
     [sign]="authorize resolve correct amend attest standing sas inbox authority native-resolve approve release"
     [evidence]="record gate verify prepare run perform go submit kpi mark document eval runtime"
     [view]="next show ui tui board console watch overview warrants ready prime context timeline"
-    [admin]="worktrees claim compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release reopen renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset ledger score"
+    [admin]="cleanup seed worktrees claim compile doctor pins preflight diff journal deliver dispatch dispatch-bundle commit heartbeat release reopen renumber agents-md import export migrate archive bridge host sdk mcp kf telemetry bonsai blut projects update version merge-ticket preset ledger score"
 )
 SS_BAD=""
 for g in plan sign evidence view admin; do
