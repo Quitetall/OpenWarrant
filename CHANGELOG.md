@@ -22,6 +22,21 @@ Notable changes to OpenWarrant. Format loosely follows
   `lane` and `for`.
 - The plugin's edit guard denies an edit outside the paths of the lane whose item you hold.
 - FORMAT-1.0 Appendix D registers the `war` prefix (proposed with OW-ADR-0036).
+- Resources (OW-ADR-0037), in `openwarrant.toml` `[resources]`: `[resources.env]` (`{common}`
+  is the git common dir) goes into every `war`-made worktree's Claude settings and
+  `.openwarrant/env`, named in the brief; `war admin seed` builds once in the main checkout
+  and records the revision, and `war start` says when it is stale; `war run <slot> -- CMD…`
+  holds a build slot (`[resources.slots]`, default 1), names the holder while it waits,
+  takes over a dead one, exits with CMD's code, and is UNKNOWN on an unreadable slot;
+  `max_worktrees` refuses one more (`resources.worktree-limit`), naming the idle ones.
+- A lane's items share one worktree (`war start --lane <l> --worktree`, or `--worktree
+  <item>`).
+- `war cleanup` (`war admin cleanup`): dry run by default; `--apply` removes finished managed
+  worktrees and merged, unclaimed `war-go/*` branches. `war done` on a lane's last item and
+  the plugin's Stop hook say at most one line about leftovers.
+- `[lanes] cleanup = true` (default): `war lane new` ensures one `cleanup` lane after every
+  work lane, with docs, architecture and resource passes; `war lane new --reuse <path>…`
+  writes `war.reuse` (not critical), named in the lane brief.
 - `work.usage` reads opencode: `OPENCODE_SESSION_ID`'s session and its subagent sessions,
   summed from opencode's SQLite database through a read-only `sqlite3`, with a per-session
   `seq` cursor. Unreadable is `"unknown"` with the reason; opencode's `cost` is recorded
