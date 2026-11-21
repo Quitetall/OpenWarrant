@@ -9,8 +9,15 @@
 # - `--apply` removes that worktree and its branch, and deletes the merged
 #   branch. Refused: a dirty managed worktree, an unmanaged one, and an
 #   unmerged branch are kept, each with its reason. On a host that hides a
-#   same-user process, activity is UNKNOWN and the clean worktree is kept
-#   too, as `war admin worktrees` keeps it: that is said, never a removal.
+#   same-user process, activity is UNKNOWN and the just-finished worktree is
+#   kept too (a file changed within `idle_after`): that is said, never a removal.
+# - Where the process probe is UNKNOWN (forced with the debug build's
+#   OPENWARRANT_TEST_PROCESS_PROBE=hidden, so this holds on any host), a
+#   clean, merged, managed worktree nothing in which changed for `idle_after`
+#   (24h by default) is removed by `--apply` with its branch, the row naming
+#   the signal. Refused: the same one with one fresh file is kept, naming it;
+#   `idle_after = "0"` keeps it; a dirty and an unmanaged one, aged too, are
+#   kept for their own reasons.
 
 echo "== resources: war cleanup (OW-ADR-0037) =="
 unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID OPENCODE_SESSION_ID OPENCODE
@@ -48,7 +55,7 @@ rc_in "$RC_R" git checkout -q -b war-go/side >/dev/null && echo s > "$RC_R/side.
 
 dry=$(rc_in "$RC_R" "$RC_WAR" cleanup); drc=$?
 RC_UNKNOWN=0
-grep -q "^keep    .openwarrant/worktrees/$RC_DONE: process activity unknown$" <<<"$dry" && RC_UNKNOWN=1
+grep -q "^keep    .openwarrant/worktrees/$RC_DONE: process activity unknown; .* changed .* ago, within idle_after 24h$" <<<"$dry" && RC_UNKNOWN=1
 if [[ $drc -eq 0 && "$dry" == *"delete  war-go/merged"* && "$dry" == *"dry run:"* \
     && ( $RC_UNKNOWN -eq 1 || "$dry" == *"remove  .openwarrant/worktrees/$RC_DONE"* ) \
     && -d "$RC_W1" ]] && rc_in "$RC_R" git rev-parse -q --verify refs/heads/war-go/merged >/dev/null; then
@@ -91,4 +98,57 @@ if [[ -f "$RC_W2/wip.txt" && -d "$RC_T/foreign" ]] && has war-go/side && has "wa
     rc_ok "dirty, unmanaged, unmerged kept" "each with its reason"
 else
     rc_fail "dirty, unmanaged, unmerged kept" "$app"
+fi
+
+# The second signal: nothing changed for `idle_after`, where processes are hidden.
+RC_IDLE=$(rc_id "$(rc_in "$RC_R" "$RC_WAR" create "idle work")")
+rc_in "$RC_R" git add -A >/dev/null && rc_in "$RC_R" git commit -qm idle >/dev/null
+RC_W3="$RC_R/.openwarrant/worktrees/$RC_IDLE"
+rc_in "$RC_R" "$RC_WAR" start --worktree "$RC_IDLE" --print >/dev/null
+(cd "$RC_W3" && echo idle > idle.txt && "${RC_ENV[@]}" "$RC_WAR" done "$RC_IDLE" --note ok \
+    && "${RC_ENV[@]}" git add -A && "${RC_ENV[@]}" git commit -qm idle) >/dev/null 2>&1
+rc_in "$RC_R" git merge -q --no-edit "war-go/$RC_IDLE" >/dev/null
+[[ -n "$RC_IDLE" && -f "$RC_W3/idle.txt" ]] && rc_in "$RC_R" git merge-base --is-ancestor "war-go/$RC_IDLE" HEAD \
+    || { printf 'PLANT SETUP FAILED: idle worktree\n' >&2; exit 9; }
+rc_age() { local d; for d in "$@"; do find "$d" -path "$d/.git" -prune -o -exec touch -h -d "@$(($(date +%s) - 3 * 86400))" {} + ; done; }
+rc_hidden() { rc_in "$RC_R" env OPENWARRANT_TEST_PROCESS_PROBE=hidden "$RC_WAR" cleanup "$@"; }
+rc_age "$RC_W3" "$RC_W2" "$RC_T/foreign"
+RC_I=".openwarrant/worktrees/$RC_IDLE"
+d1=$(rc_hidden); d1rc=$?
+if [[ $d1rc -eq 0 && -d "$RC_W3" ]] && grep -qx "remove  $RC_I: activity unknown; idle 3d, past 24h" <<<"$d1"; then
+    rc_ok "idle past idle_after: eligible" "the dry run names the signal, removes nothing"
+else
+    rc_fail "idle past idle_after: eligible" "exit $d1rc: $(tr "\n" "|" <<<"$d1")"
+fi
+touch "$RC_W3/idle.txt"
+d2=$(rc_hidden); d2rc=$?
+if [[ $d2rc -eq 0 ]] && grep -qx "keep    $RC_I: process activity unknown; idle.txt changed 0m ago, within idle_after 24h" <<<"$d2"; then
+    rc_ok "a fresh file keeps it" "idle.txt named"
+else
+    rc_fail "a fresh file keeps it" "exit $d2rc: $(tr "\n" "|" <<<"$d2")"
+fi
+rc_age "$RC_W3"
+cp "$RC_R/openwarrant.toml" "$RC_T/config.bak"
+printf '\n[resources]\nidle_after = "0"\n' >> "$RC_R/openwarrant.toml"
+d3=$(rc_hidden); d3rc=$?
+/usr/bin/cp -f "$RC_T/config.bak" "$RC_R/openwarrant.toml"
+if [[ $d3rc -eq 0 ]] && grep -qx "keep    $RC_I: process activity unknown; idle_after 0" <<<"$d3"; then
+    rc_ok "idle_after = 0 keeps it" "the fallback is off"
+else
+    rc_fail "idle_after = 0 keeps it" "exit $d3rc: $(tr "\n" "|" <<<"$d3")"
+fi
+a2=$(rc_hidden --apply); a2rc=$?
+if [[ $a2rc -eq 0 && ! -e "$RC_W3" ]] && ! has "war-go/$RC_IDLE" \
+    && grep -qx "removed $RC_I: activity unknown; idle 3d, past 24h" <<<"$a2" \
+    && grep -qx "deleted war-go/$RC_IDLE" <<<"$a2"; then
+    rc_ok "--apply removes the idle one" "the worktree and war-go/$RC_IDLE"
+else
+    rc_fail "--apply removes the idle one" "exit $a2rc: $(tr "\n" "|" <<<"$a2")"
+fi
+if [[ -f "$RC_W2/wip.txt" && -d "$RC_T/foreign" ]] && has "war-go/$RC_DIRTY" && has war-go/foreign \
+    && grep -q "^keep    .openwarrant/worktrees/$RC_DIRTY: .*dirty" <<<"$a2" \
+    && grep -q "^keep    $RC_T/foreign: foreign or ownership unknown" <<<"$a2"; then
+    rc_ok "aged dirty and unmanaged kept" "idle is never enough alone"
+else
+    rc_fail "aged dirty and unmanaged kept" "$(tr "\n" "|" <<<"$a2")"
 fi

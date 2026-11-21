@@ -70,11 +70,43 @@ pub struct Config {
     pub slots: BTreeMap<String, u32>,
     #[serde(default)]
     pub max_worktrees: Option<u32>,
+    /// `Nh` or `Nd` (default 24h; 0 disables): where a process probe is
+    /// UNKNOWN, a worktree no file of which changed for this long is idle.
+    #[serde(default)]
+    pub idle_after: Option<String>,
     #[serde(skip)]
     pub configured: bool,
 }
 
+/// `[resources] idle_after` when absent.
+pub const IDLE_AFTER: &str = "24h";
+
+/// `Nh` or `Nd` in seconds; `0` (any unit) disables: `None`.
+pub fn idle_seconds(text: &str) -> Result<Option<u64>, String> {
+    let bad = || format!("[resources] idle_after {text:?}: Nh or Nd, or 0 to disable");
+    if text == "0" {
+        return Ok(None);
+    }
+    let (n, unit) = text.split_at(text.len().saturating_sub(1));
+    let per = match unit {
+        "h" => 3600,
+        "d" => 86_400,
+        _ => return Err(bad()),
+    };
+    let n: u64 = n
+        .parse()
+        .ok()
+        .filter(|_| n.bytes().all(|b| b.is_ascii_digit()))
+        .ok_or_else(bad)?;
+    Ok((n > 0).then(|| n.saturating_mul(per)))
+}
+
 impl Config {
+    /// `idle_after` in seconds, or `None` when it is 0.
+    pub fn idle_after(&self) -> Result<Option<u64>, String> {
+        idle_seconds(self.idle_after.as_deref().unwrap_or(IDLE_AFTER))
+    }
+
     /// How many may hold `slot` at once: configured, else 1.
     #[must_use]
     pub fn capacity(&self, slot: &str) -> u32 {
@@ -105,6 +137,7 @@ pub fn parse(text: &str) -> Result<Config, String> {
             "[resources.slots] {k}: letters, digits, - and _ only"
         ));
     }
+    c.idle_after()?;
     c.configured = true;
     Ok(c)
 }
@@ -911,10 +944,14 @@ pub fn cleanup(repo: &Repository, apply: bool, integration: &str) -> Result<Outc
         .filter(|r| !r.reasons.iter().any(|x| x == "primary checkout"))
     {
         let path = repo.relative(Utf8Path::new(&r.path));
+        let signal = r
+            .activity
+            .as_ref()
+            .map_or_else(String::new, |a| format!(": {a}"));
         if removed.contains(&r.path) {
-            lines.push(format!("removed {path}"));
+            lines.push(format!("removed {path}{signal}"));
         } else if r.prunable && !apply {
-            lines.push(format!("remove  {path}"));
+            lines.push(format!("remove  {path}{signal}"));
         } else {
             let why = if r.prunable {
                 "changed on recheck".to_owned()
@@ -961,7 +998,12 @@ pub fn leftovers(repo: &Repository) -> Option<String> {
     let rows = worktrees::inventory(repo, false, "HEAD").ok()?;
     let finished = rows
         .iter()
-        .filter(|r| r.managed && r.reasons.iter().all(|x| x == worktrees::ACTIVITY_UNKNOWN))
+        .filter(|r| {
+            r.managed
+                && r.reasons
+                    .iter()
+                    .all(|x| x.starts_with(worktrees::ACTIVITY_UNKNOWN))
+        })
         .count();
     let merged = branches(repo, "HEAD", &rows, &[])
         .iter()
@@ -1043,6 +1085,15 @@ mod tests {
         assert_eq!(c.capacity("build"), 2);
         assert_eq!(c.capacity("test"), 1, "an unconfigured slot holds one");
         assert_eq!(c.max_worktrees, Some(3));
+        assert_eq!(c.idle_after(), Ok(Some(86_400)), "24h by default");
+        let idle = |t: &str| parse(&format!("[resources]\nidle_after = \"{t}\"\n"));
+        assert_eq!(idle("3d").unwrap().idle_after(), Ok(Some(3 * 86_400)));
+        assert_eq!(idle("2h").unwrap().idle_after(), Ok(Some(7200)));
+        assert_eq!(idle("0").unwrap().idle_after(), Ok(None));
+        assert_eq!(idle("0h").unwrap().idle_after(), Ok(None));
+        for bad in ["", "h", "24", "1w", "-1d", "+1d", "1.5d"] {
+            assert!(idle(bad).is_err(), "{bad:?} refused");
+        }
         assert_eq!(c.seed.unwrap().argv(), ["sh", "-c", "cargo build"]);
         assert!(!parse("").unwrap().configured);
         assert!(parse("[resources.env]\n\"1X\" = \"y\"\n").is_err());

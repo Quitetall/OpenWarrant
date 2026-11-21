@@ -858,6 +858,7 @@ war start --lane db               # the next item; `lane db is done` at the end
 [resources]
 seed = "cargo build --workspace --all-targets"   # `war admin seed` runs it once
 max_worktrees = 4                                # `war start` refuses a fifth
+idle_after = "24h"                               # default; Nh or Nd; "0" turns it off
 [resources.env]                                  # every war worktree gets these
 CARGO_BUILD_BUILD_DIR = "{common}/openwarrant/build"   # {common}: the git common dir
 [resources.slots]
@@ -871,6 +872,11 @@ war run build -- cargo test -p api   # holds the build slot; waits naming the ho
 war cleanup                          # dry run: finished worktrees, merged war-go/* branches
 war cleanup --apply                  # removes them; dirty, claimed or foreign ones stay
 ```
+
+- Where processes are hidden (activity UNKNOWN), `war cleanup` takes a clean,
+  merged, unclaimed managed worktree as finished when nothing in it changed
+  for `idle_after`, and says so: `activity unknown; idle 3d, past 24h`. One
+  newer file keeps it, named.
 
 - `war start` writes the env to the session's Claude settings and to
   `.openwarrant/env` (`KEY=VALUE`), and says in the brief when the seed is
