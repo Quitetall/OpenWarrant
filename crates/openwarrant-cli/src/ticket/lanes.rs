@@ -148,7 +148,7 @@ pub fn find<'a, 'b>(lanes: &'b [Lane<'a>], query: &str) -> Result<&'b Lane<'a>, 
             format!(
                 "no lane `{q}`; lanes: {}",
                 if lanes.is_empty() {
-                    "none (`war lane new <name> --paths <glob>`)".to_owned()
+                    "none (`war plan lane new <name> --paths <glob>`)".to_owned()
                 } else {
                     lanes
                         .iter()
@@ -409,7 +409,7 @@ pub fn suits(tickets: &[Ticket], ticket: &str, who: &str) -> bool {
 
 // ---- commands ------------------------------------------------------------
 
-/// `war lane new <name> --paths <glob>… [--for <who>] [--after <lane>…]`.
+/// `war plan lane new <name> --paths <glob>… [--for <who>] [--after <lane>…]`.
 pub fn new(
     store: &Store,
     name: &str,
@@ -565,7 +565,7 @@ pub fn place(
             "lane.item-outside",
             store.rel(&lane.t.intent_path),
             format!(
-                "{g} is not inside lane `{}` ({}); widen the lane first (`war lane widen {} {g}`)",
+                "{g} is not inside lane `{}` ({}); widen the lane first (`war plan lane widen {} {g}`)",
                 lane.name(),
                 owned.join(", "),
                 lane.name()
@@ -807,7 +807,7 @@ pub(super) fn outside_refusal(
         OUTSIDE,
         file,
         format!(
-            "{what} is in lane {name} ({}); changed outside it since {}: {}. Undo those, or `war lane widen {name} <glob>` (journalled); nothing was written",
+            "{what} is in lane {name} ({}); changed outside it since {}: {}. Undo those, or `war plan lane widen {name} <glob>` (journalled); nothing was written",
             paths.join(", "),
             &base[..base.len().min(12)],
             out.join(", ")

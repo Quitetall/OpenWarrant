@@ -167,7 +167,7 @@ if paths and not any(rx(p).match(rel) for p in paths):
     held = r.get("held") or [{}]
     print("%s|%s" % (held[0].get("name", "?"), ", ".join(held[0].get("paths") or paths)))' "$rel")
 if [[ -n "$lane" ]]; then
-    deny "OpenWarrant: you hold an item of lane ${lane%%|*}, which owns ${lane#*|}. $rel is outside it, so \`war done\` would refuse the change. Leave it, or widen the lane on purpose: \`war lane widen ${lane%%|*} <glob>\` (journalled)."
+    deny "OpenWarrant: you hold an item of lane ${lane%%|*}, which owns ${lane#*|}. $rel is outside it, so \`war done\` would refuse the change. Leave it, or widen the lane on purpose: \`war plan lane widen ${lane%%|*} <glob>\` (journalled)."
 fi
 
 pinned=$("$war_cmd" --json pins --resolved-only 2>/dev/null | python3 -c 'import sys, json
