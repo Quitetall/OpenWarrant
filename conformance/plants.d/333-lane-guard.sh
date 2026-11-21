@@ -7,7 +7,7 @@
 #   item held, the guard says nothing about lanes.
 
 echo "== the edit guard holds a lane runner to its paths =="
-unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID
+unset OPENWARRANT_SESSION_ID KATANA_SESSION_ID CODEX_THREAD_ID CODEX_SESSION_ID CLAUDE_CODE_SESSION_ID OPENCODE_SESSION_ID OPENCODE
 LG_WAR="$REPO_ROOT/${WAR#./}"
 LG_HOOK="$REPO_ROOT/.claude/hooks/guard-pins.sh"
 lg_ok()   { printf 'ok    %-34s %s\n' "$1" "$2"; PASSED=$((PASSED + 1)); }
