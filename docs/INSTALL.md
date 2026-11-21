@@ -10,8 +10,8 @@ other platform, build from source (the third way below).
 
 | how | the line | today |
 |---|---|---|
-| `install.sh` | `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh \| bash` | works; `war admin update` manages the result |
-| cargo-binstall | `cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli` | works once the binstall metadata is on `main` (below) |
+| `install.sh` | `curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh \| bash` | works; `war admin update` manages the result |
+| cargo-binstall | `cargo binstall --git https://github.com/OpenHuman-Technologies-LLC/OpenWarrant openwarrant-cli` | works once the binstall metadata is on `main` (below) |
 | cargo-binstall, from crates.io | `cargo binstall openwarrant-cli` | not yet: nothing is published on crates.io ([PUBLISHING.md](PUBLISHING.md)) |
 | Homebrew | `brew install quitetall/openwarrant/openwarrant` | not yet: the tap repository does not exist (below) |
 | `cargo install`, from crates.io | `cargo install --locked openwarrant-cli` | not yet, as above; from a clone it works |
@@ -27,7 +27,7 @@ way they were installed.
 layout `war admin update` manages. After that, `war admin update` owns the install.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash
 ```
 
 What it does:
@@ -48,7 +48,7 @@ What it does:
 first, take the copy attached to a release:
 
 ```bash
-curl -fsSLO https://github.com/Quitetall/OpenWarrant/releases/download/<tag>/install.sh
+curl -fsSLO https://github.com/OpenHuman-Technologies-LLC/OpenWarrant/releases/download/<tag>/install.sh
 less install.sh
 OW_VERSION=<tag> bash install.sh
 ```
@@ -101,7 +101,7 @@ ones `conformance/release/package.py` publishes.
 
 ```bash
 # Today, from the repository: binstall clones it to read the manifest.
-cargo binstall --git https://github.com/Quitetall/OpenWarrant openwarrant-cli
+cargo binstall --git https://github.com/OpenHuman-Technologies-LLC/OpenWarrant openwarrant-cli
 # Once openwarrant-cli is on crates.io:
 cargo binstall openwarrant-cli
 ```
@@ -207,7 +207,7 @@ It installs nothing; only `war admin update` installs.
 and makes one GET to the releases list:
 
 ```text
-https://api.github.com/repos/Quitetall/OpenWarrant/releases
+https://api.github.com/repos/OpenHuman-Technologies-LLC/OpenWarrant/releases
 ```
 
 The request carries the request line, `host` and
@@ -248,7 +248,7 @@ release, or older, answers `war update` with "unrecognized subcommand", and
 nothing inside it can fix that. Three commands get out:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"   # and add this line to your shell profile
 war admin version                      # the new build, and any old `war` it shadows
 ```
@@ -434,7 +434,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
+      - uses: OpenHuman-Technologies-LLC/OpenWarrant/.github/actions/openwarrant-check@<commit sha>
         # with:
         #   war-version: v1.0.0-alpha.3   # a release instead of a build
         #   comment: "true"               # also comment; needs pull-requests: write
@@ -445,8 +445,8 @@ resolves `owner/repo/path@ref` for any ref: a commit, a branch or a tag.
 Two pins work:
 
 ```yaml
-- uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@<commit sha>   # immutable
-- uses: Quitetall/OpenWarrant/.github/actions/openwarrant-check@v1.0.0-alpha.3 # a release tag
+- uses: OpenHuman-Technologies-LLC/OpenWarrant/.github/actions/openwarrant-check@<commit sha>   # immutable
+- uses: OpenHuman-Technologies-LLC/OpenWarrant/.github/actions/openwarrant-check@v1.0.0-alpha.3 # a release tag
 ```
 
 A commit SHA is the pin to prefer: it cannot move. A release tag reads
