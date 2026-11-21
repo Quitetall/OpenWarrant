@@ -100,8 +100,9 @@ tf_want label-both "$TF_A" --label backend --label auth
 tf_want label-mixed "" --label backend --label ui
 tf_want label-ui "$TF_B" -l ui
 tf_want state-done "$TF_C,$TF_D" --state done
-tf_want state-progress "$TF_B" --state in_progress
-tf_want state-open "$TF_E,$TF_A" --state open
+# The epic E is in progress: its part_of child B is claimed (FORMAT-1.0 §11.1).
+tf_want state-progress "$TF_B,$TF_E" --state in_progress
+tf_want state-open "$TF_A" --state open
 tf_want state-review "$TF_B" --state in_review
 tf_want text "$TF_D" --text "FLAKY cache"
 tf_want text-none "" --text "cache flaky"
