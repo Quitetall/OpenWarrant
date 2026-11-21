@@ -844,6 +844,42 @@ war start --lane db               # the next item; `lane db is done` at the end
 - `war.for` is a recommendation; nothing refuses an agent it does not name.
   `ready --for` lists only work marked for that agent (or its lane).
 - Item `paths` outside a lane keep their meaning: coordination, no refusal.
+- `war lane new … --reuse <path>…` records `war.reuse`; the runner's brief says
+  `Reuse: …`.
+- With `[lanes] cleanup = true` (the default), every lane plan ends in one
+  `cleanup` lane after every work lane: a docs pass, an architecture pass and
+  a resource pass. Run it with a different runner. `cleanup = false`: none.
+
+## Resources
+
+`[resources]` (OW-ADR-0037) keeps many agents from wasting one machine.
+
+```toml
+[resources]
+seed = "cargo build --workspace --all-targets"   # `war admin seed` runs it once
+max_worktrees = 4                                # `war start` refuses a fifth
+[resources.env]                                  # every war worktree gets these
+CARGO_BUILD_BUILD_DIR = "{common}/openwarrant/build"   # {common}: the git common dir
+[resources.slots]
+build = 1                                        # unconfigured slots hold one
+```
+
+```bash
+war admin seed                       # build once in the main checkout; records the revision
+war start --lane api --worktree      # one worktree per lane, reused by all its items
+war run build -- cargo test -p api   # holds the build slot; waits naming the holder
+war cleanup                          # dry run: finished worktrees, merged war-go/* branches
+war cleanup --apply                  # removes them; dirty, claimed or foreign ones stay
+```
+
+- `war start` writes the env to the session's Claude settings and to
+  `.openwarrant/env` (`KEY=VALUE`), and says in the brief when the seed is
+  missing or not in the base. It never builds.
+- `war run <slot> -- CMD` (canonically `war evidence run`) exits with CMD's
+  code. A holder whose process is gone is taken over, and that is said; one
+  that cannot be read is UNKNOWN, and CMD does not run.
+- `war done` on a lane's last item, and the plugin's Stop hook, say at most
+  one line about leftovers. Neither blocks.
 
 ## Questions
 

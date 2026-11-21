@@ -11,7 +11,7 @@ use std::{collections::BTreeSet, path::PathBuf};
 
 const SCHEMA: &str = "oh.war/managed-workspace/v1";
 /// A host that hides a same-user process cannot say a worktree is inactive.
-const ACTIVITY_UNKNOWN: &str = "process activity unknown";
+pub(crate) const ACTIVITY_UNKNOWN: &str = "process activity unknown";
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct Ownership {
     schema: String,
@@ -30,6 +30,16 @@ fn registry(root: &Utf8Path) -> Result<(Utf8PathBuf, String), String> {
         .map_err(|e| e.to_string())?;
     Ok((common.join("openwarrant/workspaces"), common.to_string()))
 }
+/// The clone's git common directory, canonical: what every worktree of it
+/// shares (`{common}` in `[resources.env]`).
+#[must_use]
+pub fn common_dir(root: &Utf8Path) -> Option<Utf8PathBuf> {
+    ticket::claim::git_layout(root)?
+        .common_dir
+        .canonicalize_utf8()
+        .ok()
+}
+
 fn marker(root: &Utf8Path, path: &Utf8Path) -> Result<Utf8PathBuf, String> {
     let (dir, _) = registry(root)?;
     Ok(dir.join(format!(
@@ -228,6 +238,7 @@ fn ignored_disposable(path: &Utf8Path, file: &str) -> bool {
     if file == ".openwarrant/session.json"
         || file == ".openwarrant/start.log"
         || file == ".openwarrant/go-packet.json"
+        || file == crate::resources::ENV_FILE
         || file == crate::ticket::next_file::FILE
         || file.starts_with(".openwarrant/state/checks/")
     {

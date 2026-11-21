@@ -27,7 +27,9 @@ mkdir -p "$LO_T/src/a" "$LO_T/src/d" && echo x >"$LO_T/src/a/x.rs"
 (cd "$LO_T" && "${LO_ENV[@]}" git init -q -b main && "${LO_ENV[@]}" "$LO_WAR" init >/dev/null 2>&1 \
     && "${LO_ENV[@]}" git add -A && "${LO_ENV[@]}" git commit -qm seed) \
     || { printf 'PLANT SETUP FAILED: repository\n' >&2; exit 9; }
-lo_count() { grep -rl '^war.lane: true' "$LO_T/docs" 2>/dev/null | wc -l | tr -d ' '; }
+# Work lanes only: the cleanup lane every lane plan ends in (OW-ADR-0037) is
+# not one of them.
+lo_count() { grep -rl '^war.lane: true' "$LO_T/docs" 2>/dev/null | xargs -r grep -L '^# cleanup$' | wc -l | tr -d ' '; }
 
 out=$(lo_war --json lane new api --paths src/a)
 [[ $(lo_rules <<<"$out") == "" && $(lo_count) == 1 ]] && lo_ok "lane new" "a lane is written" \

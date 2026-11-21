@@ -47,6 +47,8 @@ For table import use `war admin import table roadmap.md --section "Queue"`.
 See [milestone tables](MILESTONE-TABLES.md) for mapping and preservation rules.
 `war admin worktrees --prune` is a dry run; `--apply` requests conservative
 cleanup. Unknown ownership or process activity keeps the workspace.
+`war cleanup` (`war admin cleanup`) is the everyday spelling, and also deletes
+merged, unclaimed `war-go/*` branches nothing has checked out (OW-ADR-0037).
 
 ## The rules
 
@@ -151,7 +153,7 @@ so it stays there. Its top-level spelling is what retires.
 | Inspect or run local gate definitions (§44) | `war evidence gate` | `war gate` | often | group; `war gate` retiring |
 | §46 independent verification. Emits a request; ingests verdicts | `war evidence verify` | `war verify` | daily | group; `war verify` retiring |
 | Take Warrants to their sign-off unattended (t-cee5): deliver, run each gate-executed stage (`war evidence run`), record each cited gate not already admissible (`war evidence record`), run the configured independent verifier (`war evidence verify --run`), record the document gates last — then print what is left for a human. Idempotent and resumable: what is current is skipped. Never signs, never writes a disposition, never asks. See docs/SIGNING.md "One sitting" | `war evidence prepare` | `war prepare` | daily | group; `war prepare` retiring |
-| The ops / runs work kind (1.0 plan C4b): run a `service` stage's gate under its wall time, mint the receipt, write the submission | `war evidence run` | `war run` | often | group; `war run` retiring |
+| The ops / runs work kind (1.0 plan C4b): run a `service` stage's gate under its wall time, mint the receipt, write the submission. `war evidence run <slot> -- CMD…` runs CMD with `[resources.env]`, holding a build slot (OW-ADR-0037) | `war evidence run` | `war run` | often | group; `war run` retiring |
 | Perform an agent stage with the configured performer (OW-WAR-0069): the Dispatch goes in on stdin, a Stage Submission comes back on stdout, and it is ingested through `war evidence submit`'s refusals. It cannot decide the work is done — §51.2 — and writes nothing if the performer sends nothing | `war evidence perform` | `war perform` | daily | group; `war perform` retiring |
 | Run the work graph: what is ready, critical path first, each node in a worktree of its own (OW-WAR-0148 M15) | `war evidence go` | `war go` | often | group; `war go` retiring |
 | Ingest a Stage Submission something else produced (§51): it must name a dispatch this Warrant compiled and may not request its own resolution | `war evidence submit` | `war submit` | often | group; `war submit` retiring |
@@ -174,6 +176,8 @@ so it stays there. Its top-level spelling is what retires.
 | The records a task needs, cited by id, inside a byte budget | `war view context` | `war context` | daily | kept: FORMAT-1.0 §10.3 |
 | The corpus timeline (`oh.war/corpus-timeline/v1`): every journal event by day. The same as `war status --timeline`, and its envelope's command is `status`, as that one's is | `war status --timeline` | `war view timeline` | often | duplicate; retiring |
 | Inventory workspaces and conservatively reclaim only finished tool-owned ones | `war admin worktrees` | `war worktrees` | rare | group; `war worktrees` retiring |
+| Remove finished managed worktrees and merged, unclaimed `war-go/*` branches; a dry run unless `--apply` (OW-ADR-0037) | `war admin cleanup` | `war cleanup` | often | new; `war cleanup` kept, the everyday spelling |
+| Build the shared cache once: `[resources] seed` in the main checkout, with `[resources.env]`; records the seeded revision (OW-ADR-0037) | `war admin seed` | `war seed` | rare | new; `war seed` retiring |
 | Take an item or a whole Warrant, so no other agent works it | `war start <id> --claim` | `war admin claim`, `war claim` | daily | flag added; `war claim` retiring |
 | Compile the configured projections (§71.8) | `war admin compile` | `war compile` | daily | group; `war compile` retiring |
 | Read-only repository diagnostics; never signs, repairs, or starts work | `war admin doctor` | `war doctor` | daily | group; `war doctor` retiring |
@@ -383,6 +387,8 @@ and reports bounded recorded-question counts. See [INTERVIEWS.md](INTERVIEWS.md)
 | `war admin ledger` (M17: `record`, `prune`, `import`, `export`) | none: new, and only under the group | `ledger.record`, `ledger.prune`, `ledger.import`, `ledger.export` |
 | `war admin score` (M17) | none: new, and only under the group | `score`, `score.weights`, `score.statement`, `score.verify` |
 | `war admin worktrees` (alpha.6) | none: new, and only under the group | `worktrees` |
+| `war admin cleanup` (alpha.9, OW-ADR-0037) | `war cleanup` (kept) | `cleanup` |
+| `war admin seed` (alpha.9, OW-ADR-0037) | `war seed` (hidden, as every group member) | (no envelope: the seed command's output and exit code) |
 
 ### Top level, hidden, no group
 

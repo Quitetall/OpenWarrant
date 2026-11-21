@@ -103,6 +103,7 @@ pub mod repo;
 pub mod repos;
 pub mod resolution_cmd;
 pub mod resolve;
+pub mod resources;
 pub mod roadmap_cmd;
 pub mod roadmap_edit;
 pub mod run_cmd;
@@ -599,6 +600,8 @@ pub const GROUP_MEMBERS: &[(&str, &[&str])] = &[
     (
         "admin",
         &[
+            "cleanup",
+            "seed",
             "worktrees",
             "claim",
             "compile",
@@ -884,8 +887,9 @@ enum DailyCommand {
         #[arg(long, requires = "claim")]
         steal: bool,
         /// The next ready item of this lane (OW-ADR-0036), claimed with the
-        /// lane's paths; holding one of its items, that one.
-        #[arg(long, value_name = "LANE", conflicts_with_all = ["id", "worktree", "claim", "interactive"])]
+        /// lane's paths; holding one of its items, that one. With
+        /// `--worktree`, in the lane's one worktree (OW-ADR-0037).
+        #[arg(long, value_name = "LANE", conflicts_with_all = ["id", "claim", "interactive"])]
         lane: Option<String>,
         /// With --claim and `--as` another actor: put that actor's work in
         /// this checkout on purpose. Without it, that is refused: dispatch it
@@ -1175,6 +1179,10 @@ enum LaneCommand {
         /// A lane this one runs after; it may share that lane's files.
         #[arg(long, value_name = "LANE")]
         after: Vec<String>,
+        /// Paths or modules the lane should build on (`war.reuse`); its
+        /// runner's brief names them.
+        #[arg(long, value_name = "PATH", num_args = 1..)]
+        reuse: Vec<String>,
         #[arg(long = "as", value_name = "ACTOR")]
         actor: Option<String>,
     },
@@ -1851,16 +1859,27 @@ enum EvidenceCommand {
     },
     /// The ops / runs work kind (1.0 plan C4b): run a `service` stage's gate
     /// under its wall time, mint the receipt, write the submission.
+    ///
+    /// `war run <slot> -- CMD…` (OW-ADR-0037) instead runs CMD with the
+    /// `[resources.env]` variables, holding the named slot (`[resources.slots]`,
+    /// default one at a time). Waiting, it names the holder once; a holder
+    /// whose process is gone is taken over, and that is said. The exit code is
+    /// CMD's; a slot that cannot be read is UNKNOWN and CMD does not run.
     Run {
-        /// The Warrant's local alias.
+        /// The Warrant's local alias; with `-- CMD…`, the slot (`build`).
+        #[arg(value_name = "ALIAS|SLOT")]
         alias: String,
         /// The stage id, e.g. `STAGE-002`.
-        stage: String,
+        #[arg(required_unless_present = "command")]
+        stage: Option<String>,
         /// Run a stage of a contract no human has signed. The Dispatch the run
         /// is built from records `prototype://unauthorized`, and so does the
         /// receipt's subject.
         #[arg(long)]
         prototype: bool,
+        /// After `--`: the command to run holding the slot.
+        #[arg(last = true, value_name = "CMD", conflicts_with_all = ["stage", "prototype"])]
+        command: Vec<String>,
     },
     /// Perform an agent stage with the configured performer (OW-WAR-0069): the
     /// Dispatch goes in on stdin, a Stage Submission comes back on stdout, and
@@ -2256,6 +2275,26 @@ enum ViewCommand {
 /// the top level.
 #[derive(Subcommand)]
 enum AdminCommand {
+    /// Remove finished managed worktrees and merged `war-go/*` branches.
+    ///
+    /// A dry run by default; `--apply` removes. A worktree goes only when
+    /// `war admin worktrees --prune` would take it (managed, clean, merged,
+    /// unclaimed, unused); a branch only when it is merged into the
+    /// integration revision, checked out nowhere, and unclaimed.
+    Cleanup {
+        /// Remove what the dry run lists.
+        #[arg(long)]
+        apply: bool,
+        /// What "merged" is measured against.
+        #[arg(long, default_value = "HEAD")]
+        integration: String,
+        /// At most one line about leftovers, never a failure (the Stop hook).
+        #[arg(long, hide = true, conflicts_with = "apply")]
+        line: bool,
+    },
+    /// Build the shared cache once: run `[resources] seed` in the main
+    /// checkout with `[resources.env]`, and record the seeded revision.
+    Seed,
     /// Inventory workspaces and conservatively reclaim only finished tool-owned ones.
     Worktrees {
         #[arg(long)]
@@ -4243,6 +4282,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             };
             let mut outcome =
                 ticket::done_with(&store, &target, note.as_deref(), if_rev.as_deref(), check)?;
+            resources::after_done(&store, &target, &mut outcome);
             // A replay (`--at`) reads no harness's record.
             if at.is_none() || report.is_some() {
                 session_usage::after_done(&repository.root, &store, &mut outcome, report.as_ref());
@@ -4760,7 +4800,24 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
             lane,
             ..
         } => {
-            let id = (!id.is_empty()).then(|| id.join(" "));
+            let mut id = (!id.is_empty()).then(|| id.join(" "));
+            if worktree && let Some(lane) = &lane {
+                ticket::cache::permit();
+                let (_, store) = ctx.tickets(actor.as_deref())?;
+                let mut picked = ticket::lanes::pick(&store, lane)?;
+                // The lane's records are current in its worktree, once it has one.
+                if let ticket::lanes::Pick::Item { lane: lane_id, .. } = &picked
+                    && let Some(wt) = go::start::existing_root(&store.root, lane_id)
+                {
+                    let wt_repo = repo::Repository::discover(Some(wt))?;
+                    let wt_store = ticket::Store::open(&wt_repo, Some(&store.actor))?;
+                    picked = ticket::lanes::pick(&wt_store, lane_id)?;
+                }
+                match picked {
+                    ticket::lanes::Pick::Said(o) => return Ok(ticket_answer(mode, "start", &o)),
+                    ticket::lanes::Pick::Item { item, .. } => id = Some(item),
+                }
+            }
             if worktree {
                 let Some(id) = id else {
                     let refusal = ticket::Outcome::refused(
@@ -4787,6 +4844,7 @@ fn run_daily(ctx: &Ctx, command: DailyCommand) -> Result<u8, Box<dyn std::error:
                 None => ticket::start_cmd(&store, id.as_deref())?,
             };
             session_usage::after_start(&repository.root, &store, &mut outcome);
+            resources::after_start(&repository.root, &mut outcome);
             refresh_index_after_touching(&repository, &store, &outcome);
             ticket::next_file::after(&store, &outcome);
             Ok(ticket_answer(mode, "start", &outcome))
@@ -6004,12 +6062,20 @@ fn run_plan_member(ctx: &Ctx, command: PlanCommand) -> Result<u8, Box<dyn std::e
                     paths,
                     for_who,
                     after,
+                    reuse,
                     actor,
                 } => {
                     let (_, store) = ctx.tickets(actor.as_deref())?;
                     (
                         "lane.new",
-                        ticket::lanes::new(&store, &name, &paths, for_who.as_deref(), &after)?,
+                        ticket::lanes::new(
+                            &store,
+                            &name,
+                            &paths,
+                            for_who.as_deref(),
+                            &after,
+                            &reuse,
+                        )?,
                     )
                 }
                 LaneCommand::Widen { lane, glob, actor } => {
@@ -6973,8 +7039,23 @@ fn run_evidence_member(
             alias,
             stage,
             prototype,
+            command,
         } => {
             let repository = ctx.open_repo()?;
+            if !command.is_empty() {
+                let actor = ticket::Store::open(&repository, None).map_or_else(
+                    |_| std::env::var("OPENWARRANT_ACTOR").unwrap_or_else(|_| "UNKNOWN".into()),
+                    |s| s.actor,
+                );
+                return Ok(resources::run(
+                    &repository.root,
+                    &alias,
+                    &command,
+                    &actor,
+                    mode == output::Mode::Json,
+                ));
+            }
+            let stage = stage.unwrap_or_default();
             let report = run_cmd::run(&repository, &alias, &stage, prototype)?;
             Ok(output::finish(mode, "run", &report, None))
         }
@@ -7939,6 +8020,28 @@ fn run_preset(
 fn run_admin(ctx: &Ctx, command: AdminCommand) -> Result<u8, Box<dyn std::error::Error>> {
     let mode = ctx.mode;
     match command {
+        AdminCommand::Cleanup {
+            apply,
+            integration,
+            line,
+        } => {
+            let repo = ctx.open_repo()?;
+            if line {
+                if let Some(l) = resources::leftovers(&repo) {
+                    println!("{l}");
+                }
+                return Ok(EXIT_OK);
+            }
+            Ok(ticket_answer(
+                mode,
+                "cleanup",
+                &resources::cleanup(&repo, apply, &integration)?,
+            ))
+        }
+        AdminCommand::Seed => {
+            let repo = ctx.open_repo()?;
+            Ok(resources::seed(&repo.root, mode == output::Mode::Json))
+        }
         AdminCommand::Worktrees {
             prune,
             apply,
