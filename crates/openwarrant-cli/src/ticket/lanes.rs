@@ -11,6 +11,11 @@
 //!
 //! `war.lane` is critical (FORMAT-1.0 7.3): a lane document lists it in
 //! `requires`. `war.for` (who the work suits) refuses nothing.
+//!
+//! OW-ADR-0037: a lane's items share one worktree (`war start --worktree`);
+//! `war.reuse` names what a lane builds on (not critical); and with `[lanes]
+//! cleanup = true`, the default, every lane plan ends in one `cleanup` lane
+//! after every work lane.
 
 use std::collections::BTreeSet;
 
@@ -25,6 +30,16 @@ use crate::repo::RepoError;
 pub const LANE_KEY: &str = "war.lane";
 /// Who the work suits: an agent or a role.
 pub const FOR_KEY: &str = "war.for";
+/// What a lane builds on: paths or modules to reuse. Not critical.
+pub const REUSE_KEY: &str = "war.reuse";
+/// The lane every lane plan ends in, with `[lanes] cleanup = true`.
+pub const CLEANUP: &str = "cleanup";
+/// Its items, in order.
+pub const CLEANUP_ITEMS: [&str; 3] = [
+    "docs pass: docs match what changed",
+    "architecture pass: each new type or module checked against existing ones; merge duplicates into the existing one or justify them",
+    "resource pass: `war admin cleanup --apply`, scratch removed",
+];
 /// The journal event of a widening.
 pub const WIDENED: &str = "lane.widened";
 /// Two lanes running at the same time whose paths overlap.
@@ -72,6 +87,17 @@ pub fn for_of(t: &Ticket) -> Option<String> {
     }
 }
 
+/// `war.reuse` of `t` itself.
+#[must_use]
+pub fn reuse_of(t: &Ticket) -> Vec<String> {
+    if !t.checklist_text.contains(REUSE_KEY) {
+        return Vec::new();
+    }
+    front(t)
+        .map(|d| list(d.ext.get(REUSE_KEY)))
+        .unwrap_or_default()
+}
+
 /// One lane, as read.
 #[derive(Debug, Clone)]
 pub struct Lane<'a> {
@@ -91,6 +117,59 @@ impl Lane<'_> {
     pub fn name(&self) -> &str {
         &self.t.manifest.title
     }
+    #[must_use]
+    pub fn is_cleanup(&self) -> bool {
+        self.name().eq_ignore_ascii_case(CLEANUP)
+    }
+    /// The brief's lines for its runner: what to reuse, and for the cleanup
+    /// lane, who should run it.
+    #[must_use]
+    pub fn lines(&self) -> Vec<String> {
+        let mut out = Vec::new();
+        let reuse = reuse_of(self.t);
+        if !reuse.is_empty() {
+            out.push(format!("Reuse: {}", reuse.join(", ")));
+        }
+        if self.is_cleanup() && self.for_who.is_none() {
+            out.push(
+                "cleanup lane: best run by a different runner from the work lanes' (war.for unset)"
+                    .into(),
+            );
+        }
+        out
+    }
+}
+
+/// Where a lane item is worked: the lane's one worktree, claimed with the
+/// lane's paths.
+#[derive(Debug, Clone)]
+pub struct Workspace {
+    pub id: String,
+    pub paths: Vec<String>,
+    pub lines: Vec<String>,
+}
+
+/// The lane workspace of `t`, when `t` is an item of a lane.
+#[must_use]
+pub fn workspace_of(store: &Store, tickets: &[Ticket], t: &Ticket) -> Option<Workspace> {
+    let lanes = all(tickets);
+    let lane = lane_of(&lanes, t)?;
+    Some(Workspace {
+        id: lane.id().to_owned(),
+        paths: lane_paths(store, lane),
+        lines: lane.lines(),
+    })
+}
+
+/// Whether `ticket` is an item of a lane that is now done.
+#[must_use]
+pub fn finished_lane_of(tickets: &[Ticket], ticket: &str) -> bool {
+    let lanes = all(tickets);
+    tickets
+        .iter()
+        .find(|t| t.id() == ticket)
+        .and_then(|t| lane_of(&lanes, t))
+        .is_some_and(|l| done(&super::children_of(tickets, l.id())))
 }
 
 /// Every lane in `tickets`, in id order.
@@ -416,6 +495,7 @@ pub fn new(
     paths: &[String],
     for_who: Option<&str>,
     after: &[String],
+    reuse: &[String],
 ) -> Result<Outcome, RepoError> {
     let name = name.trim();
     if name.is_empty() {
@@ -453,10 +533,16 @@ pub fn new(
             Err(refusal) => return Ok(*refusal),
         }
     }
-    // Its ancestors run before it; every other lane not done runs beside it.
+    // Its ancestors run before it; every other lane not done runs beside it,
+    // but the cleanup lane, which is about to run after it.
+    let cleanup =
+        crate::resources::cleanup_lane(&store.root) && !name.eq_ignore_ascii_case(CLEANUP);
     let ancestor = |id: &str| after_ids.iter().any(|a| reaches(&lanes, a, id));
     for l in &lanes {
-        if ancestor(l.id()) || done(&super::children_of(&tickets, l.id())) {
+        if ancestor(l.id())
+            || done(&super::children_of(&tickets, l.id()))
+            || (cleanup && l.is_cleanup())
+        {
             continue;
         }
         if let Some(why) = overlap(&paths, &lane_paths(store, l)) {
@@ -487,6 +573,11 @@ pub fn new(
             after: after_ids.clone(),
             lane: true,
             for_who: for_who.map(str::to_owned).filter(|s| !s.trim().is_empty()),
+            reuse: reuse
+                .iter()
+                .map(|r| r.trim().to_owned())
+                .filter(|r| !r.is_empty())
+                .collect(),
             ..authoring::Scope::default()
         },
         tests: Vec::new(),
@@ -506,9 +597,138 @@ pub fn new(
             format!("  after {}", after_ids.join(", "))
         }
     );
-    out.result["lane"] =
-        serde_json::json!({"name": name, "paths": paths, "after": after_ids, "for": for_who});
+    out.result["lane"] = serde_json::json!({"name": name, "paths": paths, "after": after_ids, "for": for_who, "reuse": reuse});
+    if cleanup {
+        match ensure_cleanup(store)? {
+            Ok(Some(said)) => {
+                out.human.push('\n');
+                out.human.push_str(&said);
+            }
+            Ok(None) => {}
+            Err(refusal) => {
+                for d in refusal.report.diagnostics {
+                    let message = format!("the cleanup lane was not kept: {}", d.message);
+                    out.report.push(crate::diagnostic::Diagnostic::unknown(
+                        d.rule,
+                        d.file.unwrap_or_default(),
+                        message,
+                    ));
+                }
+            }
+        }
+    }
     Ok(out)
+}
+
+fn blocker_ref(b: &Blocker) -> String {
+    match b {
+        Blocker::Item { item } => item.clone(),
+        Blocker::Ticket { ticket } => ticket.clone(),
+        Blocker::ItemOf { ticket, item } => format!("{ticket}/{item}"),
+    }
+}
+
+/// With `[lanes] cleanup = true`: one `cleanup` lane after every work lane,
+/// with [`CLEANUP_ITEMS`]. Idempotent: what exists is kept, what is missing
+/// is added. `Ok(Some(line))` says what changed; `Err` a refusal on the way.
+fn ensure_cleanup(store: &Store) -> Result<Result<Option<String>, Outcome>, RepoError> {
+    let (tickets, _) = store.load_all()?;
+    let lanes = all(&tickets);
+    let work: Vec<String> = lanes
+        .iter()
+        .filter(|l| !l.is_cleanup())
+        .map(|l| l.id().to_owned())
+        .collect();
+    if work.is_empty() {
+        return Ok(Ok(None));
+    }
+    let mut said = Vec::new();
+    let id = if let Some(c) = lanes.iter().find(|l| l.is_cleanup()) {
+        let have: Vec<String> = c.t.depends_on.iter().map(blocker_ref).collect();
+        let missing: Vec<String> = work.iter().filter(|w| !have.contains(w)).cloned().collect();
+        if !missing.is_empty() {
+            let mut all_after = have.clone();
+            all_after.extend(missing.iter().cloned());
+            let mut changes = serde_json::Map::new();
+            changes.insert("depends_on".into(), serde_json::json!(all_after));
+            let edited = authoring::edit(store, c.t, &changes, None)?;
+            if edited.is_refused() {
+                return Ok(Err(edited));
+            }
+            said.push(format!(
+                "cleanup lane {}: after + {}",
+                c.id(),
+                missing.join(", ")
+            ));
+        }
+        c.id().to_owned()
+    } else {
+        let args = CreateArgs {
+            title: CLEANUP.to_owned(),
+            summary: None,
+            items: Vec::new(),
+            body: None,
+            priority: None,
+            kind: None,
+            labels: Vec::new(),
+            part_of: None,
+            issue: None,
+            scope: authoring::Scope {
+                paths: vec!["**".to_owned()],
+                after: work.clone(),
+                lane: true,
+                ..authoring::Scope::default()
+            },
+            tests: Vec::new(),
+            force: true,
+        };
+        let made = super::create(store, &args)?;
+        if made.is_refused() {
+            return Ok(Err(made));
+        }
+        let id = made.result["id"].as_str().unwrap_or_default().to_owned();
+        said.push(format!(
+            "cleanup lane {id}: after every work lane; run it with a different runner"
+        ));
+        id
+    };
+    let (tickets, _) = store.load_all()?;
+    let titles: Vec<String> = super::children_of(&tickets, &id)
+        .iter()
+        .map(|t| t.manifest.title.clone())
+        .collect();
+    let mut added = 0;
+    for item in CLEANUP_ITEMS {
+        if titles.iter().any(|t| t == item) {
+            continue;
+        }
+        let mut args = CreateArgs {
+            title: item.to_owned(),
+            summary: None,
+            items: Vec::new(),
+            body: None,
+            priority: None,
+            kind: None,
+            labels: Vec::new(),
+            part_of: None,
+            issue: None,
+            scope: authoring::Scope::default(),
+            tests: Vec::new(),
+            force: true,
+        };
+        if let Err(refusal) = place(store, &id, &mut args)? {
+            return Ok(Err(refusal));
+        }
+        let made = super::create(store, &args)?;
+        if made.is_refused() {
+            return Ok(Err(made));
+        }
+        added += 1;
+    }
+    if added > 0 && said.is_empty() {
+        said.push(format!("cleanup lane {id}: + {added} item(s)"));
+    }
+    Ok(Ok((!said.is_empty()).then(|| said.join("\n"))))
 }
 
 /// Whether `from` runs after `to`, directly or through other lanes.
@@ -580,24 +800,76 @@ pub fn place(
     Ok(Ok(()))
 }
 
+/// The item `war start --lane` hands over: the one held, else the next
+/// ready one; or what to say instead (done, empty, waiting).
+pub enum Pick {
+    Item {
+        lane: String,
+        name: String,
+        paths: Vec<String>,
+        lines: Vec<String>,
+        item: String,
+        held: bool,
+    },
+    Said(Outcome),
+}
+
 /// `war start --lane <lane>`: the lane's next ready item, claimed with the
 /// lane's paths, and its brief. Holding one of its items, that one again.
 pub fn start(store: &Store, query: &str) -> Result<Outcome, RepoError> {
+    let (lane, name, paths, lines, next, held) = match pick(store, query)? {
+        Pick::Said(o) => return Ok(o),
+        Pick::Item {
+            lane,
+            name,
+            paths,
+            lines,
+            item,
+            held,
+        } => (lane, name, paths, lines, item, held),
+    };
+    if !held {
+        let claimed = super::claim_scoped(store, &next, false, &paths)?;
+        if claimed.is_refused() {
+            return Ok(claimed);
+        }
+    }
+    let mut out = super::start_cmd(store, Some(&next))?;
+    if !out.is_refused() {
+        out.human = format!("lane {name}: {}\n{}", paths.join(", "), out.human);
+        if !lines.is_empty() {
+            out.human = format!("{}\n{}", out.human.trim_end(), lines.join("\n"));
+        }
+        out.result["lane"] = serde_json::json!({"id": lane, "name": name, "paths": paths});
+    }
+    Ok(out)
+}
+
+/// What `war start --lane <lane>` would hand over; nothing is claimed.
+pub fn pick(store: &Store, query: &str) -> Result<Pick, RepoError> {
     let (tickets, _) = store.load_all()?;
     let lanes = all(&tickets);
     let lane = match find(&lanes, query) {
         Ok(l) => l,
-        Err(refusal) => return Ok(*refusal),
+        Err(refusal) => return Ok(Pick::Said(*refusal)),
     };
     let members = ordered(super::children_of(&tickets, lane.id()));
     let name = lane.name().to_owned();
     let paths = lane_paths(store, lane);
     let held = super::held_by_me(store)?;
-    let next = if let Some(m) = members
+    let item = |id: &str, held: bool| Pick::Item {
+        lane: lane.id().to_owned(),
+        name: name.clone(),
+        paths: paths.clone(),
+        lines: lane.lines(),
+        item: id.to_owned(),
+        held,
+    };
+    if let Some(m) = members
         .iter()
         .find(|m| !m.is_done() && held.iter().any(|h| h == m.id()))
     {
-        m.id().to_owned()
+        Ok(item(m.id(), true))
     } else {
         let Some(m) = members.iter().find(|m| !m.is_done()) else {
             let said = if members.is_empty() {
@@ -605,10 +877,10 @@ pub fn start(store: &Store, query: &str) -> Result<Outcome, RepoError> {
             } else {
                 format!("lane {name} is done")
             };
-            return Ok(Outcome::ok(
+            return Ok(Pick::Said(Outcome::ok(
                 said,
                 serde_json::json!({"schema": "oh.war/ticket-start/v1", "ticket": null, "lane": lane.id()}),
-            ));
+            )));
         };
         let rows = super::ready_rows(store, &tickets)?;
         if !rows.iter().any(|r| r.ticket == m.id()) {
@@ -629,7 +901,7 @@ pub fn start(store: &Store, query: &str) -> Result<Outcome, RepoError> {
                     "claimed, or its paths conflict with a live claim (`war view prime`)".into(),
                 );
             }
-            return Ok(Outcome::refused(
+            return Ok(Pick::Said(Outcome::refused(
                 "lane.waiting",
                 store.rel(&m.intent_path),
                 format!(
@@ -638,20 +910,10 @@ pub fn start(store: &Store, query: &str) -> Result<Outcome, RepoError> {
                     m.manifest.title,
                     why.join(", ")
                 ),
-            ));
+            )));
         }
-        let claimed = super::claim_scoped(store, m.id(), false, &paths)?;
-        if claimed.is_refused() {
-            return Ok(claimed);
-        }
-        m.id().to_owned()
-    };
-    let mut out = super::start_cmd(store, Some(&next))?;
-    if !out.is_refused() {
-        out.human = format!("lane {name}: {}\n{}", paths.join(", "), out.human);
-        out.result["lane"] = serde_json::json!({"id": lane.id(), "name": name, "paths": paths});
+        Ok(item(m.id(), false))
     }
-    Ok(out)
 }
 
 /// `war lane widen <lane> <glob>`: the glob joins the lane's paths, and

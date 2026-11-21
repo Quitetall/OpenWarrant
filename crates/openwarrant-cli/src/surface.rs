@@ -42,8 +42,9 @@ pub const FOLDS: &[(&str, &str)] = &[
 /// §10.3 and `llms.txt`. `apply`, §10.5. `merge-ticket`, written into clones'
 /// git configuration. `mcp` and `sdk`, in harness configuration. `host`, the
 /// Liminal protocol. `lane`, OW-ADR-0036's spelling, which the plugin's edit
-/// guard runs (`war lane held`).
+/// guard runs (`war lane held`). `cleanup`, OW-ADR-0037's everyday spelling.
 pub const KEPT: &[&str] = &[
+    "cleanup",
     "context",
     "apply",
     "merge-ticket",

@@ -1516,6 +1516,7 @@ impl WarServer {
                 None => crate::ticket::start_cmd(s, p.target.as_deref())?,
             };
             crate::session_usage::after_start(&self.repo.root, s, &mut outcome);
+            crate::resources::after_start(&self.repo.root, &mut outcome);
             Ok(outcome)
         })
     }
@@ -1577,6 +1578,7 @@ impl WarServer {
                 p.if_rev.as_deref(),
                 p.check,
             )?;
+            crate::resources::after_done(s, &target, &mut outcome);
             crate::session_usage::after_done(&self.repo.root, s, &mut outcome, None);
             Ok(outcome)
         })

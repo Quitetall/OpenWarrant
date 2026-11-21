@@ -82,6 +82,9 @@ pub struct Scope {
     pub lane: bool,
     /// `war.for`: who the work suits. A recommendation; not critical.
     pub for_who: Option<String>,
+    /// `war.reuse` (OW-ADR-0037): paths or modules a lane builds on. Not
+    /// critical.
+    pub reuse: Vec<String>,
 }
 
 /// `text` with `scope` in its frontmatter.
@@ -107,6 +110,9 @@ pub(crate) fn with_scope(text: &str, scope: &Scope) -> String {
     }
     if let Some(who) = &scope.for_who {
         lines.push_str(&format!("{}: {}\n", super::lanes::FOR_KEY, quote(who)));
+    }
+    if !scope.reuse.is_empty() {
+        lines.push_str(&block(super::lanes::REUSE_KEY, &scope.reuse));
     }
     if let Some(change) = &scope.change {
         lines.push_str(&format!("{}: {change}\n", super::change::CHANGE_KEY));

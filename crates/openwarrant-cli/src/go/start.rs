@@ -134,6 +134,19 @@ fn shell_quote(s: &str) -> String {
     }
 }
 
+/// The checkout root inside the existing worktree of `workspace` (a node or
+/// a lane), when it has one: where that work's records are current.
+#[must_use]
+pub fn existing_root(root: &Utf8Path, workspace: &str) -> Option<Utf8PathBuf> {
+    let policy = policy::load(root).ok()?;
+    let top = git::toplevel(root)?;
+    let below = root.strip_prefix(&top).map(Utf8Path::to_owned).ok()?;
+    let worktree = root.join(&policy.worktrees).join(git::slug(workspace));
+    let branch = git::node_branch(workspace);
+    (worktree.join(".git").exists() && crate::worktrees::is_managed(root, &worktree, &branch))
+        .then(|| worktree.join(below))
+}
+
 /// `war start <id>`.
 pub fn run(
     repo: &Repository,
@@ -174,10 +187,13 @@ pub fn run(
     let dispatcher = Store::open(repo, None).map_or_else(|_| actor.clone(), |s| s.actor);
     // What the id names, read here; the claim is taken in the worktree.
     let (tickets, _) = here.load_all()?;
+    // OW-ADR-0037: a lane's items share one worktree, on the lane's branch.
+    let mut lane = None;
     let (node, warrant_dir, allowed_here, title) = if crate::ticket::is_ticket_ref(id) {
         match crate::ticket::resolve(&tickets, id) {
             Ok(crate::ticket::Target::Item(n, item)) => {
                 let t = &tickets[n];
+                lane = crate::ticket::lanes::workspace_of(&here, &tickets, t);
                 (
                     format!("{}/{item}", t.id()),
                     if t.format {
@@ -195,6 +211,7 @@ pub fn run(
             }
             Ok(crate::ticket::Target::Ticket(n)) => {
                 let t = &tickets[n];
+                lane = crate::ticket::lanes::workspace_of(&here, &tickets, t);
                 (
                     t.id().to_owned(),
                     if t.format {
@@ -226,9 +243,14 @@ pub fn run(
             id.to_owned(),
         )
     };
-    let slug = git::slug(&node);
+    let workspace = lane.as_ref().map_or(node.as_str(), |l| l.id.as_str());
+    let slug = git::slug(workspace);
     let worktree = root.join(&policy.worktrees).join(&slug);
-    let branch = git::node_branch(&node);
+    let branch = git::node_branch(workspace);
+    let claim_paths = match &lane {
+        Some(l) if opts.paths.is_empty() => l.paths.clone(),
+        _ => opts.paths.clone(),
+    };
     let base_rev = opts.base.clone().unwrap_or_else(|| "HEAD".to_owned());
     let Some(base) = git::rev(&root, &base_rev) else {
         report.push(Diagnostic::error(
@@ -270,6 +292,10 @@ pub fn run(
         return Ok((report, serde_json::Value::Null, String::new()));
     }
     let created = !resumed;
+    if created && let Some(d) = crate::resources::worktree_limit(repo, &policy.integration) {
+        report.push(d);
+        return Ok((report, serde_json::Value::Null, String::new()));
+    }
     if created {
         let made = if git::branch_tip(&root, &branch).is_some() {
             // Work from an earlier session is on the branch: keep it.
@@ -322,7 +348,7 @@ pub fn run(
     };
     place.locate(&store, &wt_root);
     if crate::ticket::is_ticket_ref(&node) {
-        let claimed = crate::ticket::claim_scoped(&store, &node, false, &opts.paths)?;
+        let claimed = crate::ticket::claim_scoped(&store, &node, false, &claim_paths)?;
         if claimed.is_refused() {
             for d in claimed.report.diagnostics {
                 report.push(d);
@@ -420,6 +446,29 @@ pub fn run(
     } else {
         allowed_here
     };
+    // OW-ADR-0037: the resources env, where each harness reads it.
+    let resource_vars = match crate::resources::vars(&root) {
+        Ok(v) => v,
+        Err(why) => {
+            report.push(Diagnostic::unknown(
+                "resources.config",
+                crate::init::CONFIG_FILE.to_owned(),
+                format!("[resources.env] was not written: {why}"),
+            ));
+            Vec::new()
+        }
+    };
+    if !resource_vars.is_empty() {
+        let env_path = wt_root.join(crate::resources::ENV_FILE);
+        let _ = std::fs::create_dir_all(wt_root.join(".openwarrant"));
+        std::fs::write(&env_path, crate::resources::env_text(&resource_vars)).map_err(
+            |source| RepoError::Io {
+                context: format!("could not write {env_path}"),
+                source,
+            },
+        )?;
+        wrote.push(env_path.to_string());
+    }
     let acts = match policy.acts {
         policy::Acts::Projected => "projected",
         policy::Acts::Declared => "declared",
@@ -443,6 +492,9 @@ pub fn run(
                 settings["env"]["OPENWARRANT_CLAIM_ID"] = serde_json::json!(id);
             }
             settings["env"][crate::hotline::DISPATCHER_ENV] = serde_json::json!(dispatcher);
+            for (k, v) in &resource_vars {
+                settings["env"][k] = serde_json::json!(v);
+            }
             let body = serde_json::to_string_pretty(&settings).unwrap_or_default() + "\n";
             let _ = std::fs::create_dir_all(wt_root.join(".claude"));
             std::fs::write(&settings_path, &body).map_err(|source| RepoError::Io {
@@ -496,6 +548,17 @@ pub fn run(
             claim_id.as_ref().map(|_| actor.as_str()),
         )
     );
+    let mut extra = lane.as_ref().map(|l| l.lines.clone()).unwrap_or_default();
+    extra.extend(crate::resources::brief(
+        &root,
+        &base,
+        !resource_vars.is_empty(),
+    ));
+    if !extra.is_empty() {
+        brief.push('\n');
+        brief.push_str(&extra.join("\n"));
+        brief.push('\n');
+    }
     if !changes.is_empty() {
         brief.push('\n');
         brief.push_str(&crate::ticket::live::render(&node, &changes));
@@ -569,7 +632,8 @@ pub fn run(
             .current_dir(&wt_root)
             .env("OPENWARRANT_ACTOR", &actor)
             .env(crate::hotline::DISPATCHER_ENV, &dispatcher)
-            .env("WAR_GO_NODE", &node);
+            .env("WAR_GO_NODE", &node)
+            .envs(resource_vars.iter().map(|(k, v)| (k, v)));
         if let Some(id) = &claim_id {
             command.env("OPENWARRANT_CLAIM_ID", id);
         }
