@@ -1305,7 +1305,18 @@ pub fn lines(rows: &[Row], joins: &[Join]) -> Vec<String> {
     let mut out = Vec::new();
     for r in rows {
         let mut line = format!("lane {} {}  {}/{}", r.name, r.lane, r.done, r.items);
+        // A lane after one not done yet waits; offering its start would be refused.
+        let waits: Vec<&str> = r
+            .after
+            .iter()
+            .filter_map(|a| rows.iter().find(|o| &o.lane == a))
+            .filter(|o| o.state != "done")
+            .map(|o| o.name.as_str())
+            .collect();
         match &r.next {
+            Some(n) if !waits.is_empty() => {
+                line.push_str(&format!("  next {n}  waits on {}", waits.join(", ")));
+            }
             Some(n) => line.push_str(&format!("  next {n}  `war start --lane {}`", r.name)),
             None => line.push_str(&format!("  {}", r.state)),
         }
