@@ -3,7 +3,7 @@
 ## Start in three steps: tickets
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash   # or cargo install --path crates/openwarrant-cli
+curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash   # or cargo install --path crates/openwarrant-cli
 war init                       # asks nothing; vibe preset, no signatures; the namespace comes from the directory name (--namespace APP picks one)
 war create "Describe the outcome" --item "First step" --item "Second step"
 ```
@@ -139,7 +139,7 @@ cargo install --path crates/openwarrant-cli     # or a release tarball; `war --v
 ```
 
 Or install a release that `war admin update` keeps current:
-`curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`
+`curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash`
 ([docs/INSTALL.md](docs/INSTALL.md)).
 
 ## 1. Scaffold the program (agent or human, seconds)

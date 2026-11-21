@@ -22,8 +22,8 @@ rust-version = "1.97.1"
 # contribution terms are in place. This string lives in exactly one place because
 # the relicense changes it.
 license = "Apache-2.0"
-repository = "https://github.com/Quitetall/OpenWarrant"
-homepage = "https://github.com/Quitetall/OpenWarrant"
+repository = "https://github.com/OpenHuman-Technologies-LLC/OpenWarrant"
+homepage = "https://github.com/OpenHuman-Technologies-LLC/OpenWarrant"
 authors = ["Brian Lam <briankhanglam@gmail.com>"]
 readme = "README.md"
 keywords = ["warrant", "provenance", "audit", "governance", "jcs"]

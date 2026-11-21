@@ -33,7 +33,7 @@ From the existing repository, with a git remote named `origin`. Every step
 below was run as written in a scratch repository on alpha.8.
 
 1. **Install `war`** ([INSTALL.md](INSTALL.md)):
-   `curl -fsSL https://raw.githubusercontent.com/Quitetall/OpenWarrant/main/install.sh | bash`,
+   `curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash`,
    then check `war --version`.
 2. **Initialise, with checked completion and shared work:**
 
