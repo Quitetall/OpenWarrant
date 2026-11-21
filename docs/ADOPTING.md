@@ -30,7 +30,7 @@ promotion; ordinary implementation does not require that step.
 ### Setting it up
 
 From the existing repository, with a git remote named `origin`. Every step
-below was run as written in a scratch repository on alpha.8.
+below was run as written in a scratch repository on alpha.9.
 
 1. **Install `war`** ([INSTALL.md](INSTALL.md)):
    `curl -fsSL https://raw.githubusercontent.com/OpenHuman-Technologies-LLC/OpenWarrant/main/install.sh | bash`,
@@ -77,6 +77,36 @@ below was run as written in a scratch repository on alpha.8.
 
 6. **Try it:** `war create "First tracked change" --item "..."`, `war start`,
    `war done --note "..."`.
+7. **Parallel agents, optional: lanes and one build cache.** Add a shared build
+   cache to `openwarrant.toml`, so builds in every checkout and worktree `war`
+   makes start warm and take turns:
+
+   ```toml
+   [resources]
+   seed = "cargo build --workspace --all-targets"
+
+   [resources.env]
+   CARGO_BUILD_BUILD_DIR = "{common}/openwarrant/build"
+   ```
+
+   Then plan the work as lanes that don't share files, and give each lane to
+   one agent:
+
+   ```sh
+   war admin seed                                        # warm the cache once
+   war lane new api --paths 'src/api/**' --for codex
+   war lane new ui  --paths 'src/ui/**'  --for claude
+   war create "Add the endpoint" --lane api --item "..."
+   war start --lane api                                  # in the agent's session
+   war run build -- cargo test                           # builds take turns
+   war done --note "..."                                 # refused, naming the file, if it left src/api/
+   war admin cleanup --apply                             # once the lanes are merged
+   ```
+
+   A `cleanup` lane (docs, architecture and resource passes) follows the work
+   lanes by default, and waits until they are done. An empty lane counts as
+   not done, so give every lane an item or don't create it. [The ticket
+   loop](TICKETS.md), "Lanes" and "Resources".
 
 ## 1. Optional governed setup: record the baseline
 

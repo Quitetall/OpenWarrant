@@ -739,7 +739,13 @@ pub fn brief(root: &Utf8Path, base: &str, in_worktree: bool) -> Vec<String> {
 
 /// After an in-place `war start`: its resources lines.
 pub fn after_start(root: &Utf8Path, outcome: &mut Outcome) {
-    if outcome.is_refused() {
+    // Nothing handed over (a done or empty lane): nothing to build.
+    if outcome.is_refused()
+        || outcome
+            .result
+            .get("ticket")
+            .is_some_and(serde_json::Value::is_null)
+    {
         return;
     }
     let base = git::rev(root, "HEAD").unwrap_or_default();
